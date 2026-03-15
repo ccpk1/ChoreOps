@@ -414,6 +414,104 @@ class TestDailyMultiOptionsFlow:
         assert chore.get(const.DATA_CHORE_AUTO_APPROVE) is True
 
     @pytest.mark.asyncio
+    async def test_of_08_edit_existing_daily_multi_reopens_helper(
+        self,
+        hass: HomeAssistant,
+        scenario_minimal: SetupResult,
+    ) -> None:
+        """Editing an existing DAILY_MULTI chore should reopen the times helper."""
+        config_entry = scenario_minimal.config_entry
+        coordinator = scenario_minimal.coordinator
+        assignee_names = [k["name"] for k in coordinator.assignees_data.values()]
+
+        result = await hass.config_entries.options.async_init(config_entry.entry_id)
+        flow_id = result.get("flow_id")
+
+        result = await hass.config_entries.options.async_configure(
+            flow_id,  # type: ignore[arg-type]
+            user_input={OPTIONS_FLOW_INPUT_MENU_SELECTION: OPTIONS_FLOW_CHORES},
+        )
+        result = await hass.config_entries.options.async_configure(
+            flow_id,  # type: ignore[arg-type]
+            user_input={OPTIONS_FLOW_INPUT_MANAGE_ACTION: OPTIONS_FLOW_ACTIONS_ADD},
+        )
+
+        due_date = datetime.now(UTC) + timedelta(hours=3)
+        with patch.object(
+            coordinator.notification_manager, "notify_assignee", new=AsyncMock()
+        ):
+            result = await hass.config_entries.options.async_configure(
+                flow_id,  # type: ignore[arg-type]
+                user_input={
+                    CFOF_CHORES_INPUT_NAME: "OF08 Existing DailyMulti Edit",
+                    CFOF_CHORES_INPUT_DEFAULT_POINTS: 11,
+                    CFOF_CHORES_INPUT_ICON: "mdi:calendar-clock",
+                    CFOF_CHORES_INPUT_DESCRIPTION: "",
+                    CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: assignee_names[:1],
+                    CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY_MULTI,
+                    CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_SHARED,
+                    CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: APPROVAL_RESET_UPON_COMPLETION,
+                    CFOF_CHORES_INPUT_DUE_DATE: due_date,
+                },
+            )
+
+        assert result.get("step_id") == OPTIONS_FLOW_STEP_CHORES_DAILY_MULTI
+
+        result = await hass.config_entries.options.async_configure(
+            flow_id,  # type: ignore[arg-type]
+            user_input={CFOF_CHORES_INPUT_DAILY_MULTI_TIMES: "08:00|17:00"},
+        )
+        assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
+
+        result = await hass.config_entries.options.async_init(config_entry.entry_id)
+        flow_id = result.get("flow_id")
+        result = await hass.config_entries.options.async_configure(
+            flow_id,  # type: ignore[arg-type]
+            user_input={OPTIONS_FLOW_INPUT_MENU_SELECTION: OPTIONS_FLOW_CHORES},
+        )
+        result = await hass.config_entries.options.async_configure(
+            flow_id,  # type: ignore[arg-type]
+            user_input={OPTIONS_FLOW_INPUT_MANAGE_ACTION: OPTIONS_FLOW_ACTIONS_EDIT},
+        )
+        result = await hass.config_entries.options.async_configure(
+            flow_id,  # type: ignore[arg-type]
+            user_input={
+                OPTIONS_FLOW_INPUT_ENTITY_NAME: "OF08 Existing DailyMulti Edit"
+            },
+        )
+        assert result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE
+
+        result = await hass.config_entries.options.async_configure(
+            flow_id,  # type: ignore[arg-type]
+            user_input={
+                CFOF_CHORES_INPUT_NAME: "OF08 Existing DailyMulti Edit",
+                CFOF_CHORES_INPUT_DESCRIPTION: "Updated via edit",
+                CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY_MULTI,
+            },
+        )
+
+        assert result.get("step_id") == OPTIONS_FLOW_STEP_CHORES_DAILY_MULTI
+
+        result = await hass.config_entries.options.async_configure(
+            flow_id,  # type: ignore[arg-type]
+            user_input={CFOF_CHORES_INPUT_DAILY_MULTI_TIMES: "09:00|18:00"},
+        )
+        assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
+
+        await hass.async_block_till_done()
+        coordinator = config_entry.runtime_data
+        chore = next(
+            (
+                c
+                for c in coordinator.chores_data.values()
+                if c["name"] == "OF08 Existing DailyMulti Edit"
+            ),
+            None,
+        )
+        assert chore is not None
+        assert chore.get(DATA_CHORE_DAILY_MULTI_TIMES) == "09:00|18:00"
+
+    @pytest.mark.asyncio
     async def test_of_04c_helper_form_validates_too_many_times(
         self,
         hass: HomeAssistant,

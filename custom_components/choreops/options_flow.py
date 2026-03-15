@@ -27,7 +27,7 @@ from .utils.math_utils import parse_points_adjust_values
 
 if TYPE_CHECKING:
     from .helpers.dashboard_helpers import DashboardReleaseAssets
-    from .type_defs import BadgeData
+    from .type_defs import BadgeData, ChoreData
 
 # ----------------------------------------------------------------------------------
 # INITIALIZATION & HELPERS
@@ -249,6 +249,24 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             )
             for dependency_id in dependency_ids
         )
+
+    async def _async_route_to_daily_multi_helper(
+        self,
+        chore_data: "ChoreData | dict[str, Any]",
+        internal_id: str,
+        log_message: str,
+        *log_args: Any,
+        update_listeners: bool = False,
+    ) -> ConfigFlowResult:
+        """Store chore state and open the DAILY_MULTI times helper."""
+        self._chore_being_edited = dict(chore_data)
+        self._chore_being_edited[const.DATA_INTERNAL_ID] = internal_id
+
+        if update_listeners:
+            self._get_coordinator().async_update_listeners()
+
+        const.LOGGER.debug(log_message, *log_args)
+        return await self.async_step_chores_daily_multi()
 
     def _build_dashboard_template_preferences_markdown_lines(
         self,
@@ -683,14 +701,12 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
 
         # Retrieve HA users and existing assignees for linking
         users = await self.hass.auth.async_get_users()
-        # Build sorted assignment-participant dict for association dropdown.
         assignees_dict = {
             assignee_data[const.DATA_USER_NAME]: assignee_id
             for assignee_id, assignee_data in coordinator.assignees_data.items()
             if eh.is_user_assignment_participant(coordinator, assignee_id)
         }
-
-        user_schema = await fh.build_user_schema(
+        user_schema = fh.build_user_schema(
             self.hass, users=users, assignees_dict=assignees_dict
         )
 
@@ -1075,18 +1091,14 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
 
                     # CFE-2026-001 FIX: Single-assignee DAILY_MULTI without times
                     # needs to route to times helper (main form doesn't have times field)
-                    if (
-                        recurring_frequency == const.FREQUENCY_DAILY_MULTI
-                        and not template_daily_multi_times
-                    ):
-                        self._chore_being_edited = dict(final_chore)
-                        self._chore_being_edited[const.DATA_INTERNAL_ID] = internal_id
-                        const.LOGGER.debug(
+                    if recurring_frequency == const.FREQUENCY_DAILY_MULTI:
+                        return await self._async_route_to_daily_multi_helper(
+                            final_chore,
+                            internal_id,
                             "Added single-assignee INDEPENDENT DAILY_MULTI Chore '%s' "
                             "- routing to times helper",
                             chore_name,
                         )
-                        return await self.async_step_chores_daily_multi()
 
                     const.LOGGER.debug(
                         "Added single-assignee INDEPENDENT Chore '%s' with ID: %s",
@@ -1129,15 +1141,12 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                     immediate_persist=True,
                 )
 
-                # Store chore data for helper step
-                self._chore_being_edited = dict(new_chore_data)
-                self._chore_being_edited[const.DATA_INTERNAL_ID] = internal_id
-
-                const.LOGGER.debug(
+                return await self._async_route_to_daily_multi_helper(
+                    new_chore_data,
+                    internal_id,
                     "Added DAILY_MULTI Chore '%s' - routing to times helper",
                     chore_name,
                 )
-                return await self.async_step_chores_daily_multi()
 
             # Standard chore creation (SHARED/SHARED_FIRST or no special handling)
             # Use Manager-owned CRUD (prebuilt=True since new_chore_data is ready)
@@ -1402,25 +1411,14 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                         immediate_persist=True,
                     )
 
-                    # CFE-2026-001 FIX: Single-assignee DAILY_MULTI without times
-                    # needs to route to times helper (check per-assignee times too)
-                    existing_per_assignee_times = final_chore.get(
-                        const.DATA_CHORE_PER_ASSIGNEE_DAILY_MULTI_TIMES, {}
-                    )
-                    assignee_has_times = existing_per_assignee_times.get(assignee_id)
-                    if (
-                        recurring_freq == const.FREQUENCY_DAILY_MULTI
-                        and not template_daily_multi_times
-                        and not assignee_has_times
-                    ):
-                        # Store chore data with internal_id for times helper
-                        self._chore_being_edited = dict(final_chore)
-                        self._chore_being_edited[const.DATA_INTERNAL_ID] = internal_id
-                        const.LOGGER.debug(
-                            "Edited single-assignee INDEPENDENT chore to DAILY_MULTI "
-                            "- routing to times helper"
+                    if recurring_freq == const.FREQUENCY_DAILY_MULTI:
+                        return await self._async_route_to_daily_multi_helper(
+                            final_chore,
+                            str(internal_id),
+                            "Edited single-assignee INDEPENDENT DAILY_MULTI chore '%s' "
+                            "- routing to times helper",
+                            new_name,
                         )
-                        return await self.async_step_chores_daily_multi()
 
                     self._mark_reload_needed()
                     return await self.async_step_init()
@@ -1435,25 +1433,15 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 self._chore_template_daily_multi_times = template_daily_multi_times
                 return await self.async_step_edit_chore_per_user_details()
 
-            # CFE-2026-001: Check if DAILY_MULTI needs times collection/update
             recurring_frequency = merged_chore.get(const.DATA_CHORE_RECURRING_FREQUENCY)
-            existing_times = merged_chore.get(const.DATA_CHORE_DAILY_MULTI_TIMES, "")
-            if (
-                recurring_frequency == const.FREQUENCY_DAILY_MULTI
-                and not existing_times
-            ):
-                # DAILY_MULTI selected but no times yet - route to helper
-                # (already persisted above, just need to set up helper state)
-                self._chore_being_edited = dict(merged_chore)
-                coordinator.async_update_listeners()
-                # Orphan cleanup handled by ChoreManager CRUD methods (Phase 7.3)
-
-                self._chore_being_edited[const.DATA_INTERNAL_ID] = internal_id
-
-                const.LOGGER.debug(
-                    "Edited chore to DAILY_MULTI - routing to times helper"
+            if recurring_frequency == const.FREQUENCY_DAILY_MULTI:
+                return await self._async_route_to_daily_multi_helper(
+                    merged_chore,
+                    str(internal_id),
+                    "Edited DAILY_MULTI chore '%s' - routing to times helper",
+                    new_name,
+                    update_listeners=True,
                 )
-                return await self.async_step_chores_daily_multi()
 
             return await self.async_step_init()
 

@@ -24,6 +24,7 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
+from homeassistant.util import dt as dt_util
 import pytest
 
 from tests.helpers import (
@@ -208,6 +209,40 @@ class TestDailyMultiDueDateServices:
         )
 
     @pytest.mark.asyncio
+    async def test_dm_ind_repeated_skip_advances_between_slots(
+        self,
+        hass: HomeAssistant,
+        setup_enhanced_frequencies: SetupResult,
+    ) -> None:
+        """Repeated DAILY_MULTI skips should continue advancing slot by slot."""
+        coordinator = setup_enhanced_frequencies.coordinator
+        zoe_id = setup_enhanced_frequencies.assignee_ids["Zoë"]
+        chore_id = setup_enhanced_frequencies.chore_ids["Daily Multi Single Assignee"]
+
+        local_now = dt_util.as_local(dt_util.utcnow())
+        first_slot_local = local_now.replace(hour=9, minute=0, second=0, microsecond=0)
+        second_slot_local = local_now.replace(
+            hour=21, minute=0, second=0, microsecond=0
+        )
+        tomorrow_first_slot_local = first_slot_local + timedelta(days=1)
+
+        await coordinator.chore_manager.set_due_date(
+            chore_id,
+            first_slot_local.astimezone(UTC),
+            assignee_id=zoe_id,
+        )
+
+        await coordinator.chore_manager.skip_due_date(chore_id, assignee_id=zoe_id)
+        second_due = get_assignee_due_date_for_chore(coordinator, chore_id, zoe_id)
+        second_due_dt = parse_iso_datetime(second_due)
+        assert second_due_dt == second_slot_local.astimezone(UTC)
+
+        await coordinator.chore_manager.skip_due_date(chore_id, assignee_id=zoe_id)
+        third_due = get_assignee_due_date_for_chore(coordinator, chore_id, zoe_id)
+        third_due_dt = parse_iso_datetime(third_due)
+        assert third_due_dt == tomorrow_first_slot_local.astimezone(UTC)
+
+    @pytest.mark.asyncio
     async def test_dm_shared_set_daily_multi(
         self,
         hass: HomeAssistant,
@@ -290,6 +325,38 @@ class TestDailyMultiDueDateServices:
         assert new_dt != initial_dt, (
             f"Due date should have changed from {initial_dt} to something else"
         )
+
+    @pytest.mark.asyncio
+    async def test_dm_shared_repeated_skip_advances_between_slots(
+        self,
+        hass: HomeAssistant,
+        setup_enhanced_frequencies: SetupResult,
+    ) -> None:
+        """Repeated DAILY_MULTI skips should continue advancing shared slots."""
+        coordinator = setup_enhanced_frequencies.coordinator
+        chore_id = setup_enhanced_frequencies.chore_ids["Daily Multi Morning Evening"]
+
+        local_now = dt_util.as_local(dt_util.utcnow())
+        first_slot_local = local_now.replace(hour=7, minute=0, second=0, microsecond=0)
+        second_slot_local = local_now.replace(
+            hour=18, minute=0, second=0, microsecond=0
+        )
+        tomorrow_first_slot_local = first_slot_local + timedelta(days=1)
+
+        await coordinator.chore_manager.set_due_date(
+            chore_id,
+            first_slot_local.astimezone(UTC),
+        )
+
+        await coordinator.chore_manager.skip_due_date(chore_id)
+        second_due = get_chore_due_date(coordinator, chore_id)
+        second_due_dt = parse_iso_datetime(second_due)
+        assert second_due_dt == second_slot_local.astimezone(UTC)
+
+        await coordinator.chore_manager.skip_due_date(chore_id)
+        third_due = get_chore_due_date(coordinator, chore_id)
+        third_due_dt = parse_iso_datetime(third_due)
+        assert third_due_dt == tomorrow_first_slot_local.astimezone(UTC)
 
     @pytest.mark.asyncio
     async def test_dm_sf_set_daily_multi(
