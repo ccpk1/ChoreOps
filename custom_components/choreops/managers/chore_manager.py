@@ -2740,7 +2740,10 @@ class ChoreManager(BaseManager):
                     return  # No due date to skip
 
                 self._reschedule_chore_next_due_date_for_assignee(
-                    chore_info, chore_id, assignee_id
+                    chore_info,
+                    chore_id,
+                    assignee_id,
+                    use_current_due_as_reference=True,
                 )
                 self._transition_chore_state(
                     assignee_id,
@@ -2753,7 +2756,10 @@ class ChoreManager(BaseManager):
                 reset_events.add((assignee_id, chore_id, chore_name))
             else:
                 # Skip all assigned assignees
-                self._reschedule_chore_next_due(chore_info)
+                self._reschedule_chore_next_due(
+                    chore_info,
+                    use_current_due_as_reference=True,
+                )
                 for assigned_assignee_id in chore_info.get(
                     const.DATA_CHORE_ASSIGNED_USER_IDS, []
                 ):
@@ -2762,7 +2768,10 @@ class ChoreManager(BaseManager):
                         and assigned_assignee_id in self._coordinator.assignees_data
                     ):
                         self._reschedule_chore_next_due_date_for_assignee(
-                            chore_info, chore_id, assigned_assignee_id
+                            chore_info,
+                            chore_id,
+                            assigned_assignee_id,
+                            use_current_due_as_reference=True,
                         )
                         self._transition_chore_state(
                             assigned_assignee_id,
@@ -2784,7 +2793,10 @@ class ChoreManager(BaseManager):
                         "entity": f"chore '{chore_info.get(const.DATA_CHORE_NAME, chore_id)}'",
                     },
                 )
-            self._reschedule_chore_next_due(chore_info)
+            self._reschedule_chore_next_due(
+                chore_info,
+                use_current_due_as_reference=True,
+            )
             for assigned_assignee_id in chore_info.get(
                 const.DATA_CHORE_ASSIGNED_USER_IDS, []
             ):
@@ -5554,7 +5566,12 @@ class ChoreManager(BaseManager):
             # SHARED/SHARED_FIRST: chore-level
             self._reschedule_chore_next_due(chore_info)
 
-    def _reschedule_chore_next_due(self, chore_info: ChoreData) -> None:
+    def _reschedule_chore_next_due(
+        self,
+        chore_info: ChoreData,
+        *,
+        use_current_due_as_reference: bool = False,
+    ) -> None:
         """Reschedule chore's next due date (chore-level for SHARED chores)."""
         due_date_str = chore_info.get(const.DATA_CHORE_DUE_DATE)
         if not due_date_str:
@@ -5579,12 +5596,23 @@ class ChoreManager(BaseManager):
         if last_completed_str:
             completion_utc = dt_to_utc(last_completed_str)
 
+        reference_time = dt_util.utcnow()
+        if (
+            use_current_due_as_reference
+            and chore_info.get(
+                const.DATA_CHORE_RECURRING_FREQUENCY,
+                const.FREQUENCY_NONE,
+            )
+            == const.FREQUENCY_DAILY_MULTI
+        ):
+            reference_time = original_due_utc
+
         # Use schedule engine for calculation
         next_due_utc = calculate_next_due_date_from_chore_info(
             original_due_utc,
             chore_info,
             completion_timestamp=completion_utc,
-            reference_time=dt_util.utcnow(),
+            reference_time=reference_time,
         )
         if not next_due_utc:
             const.LOGGER.warning(
@@ -5616,7 +5644,12 @@ class ChoreManager(BaseManager):
         )
 
     def _reschedule_chore_next_due_date_for_assignee(
-        self, chore_info: ChoreData, chore_id: str, assignee_id: str
+        self,
+        chore_info: ChoreData,
+        chore_id: str,
+        assignee_id: str,
+        *,
+        use_current_due_as_reference: bool = False,
     ) -> None:
         """Reschedule per-assignee due date (INDEPENDENT mode).
 
@@ -5694,12 +5727,23 @@ class ChoreManager(BaseManager):
                 per_assignee_times[assignee_id]
             )
 
+        reference_time = dt_util.utcnow()
+        if (
+            use_current_due_as_reference
+            and chore_info_for_calc.get(
+                const.DATA_CHORE_RECURRING_FREQUENCY,
+                const.FREQUENCY_NONE,
+            )
+            == const.FREQUENCY_DAILY_MULTI
+        ):
+            reference_time = original_due_utc
+
         # Use schedule engine
         next_due_utc = calculate_next_due_date_from_chore_info(
             original_due_utc,
             cast("ChoreData", chore_info_for_calc),
             completion_timestamp=completion_utc,
-            reference_time=dt_util.utcnow(),
+            reference_time=reference_time,
         )
         if not next_due_utc:
             const.LOGGER.warning(
