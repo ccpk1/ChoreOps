@@ -19,13 +19,19 @@ from homeassistant.util import dt as dt_util
 
 from . import const
 from .coordinator import ChoreOpsConfigEntry
-from .engines.schedule_engine import RecurrenceEngine
+from .engines.schedule_engine import (
+    RecurrenceEngine,
+    calculate_next_due_date_from_chore_info,
+    calculate_next_multi_daily_due,
+)
 from .helpers.device_helpers import create_assignee_device_info_from_coordinator
 from .helpers.entity_helpers import (
     get_event_signal,
     should_create_entity_for_user_assignee,
 )
-from .utils.dt_utils import dt_now_local, dt_parse, parse_daily_multi_times
+from .helpers.translation_helpers import load_dashboard_translation
+from .type_defs import ChoreData
+from .utils.dt_utils import dt_now_local, dt_parse
 
 if TYPE_CHECKING:
     from .type_defs import ScheduleConfig
@@ -116,6 +122,7 @@ class AssigneeScheduleCalendar(CalendarEntity):
             tuple[str, int, str, tuple[int, ...], str], RecurrenceEngine
         ] = {}
         self._rrule_cache: dict[tuple[str, int, str, tuple[int, ...], str], str] = {}
+        self._dashboard_translations: dict[str, str] = {}
 
     def _get_timed_event_bounds(
         self,
@@ -131,6 +138,16 @@ class AssigneeScheduleCalendar(CalendarEntity):
     async def async_added_to_hass(self) -> None:
         """Subscribe to mutation signals that invalidate calendar caches."""
         await super().async_added_to_hass()
+
+        assignee_info = self.coordinator.assignees_data.get(self._assignee_id, {})
+        dashboard_language = assignee_info.get(
+            const.DATA_USER_DASHBOARD_LANGUAGE,
+            const.DEFAULT_DASHBOARD_LANGUAGE,
+        )
+        self._dashboard_translations = await load_dashboard_translation(
+            self.hass,
+            dashboard_language,
+        )
 
         invalidation_signals = (
             const.SIGNAL_SUFFIX_CHORE_CREATED,
@@ -357,6 +374,83 @@ class AssigneeScheduleCalendar(CalendarEntity):
         # SHARED chores: use chore-level
         return chore.get(const.DATA_CHORE_APPLICABLE_DAYS, [])
 
+    def _translate_dashboard_value(self, key: str, fallback: str) -> str:
+        """Translate a dashboard key with fallback text."""
+        return self._dashboard_translations.get(key, fallback)
+
+    def _get_assignee_names_for_chore(self, chore: dict) -> str:
+        """Return a user-facing assignee label for the chore."""
+        assigned_user_ids = chore.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
+        if not assigned_user_ids:
+            return self._assignee_name
+
+        assignee_names: list[str] = []
+        for assignee_id in assigned_user_ids:
+            assignee_info = self.coordinator.assignees_data.get(assignee_id, {})
+            assignee_names.append(
+                assignee_info.get(
+                    const.DATA_USER_NAME,
+                    f"{const.TRANS_KEY_LABEL_ASSIGNEE} {assignee_id}",
+                )
+            )
+
+        return ", ".join(assignee_names)
+
+    def _build_chore_description(self, chore: dict) -> str:
+        """Build a localized calendar description for a chore event."""
+        description = str(
+            chore.get(const.DATA_CHORE_DESCRIPTION, const.SENTINEL_EMPTY)
+        ).strip()
+        assigned_to_label = self._translate_dashboard_value(
+            "assigned_to",
+            const.LABEL_ASSIGNEE,
+        )
+        recurrence_label = self._translate_dashboard_value(
+            "recurrence",
+            "Recurrence",
+        )
+        completion_label = self._translate_dashboard_value(
+            "completion_criteria",
+            "Completion Type",
+        )
+
+        recurring = str(
+            chore.get(const.DATA_CHORE_RECURRING_FREQUENCY, const.FREQUENCY_NONE)
+        )
+        recurring_display = self._translate_dashboard_value(recurring, recurring)
+
+        completion_criteria = str(
+            chore.get(
+                const.DATA_CHORE_COMPLETION_CRITERIA,
+                const.COMPLETION_CRITERIA_SHARED,
+            )
+        )
+        completion_display = self._translate_dashboard_value(
+            completion_criteria,
+            completion_criteria,
+        )
+
+        points_label = str(
+            self._config_entry.options.get(
+                const.CONF_POINTS_LABEL,
+                const.DEFAULT_POINTS_LABEL,
+            )
+        )
+        points_value = chore.get(const.DATA_CHORE_DEFAULT_POINTS)
+
+        detail_lines = [
+            f"{assigned_to_label}: {self._get_assignee_names_for_chore(chore)}",
+            f"{recurrence_label}: {recurring_display}",
+            f"{completion_label}: {completion_display}",
+        ]
+        if points_value is not None:
+            detail_lines.append(f"{points_label}: {points_value}")
+
+        detail_summary = " | ".join(detail_lines)
+        if description:
+            return f"{description} | {detail_summary}"
+        return detail_summary
+
     def _generate_non_recurring_with_due_date(
         self,
         events: list[CalendarEvent],
@@ -429,6 +523,145 @@ class AssigneeScheduleCalendar(CalendarEntity):
             window_end,
             window_start + datetime.timedelta(days=self._daily_horizon_days()),
         )
+
+    def _scheduled_window_end(
+        self,
+        recurring: str,
+        window_start: datetime.datetime,
+        window_end: datetime.datetime,
+    ) -> datetime.datetime:
+        """Return the generation horizon for schedule-backed calendar expansion."""
+        if recurring in (const.FREQUENCY_DAILY, const.FREQUENCY_DAILY_MULTI):
+            return self._daily_window_end(window_start, window_end)
+        return window_end
+
+    def _build_schedule_chore_info(
+        self,
+        chore: dict,
+        applicable_days: list[int],
+    ) -> ChoreData:
+        """Build chore info for schedule calculations using assignee-specific days."""
+        chore_info_for_calc = dict(chore)
+        chore_info_for_calc[const.DATA_CHORE_APPLICABLE_DAYS] = list(applicable_days)
+        return cast("ChoreData", chore_info_for_calc)
+
+    def _next_scheduled_occurrence(
+        self,
+        chore_info: ChoreData,
+        current_due_utc: datetime.datetime,
+    ) -> datetime.datetime | None:
+        """Return the next due occurrence using the chore scheduling source of truth."""
+        recurring = chore_info.get(
+            const.DATA_CHORE_RECURRING_FREQUENCY,
+            const.FREQUENCY_NONE,
+        )
+        if recurring == const.FREQUENCY_DAILY_MULTI:
+            return calculate_next_multi_daily_due(
+                chore_info,
+                current_due_utc,
+                reference_time=current_due_utc,
+            )
+
+        return calculate_next_due_date_from_chore_info(
+            current_due_utc,
+            chore_info,
+            reference_time=current_due_utc,
+        )
+
+    def _add_daily_multi_occurrence_event(
+        self,
+        events: list[CalendarEvent],
+        summary: str,
+        description: str,
+        occurrence_utc: datetime.datetime,
+        window_start: datetime.datetime,
+        window_end: datetime.datetime,
+    ) -> None:
+        """Add one DAILY_MULTI slot occurrence using the persisted due-time series."""
+        local_occurrence = dt_util.as_local(occurrence_utc)
+        hour = local_occurrence.hour
+        if hour < 12:
+            time_label = "Morning"
+        elif hour < 17:
+            time_label = "Afternoon"
+        else:
+            time_label = "Evening"
+
+        event_summary = f"{summary} ({time_label})"
+        event_end = occurrence_utc + datetime.timedelta(minutes=15)
+        event = CalendarEvent(
+            summary=event_summary,
+            start=occurrence_utc,
+            end=event_end,
+            description=description,
+        )
+        self._add_event_if_overlaps(events, event, window_start, window_end)
+
+    def _generate_schedule_source_events(
+        self,
+        events: list[CalendarEvent],
+        chore_id: str,
+        summary: str,
+        description: str,
+        chore_info: ChoreData,
+        due_dt: datetime.datetime,
+        window_start: datetime.datetime,
+        window_end: datetime.datetime,
+    ) -> None:
+        """Generate due-dated recurrence events from the scheduling source of truth."""
+        recurring = chore_info.get(
+            const.DATA_CHORE_RECURRING_FREQUENCY,
+            const.FREQUENCY_NONE,
+        )
+        generation_end = self._scheduled_window_end(
+            recurring,
+            window_start,
+            window_end,
+        )
+
+        current_due_utc = due_dt
+        iterations = 0
+        while (
+            current_due_utc <= generation_end
+            and iterations < const.MAX_DATE_CALCULATION_ITERATIONS
+        ):
+            if recurring == const.FREQUENCY_DAILY_MULTI:
+                self._add_daily_multi_occurrence_event(
+                    events,
+                    summary,
+                    description,
+                    current_due_utc,
+                    window_start,
+                    window_end,
+                )
+            else:
+                event_start, event_end = self._get_timed_event_bounds(
+                    chore_id,
+                    current_due_utc,
+                )
+                event = CalendarEvent(
+                    summary=summary,
+                    start=event_start,
+                    end=event_end,
+                    description=description,
+                )
+                self._add_event_if_overlaps(events, event, window_start, window_end)
+
+            next_due_utc = self._next_scheduled_occurrence(
+                chore_info,
+                current_due_utc,
+            )
+            if next_due_utc is None or next_due_utc <= current_due_utc:
+                return
+
+            current_due_utc = next_due_utc
+            iterations += 1
+
+        if iterations >= const.MAX_DATE_CALCULATION_ITERATIONS:
+            const.LOGGER.warning(
+                "Calendar: Max schedule iterations reached for %s",
+                summary,
+            )
 
     def _generate_recurring_daily_with_due_date(
         self,
@@ -699,65 +932,26 @@ class AssigneeScheduleCalendar(CalendarEntity):
         window_start: datetime.datetime,
         window_end: datetime.datetime,
     ) -> None:
-        """Generate calendar events for DAILY_MULTI frequency chore.
-
-        CFE-2026-001 Feature 2: Creates separate events for each time slot.
-        For example, "Feed pets" at 08:00 and 17:00 shows as two events per day.
-
-        Args:
-            events: List to append events to
-            summary: Chore name
-            description: Chore description
-            chore: Full chore dict with daily_multi_times field
-            window_start: Start of calendar window
-            window_end: End of calendar window
-        """
-        times_str = chore.get(const.DATA_CHORE_DAILY_MULTI_TIMES, "")
-        if not times_str:
+        """Generate DAILY_MULTI calendar events from the scheduling source of truth."""
+        schedule_chore = self._build_schedule_chore_info(
+            chore,
+            self._get_applicable_days_for_assignee(chore),
+        )
+        due_date_str = chore.get(const.DATA_CHORE_DUE_DATE)
+        due_dt = dt_parse(due_date_str) if due_date_str else None
+        if not isinstance(due_dt, datetime.datetime):
             return
 
-        # Generate events for each day in the window
-        current_date = window_start.date()
-        end_date = window_end.date()
-        event_duration = datetime.timedelta(minutes=15)
-
-        while current_date <= end_date:
-            # Parse time slots for this day
-            time_slots = parse_daily_multi_times(
-                times_str,
-                reference_date=current_date,
-                timezone_info=const.DEFAULT_TIME_ZONE,
-            )
-
-            if not time_slots:
-                current_date += datetime.timedelta(days=1)
-                continue
-
-            # Create event for each time slot
-            for slot_local in time_slots:
-                slot_utc = dt_util.as_utc(slot_local)
-                slot_end = slot_utc + event_duration
-
-                # Add time-of-day indicator to summary
-                hour = slot_local.hour
-                if hour < 12:
-                    time_label = "Morning"
-                elif hour < 17:
-                    time_label = "Afternoon"
-                else:
-                    time_label = "Evening"
-
-                event_summary = f"{summary} ({time_label})"
-
-                e = CalendarEvent(
-                    summary=event_summary,
-                    start=slot_utc,
-                    end=slot_end,
-                    description=description,
-                )
-                self._add_event_if_overlaps(events, e, window_start, window_end)
-
-            current_date += datetime.timedelta(days=1)
+        self._generate_schedule_source_events(
+            events,
+            chore.get(const.DATA_CHORE_INTERNAL_ID, const.SENTINEL_EMPTY),
+            summary,
+            description,
+            schedule_chore,
+            due_dt,
+            window_start,
+            window_end,
+        )
 
     def _generate_events_for_chore(
         self,
@@ -784,7 +978,7 @@ class AssigneeScheduleCalendar(CalendarEntity):
         summary = chore.get(
             const.DATA_CHORE_NAME, const.TRANS_KEY_DISPLAY_UNKNOWN_CHORE
         )
-        description = chore.get(const.DATA_CHORE_DESCRIPTION, const.SENTINEL_EMPTY)
+        description = self._build_chore_description(chore)
         recurring = chore.get(
             const.DATA_CHORE_RECURRING_FREQUENCY, const.FREQUENCY_NONE
         )
@@ -827,54 +1021,31 @@ class AssigneeScheduleCalendar(CalendarEntity):
             return events
 
         # --- Recurring chores with a due_date ---
-        cutoff = min(due_dt, window_end)
-        if cutoff < window_start:
+        if due_dt < window_start:
             return events
 
-        if recurring == const.FREQUENCY_DAILY:
-            self._generate_recurring_daily_with_due_date(
-                events,
-                chore_id,
-                summary,
-                description,
-                due_dt,
-                applicable_days,
-                window_start,
-                self._daily_window_end(window_start, window_end),
-            )
-        elif recurring in (
+        schedule_chore = self._build_schedule_chore_info(chore, applicable_days)
+
+        if recurring in (
+            const.FREQUENCY_DAILY,
             const.FREQUENCY_WEEKLY,
             const.FREQUENCY_BIWEEKLY,
             const.FREQUENCY_MONTHLY,
+            const.FREQUENCY_QUARTERLY,
+            const.FREQUENCY_YEARLY,
             const.FREQUENCY_CUSTOM,
             const.FREQUENCY_CUSTOM_FROM_COMPLETE,
+            const.FREQUENCY_DAILY_MULTI,
         ):
-            interval = chore.get(const.DATA_CHORE_CUSTOM_INTERVAL, 1)
-            unit = chore.get(
-                const.DATA_CHORE_CUSTOM_INTERVAL_UNIT, const.TIME_UNIT_DAYS
-            )
-            self._generate_recurring_with_due_date(
+            self._generate_schedule_source_events(
                 events,
                 chore_id,
                 summary,
                 description,
+                schedule_chore,
                 due_dt,
-                recurring,
-                interval,
-                unit,
                 window_start,
                 window_end,
-                applicable_days,
-            )
-        elif recurring == const.FREQUENCY_DAILY_MULTI:
-            # CFE-2026-001 Feature 2: Multiple times per day
-            self._generate_recurring_daily_multi_with_due_date(
-                events,
-                summary,
-                description,
-                chore,
-                window_start,
-                self._daily_window_end(window_start, window_end),
             )
 
         return events
