@@ -485,28 +485,14 @@ class UserManager(BaseManager):
         for segment in segments[:-1]:
             child = current.get(segment)
             if not isinstance(child, dict):
-                raise HomeAssistantError(
-                    translation_domain=const.DOMAIN,
-                    translation_key=const.TRANS_KEY_ERROR_UI_CONTROL_KEY_NOT_FOUND,
-                    translation_placeholders={
-                        "key": key_path,
-                        "user_name": target_label,
-                    },
-                )
+                return
 
             parents.append((current, segment))
             current = child
 
         leaf_key = segments[-1]
         if leaf_key not in current:
-            raise HomeAssistantError(
-                translation_domain=const.DOMAIN,
-                translation_key=const.TRANS_KEY_ERROR_UI_CONTROL_KEY_NOT_FOUND,
-                translation_placeholders={
-                    "key": key_path,
-                    "user_name": target_label,
-                },
-            )
+            return
 
         del current[leaf_key]
 
