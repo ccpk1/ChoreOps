@@ -21,10 +21,14 @@ import pytest
 
 from custom_components.choreops import const
 from custom_components.choreops.const import (
+    ACTION_APPROVE_REWARD,
+    ACTION_DISAPPROVE_REWARD,
     DATA_REWARD_COST,
     DATA_USER_POINTS,
     DATA_USER_REWARD_DATA,
     DATA_USER_REWARD_DATA_PENDING_COUNT,
+    NOTIFY_ACTION,
+    NOTIFY_NOTIFICATION_ID,
 )
 from tests.helpers.setup import SetupResult, setup_from_yaml
 
@@ -122,6 +126,71 @@ class TestApproveRewardCostOverride:
     """Tests for approve_reward with cost_override parameter."""
 
     @pytest.mark.asyncio
+    async def test_redeem_reward_notification_actions_include_notif_id(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """Reward claim notifications include the notif_id required for approval actions."""
+        coordinator = scenario_full.coordinator
+        entry_id = scenario_full.config_entry.entry_id
+        assignee_id = scenario_full.assignee_ids["Zoë"]
+        reward_id = scenario_full.reward_ids["Extra Screen Time"]
+        coordinator.assignees_data[assignee_id][DATA_USER_POINTS] = 100.0
+
+        approver_calls: list[dict[str, Any]] = []
+
+        async def capture_approver_notification(
+            assignee_id_arg: str,
+            title_key: str,
+            message_key: str,
+            **kwargs: Any,
+        ) -> None:
+            approver_calls.append(
+                {
+                    "assignee_id": assignee_id_arg,
+                    "title_key": title_key,
+                    "message_key": message_key,
+                    **kwargs,
+                }
+            )
+
+        with patch.object(
+            coordinator.notification_manager,
+            "notify_approvers_translated",
+            new=capture_approver_notification,
+        ):
+            await coordinator.reward_manager.redeem(
+                approver_name="Zoë",
+                assignee_id=assignee_id,
+                reward_id=reward_id,
+            )
+            await hass.async_block_till_done()
+
+        assert len(approver_calls) == 1
+
+        call_data = approver_calls[0]
+        extra_data = call_data["extra_data"]
+        actions = call_data["actions"]
+        notif_id = extra_data[NOTIFY_NOTIFICATION_ID]
+
+        assert notif_id
+        assert call_data["assignee_id"] == assignee_id
+        assert extra_data[NOTIFY_NOTIFICATION_ID] == notif_id
+
+        approve_action = actions[0][NOTIFY_ACTION]
+        disapprove_action = actions[1][NOTIFY_ACTION]
+
+        assert (
+            approve_action
+            == f"{ACTION_APPROVE_REWARD}|{entry_id[:8]}|{assignee_id}|{reward_id}|{notif_id}"
+        )
+        assert (
+            disapprove_action
+            == f"{ACTION_DISAPPROVE_REWARD}|{entry_id[:8]}|{assignee_id}|{reward_id}|{notif_id}"
+        )
+
+    @pytest.mark.asyncio
     async def test_approve_reward_lesser_cost_deducts_override_amount(
         self,
         hass: HomeAssistant,
@@ -191,6 +260,81 @@ class TestApproveRewardCostOverride:
         # Verify: Pending count is cleared
         pending_after = get_pending_reward_count(coordinator, assignee_id, reward_id)
         assert pending_after == 0, "Pending count should be 0 after approval"
+
+    @pytest.mark.asyncio
+    async def test_reward_reminder_notification_actions_include_notif_id(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """Reward reminder notifications preserve notif_id on all reward actions."""
+        coordinator = scenario_full.coordinator
+        entry_id = scenario_full.config_entry.entry_id
+        assignee_id = scenario_full.assignee_ids["Zoë"]
+        reward_id = scenario_full.reward_ids["Extra Screen Time"]
+        coordinator.assignees_data[assignee_id][DATA_USER_POINTS] = 100.0
+
+        approver_calls: list[dict[str, Any]] = []
+
+        async def capture_approver_notification(
+            assignee_id_arg: str,
+            title_key: str,
+            message_key: str,
+            **kwargs: Any,
+        ) -> None:
+            approver_calls.append(
+                {
+                    "assignee_id": assignee_id_arg,
+                    "title_key": title_key,
+                    "message_key": message_key,
+                    **kwargs,
+                }
+            )
+
+        with (
+            patch.object(
+                coordinator.notification_manager,
+                "notify_approvers_translated",
+                new=capture_approver_notification,
+            ),
+            patch(
+                "custom_components.choreops.managers.notification_manager.asyncio.sleep",
+                new=AsyncMock(),
+            ),
+        ):
+            await coordinator.reward_manager.redeem(
+                approver_name="Zoë",
+                assignee_id=assignee_id,
+                reward_id=reward_id,
+            )
+            await coordinator.notification_manager.remind_in_minutes(
+                assignee_id,
+                30,
+                reward_id=reward_id,
+            )
+            await hass.async_block_till_done()
+
+        assert len(approver_calls) == 2
+
+        reminder_call = approver_calls[1]
+        extra_data = reminder_call["extra_data"]
+        actions = reminder_call["actions"]
+        notif_id = extra_data[NOTIFY_NOTIFICATION_ID]
+
+        assert notif_id
+        assert reminder_call["assignee_id"] == assignee_id
+
+        for action in actions:
+            assert action[NOTIFY_ACTION].endswith(f"|{notif_id}")
+
+        assert (
+            actions[0][NOTIFY_ACTION]
+            == f"{ACTION_APPROVE_REWARD}|{entry_id[:8]}|{assignee_id}|{reward_id}|{notif_id}"
+        )
+        assert (
+            actions[1][NOTIFY_ACTION]
+            == f"{ACTION_DISAPPROVE_REWARD}|{entry_id[:8]}|{assignee_id}|{reward_id}|{notif_id}"
+        )
 
 
 class TestAuthorizationAcceptance:
