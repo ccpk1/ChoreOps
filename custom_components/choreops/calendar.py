@@ -1045,7 +1045,7 @@ class AssigneeScheduleCalendar(CalendarEntity):
                 schedule_chore,
                 due_dt,
                 window_start,
-                window_end,
+                self._daily_window_end(window_start, window_end),
             )
 
         return events

@@ -364,7 +364,7 @@ def test_daily_with_due_date_uses_schedule_source_applicable_days(
 
 
 def test_weekly_due_date_uses_one_scheduled_occurrence_per_cycle() -> None:
-    """Weekly due-dated chores should not expand to every applicable weekday."""
+    """Weekly due-dated chores use the persisted scheduled occurrence only."""
     calendar = _build_calendar(30)
     _attach_fake_coordinator(calendar)
     window_start = datetime.datetime(2025, 1, 1, tzinfo=datetime.UTC)
@@ -382,13 +382,12 @@ def test_weekly_due_date_uses_one_scheduled_occurrence_per_cycle() -> None:
 
     events = calendar._generate_events_for_chore(chore, window_start, window_end)
 
-    assert len(events) == 2
+    assert len(events) == 1
     event_due_dates = [event.end for event in events]
     assert event_due_dates == [
         datetime.datetime(2025, 1, 7, 19, 0, tzinfo=datetime.UTC),
-        datetime.datetime(2025, 1, 15, 19, 0, tzinfo=datetime.UTC),
     ]
-    assert [event_end.weekday() for event_end in event_due_dates] == [1, 2]
+    assert [event_end.weekday() for event_end in event_due_dates] == [1]
 
 
 def test_non_recurring_without_due_date_is_excluded_from_calendar() -> None:
