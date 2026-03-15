@@ -29,6 +29,7 @@ from .helpers.entity_helpers import (
     get_event_signal,
     should_create_entity_for_user_assignee,
 )
+from .helpers.translation_helpers import load_dashboard_translation
 from .type_defs import ChoreData
 from .utils.dt_utils import dt_now_local, dt_parse
 
@@ -121,6 +122,7 @@ class AssigneeScheduleCalendar(CalendarEntity):
             tuple[str, int, str, tuple[int, ...], str], RecurrenceEngine
         ] = {}
         self._rrule_cache: dict[tuple[str, int, str, tuple[int, ...], str], str] = {}
+        self._dashboard_translations: dict[str, str] = {}
 
     def _get_timed_event_bounds(
         self,
@@ -136,6 +138,16 @@ class AssigneeScheduleCalendar(CalendarEntity):
     async def async_added_to_hass(self) -> None:
         """Subscribe to mutation signals that invalidate calendar caches."""
         await super().async_added_to_hass()
+
+        assignee_info = self.coordinator.assignees_data.get(self._assignee_id, {})
+        dashboard_language = assignee_info.get(
+            const.DATA_USER_DASHBOARD_LANGUAGE,
+            const.DEFAULT_DASHBOARD_LANGUAGE,
+        )
+        self._dashboard_translations = await load_dashboard_translation(
+            self.hass,
+            dashboard_language,
+        )
 
         invalidation_signals = (
             const.SIGNAL_SUFFIX_CHORE_CREATED,
@@ -361,6 +373,83 @@ class AssigneeScheduleCalendar(CalendarEntity):
 
         # SHARED chores: use chore-level
         return chore.get(const.DATA_CHORE_APPLICABLE_DAYS, [])
+
+    def _translate_dashboard_value(self, key: str, fallback: str) -> str:
+        """Translate a dashboard key with fallback text."""
+        return self._dashboard_translations.get(key, fallback)
+
+    def _get_assignee_names_for_chore(self, chore: dict) -> str:
+        """Return a user-facing assignee label for the chore."""
+        assigned_user_ids = chore.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
+        if not assigned_user_ids:
+            return self._assignee_name
+
+        assignee_names: list[str] = []
+        for assignee_id in assigned_user_ids:
+            assignee_info = self.coordinator.assignees_data.get(assignee_id, {})
+            assignee_names.append(
+                assignee_info.get(
+                    const.DATA_USER_NAME,
+                    f"{const.TRANS_KEY_LABEL_ASSIGNEE} {assignee_id}",
+                )
+            )
+
+        return ", ".join(assignee_names)
+
+    def _build_chore_description(self, chore: dict) -> str:
+        """Build a localized calendar description for a chore event."""
+        description = str(
+            chore.get(const.DATA_CHORE_DESCRIPTION, const.SENTINEL_EMPTY)
+        ).strip()
+        assigned_to_label = self._translate_dashboard_value(
+            "assigned_to",
+            const.LABEL_ASSIGNEE,
+        )
+        recurrence_label = self._translate_dashboard_value(
+            "recurrence",
+            "Recurrence",
+        )
+        completion_label = self._translate_dashboard_value(
+            "completion_criteria",
+            "Completion Type",
+        )
+
+        recurring = str(
+            chore.get(const.DATA_CHORE_RECURRING_FREQUENCY, const.FREQUENCY_NONE)
+        )
+        recurring_display = self._translate_dashboard_value(recurring, recurring)
+
+        completion_criteria = str(
+            chore.get(
+                const.DATA_CHORE_COMPLETION_CRITERIA,
+                const.COMPLETION_CRITERIA_SHARED,
+            )
+        )
+        completion_display = self._translate_dashboard_value(
+            completion_criteria,
+            completion_criteria,
+        )
+
+        points_label = str(
+            self._config_entry.options.get(
+                const.CONF_POINTS_LABEL,
+                const.DEFAULT_POINTS_LABEL,
+            )
+        )
+        points_value = chore.get(const.DATA_CHORE_DEFAULT_POINTS)
+
+        detail_lines = [
+            f"{assigned_to_label}: {self._get_assignee_names_for_chore(chore)}",
+            f"{recurrence_label}: {recurring_display}",
+            f"{completion_label}: {completion_display}",
+        ]
+        if points_value is not None:
+            detail_lines.append(f"{points_label}: {points_value}")
+
+        detail_summary = " | ".join(detail_lines)
+        if description:
+            return f"{description} | {detail_summary}"
+        return detail_summary
 
     def _generate_non_recurring_with_due_date(
         self,
@@ -889,7 +978,7 @@ class AssigneeScheduleCalendar(CalendarEntity):
         summary = chore.get(
             const.DATA_CHORE_NAME, const.TRANS_KEY_DISPLAY_UNKNOWN_CHORE
         )
-        description = chore.get(const.DATA_CHORE_DESCRIPTION, const.SENTINEL_EMPTY)
+        description = self._build_chore_description(chore)
         recurring = chore.get(
             const.DATA_CHORE_RECURRING_FREQUENCY, const.FREQUENCY_NONE
         )

@@ -16,10 +16,21 @@ def _build_calendar(duration_days: int) -> AssigneeScheduleCalendar:
     calendar = object.__new__(AssigneeScheduleCalendar)
     calendar._calendar_duration = datetime.timedelta(days=duration_days)
     calendar._assignee_id = "assignee-1"
+    calendar._assignee_name = "Leo"
     calendar._events_cache = {}
     calendar._max_cache_entries = 8
     calendar._recurrence_engine_cache = {}
     calendar._rrule_cache = {}
+    calendar._dashboard_translations = {}
+    calendar._config_entry = type(
+        "FakeConfigEntry",
+        (),
+        {
+            "options": {
+                const.CONF_POINTS_LABEL: "Stars",
+            }
+        },
+    )()
     return calendar
 
 
@@ -44,8 +55,49 @@ def _attach_fake_coordinator(calendar: AssigneeScheduleCalendar) -> None:
             "chores_data": {},
             "challenges_data": {},
             "chore_manager": fake_manager,
+            "assignees_data": {
+                "assignee-1": {
+                    const.DATA_USER_NAME: "Leo",
+                    const.DATA_USER_DASHBOARD_LANGUAGE: "en",
+                },
+                "assignee-2": {
+                    const.DATA_USER_NAME: "Mia",
+                    const.DATA_USER_DASHBOARD_LANGUAGE: "en",
+                },
+            },
         },
     )()
+
+
+def test_build_chore_description_enriches_existing_text() -> None:
+    """Calendar descriptions use a compact localized single-line format."""
+    calendar = _build_calendar(30)
+    _attach_fake_coordinator(calendar)
+    calendar._dashboard_translations = {
+        "assigned_to": "Assigned To",
+        "recurrence": "Recurrence",
+        "completion_criteria": "Completion Type",
+        const.FREQUENCY_WEEKLY: "Weekly",
+        const.COMPLETION_CRITERIA_SHARED: "Shared (All)",
+    }
+
+    chore = {
+        const.DATA_CHORE_DESCRIPTION: "Roll the bins to the curb.",
+        const.DATA_CHORE_ASSIGNED_USER_IDS: ["assignee-1", "assignee-2"],
+        const.DATA_CHORE_RECURRING_FREQUENCY: const.FREQUENCY_WEEKLY,
+        const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_SHARED,
+        const.DATA_CHORE_DEFAULT_POINTS: 5,
+    }
+
+    description = calendar._build_chore_description(chore)
+
+    assert description == (
+        "Roll the bins to the curb. | "
+        "Assigned To: Leo, Mia | "
+        "Recurrence: Weekly | "
+        "Completion Type: Shared (All) | "
+        "Stars: 5"
+    )
 
 
 def test_daily_window_end_uses_one_third_horizon() -> None:
