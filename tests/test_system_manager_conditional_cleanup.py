@@ -189,3 +189,79 @@ async def test_remove_conditional_entities_keeps_device_with_remaining_entities(
         await manager.remove_conditional_entities(user_ids=[user_id])
 
     fake_device_registry.async_remove_device.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_remove_all_orphaned_entities_removes_stale_calendar_and_datetime_helpers(
+    hass: HomeAssistant,
+) -> None:
+    """Startup cleanup removes assignee calendar helpers for deleted users."""
+    valid_user_id = "user-1"
+    deleted_user_id = "user-2"
+    entry_id = "entry-1"
+
+    coordinator = SimpleNamespace(
+        config_entry=SimpleNamespace(
+            entry_id=entry_id,
+            options={const.CONF_SHOW_LEGACY_ENTITIES: False},
+        ),
+        assignees_data={
+            valid_user_id: {
+                const.DATA_USER_CAN_BE_ASSIGNED: True,
+                const.DATA_USER_ENABLE_CHORE_WORKFLOW: False,
+                const.DATA_USER_ENABLE_GAMIFICATION: False,
+            }
+        },
+        chores_data={},
+        badges_data={},
+        achievements_data={},
+        challenges_data={},
+        economy_manager=SimpleNamespace(adjustment_deltas=[]),
+    )
+
+    manager = SystemManager(hass, coordinator)
+
+    valid_calendar = SimpleNamespace(
+        unique_id=f"{entry_id}_{valid_user_id}{const.CALENDAR_KC_UID_SUFFIX_CALENDAR}",
+        entity_id="calendar.valid_user",
+        domain="calendar",
+    )
+    orphan_calendar = SimpleNamespace(
+        unique_id=f"{entry_id}_{deleted_user_id}{const.CALENDAR_KC_UID_SUFFIX_CALENDAR}",
+        entity_id="calendar.deleted_user",
+        domain="calendar",
+    )
+    valid_datetime = SimpleNamespace(
+        unique_id=f"{entry_id}_{valid_user_id}{const.DATETIME_KC_UID_SUFFIX_DATE_HELPER}",
+        entity_id="datetime.valid_user",
+        domain="datetime",
+    )
+    orphan_datetime = SimpleNamespace(
+        unique_id=f"{entry_id}_{deleted_user_id}{const.DATETIME_KC_UID_SUFFIX_DATE_HELPER}",
+        entity_id="datetime.deleted_user",
+        domain="datetime",
+    )
+
+    fake_registry = MagicMock()
+
+    with (
+        patch(
+            "custom_components.choreops.helpers.entity_helpers.async_get_entity_registry",
+            return_value=fake_registry,
+        ),
+        patch(
+            "custom_components.choreops.helpers.entity_helpers.async_entries_for_config_entry",
+            return_value=[
+                valid_calendar,
+                orphan_calendar,
+                valid_datetime,
+                orphan_datetime,
+            ],
+        ),
+    ):
+        removed = await manager.remove_all_orphaned_entities()
+
+    assert removed == 2
+    fake_registry.async_remove.assert_any_call("calendar.deleted_user")
+    fake_registry.async_remove.assert_any_call("datetime.deleted_user")
+    assert fake_registry.async_remove.call_count == 2

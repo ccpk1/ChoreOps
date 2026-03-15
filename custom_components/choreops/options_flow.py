@@ -706,7 +706,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             for assignee_id, assignee_data in coordinator.assignees_data.items()
             if eh.is_user_assignment_participant(coordinator, assignee_id)
         }
-        user_schema = fh.build_user_schema(
+        user_schema = await fh.build_user_schema(
             self.hass, users=users, assignees_dict=assignees_dict
         )
 

@@ -41,7 +41,9 @@ from ..helpers.entity_helpers import (
     extract_user_id_from_entity_unique_id,
     get_item_id_or_raise,
     remove_entities_by_item_id,
+    remove_orphaned_assignee_calendars,
     remove_orphaned_assignee_chore_entities,
+    remove_orphaned_assignee_datetime_helpers,
     remove_orphaned_manual_adjustment_buttons,
     remove_orphaned_progress_entities,
     remove_orphaned_shared_chore_sensors,
@@ -426,6 +428,20 @@ class SystemManager(BaseManager):
         # Shared chore sensor orphans
         total_removed += await remove_orphaned_shared_chore_sensors(
             self.hass, entry_id, self.coordinator.chores_data
+        )
+
+        # Assignee calendar orphans
+        total_removed += await remove_orphaned_assignee_calendars(
+            self.hass,
+            entry_id,
+            self.coordinator.assignees_data,
+        )
+
+        # Assignee datetime helper orphans
+        total_removed += await remove_orphaned_assignee_datetime_helpers(
+            self.hass,
+            entry_id,
+            self.coordinator.assignees_data,
         )
 
         # Badge progress orphans
