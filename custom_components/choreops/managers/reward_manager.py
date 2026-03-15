@@ -368,7 +368,10 @@ class RewardManager(BaseManager):
 
         # Build notification metadata for event
         actions = NotificationManager.build_reward_actions(
-            assignee_id, reward_id, notif_id
+            assignee_id,
+            reward_id,
+            self.entry_id,
+            notif_id,
         )
         extra_data = NotificationManager.build_extra_data(
             assignee_id, reward_id=reward_id, notif_id=notif_id
@@ -383,6 +386,7 @@ class RewardManager(BaseManager):
             const.SIGNAL_SUFFIX_REWARD_CLAIMED,
             user_id=assignee_id,
             reward_id=reward_id,
+            notif_id=notif_id,
             user_name=eh.get_assignee_name_by_id(self.coordinator, assignee_id) or "",
             reward_name=reward_info[const.DATA_REWARD_NAME],
             points=reward_info[const.DATA_REWARD_COST],

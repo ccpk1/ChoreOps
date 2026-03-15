@@ -23,6 +23,7 @@ from __future__ import annotations
 import asyncio
 import time
 from typing import TYPE_CHECKING, Any, cast
+import uuid
 
 from .. import const
 from ..engines.chore_engine import ChoreEngine
@@ -1787,9 +1788,20 @@ class NotificationManager(BaseManager):
                 )
                 return
 
+            notif_id = uuid.uuid4().hex
+
             # Build actions and send reminder
-            actions = self.build_reward_actions(assignee_id, reward_id, self.entry_id)
-            extra_data = self.build_extra_data(assignee_id, reward_id=reward_id)
+            actions = self.build_reward_actions(
+                assignee_id,
+                reward_id,
+                self.entry_id,
+                notif_id,
+            )
+            extra_data = self.build_extra_data(
+                assignee_id,
+                reward_id=reward_id,
+                notif_id=notif_id,
+            )
             reward_info: RewardData = cast(
                 "RewardData", self.coordinator.rewards_data.get(reward_id, {})
             )
