@@ -8,12 +8,12 @@ name: Translation Sync
 #   - Source: custom_components/choreops/translations_custom/en_notifications.json
 #
 # The workflow runs automatically when English source files are modified,
-# or can be triggered manually from the Actions tab for the integration branch.
+# or can be triggered manually from the Actions tab for the default branch.
 
 on:
   push:
     branches:
-      - dev
+      - main
     paths:
       - "custom_components/choreops/translations/en.json"
       - "custom_components/choreops/translations_custom/en_*.json"
@@ -23,7 +23,7 @@ on:
         description: "Branch to sync translations for"
         required: true
         type: string
-        default: dev
+        default: main
 
 permissions:
   contents: write
