@@ -172,6 +172,27 @@ async def test_options_flow_navigate_to_assignees_menu(
     assert result.get("step_id") == OPTIONS_FLOW_STEP_MANAGE_ENTITY
 
 
+async def test_options_flow_navigate_to_add_user_form(
+    hass: HomeAssistant,
+    init_integration_with_coordinator: SetupResult,
+) -> None:
+    """Test navigating to the add-user form returns a serializable schema."""
+    config_entry = init_integration_with_coordinator.config_entry
+
+    menu_result = await FlowTestHelper.navigate_to_entity_menu(
+        hass, config_entry.entry_id, OPTIONS_FLOW_USERS
+    )
+
+    add_result = await hass.config_entries.options.async_configure(
+        menu_result["flow_id"],
+        user_input={OPTIONS_FLOW_INPUT_MANAGE_ACTION: OPTIONS_FLOW_ACTIONS_ADD},
+    )
+
+    assert add_result.get("type") == FlowResultType.FORM
+    assert add_result.get("step_id") == OPTIONS_FLOW_STEP_ADD_USER
+    assert add_result.get("data_schema") is not None
+
+
 async def test_options_flow_navigate_to_chores_menu(
     hass: HomeAssistant,
     init_integration: MockConfigEntry,

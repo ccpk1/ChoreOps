@@ -883,6 +883,72 @@ async def remove_orphaned_manual_adjustment_buttons(
     )
 
 
+async def remove_orphaned_assignee_calendars(
+    hass: HomeAssistant,
+    entry_id: str,
+    assignees_data: dict[str, Any],
+) -> int:
+    """Remove calendar entities for assignees that no longer exist.
+
+    Args:
+        hass: HomeAssistant instance.
+        entry_id: Config entry ID.
+        assignees_data: Dict of assignee_id -> assignee_info.
+
+    Returns:
+        Count of removed entities.
+    """
+    prefix = f"{entry_id}_"
+    valid_assignee_ids = set(assignees_data)
+    suffix = const.CALENDAR_KC_UID_SUFFIX_CALENDAR
+
+    def is_valid(unique_id: str) -> bool:
+        assignee_id = unique_id[len(prefix) : -len(suffix)]
+        return assignee_id in valid_assignee_ids
+
+    return await remove_entities_by_validator(
+        hass,
+        entry_id,
+        platforms=[const.Platform.CALENDAR],
+        suffix=suffix,
+        is_valid=is_valid,
+        entity_type="assignee calendar",
+    )
+
+
+async def remove_orphaned_assignee_datetime_helpers(
+    hass: HomeAssistant,
+    entry_id: str,
+    assignees_data: dict[str, Any],
+) -> int:
+    """Remove datetime helper entities for assignees that no longer exist.
+
+    Args:
+        hass: HomeAssistant instance.
+        entry_id: Config entry ID.
+        assignees_data: Dict of assignee_id -> assignee_info.
+
+    Returns:
+        Count of removed entities.
+    """
+    prefix = f"{entry_id}_"
+    valid_assignee_ids = set(assignees_data)
+    suffix = const.DATETIME_KC_UID_SUFFIX_DATE_HELPER
+
+    def is_valid(unique_id: str) -> bool:
+        assignee_id = unique_id[len(prefix) : -len(suffix)]
+        return assignee_id in valid_assignee_ids
+
+    return await remove_entities_by_validator(
+        hass,
+        entry_id,
+        platforms=[const.Platform.DATETIME],
+        suffix=suffix,
+        is_valid=is_valid,
+        entity_type="assignee datetime helper",
+    )
+
+
 # ==============================================================================
 # Profile gating helpers
 # Capability-aware workflow/gamification gating.
