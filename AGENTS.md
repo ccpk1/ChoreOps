@@ -70,6 +70,12 @@ Before declaring work ready for merge to `main`, verify the workflow metadata re
 - The PR title is release-note friendly
 - Validation run is recorded in the PR
 
+Issue lifecycle rule:
+
+- Treat `status:*` labels as open-issue workflow state only
+- Treat `release: pending` and `release: shipped` as closed-issue delivery state
+- Do not suggest using `release:*` labels as release-note categories; changelog grouping remains PR-label based
+
 Use `docs/DEVELOPMENT_STANDARDS.md` as the canonical policy. Do not invent alternate merge rules in agent responses.
 
 ## ⚡ Core Principles (Follow These First)

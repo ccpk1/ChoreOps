@@ -1,0 +1,285 @@
+name: Release issue lifecycle
+
+on:
+  pull_request:
+    types:
+      - closed
+  release:
+    types:
+      - published
+
+permissions:
+  issues: write
+  pull-requests: read
+  contents: read
+
+jobs:
+  mark-pending-release:
+    name: Mark issues pending release
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.base.ref == 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mark closed issues as release pending
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const pendingLabel = {
+              name: "release: pending",
+              color: "fbca04",
+              description: "Merged to main and awaiting a published release",
+            };
+            const shippedLabel = {
+              name: "release: shipped",
+              color: "0e8a16",
+              description: "Included in a published release available to users",
+            };
+            const statusLabels = [
+              "status: ready",
+              "status: in-progress",
+              "status: blocked",
+            ];
+
+            async function ensureLabel(label) {
+              try {
+                await github.rest.issues.getLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: label.name,
+                });
+              } catch (error) {
+                if (error.status !== 404) {
+                  throw error;
+                }
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: label.name,
+                  color: label.color,
+                  description: label.description,
+                });
+              }
+            }
+
+            function extractClosedIssues(text) {
+              const issueNumbers = new Set();
+              const regex = /\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\s+#(\d+)\b/gi;
+              for (const match of text.matchAll(regex)) {
+                issueNumbers.add(Number(match[1]));
+              }
+              return [...issueNumbers];
+            }
+
+            async function removeLabel(issueNumber, labelName) {
+              try {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  name: labelName,
+                });
+              } catch (error) {
+                if (error.status !== 404) {
+                  throw error;
+                }
+              }
+            }
+
+            await ensureLabel(pendingLabel);
+            await ensureLabel(shippedLabel);
+
+            const pr = context.payload.pull_request;
+            const issueNumbers = extractClosedIssues(pr.body || "");
+
+            if (issueNumbers.length === 0) {
+              core.info("No same-repository closing keywords found in PR body");
+              return;
+            }
+
+            for (const issueNumber of issueNumbers) {
+              const issue = await github.rest.issues.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+              });
+              const labels = issue.data.labels.map((label) =>
+                typeof label === "string" ? label : label.name,
+              );
+
+              if (!labels.includes(pendingLabel.name)) {
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  labels: [pendingLabel.name],
+                });
+              }
+
+              await removeLabel(issueNumber, shippedLabel.name);
+              for (const labelName of statusLabels) {
+                await removeLabel(issueNumber, labelName);
+              }
+
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body: `Fixed in main via PR #${pr.number}. Marking this issue as \`${pendingLabel.name}\` until the next published release ships the change.`,
+              });
+            }
+
+  mark-shipped-release:
+    name: Mark issues shipped in published release
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Promote pending issues to shipped
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const pendingLabel = {
+              name: "release: pending",
+              color: "fbca04",
+              description: "Merged to main and awaiting a published release",
+            };
+            const shippedLabel = {
+              name: "release: shipped",
+              color: "0e8a16",
+              description: "Included in a published release available to users",
+            };
+
+            async function ensureLabel(label) {
+              try {
+                await github.rest.issues.getLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: label.name,
+                });
+              } catch (error) {
+                if (error.status !== 404) {
+                  throw error;
+                }
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: label.name,
+                  color: label.color,
+                  description: label.description,
+                });
+              }
+            }
+
+            function extractClosedIssues(text) {
+              const issueNumbers = new Set();
+              const regex = /\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\s+#(\d+)\b/gi;
+              for (const match of text.matchAll(regex)) {
+                issueNumbers.add(Number(match[1]));
+              }
+              return [...issueNumbers];
+            }
+
+            async function removeLabel(issueNumber, labelName) {
+              try {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  name: labelName,
+                });
+              } catch (error) {
+                if (error.status !== 404) {
+                  throw error;
+                }
+              }
+            }
+
+            await ensureLabel(pendingLabel);
+            await ensureLabel(shippedLabel);
+
+            const currentRelease = context.payload.release;
+            const releases = await github.paginate(github.rest.repos.listReleases, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100,
+            });
+            const currentIndex = releases.findIndex(
+              (release) => release.id === currentRelease.id,
+            );
+
+            if (currentIndex === -1) {
+              core.setFailed("Current release not found in release list");
+              return;
+            }
+
+            const previousRelease = releases
+              .slice(currentIndex + 1)
+              .find((release) => !release.draft);
+
+            if (!previousRelease) {
+              core.info("No previous published release found; skipping shipped promotion");
+              return;
+            }
+
+            const comparison = await github.rest.repos.compareCommitsWithBasehead({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              basehead: `${previousRelease.tag_name}...${currentRelease.tag_name}`,
+            });
+
+            const prNumbers = new Set();
+            for (const commit of comparison.data.commits) {
+              const response = await github.request(
+                "GET /repos/{owner}/{repo}/commits/{commit_sha}/pulls",
+                {
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  commit_sha: commit.sha,
+                },
+              );
+              for (const pr of response.data) {
+                if (pr.base.ref === "main") {
+                  prNumbers.add(pr.number);
+                }
+              }
+            }
+
+            if (prNumbers.size === 0) {
+              core.info("No merged PRs associated with this release range");
+              return;
+            }
+
+            const issueNumbers = new Set();
+            for (const prNumber of prNumbers) {
+              const pr = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber,
+              });
+              for (const issueNumber of extractClosedIssues(pr.data.body || "")) {
+                issueNumbers.add(issueNumber);
+              }
+            }
+
+            if (issueNumbers.size === 0) {
+              core.info("No closed issues discovered from merged PR metadata");
+              return;
+            }
+
+            for (const issueNumber of issueNumbers) {
+              await removeLabel(issueNumber, pendingLabel.name);
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                labels: [shippedLabel.name],
+              });
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body: `This fix is available in published release \`${currentRelease.tag_name}\`. Marking the issue as \`${shippedLabel.name}\`.`,
+              });
+            }

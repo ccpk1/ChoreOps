@@ -71,6 +71,7 @@ Checklist:
 
 - [ ] Tag and publish release artifacts.
 - [ ] Verify published tag format matches policy (`X.Y.Z`, or prerelease `X.Y.Z-beta.N` / `X.Y.Z-rc.N`).
+- [ ] Confirm issues labeled `release: pending` for shipped fixes are promoted to `release: shipped` by release automation.
 - [ ] If dashboard registry artifacts are part of the release, verify matching channel intent (dev/beta/stable) and compatibility notes.
 - [ ] Confirm integration loads in Home Assistant.
 - [ ] Confirm primary entities and services operate in a clean environment.
