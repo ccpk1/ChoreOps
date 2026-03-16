@@ -37,6 +37,18 @@ If your change only affects a narrow area, you may run a targeted test suite, bu
 - Note documentation impact (README/wiki/docs)
 - Call out breaking changes and migration impact when relevant
 
+## Before merging to main
+
+Use a pull request to `main` so automation can close issues and categorize release notes.
+
+- Include a closing keyword in the PR body when applicable (`Closes #...`)
+- Apply the correct release-note label for the change type
+- Remove excluded triage or status labels before merge
+- Use a release-note-friendly PR title
+- Complete the PR template sections for validation and release notes
+
+See `docs/DEVELOPMENT_STANDARDS.md` for the canonical main-merge and release automation contract.
+
 ## Dashboard source of truth policy
 
 - Do not submit dashboard template source changes to this repository.

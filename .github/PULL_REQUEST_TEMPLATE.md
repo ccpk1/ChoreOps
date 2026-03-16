@@ -6,6 +6,13 @@
 
 - Closes #
 
+## Main merge automation checks
+
+- [ ] PR body uses a closing keyword when applicable (`Closes #...`)
+- [ ] Correct release-note label is applied for `.github/release.yml` categorization
+- [ ] Excluded triage or status labels have been removed before merge
+- [ ] PR title is suitable for generated release notes
+
 ## Change type
 
 - [ ] Bug fix
@@ -46,6 +53,8 @@
 
 - [ ] No release notes needed
 - [ ] Release notes needed (summarize user-visible changes below)
+
+- Release note summary:
 
 ## Breaking changes
 
