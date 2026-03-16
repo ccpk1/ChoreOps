@@ -1666,6 +1666,27 @@ class NotificationManager(BaseManager):
             self._clear_assignee_chore_transient_notifications(assignee_id, chore_id),
         )
 
+    async def _clear_single_claimer_peer_transient_notifications(
+        self,
+        active_assignee_id: str,
+        chore_id: str,
+    ) -> None:
+        """Clear stale transient notifications for blocked peers in single-claimer chores."""
+        chore_info: ChoreData | None = self.coordinator.chores_data.get(chore_id)
+        if not chore_info or not ChoreEngine.is_single_claimer_mode(chore_info):
+            return
+
+        clear_tasks = []
+        for assignee_id in chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, []):
+            if not assignee_id or assignee_id == active_assignee_id:
+                continue
+            clear_tasks.append(
+                self._clear_reset_chore_notifications(assignee_id, chore_id)
+            )
+
+        if clear_tasks:
+            await asyncio.gather(*clear_tasks)
+
     async def remind_in_minutes(
         self,
         assignee_id: str,
@@ -2025,6 +2046,14 @@ class NotificationManager(BaseManager):
         if not chore_info:
             return
 
+        await asyncio.gather(
+            self._clear_assignee_chore_transient_notifications(assignee_id, chore_id),
+            self._clear_single_claimer_peer_transient_notifications(
+                assignee_id,
+                chore_id,
+            ),
+        )
+
         # Skip notification if auto_approve is enabled
         if chore_info.get(
             const.DATA_CHORE_AUTO_APPROVE, const.DEFAULT_CHORE_AUTO_APPROVE
@@ -2099,13 +2128,6 @@ class NotificationManager(BaseManager):
                 tag_type=const.NOTIFY_TAG_TYPE_STATUS,
                 tag_identifiers=(chore_id, assignee_id),
             )
-
-        # Note: Due-soon reminder tracking is already cleared by ChoreManager.claim_chore()
-        # per Cross-Manager Directive 2 (Direct Writes are FORBIDDEN)
-
-        # Claim invalidates the assignee transient family. Clear the canonical
-        # STATUS identity first, then retain legacy tag clears as compatibility.
-        await self._clear_assignee_chore_transient_notifications(assignee_id, chore_id)
 
         const.LOGGER.debug(
             "NotificationManager: Sent chore claimed notification for assignee=%s, chore=%s",
@@ -2365,7 +2387,13 @@ class NotificationManager(BaseManager):
 
         # Approval invalidates the assignee transient family. Clear the canonical
         # STATUS identity first, then retain legacy tag clears as compatibility.
-        await self._clear_assignee_chore_transient_notifications(assignee_id, chore_id)
+        await asyncio.gather(
+            self._clear_assignee_chore_transient_notifications(assignee_id, chore_id),
+            self._clear_single_claimer_peer_transient_notifications(
+                assignee_id,
+                chore_id,
+            ),
+        )
 
         const.LOGGER.debug(
             "NotificationManager: Cleared notifications for approved chore=%s, assignee=%s",

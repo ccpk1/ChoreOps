@@ -1018,6 +1018,7 @@ class TestApprovalResetExecutorLane:
                 "decision": const.CHORE_RESET_DECISION_RESET_AND_RESCHEDULE,
                 "reschedule_assignee_id": "assignee-1",
                 "allow_reschedule": True,
+                "clear_due_date": False,
             }
         )
 

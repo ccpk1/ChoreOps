@@ -1019,6 +1019,21 @@ class ChoreManager(BaseManager):
         is_full_cycle_reset = is_single_claimer_mode or (
             requires_all_assignees_approval and all_assignees_approved
         )
+        due_assignee_id = assignee_id if is_independent_mode else None
+        should_clear_due_date_after_immediate_reset = (
+            should_reset_immediately
+            and chore_data.get(
+                const.DATA_CHORE_RECURRING_FREQUENCY,
+                const.FREQUENCY_NONE,
+            )
+            == const.FREQUENCY_NONE
+            and self.get_due_date(chore_id, due_assignee_id) is not None
+            and reset_decision
+            in (
+                const.CHORE_RESET_DECISION_RESET_ONLY,
+                const.CHORE_RESET_DECISION_RESET_AND_RESCHEDULE,
+            )
+        )
 
         if should_reset_immediately:
             reset_targets: list[str] = []
@@ -1053,13 +1068,17 @@ class ChoreManager(BaseManager):
                         "decision": reset_decision,
                         "reschedule_assignee_id": reschedule_assignee_id,
                         "allow_reschedule": allow_per_assignee_reschedule,
+                        "clear_due_date": should_clear_due_date_after_immediate_reset,
                     }
                 )
 
             if reset_targets:
                 self._update_global_state(chore_id)
 
-            if should_reschedule_chore:
+            if (
+                should_reschedule_chore
+                and not should_clear_due_date_after_immediate_reset
+            ):
                 self._reschedule_chore_due(chore_id)
 
             if reset_targets and is_rotation_mode:
@@ -1074,35 +1093,6 @@ class ChoreManager(BaseManager):
                     "Approval reset decision had no execution targets: chore=%s criteria=%s",
                     chore_id,
                     completion_criteria,
-                )
-
-        # === NON-RECURRING PAST-DUE GUARD (Phase 1) ===
-        # For FREQUENCY_NONE chores that just reset via UPON_COMPLETION:
-        # Clear the past due date so the next scan doesn't immediately re-overdue.
-        # The chore stays PENDING indefinitely until user sets a new due date.
-        if should_reset_immediately:
-            frequency = chore_data.get(
-                const.DATA_CHORE_RECURRING_FREQUENCY, const.FREQUENCY_NONE
-            )
-            if frequency == const.FREQUENCY_NONE:
-                completion_criteria = chore_data.get(
-                    const.DATA_CHORE_COMPLETION_CRITERIA,
-                    const.COMPLETION_CRITERIA_INDEPENDENT,
-                )
-                if completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT:
-                    # Clear per-assignee due date
-                    per_assignee_dates = chore_data.get(
-                        const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {}
-                    )
-                    per_assignee_dates.pop(assignee_id, None)
-                else:
-                    # Clear chore-level due date (SHARED/SHARED_FIRST)
-                    chore_data.pop(const.DATA_CHORE_DUE_DATE, None)
-
-                const.LOGGER.debug(
-                    "Cleared past due date for non-recurring chore %s "
-                    "after UPON_COMPLETION reset (prevents re-overdue)",
-                    chore_id,
                 )
 
         # For non-UPON_COMPLETION reset types (AT_MIDNIGHT_*, AT_DUE_DATE_*):
@@ -1579,6 +1569,12 @@ class ChoreManager(BaseManager):
         allow_reschedule = context.get("allow_reschedule", True)
         clear_due_date = context.get("clear_due_date", False)
 
+        if clear_due_date:
+            self._clear_due_date_after_reset(
+                chore_id,
+                assignee_id if allow_reschedule else None,
+            )
+
         self._transition_chore_state(
             assignee_id,
             chore_id,
@@ -1586,12 +1582,6 @@ class ChoreManager(BaseManager):
             reset_approval_period=True,
             clear_ownership=True,
         )
-
-        if clear_due_date:
-            self._clear_due_date_after_reset(
-                chore_id,
-                assignee_id if allow_reschedule else None,
-            )
 
         if (
             not clear_due_date
@@ -3363,6 +3353,26 @@ class ChoreManager(BaseManager):
         )
         if assignee_state == const.CHORE_STATE_MISSED:
             return False
+
+        chore_data: ChoreData | dict[str, Any] = self._coordinator.chores_data.get(
+            chore_id, {}
+        )
+        if ChoreEngine.is_single_claimer_mode(chore_data):
+            assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
+            for other_assignee_id in assigned_assignees:
+                if not other_assignee_id or other_assignee_id == assignee_id:
+                    continue
+
+                other_state = self._derive_boundary_assignee_state(
+                    other_assignee_id,
+                    chore_id,
+                )
+                if other_state in (
+                    const.CHORE_STATE_CLAIMED,
+                    const.CHORE_STATE_APPROVED,
+                ):
+                    return False
+
         return True
 
     def chore_is_overdue(self, assignee_id: str, chore_id: str) -> bool:
