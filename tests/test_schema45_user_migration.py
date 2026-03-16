@@ -6,11 +6,11 @@ from dataclasses import dataclass
 from typing import Any
 
 from custom_components.choreops import const
-from custom_components.choreops.migration_pre_v50 import (
+from custom_components.choreops.migrations.pre_v50 import (
     PreV50Migrator,
     async_apply_schema45_user_contract,
 )
-from custom_components.choreops.migration_pre_v50_constants import (
+from custom_components.choreops.migrations.pre_v50_constants import (
     DATA_USER_BADGE_PROGRESS_ASSIGNED_USER_IDS_LEGACY,
     DATA_USER_BADGE_PROGRESS_ASSOCIATED_ACHIEVEMENT_LEGACY,
     DATA_USER_BADGE_PROGRESS_ASSOCIATED_CHALLENGE_LEGACY,

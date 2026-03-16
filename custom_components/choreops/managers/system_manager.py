@@ -50,6 +50,8 @@ from ..helpers.entity_helpers import (
     resolve_user_entity_policy,
     should_create_entity,
 )
+from ..integrity import run_boot_repairs
+from ..migrations import run_modern_schema_migrations
 from .base_manager import BaseManager
 
 if TYPE_CHECKING:
@@ -197,7 +199,7 @@ class SystemManager(BaseManager):
         Boot Cascade Position: Called FIRST, emits DATA_READY when complete.
 
         Pre-v50 migration logic (including fallback cascade, premature stamp
-        detection, and schema 44 gate) lives in migration_pre_v50.py and is
+        detection, and schema 44 gate) lives in migrations/pre_v50.py and is
         lazy-loaded only when needed. Modern v50+ installations skip it entirely.
 
         Args:
@@ -213,7 +215,7 @@ class SystemManager(BaseManager):
         # nuclear rebuild fallback, auto-restore, and schema 44 gate.
         # migration_performed presence means legacy data needs processing
         # regardless of reported schema version (may be prematurely stamped).
-        from ..migration_pre_v50 import (
+        from ..migrations.pre_v50 import (
             has_legacy_migration_performed_marker,
             prepare_schema100_legacy_repair,
         )
@@ -235,13 +237,13 @@ class SystemManager(BaseManager):
             or bool(schema100_repair_summary)
         )
         if needs_migration:
-            from ..migration_pre_v50 import PreV50Migrator
+            from ..migrations.pre_v50 import PreV50Migrator
 
             migrator = PreV50Migrator(self.coordinator)
             await migrator.run_full_pre_v50_cascade(current_version)
 
         # 1b. Schema 45 contract hook (runs before DATA_READY)
-        from ..migration_pre_v50 import async_apply_schema45_user_contract
+        from ..migrations.pre_v50 import async_apply_schema45_user_contract
 
         schema45_summary = await async_apply_schema45_user_contract(self.coordinator)
         const.LOGGER.info(
@@ -253,6 +255,33 @@ class SystemManager(BaseManager):
             schema45_summary["approver_id_remap_entries_total"],
             schema45_summary["approver_id_remap_entries_added"],
         )
+
+        # 1c. Modern schema migrations.
+        modern_migration_summary = await run_modern_schema_migrations(
+            self.coordinator,
+            current_version,
+        )
+        if modern_migration_summary["migrations_applied"]:
+            const.LOGGER.warning(
+                "SystemManager: Applied modern schema migrations from=%s to=%s steps=%s",
+                modern_migration_summary["from_version"],
+                modern_migration_summary["to_version"],
+                modern_migration_summary["migrations_applied"],
+            )
+
+        # 1d. Modern storage integrity repairs.
+        boot_repair_summaries = run_boot_repairs(self.coordinator._data)
+        due_state_repair_summary = boot_repair_summaries[
+            "repair_impossible_due_state_residue"
+        ]
+        if any(due_state_repair_summary.values()):
+            const.LOGGER.warning(
+                "SystemManager: Applied due-state integrity repair chores=%d stale_due_dates=%d assignee_states=%d global_states=%d",
+                due_state_repair_summary["chores_sanitized"],
+                due_state_repair_summary["stale_due_dates_cleared"],
+                due_state_repair_summary["assignee_states_normalized"],
+                due_state_repair_summary["global_states_normalized"],
+            )
 
         # 2. Startup Safety Net (Registry validation)
         await self.run_startup_safety_net()

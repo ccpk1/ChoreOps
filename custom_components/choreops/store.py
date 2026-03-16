@@ -162,7 +162,7 @@ class ChoreOpsStore:
         if existing_data is None:
             # Try legacy storage keys before creating default structure.
             if allow_legacy_fallback:
-                from . import migration_pre_v50 as mp50
+                from .migrations import pre_v50 as mp50
 
                 legacy_keys = [
                     mp50.LEGACY_STORAGE_KEY,
@@ -375,6 +375,20 @@ class ChoreOpsStore:
 
         return True, normalized_data, None
 
+    @staticmethod
+    def _snapshot_data(value: Any) -> Any:
+        """Create a detached snapshot of JSON-shaped storage data."""
+        if isinstance(value, dict):
+            return {
+                key: ChoreOpsStore._snapshot_data(item)
+                for key, item in list(value.items())
+            }
+
+        if isinstance(value, list):
+            return [ChoreOpsStore._snapshot_data(item) for item in list(value)]
+
+        return value
+
     def set_data(self, new_data: dict[str, Any]) -> bool:
         """Replace the in-memory data structure when payload is valid.
 
@@ -405,7 +419,7 @@ class ChoreOpsStore:
                 "total_keys": len(normalized_data.keys()),
             },
         )
-        self._data = normalized_data
+        self._data = ChoreOpsStore._snapshot_data(normalized_data)
         return True
 
     async def async_save(self) -> None:

@@ -108,6 +108,14 @@ The Coordinator is a **pure infrastructure hub** with zero domain knowledge:
 └─────────────────────────────────────────────────────────────┘
 ```
 
+**Boot Integrity Lanes**:
+
+- `store.py` handles structural payload validation and minimal shape normalization.
+- `migrations/pre_v50.py` handles frozen legacy upgrade paths only.
+- `migrations/` handles future post-1.0.0 schema migrations for modern storage payloads.
+- `integrity/` handles non-versioned boot repairs for logically impossible modern-state residue.
+- `SystemManager.ensure_data_integrity()` orchestrates these phases but should not own repair or migration internals.
+
 **Boot Cascade**: Managers self-organize via lifecycle signals:
 
 ```

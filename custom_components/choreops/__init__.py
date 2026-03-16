@@ -168,7 +168,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ChoreOpsConfigEntry) -> 
     # PHASE 2: Migrate entity data from config to storage (one-time hand-off) - LEGACY MIGRATION
     # This must happen BEFORE coordinator initialization to ensure coordinator
     # loads from storage-only mode (schema_version >= 43)
-    from .migration_pre_v50 import (
+    from .migrations.pre_v50 import (
         async_migrate_uid_suffixes_v0_5_0,
         migrate_config_to_storage,
         normalize_bonus_penalty_apply_shapes,

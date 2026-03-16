@@ -7,7 +7,7 @@ after failed migrations:
 3. Nuclear rebuild (build_*() with existing=)
 4. Auto-restore from pre-migration backup
 
-All cascade, fallback, and schema-44 logic lives in migration_pre_v50.py
+All cascade, fallback, and schema-44 logic lives in migrations/pre_v50.py
 (PreV50Migrator) and will be removed when v50 support is dropped.
 """
 
@@ -23,7 +23,8 @@ from homeassistant.exceptions import ConfigEntryNotReady
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.choreops import const, migration_pre_v50 as mp50
+from custom_components.choreops import const
+from custom_components.choreops.migrations import pre_v50 as mp50
 from custom_components.choreops.store import ChoreOpsStore
 
 LEGACY_ASSIGNEES_BUCKET = "assignees"
@@ -96,7 +97,7 @@ def mock_coordinator(hass: HomeAssistant, base_storage_data: dict[str, Any]):
 @pytest.fixture
 def migrator(mock_coordinator):
     """Create PreV50Migrator with mocked coordinator."""
-    from custom_components.choreops.migration_pre_v50 import PreV50Migrator
+    from custom_components.choreops.migrations.pre_v50 import PreV50Migrator
 
     return PreV50Migrator(mock_coordinator)
 
@@ -484,11 +485,11 @@ class TestSchemaStampFix:
 
         with (
             patch(
-                "custom_components.choreops.migration_pre_v50.er.async_get",
+                "custom_components.choreops.migrations.pre_v50.er.async_get",
                 return_value=entity_registry,
             ),
             patch(
-                "custom_components.choreops.migration_pre_v50.er.async_entries_for_config_entry",
+                "custom_components.choreops.migrations.pre_v50.er.async_entries_for_config_entry",
                 return_value=[own_stale],
             ),
         ):
@@ -514,7 +515,7 @@ class TestAtomicRollback:
         self, hass: HomeAssistant, mock_coordinator
     ) -> None:
         """If run_all_migrations() fails, data reverts to pre-migration state."""
-        from custom_components.choreops.migration_pre_v50 import PreV50Migrator
+        from custom_components.choreops.migrations.pre_v50 import PreV50Migrator
 
         original_data = copy.deepcopy(mock_coordinator._data)
         migrator = PreV50Migrator(mock_coordinator)
@@ -533,7 +534,7 @@ class TestAtomicRollback:
         self, hass: HomeAssistant, mock_coordinator
     ) -> None:
         """Successful migration stamps SCHEMA_VERSION_STORAGE_ONLY (43)."""
-        from custom_components.choreops.migration_pre_v50 import PreV50Migrator
+        from custom_components.choreops.migrations.pre_v50 import PreV50Migrator
 
         migrator = PreV50Migrator(mock_coordinator)
 
@@ -583,7 +584,7 @@ class TestAtomicRollback:
         self, hass: HomeAssistant, mock_coordinator
     ) -> None:
         """Failed migration must NOT update schema version."""
-        from custom_components.choreops.migration_pre_v50 import PreV50Migrator
+        from custom_components.choreops.migrations.pre_v50 import PreV50Migrator
 
         migrator = PreV50Migrator(mock_coordinator)
 
@@ -885,10 +886,10 @@ class TestNuclearRebuild:
 
         with (
             patch(
-                "custom_components.choreops.migration_pre_v50.er.async_get"
+                "custom_components.choreops.migrations.pre_v50.er.async_get"
             ) as mock_er_get,
             patch(
-                "custom_components.choreops.migration_pre_v50.er.async_entries_for_config_entry",
+                "custom_components.choreops.migrations.pre_v50.er.async_entries_for_config_entry",
                 return_value=[mock_entry, mock_entry2],
             ),
         ):
@@ -935,7 +936,7 @@ class TestAutoRestore:
 
         with (
             patch(
-                "custom_components.choreops.migration_pre_v50.bh.discover_backups",
+                "custom_components.choreops.migrations.pre_v50.bh.discover_backups",
                 new_callable=AsyncMock,
                 return_value=[
                     {
@@ -948,7 +949,7 @@ class TestAutoRestore:
                 ],
             ),
             patch(
-                "custom_components.choreops.migration_pre_v50.bh.validate_backup_json",
+                "custom_components.choreops.migrations.pre_v50.bh.validate_backup_json",
                 return_value=True,
             ),
         ):
@@ -963,7 +964,7 @@ class TestAutoRestore:
     ) -> None:
         """Auto-restore returns False when no pre-migration backup exists."""
         with patch(
-            "custom_components.choreops.migration_pre_v50.bh.discover_backups",
+            "custom_components.choreops.migrations.pre_v50.bh.discover_backups",
             new_callable=AsyncMock,
             return_value=[],
         ):
@@ -976,7 +977,7 @@ class TestAutoRestore:
     ) -> None:
         """Auto-restore returns False if backup discovery fails."""
         with patch(
-            "custom_components.choreops.migration_pre_v50.bh.discover_backups",
+            "custom_components.choreops.migrations.pre_v50.bh.discover_backups",
             new_callable=AsyncMock,
             side_effect=OSError("disk error"),
         ):
@@ -989,7 +990,7 @@ class TestAutoRestore:
     ) -> None:
         """Auto-restore only uses pre-migration tagged backups."""
         with patch(
-            "custom_components.choreops.migration_pre_v50.bh.discover_backups",
+            "custom_components.choreops.migrations.pre_v50.bh.discover_backups",
             new_callable=AsyncMock,
             return_value=[
                 {
@@ -1276,7 +1277,7 @@ class TestFullCascade:
         """SystemManager.ensure_data_integrity delegates to PreV50Migrator."""
         with (
             patch(
-                "custom_components.choreops.migration_pre_v50.PreV50Migrator.run_full_pre_v50_cascade",
+                "custom_components.choreops.migrations.pre_v50.PreV50Migrator.run_full_pre_v50_cascade",
                 new_callable=AsyncMock,
             ) as mock_cascade,
             patch.object(
@@ -1300,7 +1301,7 @@ class TestFullCascade:
 
         with (
             patch(
-                "custom_components.choreops.migration_pre_v50.PreV50Migrator",
+                "custom_components.choreops.migrations.pre_v50.PreV50Migrator",
             ) as mock_migrator_cls,
             patch.object(
                 system_manager, "run_startup_safety_net", new_callable=AsyncMock
@@ -1360,11 +1361,11 @@ class TestFullCascade:
 
         with (
             patch(
-                "custom_components.choreops.migration_pre_v50.PreV50Migrator.run_full_pre_v50_cascade",
+                "custom_components.choreops.migrations.pre_v50.PreV50Migrator.run_full_pre_v50_cascade",
                 new_callable=AsyncMock,
             ) as mock_cascade,
             patch(
-                "custom_components.choreops.migration_pre_v50.async_apply_schema45_user_contract",
+                "custom_components.choreops.migrations.pre_v50.async_apply_schema45_user_contract",
                 new_callable=AsyncMock,
                 side_effect=_assert_schema45_reset,
             ),
@@ -1408,10 +1409,10 @@ class TestFullCascade:
 
         with (
             patch(
-                "custom_components.choreops.migration_pre_v50.PreV50Migrator",
+                "custom_components.choreops.migrations.pre_v50.PreV50Migrator",
             ) as mock_migrator_cls,
             patch(
-                "custom_components.choreops.migration_pre_v50.async_apply_schema45_user_contract",
+                "custom_components.choreops.migrations.pre_v50.async_apply_schema45_user_contract",
                 new_callable=AsyncMock,
                 return_value={
                     "users_migrated": 0,

@@ -15,7 +15,7 @@ from zoneinfo import ZoneInfo
 from homeassistant.const import Platform
 import homeassistant.util.dt as dt_util
 
-from .migration_pre_v50_constants import *  # noqa: F403
+from .migrations.pre_v50_constants import *  # noqa: F403
 from .utils import dt_utils
 
 
@@ -1267,7 +1267,7 @@ POINTS_SOURCE_OTHER: Final = "other"
 
 # --- Averages ---
 # NOTE: avg_*_week/month keys are not persisted. avg_per_chore is persisted.
-# LEGACY constants moved to `migration_pre_v50_constants.py`
+# LEGACY constants moved to `migrations/pre_v50_constants.py`
 
 # ================================================================================================
 # PRESENTATION CONSTANTS (assignee scoped) - Memory-only cache keys (NOT in storage)
@@ -3975,4 +3975,4 @@ CHALLENGE_TYPE_OPTIONS = [
 # ================================================================================================
 # Legacy constants (one-time migration support)
 # ================================================================================================
-# Legacy constants are defined in `migration_pre_v50_constants.py` and re-exported here.
+# Legacy constants are defined in `migrations/pre_v50_constants.py` and re-exported here.

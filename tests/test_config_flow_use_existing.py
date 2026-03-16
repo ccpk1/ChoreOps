@@ -15,7 +15,8 @@ from homeassistant.data_entry_flow import FlowResultType
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.choreops import const, migration_pre_v50 as mp50
+from custom_components.choreops import const
+from custom_components.choreops.migrations import pre_v50 as mp50
 from tests.helpers import (
     CFOF_DATA_RECOVERY_INPUT_SELECTION,
     CONFIG_FLOW_STEP_DATA_RECOVERY,

@@ -27,7 +27,7 @@ from custom_components.choreops import const
 from custom_components.choreops.helpers.storage_helpers import (
     get_entry_storage_key_from_entry,
 )
-from custom_components.choreops.migration_pre_v50_constants import (
+from custom_components.choreops.migrations.pre_v50_constants import (
     DATA_ASSIGNEE_POINT_STATS_EARNED_ALL_TIME_LEGACY,
 )
 from tests.helpers import (

@@ -21,11 +21,14 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import entity_registry as er
 
-from . import const, data_builders as db
-from .coordinator import ChoreOpsDataCoordinator
-from .helpers import backup_helpers as bh, entity_helpers as eh
-from .helpers.entity_helpers import get_item_id_by_name
-from .migration_pre_v50_constants import (
+from custom_components.choreops import const, data_builders as db
+from custom_components.choreops.coordinator import ChoreOpsDataCoordinator
+from custom_components.choreops.helpers import (
+    backup_helpers as bh,
+    entity_helpers as eh,
+)
+from custom_components.choreops.helpers.entity_helpers import get_item_id_by_name
+from custom_components.choreops.migrations.pre_v50_constants import (
     BADGE_TYPE_CHALLENGE_LINKED_MIGRATION,
     CHALLENGE_TYPE_DAILY_MIN_MIGRATION,
     CHALLENGE_TYPE_TOTAL_WITHIN_WINDOW_MIGRATION,
@@ -44,17 +47,17 @@ from .migration_pre_v50_constants import (
     DATA_USER_BADGE_PROGRESS_TRACKED_CHORES_LEGACY,
     DATA_USER_BADGE_PROGRESS_TYPE_LEGACY,
 )
-from .utils.dt_utils import (
+from custom_components.choreops.utils.dt_utils import (
     dt_add_interval,
     dt_next_schedule,
     dt_now_local,
     dt_to_utc,
     dt_today_iso,
 )
-from .utils.math_utils import parse_points_adjust_values
+from custom_components.choreops.utils.math_utils import parse_points_adjust_values
 
 if TYPE_CHECKING:
-    from .store import ChoreOpsStore
+    from custom_components.choreops.store import ChoreOpsStore
 
 
 LEGACY_STORAGE_KEY = "kidschores_data"
@@ -1201,7 +1204,7 @@ async def async_get_data_recovery_capabilities(
     """
     from pathlib import Path
 
-    from .store import ChoreOpsStore
+    from custom_components.choreops.store import ChoreOpsStore
 
     store = ChoreOpsStore(hass)
     storage_path = Path(store.get_storage_path())
@@ -1237,7 +1240,7 @@ async def async_prepare_current_active_storage(
     import json
     from pathlib import Path
 
-    from .store import ChoreOpsStore
+    from custom_components.choreops.store import ChoreOpsStore
 
     try:
         destination_store = ChoreOpsStore(hass, destination_storage_key)
@@ -1414,7 +1417,7 @@ async def async_migrate_from_legacy_choreops_storage(
             summary["penalty_entries_transformed"],
         )
 
-    from .store import ChoreOpsStore
+    from custom_components.choreops.store import ChoreOpsStore
 
     store = ChoreOpsStore(hass, destination_storage_key)
     destination_path = Path(store.get_storage_path())
@@ -4251,7 +4254,7 @@ class PreV50Migrator:
         1. Schema version should only be updated after ALL migrations succeed
         2. Legacy keys might be needed during migration (safety)
 
-        This method will be REMOVED when migration_pre_v50.py is dropped.
+        This method will be REMOVED when migrations/pre_v50.py is dropped.
         """
         from homeassistant.util import dt as dt_util
 

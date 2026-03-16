@@ -272,7 +272,18 @@ All entity platforms MUST provide both human-readable (`*_EID_*`) and machine-re
 
 #### Pre-v50 migration sunset policy
 
-`migration_pre_v50.py` is frozen compatibility code and must not accumulate new feature logic.
+`migrations/pre_v50.py` is frozen compatibility code and must not accumulate new feature logic.
+
+Modern schema changes and modern-state boot repairs must use separate lanes:
+
+- `custom_components/choreops/migrations/` for versioned post-1.0.0 schema migrations
+- `custom_components/choreops/integrity/` for idempotent boot-time repairs on current-schema payloads
+
+Rule:
+
+- If the change introduces a new durable storage contract and schema bump, it belongs in `migrations/`.
+- If the payload is already on a modern schema but contains an impossible runtime state, it belongs in `integrity/`.
+- `SystemManager` may orchestrate these phases, but it must not accumulate incident-specific repair implementations inline.
 
 Delete it only when all conditions are met:
 

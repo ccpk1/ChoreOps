@@ -25,7 +25,7 @@ import pytest
 from custom_components.choreops import const
 from custom_components.choreops.coordinator import ChoreOpsDataCoordinator
 from custom_components.choreops.helpers import flow_helpers as fh
-from custom_components.choreops.migration_pre_v50 import PreV50Migrator
+from custom_components.choreops.migrations.pre_v50 import PreV50Migrator
 from tests.helpers.setup import SetupResult, setup_from_yaml
 
 # =============================================================================

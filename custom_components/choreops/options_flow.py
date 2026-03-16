@@ -5323,7 +5323,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         """Select a backup file to delete."""
         from pathlib import Path
 
-        from . import migration_pre_v50 as mp50
+        from .migrations import pre_v50 as mp50
 
         store = self._create_scoped_store()
 

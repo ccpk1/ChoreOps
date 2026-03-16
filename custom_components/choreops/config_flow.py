@@ -12,10 +12,11 @@ from homeassistant.core import callback
 from homeassistant.util import dt as dt_util
 import voluptuous as vol
 
-from . import const, data_builders as db, migration_pre_v50 as mp50
+from . import const, data_builders as db
 from .data_builders import EntityValidationError
 from .helpers import backup_helpers as bh, flow_helpers as fh
 from .helpers.storage_helpers import get_entry_storage_key_from_entry
+from .migrations import pre_v50 as mp50
 from .options_flow import ChoreOpsOptionsFlowHandler
 
 

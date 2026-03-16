@@ -323,7 +323,6 @@ class ChoreOpsDataCoordinator(DataUpdateCoordinator):
         except asyncio.CancelledError:
             # Task was cancelled, new save scheduled
             const.LOGGER.debug("Debounced persist cancelled (replaced by new save)")
-            raise
 
     def _enforce_runtime_schema_on_persist(self) -> None:
         """Ensure runtime persistence uses canonical schema metadata.
@@ -332,7 +331,7 @@ class ChoreOpsDataCoordinator(DataUpdateCoordinator):
         can bypass it by calling `_persist(..., enforce_schema=False)` to avoid
         premature schema stamping while transitional migration phases are active.
         """
-        from .migration_pre_v50 import has_legacy_migration_performed_marker
+        from .migrations.pre_v50 import has_legacy_migration_performed_marker
 
         if has_legacy_migration_performed_marker(self._data):
             return
