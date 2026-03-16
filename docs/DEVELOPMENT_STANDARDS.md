@@ -25,6 +25,22 @@ To maintain a clean history and stable environment use a **Traffic Controller** 
 - **Sync Protocol**: Use the workflow dispatch input to target a specific branch when needed, and regularly merge translation PR updates from `main` into active feature branches.
 - **Commit Style**: Use **Conventional Commits** (e.g., `feat:`, `fix:`, `refactor:`, `chore(l10n):`) to ensure a readable, professional history.
 
+#### Main branch merge and release automation contract
+
+Changes intended for `main` MUST preserve automated issue linking and generated release notes.
+
+- **Merge path**: Use a pull request into `main`; do not rely on direct pushes if release-note categorization is required.
+- **Issue closure keyword**: The PR body MUST include a closing keyword such as `Closes #123` when the change resolves an issue. `Refs #123` is informational only and does not close the issue.
+- **Release-note categorization**: The PR MUST carry the correct release-note label defined in `.github/release.yml` (for example `bug`, `enhancement`, `enh: feature`, `documentation`).
+- **Excluded labels**: Remove labels excluded by `.github/release.yml` before merge (for example `needs-triage`, `needs-info`, `status: blocked`, `status: in-progress`, `status: ready`).
+- **PR title quality**: Use a clear, user-facing PR title because generated release notes surface PR titles.
+- **Release-note summary**: If the change is user-visible, summarize it in the PR description under the release-notes section.
+- **Validation before merge**: Before merging to `main`, pass the required validation gates and document what was run in the PR.
+
+Operational rule:
+
+- If a change bypasses PR metadata, automated release-note grouping cannot reliably classify it.
+
 ### 1.0 Release tag versioning standard (all repos)
 
 Use SemVer-style release versions without a `v` prefix for all ChoreOps repositories.

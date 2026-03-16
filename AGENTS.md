@@ -59,6 +59,19 @@ python -m pytest tests/ -v --tb=line  # All tests pass
 
 **Error Recovery**: If `mypy` fails more than twice on the same error, STOP and ask for clarification. Do NOT suppress with `# type: ignore`.
 
+## 🔀 Main Merge Readiness
+
+Before declaring work ready for merge to `main`, verify the workflow metadata required by release automation:
+
+- The change is going through a PR to `main`, not a direct push
+- The PR body includes `Closes #...` when the work resolves an issue
+- The PR has the correct release-note category label from `.github/release.yml`
+- Excluded labels such as `needs-triage`, `needs-info`, or blocked/in-progress status labels are removed
+- The PR title is release-note friendly
+- Validation run is recorded in the PR
+
+Use `docs/DEVELOPMENT_STANDARDS.md` as the canonical policy. Do not invent alternate merge rules in agent responses.
+
 ## ⚡ Core Principles (Follow These First)
 
 ### 1. No Hardcoded Strings
