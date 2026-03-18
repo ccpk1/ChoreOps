@@ -216,6 +216,7 @@ DASHBOARD_RELEASE_INCLUDE_PRERELEASES_DEFAULT: Final = True
 SIGNAL_SUFFIX_DATA_READY: Final = "data_ready"  # Data migrated, registry clean
 SIGNAL_SUFFIX_CHORES_READY: Final = "chores_ready"  # ChoreManager init complete
 SIGNAL_SUFFIX_STATS_READY: Final = "stats_ready"  # StatisticsManager hydration complete
+SIGNAL_SUFFIX_STATS_UPDATED: Final = "stats_updated"  # Statistics buckets updated
 SIGNAL_SUFFIX_GAMIFICATION_READY: Final = (
     "gamification_ready"  # GamificationManager complete
 )

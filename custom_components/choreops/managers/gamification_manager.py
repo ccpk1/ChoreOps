@@ -114,6 +114,7 @@ class GamificationManager(BaseManager):
         """
         # Startup cascade - wait for stats to be ready before initializing badges
         self.listen(const.SIGNAL_SUFFIX_STATS_READY, self._on_stats_ready)
+        self.listen(const.SIGNAL_SUFFIX_STATS_UPDATED, self._on_stats_updated)
 
         # Point changes affect point-based badges
         self.listen(const.SIGNAL_SUFFIX_POINTS_CHANGED, self._on_points_changed)
@@ -174,6 +175,21 @@ class GamificationManager(BaseManager):
         # Signal cascade complete
         self.emit(const.SIGNAL_SUFFIX_GAMIFICATION_READY)
         const.LOGGER.info("ChoreOps initialization cascade complete")
+
+    def _on_stats_updated(self, payload: dict[str, Any]) -> None:
+        """Handle post-statistics updates.
+
+        Statistics writes can complete after earlier lifecycle signals such as
+        `chore_approved` or `points_changed` have already queued an evaluation.
+        Re-queueing on the post-stats signal ensures badge evaluation sees the
+        authoritative period buckets.
+
+        Args:
+            payload: Event data with assignee/user identifier.
+        """
+        assignee_id = payload.get("user_id")
+        if assignee_id:
+            self._mark_pending(assignee_id)
 
     # =========================================================================
     # EVENT HANDLERS
@@ -1357,15 +1373,26 @@ class GamificationManager(BaseManager):
         end_date_iso = str(
             reset_schedule.get(const.DATA_BADGE_RESET_SCHEDULE_END_DATE, "")
         )
-        if (
-            canonical_target.get("source_raw_type")
-            == const.BADGE_TARGET_THRESHOLD_TYPE_POINTS_CHORES
-        ):
+        window_start_iso = start_date_iso or today_iso
+        window_end_iso = end_date_iso or today_iso
+        target_type = canonical_target.get("source_raw_type")
+
+        if target_type in {
+            const.BADGE_TARGET_THRESHOLD_TYPE_POINTS,
+            const.BADGE_TARGET_THRESHOLD_TYPE_POINTS_CHORES,
+        }:
             today_stats["window_points"] = self._get_tracked_window_points_total(
                 assignee_id,
                 tracked_chores,
-                start_date_iso or today_iso,
-                end_date_iso or today_iso,
+                window_start_iso,
+                window_end_iso,
+            )
+        if target_type == const.BADGE_TARGET_THRESHOLD_TYPE_CHORE_COUNT:
+            today_stats["window_approved"] = self._get_tracked_window_completion_total(
+                assignee_id,
+                tracked_chores,
+                window_start_iso,
+                window_end_iso,
             )
         today_completion = (
             self.coordinator.statistics_manager.get_badge_scoped_today_completion(
@@ -1455,7 +1482,6 @@ class GamificationManager(BaseManager):
             const.DATA_USER_BADGE_PROGRESS_STATUS,
             const.BADGE_STATE_IN_PROGRESS,
         )
-
         entry.setdefault(const.DATA_USER_BADGE_PROGRESS_POINTS_CYCLE_COUNT, 0.0)
         entry.setdefault(const.DATA_USER_BADGE_PROGRESS_CHORES_CYCLE_COUNT, 0)
         entry.setdefault(const.DATA_USER_BADGE_PROGRESS_DAYS_CYCLE_COUNT, 0)
@@ -3508,10 +3534,8 @@ class GamificationManager(BaseManager):
         today_local_iso = dt_today_iso()
 
         badges_earned = assignee_info.setdefault(const.DATA_USER_BADGES_EARNED, {})
-
         # Phase 4: GamificationManager (Landlord) creates/updates structure only
         # StatisticsManager (Tenant) handles period updates via _on_badge_earned listener
-
         if badge_id not in badges_earned:
             # Create new badge tracking entry with empty periods (Landlord creates structure only)
             # StatisticsEngine creates daily/weekly/monthly/yearly keys on-demand
@@ -3538,7 +3562,6 @@ class GamificationManager(BaseManager):
                 const.DATA_BADGE_NAME, ""
             )
             tracking_entry[const.DATA_USER_BADGES_EARNED_LAST_AWARDED] = today_local_iso
-
             # Ensure periods structure exists (Landlord ensures container)
             # StatisticsEngine creates daily/weekly/monthly/yearly keys on-demand
             tracking_entry.setdefault(

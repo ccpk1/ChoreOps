@@ -716,18 +716,20 @@ class GamificationEngine:
         """
         threshold = target.get(const.DATA_BADGE_TARGET_THRESHOLD_VALUE, 0)
 
-        # Use per-badge cycle count
-        badge_progress = context.get("current_badge_progress") or {}
-        cycle_count = badge_progress.get(
-            const.DATA_USER_BADGE_PROGRESS_POINTS_CYCLE_COUNT, 0
-        )
-
-        # Get today's point progress from pre-computed stats in context
         today_stats = context.get("today_stats") or {}
-        today_points = today_stats.get("today_points", 0)
+        window_points = today_stats.get("window_points")
 
-        # Total is cycle_count (previously accumulated) + today's points
-        current_value = cycle_count + today_points
+        if window_points is not None:
+            current_value = float(window_points)
+        else:
+            # Backward-compatible fallback for contexts that still provide
+            # incremental cycle state plus today's points.
+            badge_progress = context.get("current_badge_progress") or {}
+            cycle_count = badge_progress.get(
+                const.DATA_USER_BADGE_PROGRESS_POINTS_CYCLE_COUNT, 0
+            )
+            today_points = today_stats.get("today_points", 0)
+            current_value = cycle_count + today_points
 
         progress = min(1.0, current_value / threshold) if threshold > 0 else 0.0
         criteria_met = current_value >= threshold
@@ -843,17 +845,21 @@ class GamificationEngine:
         """
         threshold = target.get(const.DATA_BADGE_TARGET_THRESHOLD_VALUE, 0)
 
-        # Get cycle count from badge progress
-        badge_progress = context.get("current_badge_progress") or {}
-        cycle_count = badge_progress.get(
-            const.DATA_USER_BADGE_PROGRESS_CHORES_CYCLE_COUNT, 0
-        )
-
-        # Get today's chore completion count from pre-computed stats
         today_stats = context.get("today_stats") or {}
-        today_approved = today_stats.get("today_approved", 0)
+        window_approved = today_stats.get("window_approved")
 
-        current_value = cycle_count + today_approved
+        if window_approved is not None:
+            current_value = int(window_approved)
+        else:
+            # Backward-compatible fallback for contexts that still provide
+            # incremental cycle state plus today's approvals.
+            badge_progress = context.get("current_badge_progress") or {}
+            cycle_count = badge_progress.get(
+                const.DATA_USER_BADGE_PROGRESS_CHORES_CYCLE_COUNT, 0
+            )
+            today_approved = today_stats.get("today_approved", 0)
+            current_value = cycle_count + today_approved
+
         progress = min(1.0, current_value / threshold) if threshold > 0 else 0.0
         criteria_met = current_value >= threshold
 

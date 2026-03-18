@@ -18,6 +18,8 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any, cast
 
+import pytest
+
 from custom_components.choreops import const
 from custom_components.choreops.engines.gamification_engine import GamificationEngine
 
@@ -247,6 +249,19 @@ class TestEvaluatePoints:
         assert result["progress"] == 0.25
         assert result["current_value"] == 25
 
+    def test_window_points_prevents_same_day_double_count(self) -> None:
+        """Canonical window points take precedence over additive cycle math."""
+        context = make_context(points_cycle_count=5, today_points=5)
+        context["today_stats"]["window_points"] = 5.0
+        badge_data = make_badge(threshold=50)
+        target = badge_data[const.DATA_BADGE_TARGET]
+
+        result = GamificationEngine._evaluate_points(context, target)
+
+        assert result["met"] is False
+        assert result["current_value"] == 5.0
+        assert result["progress"] == 0.1
+
 
 # =============================================================================
 # TEST: _evaluate_chore_count
@@ -301,6 +316,22 @@ class TestEvaluateChoreCount:
         assert result["met"] is False
         assert result["current_value"] == 0
         assert result["progress"] == 0.0
+
+    def test_window_approved_prevents_same_day_double_count(self) -> None:
+        """Canonical window approvals take precedence over additive cycle math."""
+        context = make_context(chores_cycle_count=1, today_approved=1)
+        context["today_stats"]["window_approved"] = 1
+        badge_data = make_badge(
+            target_type=const.BADGE_TARGET_THRESHOLD_TYPE_CHORE_COUNT,
+            threshold=3,
+        )
+        target = badge_data[const.DATA_BADGE_TARGET]
+
+        result = GamificationEngine._evaluate_chore_count(context, target)
+
+        assert result["met"] is False
+        assert result["current_value"] == 1
+        assert result["progress"] == pytest.approx(1 / 3)
 
 
 # =============================================================================

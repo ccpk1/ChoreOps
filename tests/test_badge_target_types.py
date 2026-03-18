@@ -17,12 +17,13 @@ Note: Section 1.1 (Cumulative) and Section 1.3 (Weekly - actually handled
 by periodic with weekly reset) are covered in test_badge_cumulative.py.
 """
 
+import asyncio
 import logging
 from typing import Any
 from zoneinfo import ZoneInfo
 
 from homeassistant.config_entries import ConfigFlowResult
-from homeassistant.core import HomeAssistant
+from homeassistant.core import Context, HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 import pytest
 
@@ -57,6 +58,9 @@ from tests.helpers import (
     OPTIONS_FLOW_INPUT_MANAGE_ACTION,
     OPTIONS_FLOW_INPUT_MENU_SELECTION,
     OPTIONS_FLOW_STEP_INIT,
+    approve_chore,
+    claim_chore,
+    get_dashboard_helper,
 )
 from tests.helpers.setup import SetupResult, setup_from_yaml
 
@@ -155,6 +159,171 @@ def get_badge_by_name(coordinator: Any, badge_name: str) -> tuple[str, dict[str,
         if badge_data.get(const.DATA_BADGE_NAME) == badge_name:
             return badge_id, badge_data
     raise ValueError(f"Badge not found: {badge_name}")
+
+
+async def _wait_for_badge_progress_state(
+    hass: HomeAssistant,
+    assignee_slug: str,
+    badge_name: str,
+    *,
+    expected_progress: float,
+) -> None:
+    """Wait until badge progress reaches an expected settled state.
+
+    The badge pipeline is event-driven. This helper waits for the badge's
+    persisted progress to reflect the approved chore before the regression test
+    checks that unrelated events do not inflate it further.
+    """
+    for _ in range(100):
+        await hass.async_block_till_done()
+        dashboard = get_dashboard_helper(hass, assignee_slug)
+        badge_entry = next(
+            (
+                badge
+                for badge in dashboard.get("badges", [])
+                if badge.get("name") == badge_name
+            ),
+            None,
+        )
+        if badge_entry and (badge_eid := badge_entry.get("eid")):
+            badge_state = hass.states.get(str(badge_eid))
+            if badge_state is not None:
+                try:
+                    state_progress = float(badge_state.state)
+                except (TypeError, ValueError):
+                    state_progress = 0.0
+                overall_progress = float(
+                    badge_state.attributes.get(
+                        const.DATA_USER_BADGE_PROGRESS_OVERALL_PROGRESS,
+                        0.0,
+                    )
+                    or 0.0
+                )
+                criteria_met = bool(
+                    badge_state.attributes.get(
+                        const.DATA_USER_BADGE_PROGRESS_CRITERIA_MET,
+                        False,
+                    )
+                )
+
+                if (
+                    abs(state_progress - (expected_progress * 100)) <= 0.1
+                    and abs(overall_progress - expected_progress) <= 0.001
+                    and criteria_met is False
+                ):
+                    return
+
+        await asyncio.sleep(0.05)
+
+    raise AssertionError(
+        f"Timed out waiting for badge progress for {badge_name}: "
+        f"overall_progress={expected_progress}"
+    )
+
+
+async def _add_daily_badge_and_seed_single_chore_progress(
+    hass: HomeAssistant,
+    setup_result: SetupResult,
+    mock_hass_users: dict[str, Any],
+    *,
+    badge_name: str,
+    target_type: str,
+    threshold: int,
+) -> tuple[str, str]:
+    """Create a daily badge and seed one approved chore for Zoë.
+
+    Returns:
+        Tuple of (assignee_id, badge_id)
+    """
+    config_entry = setup_result.config_entry
+    coordinator = setup_result.coordinator
+    assignee_id = setup_result.assignee_ids["Zoë"]
+
+    badge_data = {
+        CFOF_BADGES_INPUT_NAME: badge_name,
+        CFOF_BADGES_INPUT_ICON: "mdi:test-tube",
+        CFOF_BADGES_INPUT_TARGET_TYPE: target_type,
+        CFOF_BADGES_INPUT_TARGET_THRESHOLD_VALUE: threshold,
+        CFOF_BADGES_INPUT_ASSIGNED_USER_IDS: [assignee_id],
+        CFOF_BADGES_INPUT_SELECTED_CHORES: [],
+        CFOF_BADGES_INPUT_AWARD_POINTS: 5.0,
+        CFOF_BADGES_INPUT_AWARD_ITEMS: ["points"],
+    }
+
+    await add_badge_via_options_flow(
+        hass,
+        config_entry.entry_id,
+        BADGE_TYPE_DAILY,
+        badge_data,
+    )
+
+    badge_id, _ = get_badge_by_name(coordinator, badge_name)
+
+    assignee_context = Context(user_id=mock_hass_users["assignee1"].id)
+    approver_context = Context(user_id=mock_hass_users["approver1"].id)
+
+    claim_result = await claim_chore(hass, "zoe", "Make bed", assignee_context)
+    assert claim_result.success, f"Failed to claim chore: {claim_result.error}"
+
+    approve_result = await approve_chore(hass, "zoe", "Make bed", approver_context)
+    assert approve_result.success, f"Failed to approve chore: {approve_result.error}"
+
+    await hass.async_block_till_done()
+
+    return assignee_id, badge_id
+
+
+async def _trigger_unrelated_gamification_event(
+    setup_result: SetupResult,
+    assignee_id: str,
+    trigger_type: str,
+) -> None:
+    """Trigger one non-chore gamification event and drain evaluation."""
+    gamification_manager = setup_result.coordinator.gamification_manager
+    payload = {"user_id": assignee_id}
+
+    if trigger_type == "reward_approved":
+        gamification_manager._on_reward_approved(payload)
+    elif trigger_type == "bonus_applied":
+        gamification_manager._on_bonus_applied(payload)
+    elif trigger_type == "penalty_applied":
+        gamification_manager._on_penalty_applied(payload)
+    else:
+        raise ValueError(f"Unsupported trigger type: {trigger_type}")
+
+    await gamification_manager._drain_pending_evaluations_now()
+
+
+def _get_badge_progress_sensor_snapshot(
+    hass: HomeAssistant,
+    assignee_slug: str,
+    badge_name: str,
+) -> tuple[float, dict[str, Any]]:
+    """Return badge progress sensor state and attributes for the named badge."""
+    dashboard = get_dashboard_helper(hass, assignee_slug)
+    badge_entry = next(
+        (
+            badge
+            for badge in dashboard.get("badges", [])
+            if badge.get("name") == badge_name
+        ),
+        None,
+    )
+    if badge_entry is None or not badge_entry.get("eid"):
+        raise AssertionError(f"Badge progress entity not found for {badge_name}")
+
+    badge_state = hass.states.get(str(badge_entry["eid"]))
+    if badge_state is None:
+        raise AssertionError(f"Badge progress state missing for {badge_name}")
+
+    try:
+        state_value = float(badge_state.state)
+    except (TypeError, ValueError) as err:
+        raise AssertionError(
+            f"Badge progress state is not numeric for {badge_name}: {badge_state.state}"
+        ) from err
+
+    return state_value, dict(badge_state.attributes)
 
 
 # ============================================================================
@@ -258,6 +427,82 @@ class TestDailyBadgeTargetTypes:
             DATA_USER_BADGE_PROGRESS, {}
         )
         assert badge_id in assignee_progress, "Badge progress should be initialized"
+
+    @pytest.mark.parametrize(
+        ("target_type", "threshold", "expected_progress"),
+        [
+            ("chore_count", 3, 0.33),
+            ("points", 50, 0.1),
+        ],
+        ids=["chore-count", "points"],
+    )
+    @pytest.mark.parametrize(
+        "trigger_type",
+        ["reward_approved", "bonus_applied", "penalty_applied"],
+        ids=["reward", "bonus", "penalty"],
+    )
+    async def test_unrelated_same_day_events_do_not_inflate_daily_badge_progress(
+        self,
+        hass: HomeAssistant,
+        setup_minimal: SetupResult,
+        mock_hass_users: dict[str, Any],
+        target_type: str,
+        threshold: int,
+        expected_progress: float,
+        trigger_type: str,
+    ) -> None:
+        """Reward, bonus, and penalty re-evaluations must not double count progress."""
+        assignee_id, badge_id = await _add_daily_badge_and_seed_single_chore_progress(
+            hass,
+            setup_minimal,
+            mock_hass_users,
+            badge_name=f"Re-eval Guard {target_type} {trigger_type}",
+            target_type=target_type,
+            threshold=threshold,
+        )
+        badge_name = f"Re-eval Guard {target_type} {trigger_type}"
+
+        await _wait_for_badge_progress_state(
+            hass,
+            "zoe",
+            badge_name,
+            expected_progress=expected_progress,
+        )
+
+        before_state, before_attrs = _get_badge_progress_sensor_snapshot(
+            hass,
+            "zoe",
+            badge_name,
+        )
+        assert before_state == pytest.approx(expected_progress * 100, abs=0.1)
+        assert before_attrs[
+            const.DATA_USER_BADGE_PROGRESS_OVERALL_PROGRESS
+        ] == pytest.approx(
+            expected_progress,
+            abs=0.001,
+        )
+        assert before_attrs[const.DATA_USER_BADGE_PROGRESS_CRITERIA_MET] is False
+
+        await _trigger_unrelated_gamification_event(
+            setup_minimal,
+            assignee_id,
+            trigger_type,
+        )
+        await hass.async_block_till_done()
+
+        after_state, after_attrs = _get_badge_progress_sensor_snapshot(
+            hass,
+            "zoe",
+            badge_name,
+        )
+        assert after_state == pytest.approx(before_state, abs=0.1)
+        assert after_attrs[
+            const.DATA_USER_BADGE_PROGRESS_OVERALL_PROGRESS
+        ] == pytest.approx(
+            expected_progress,
+            abs=0.001,
+        )
+        assert after_attrs[const.DATA_USER_BADGE_PROGRESS_CRITERIA_MET] is False
 
 
 # ============================================================================

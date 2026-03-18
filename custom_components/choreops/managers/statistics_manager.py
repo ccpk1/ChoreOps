@@ -102,6 +102,10 @@ class StatisticsManager(BaseManager):
         """Get the StatisticsEngine from coordinator."""
         return self._coordinator.stats
 
+    def _emit_stats_updated(self, assignee_id: str) -> None:
+        """Emit a post-statistics update signal for an assignee."""
+        self.emit(const.SIGNAL_SUFFIX_STATS_UPDATED, user_id=assignee_id)
+
     async def async_setup(self) -> None:
         """Set up event subscriptions for statistics tracking.
 
@@ -377,6 +381,7 @@ class StatisticsManager(BaseManager):
 
         # === 7) Notify Home Assistant of data update ===
         self._coordinator.async_set_updated_data(self._coordinator._data)
+        self._emit_stats_updated(assignee_id)
 
         const.LOGGER.debug(
             "StatisticsManager._on_points_changed: assignee=%s, delta=%.2f, source=%s",
@@ -595,6 +600,9 @@ class StatisticsManager(BaseManager):
 
         # Transactional Flush: notify sensors that all batch updates are complete
         self._coordinator.async_set_updated_data(self._coordinator._data)
+        for assignee_id in assignee_ids:
+            if assignee_id:
+                self._emit_stats_updated(assignee_id)
 
         const.LOGGER.debug(
             "StatisticsManager._on_chore_completed: chore=%s, assignees=%s",
@@ -1478,6 +1486,7 @@ class StatisticsManager(BaseManager):
         if persist:
             self._coordinator._persist()
             self._refresh_chore_cache(assignee_id)
+            self._emit_stats_updated(assignee_id)
 
         return True
 
@@ -1604,6 +1613,7 @@ class StatisticsManager(BaseManager):
         if persist:
             self._coordinator._persist()
             self._refresh_reward_cache(assignee_id)
+            self._emit_stats_updated(assignee_id)
 
         return True
 
