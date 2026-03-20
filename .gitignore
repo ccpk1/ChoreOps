@@ -61,6 +61,9 @@ Thumbs.db
 *.temp
 .cache/
 
+# Generated support exports
+utils/exports/*.txt
+
 # Local wiki guardrails (keep wiki repo separate from main code repo)
 wiki/
 wiki-local/
