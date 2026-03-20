@@ -126,6 +126,10 @@ jobs:
           L10N_BRANCH: l10n_crowdin_action
           PR_TITLE: "chore(l10n): sync translations from Crowdin"
         run: |
+          # The Docker-based Crowdin action can leave git metadata owned by root.
+          # Restore ownership before local branch operations and pushes.
+          sudo chown -R "$(id -u):$(id -g)" .git
+
           git config user.name "Crowdin Bot"
           git config user.email "support+bot@crowdin.com"
 
