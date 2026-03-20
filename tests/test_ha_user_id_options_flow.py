@@ -25,6 +25,7 @@ from tests.helpers import (
     CFOF_USERS_INPUT_ENABLE_GAMIFICATION,
     # Common constants
     DATA_APPROVER_HA_USER_ID,
+    OPTIONS_FLOW_ACTIONS_ADD,
     OPTIONS_FLOW_ACTIONS_EDIT,
     OPTIONS_FLOW_INPUT_ENTITY_NAME,
     OPTIONS_FLOW_INPUT_MANAGE_ACTION,
@@ -191,6 +192,27 @@ class TestHaUserIdClearing:
                 },
             )
         assert result.get("type") == FlowResultType.FORM
+        assert result.get("step_id") == const.OPTIONS_FLOW_STEP_EDIT_USER
+
+        with patch(
+            "custom_components.choreops.helpers.translation_helpers.get_available_dashboard_languages",
+            return_value=["en"],
+        ):
+            result = await hass.config_entries.options.async_configure(
+                result.get("flow_id"),
+                user_input={
+                    CFOF_APPROVERS_INPUT_NAME: approver_name,
+                    CFOF_APPROVERS_INPUT_HA_USER: SENTINEL_NO_SELECTION,
+                    CFOF_USERS_INPUT_ASSOCIATED_USER_IDS: associated_assignees,
+                    CFOF_APPROVERS_INPUT_MOBILE_NOTIFY_SERVICE: SENTINEL_NO_SELECTION,
+                    CFOF_USERS_INPUT_CAN_BE_ASSIGNED: True,
+                    CFOF_USERS_INPUT_CAN_APPROVE: True,
+                    CFOF_USERS_INPUT_CAN_MANAGE: False,
+                    CFOF_USERS_INPUT_ENABLE_CHORE_WORKFLOW: False,
+                    CFOF_USERS_INPUT_ENABLE_GAMIFICATION: False,
+                },
+            )
+        assert result.get("type") == FlowResultType.FORM
         assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
 
         # Step 7: Verify user ID was cleared
@@ -282,3 +304,68 @@ class TestHaUserIdClearing:
 
         assert result.get("type") == FlowResultType.FORM
         assert result.get("step_id") == const.OPTIONS_FLOW_STEP_EDIT_USER
+
+    async def test_add_user_shows_non_kiosk_warning_before_saving_unlinked_assignee(
+        self,
+        hass: HomeAssistant,
+        scenario_minimal: SetupResult,
+    ) -> None:
+        """Add user flow pauses once to show the non-kiosk unlinked warning."""
+        config_entry = scenario_minimal.config_entry
+        coordinator = config_entry.runtime_data
+
+        result = await hass.config_entries.options.async_init(config_entry.entry_id)
+        result = await hass.config_entries.options.async_configure(
+            result.get("flow_id"),
+            user_input={OPTIONS_FLOW_INPUT_MENU_SELECTION: OPTIONS_FLOW_USERS},
+        )
+        result = await hass.config_entries.options.async_configure(
+            result.get("flow_id"),
+            user_input={OPTIONS_FLOW_INPUT_MANAGE_ACTION: OPTIONS_FLOW_ACTIONS_ADD},
+        )
+
+        flow_id = result["flow_id"]
+        new_user_input = {
+            const.CFOF_USERS_INPUT_NAME: "Tablet User",
+            const.CFOF_USERS_INPUT_HA_USER_ID: SENTINEL_NO_SELECTION,
+            const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS: [],
+            const.CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE: SENTINEL_NO_SELECTION,
+            const.CFOF_USERS_INPUT_CAN_BE_ASSIGNED: True,
+            const.CFOF_USERS_INPUT_CAN_APPROVE: False,
+            const.CFOF_USERS_INPUT_CAN_MANAGE: False,
+            const.CFOF_USERS_INPUT_ENABLE_CHORE_WORKFLOW: True,
+            const.CFOF_USERS_INPUT_ENABLE_GAMIFICATION: True,
+            const.CFOF_USERS_INPUT_DASHBOARD_LANGUAGE: const.DEFAULT_DASHBOARD_LANGUAGE,
+        }
+
+        with patch(
+            "custom_components.choreops.helpers.translation_helpers.get_available_dashboard_languages",
+            return_value=["en"],
+        ):
+            result = await hass.config_entries.options.async_configure(
+                flow_id,
+                user_input=new_user_input,
+            )
+
+        assert result.get("type") == FlowResultType.FORM
+        assert result.get("step_id") == const.OPTIONS_FLOW_STEP_ADD_USER
+        assert result.get("description_placeholders", {}).get(
+            const.PLACEHOLDER_USER_ACCESS_WARNING,
+            "",
+        )
+
+        with patch(
+            "custom_components.choreops.helpers.translation_helpers.get_available_dashboard_languages",
+            return_value=["en"],
+        ):
+            result = await hass.config_entries.options.async_configure(
+                flow_id,
+                user_input=new_user_input,
+            )
+
+        assert result.get("type") == FlowResultType.FORM
+        assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
+        assert any(
+            user_data.get(const.DATA_USER_NAME) == "Tablet User"
+            for user_data in coordinator.users_data.values()
+        )

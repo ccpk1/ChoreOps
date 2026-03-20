@@ -10,7 +10,9 @@ These services allow manual rotation control for special circumstances.
 
 from typing import Any
 
+from homeassistant.components.button import DOMAIN as BUTTON_DOMAIN, SERVICE_PRESS
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 import pytest
 
 from custom_components.choreops import const
@@ -24,7 +26,12 @@ from tests.helpers.constants import (
     SERVICE_FIELD_USER_ID,
 )
 from tests.helpers.setup import SetupResult, setup_from_yaml
-from tests.helpers.workflows import claim_chore, find_chore, get_dashboard_helper
+from tests.helpers.workflows import (
+    claim_chore,
+    find_chore,
+    get_chore_buttons,
+    get_dashboard_helper,
+)
 from tests.test_badge_helpers import get_assignee_by_name, get_chore_by_name
 
 # =============================================================================
@@ -418,8 +425,6 @@ async def test_open_rotation_cycle_allows_one_claim_then_blocks_others(
         "Dishes Rotation",
         context=Context(user_id=second_claimer_user_id),
     )
-    assert second_claim.state_before == second_claim.state_after
-    assert second_claim.global_state_before == second_claim.global_state_after
 
     second_chore = find_chore(
         get_dashboard_helper(hass, second_claimer_slug),
@@ -428,6 +433,23 @@ async def test_open_rotation_cycle_allows_one_claim_then_blocks_others(
     assert second_chore is not None
     second_sensor = hass.states.get(second_chore["eid"])
     assert second_sensor is not None
+    assert second_sensor.state == "completed_by_other"
+
+    second_claim_button_eid = get_chore_buttons(hass, second_chore["eid"])["claim"]
+    assert second_claim_button_eid
+
+    with pytest.raises(HomeAssistantError):
+        await hass.services.async_call(
+            BUTTON_DOMAIN,
+            SERVICE_PRESS,
+            {"entity_id": second_claim_button_eid},
+            blocking=True,
+            context=Context(user_id=second_claimer_user_id),
+        )
+
+    second_sensor = hass.states.get(second_chore["eid"])
+    assert second_sensor is not None
+    assert second_sensor.state == "completed_by_other"
     assert second_sensor.attributes.get("can_claim") is False
 
 

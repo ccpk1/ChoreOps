@@ -134,7 +134,7 @@ import voluptuous as vol
 
 from .. import const
 from ..utils.dt_utils import dt_parse, dt_parse_duration
-from . import translation_helpers as th
+from . import entity_helpers as eh, translation_helpers as th
 
 # =============================================================================
 # INPUT VALIDATION HELPERS
@@ -568,6 +568,64 @@ def build_user_section_suggested_values(flat_values: dict[str, Any]) -> dict[str
 def normalize_user_form_input(user_input: dict[str, Any]) -> dict[str, Any]:
     """Public wrapper to normalize USER-form payload shape."""
     return _normalize_user_form_input_impl(user_input)
+
+
+def has_linked_ha_user_id(value: Any) -> bool:
+    """Return whether a Home Assistant user link value is meaningfully set."""
+    if not isinstance(value, str):
+        return False
+
+    normalized_value = value.strip()
+    return bool(normalized_value and normalized_value != const.SENTINEL_NO_SELECTION)
+
+
+def should_warn_user_form_unlinked_non_kiosk(
+    user_input: dict[str, Any],
+    *,
+    kiosk_mode_enabled: bool,
+) -> bool:
+    """Return whether the user form should show the non-kiosk link warning."""
+    if kiosk_mode_enabled:
+        return False
+
+    return bool(user_input.get(const.CFOF_USERS_INPUT_CAN_BE_ASSIGNED, False)) and not (
+        has_linked_ha_user_id(user_input.get(const.CFOF_USERS_INPUT_HA_USER_ID))
+    )
+
+
+def get_dashboard_unlinked_assignee_names_for_warning(
+    coordinator: Any,
+    selected_assignee_names: list[str],
+    *,
+    kiosk_mode_enabled: bool,
+) -> list[str]:
+    """Return selected assignee names that are unlinked while kiosk mode is off."""
+    if kiosk_mode_enabled or not selected_assignee_names:
+        return []
+
+    selected_name_set = {
+        assignee_name
+        for assignee_name in selected_assignee_names
+        if isinstance(assignee_name, str) and assignee_name
+    }
+    if not selected_name_set:
+        return []
+
+    warning_names: list[str] = []
+    for assignee_id, assignee_data in coordinator.assignees_data.items():
+        if not eh.is_user_assignment_participant(coordinator, assignee_id):
+            continue
+
+        assignee_name = assignee_data.get(const.DATA_USER_NAME)
+        if not isinstance(assignee_name, str) or assignee_name not in selected_name_set:
+            continue
+
+        if has_linked_ha_user_id(assignee_data.get(const.DATA_USER_HA_USER_ID)):
+            continue
+
+        warning_names.append(assignee_name)
+
+    return sorted(set(warning_names), key=str.casefold)
 
 
 async def build_user_schema(hass, users, assignees_dict):

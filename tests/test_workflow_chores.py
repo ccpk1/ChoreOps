@@ -949,19 +949,23 @@ class TestSharedAllChores:
         chore_name = "Shared All Pending Hold"
         chore_id = scenario_shared.chore_ids[chore_name]
 
-        # Configure strict missed lock and past due
+        # Configure strict missed lock and keep the first claim valid.
         chore_info = coordinator.chores_data.get(chore_id, {})
         chore_info[const.DATA_CHORE_OVERDUE_HANDLING_TYPE] = (
             const.OVERDUE_HANDLING_AT_DUE_DATE_MARK_MISSED_AND_LOCK
         )
         chore_info[const.DATA_CHORE_DUE_DATE] = (
-            dt_now_utc() - timedelta(minutes=5)
+            dt_now_utc() + timedelta(days=2)
         ).isoformat()
 
         # Zoë claims first to ensure shared_all global remains in-part while Max hits missed
         assignee1_context = Context(user_id=mock_hass_users["assignee1"].id)
         claim_result = await claim_chore(hass, "zoe", chore_name, assignee1_context)
         assert claim_result.success, f"Claim failed: {claim_result.error}"
+
+        chore_info[const.DATA_CHORE_DUE_DATE] = (
+            dt_now_utc() - timedelta(minutes=5)
+        ).isoformat()
 
         await coordinator.chore_manager._on_periodic_update(now_utc=dt_now_utc())
         await hass.async_block_till_done()

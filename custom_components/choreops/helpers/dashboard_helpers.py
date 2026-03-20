@@ -2300,19 +2300,31 @@ def build_dashboard_missing_dependencies_schema(
     continue_default: bool = False,
     *,
     show_dependency_bypass: bool = True,
+    show_access_warning_ack: bool = False,
 ) -> vol.Schema:
     """Build schema for final dashboard review step."""
-    if not show_dependency_bypass:
-        return vol.Schema({})
+    fields: dict[vol.Marker, Any] = {}
 
-    return vol.Schema(
-        {
+    if show_dependency_bypass:
+        fields[
             vol.Optional(
                 const.CFOF_DASHBOARD_INPUT_DEPENDENCY_BYPASS,
                 default=continue_default,
-            ): selector.BooleanSelector(),
-        }
-    )
+            )
+        ] = selector.BooleanSelector()
+
+    if show_access_warning_ack:
+        fields[
+            vol.Optional(
+                const.CFOF_DASHBOARD_INPUT_ACCESS_WARNING_ACK,
+                default=False,
+            )
+        ] = selector.BooleanSelector()
+
+    if not fields:
+        return vol.Schema({})
+
+    return vol.Schema(fields)
 
 
 def _get_lovelace_resource_urls(hass: Any) -> list[str]:

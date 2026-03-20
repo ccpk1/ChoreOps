@@ -74,7 +74,9 @@ Coordinator method: _process_time_checks()
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+from homeassistant.components.button import DOMAIN as BUTTON_DOMAIN, SERVICE_PRESS
 from homeassistant.core import Context, HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 import pytest
 
 from custom_components.choreops import const
@@ -125,6 +127,7 @@ from tests.helpers import (
     SetupResult,
     claim_chore,
     find_chore,
+    get_chore_buttons,
     get_dashboard_helper,
     setup_from_yaml,
 )
@@ -2986,19 +2989,22 @@ class TestDueWindowClaimLockBehavior:
             assignee_chore_data.get(DATA_USER_CHORE_DATA_STATE) == CHORE_STATE_PENDING
         )
 
-        blocked_claim = await claim_chore(
-            hass,
-            "zoe",
-            "Reset Due Date Once",
-            assignee_context,
-        )
-        assert blocked_claim.state_before == CHORE_STATE_WAITING
-        assert blocked_claim.state_after == CHORE_STATE_WAITING
-        assert blocked_claim.points_changed == 0.0
+        claim_button_eid = get_chore_buttons(hass, chore_before["eid"])["claim"]
+        assert claim_button_eid
+
+        with pytest.raises(HomeAssistantError):
+            await hass.services.async_call(
+                BUTTON_DOMAIN,
+                SERVICE_PRESS,
+                {"entity_id": claim_button_eid},
+                blocking=True,
+                context=assignee_context,
+            )
 
         chore_sensor_after_block = hass.states.get(chore_before["eid"])
         assert chore_sensor_after_block is not None
         assert chore_sensor_after_block.state == CHORE_STATE_WAITING
+        assert chore_sensor_after_block.attributes.get(ATTR_CAN_CLAIM) is False
 
         # Move due date into active window: due in 1h with 2h window => claim now allowed
         await hass.services.async_call(

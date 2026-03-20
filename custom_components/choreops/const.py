@@ -134,6 +134,8 @@ PLACEHOLDER_DASHBOARD_MISSING_RECOMMENDED_DEPENDENCIES: Final = (
 )
 PLACEHOLDER_DASHBOARD_TEMPLATE_PREFERENCES: Final = "dashboard_template_preferences"
 PLACEHOLDER_DASHBOARD_STATUS_MESSAGE: Final = "dashboard_status_message"
+PLACEHOLDER_DASHBOARD_ACCESS_WARNING: Final = "dashboard_access_warning"
+PLACEHOLDER_USER_ACCESS_WARNING: Final = "user_access_warning"
 
 # ================================================================================================
 # Dashboard Template Configuration
@@ -839,6 +841,7 @@ CFOF_DASHBOARD_INPUT_ASSIGNEE_SELECTION: Final = "dashboard_assignee_selection"
 CFOF_DASHBOARD_INPUT_ACTION: Final = "dashboard_action"
 CFOF_DASHBOARD_INPUT_UPDATE_SELECTION: Final = "dashboard_update_selection"
 CFOF_DASHBOARD_INPUT_DEPENDENCY_BYPASS: Final = "dashboard_dependency_bypass"
+CFOF_DASHBOARD_INPUT_ACCESS_WARNING_ACK: Final = "dashboard_access_warning_ack"
 CFOF_DASHBOARD_INPUT_TEMPLATE_PROFILE: Final = "dashboard_template_profile"
 CFOF_DASHBOARD_INPUT_ADMIN_MODE: Final = "dashboard_admin_mode"
 CFOF_DASHBOARD_INPUT_ADMIN_TEMPLATE_GLOBAL: Final = "dashboard_admin_template_global"
@@ -3501,8 +3504,15 @@ TRANS_KEY_CFOF_DASHBOARD_ADMIN_PER_ASSIGNEE_NEEDS_ASSIGNEES: Final = (
 TRANS_KEY_CFOF_DASHBOARD_DEPENDENCY_ACK_REQUIRED: Final = (
     "dashboard_dependency_ack_required"
 )
+TRANS_KEY_CFOF_DASHBOARD_ACCESS_WARNING_ACK_REQUIRED: Final = (
+    "dashboard_access_warning_ack_required"
+)
 
 # Dashboard runtime message translation keys (exceptions category)
+TRANS_KEY_EXC_USER_NON_KIOSK_UNLINKED_WARNING: Final = "user_non_kiosk_unlinked_warning"
+TRANS_KEY_EXC_DASHBOARD_UNLINKED_USERS_WARNING: Final = (
+    "dashboard_unlinked_users_warning"
+)
 TRANS_KEY_EXC_DASHBOARD_STATUS_PREPARING_RELEASE_ASSETS: Final = (
     "dashboard_status_preparing_release_assets"
 )

@@ -20,6 +20,7 @@ from typing import Any
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.core import HomeAssistant
 
+from custom_components.choreops import const
 from tests.helpers import (
     # Badge constants
     BADGE_TYPE_CUMULATIVE,
@@ -560,10 +561,23 @@ class FlowTestHelper:
         )
 
         # Submit form data
-        return await hass.config_entries.options.async_configure(
+        result = await hass.config_entries.options.async_configure(
             add_result["flow_id"],
             user_input=form_data,
         )
+
+        if result.get("step_id") == add_step and result.get(
+            "description_placeholders", {}
+        ).get(
+            const.PLACEHOLDER_USER_ACCESS_WARNING,
+            "",
+        ):
+            return await hass.config_entries.options.async_configure(
+                add_result["flow_id"],
+                user_input=form_data,
+            )
+
+        return result
 
     @staticmethod
     async def edit_entity_via_options_flow(
@@ -603,10 +617,23 @@ class FlowTestHelper:
         )
 
         # Submit updated form data
-        return await hass.config_entries.options.async_configure(
+        result = await hass.config_entries.options.async_configure(
             select_result["flow_id"],
             user_input=form_data,
         )
+
+        if result.get("step_id") == select_result.get("step_id") and result.get(
+            "description_placeholders", {}
+        ).get(
+            const.PLACEHOLDER_USER_ACCESS_WARNING,
+            "",
+        ):
+            return await hass.config_entries.options.async_configure(
+                select_result["flow_id"],
+                user_input=form_data,
+            )
+
+        return result
 
 
 # =========================================================================

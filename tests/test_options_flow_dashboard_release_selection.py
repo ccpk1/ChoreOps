@@ -388,25 +388,26 @@ async def _ack_template_details_if_needed(
         == const.OPTIONS_FLOW_STEP_DASHBOARD_MISSING_DEPENDENCIES
     ):
         schema_fields = _schema_field_names(result["data_schema"])
-        if const.CFOF_DASHBOARD_INPUT_DEPENDENCY_BYPASS not in schema_fields:
-            return await hass.config_entries.options.async_configure(
-                flow_id,
-                user_input={},
+        submit_input: dict[str, Any] = {}
+
+        if const.CFOF_DASHBOARD_INPUT_DEPENDENCY_BYPASS in schema_fields:
+            placeholders = result.get("description_placeholders", {})
+            missing_required_markdown = str(
+                placeholders.get(
+                    const.PLACEHOLDER_DASHBOARD_MISSING_REQUIRED_DEPENDENCIES,
+                    "- None",
+                )
+            ).strip()
+            submit_input[const.CFOF_DASHBOARD_INPUT_DEPENDENCY_BYPASS] = (
+                missing_required_markdown != "- None"
             )
 
-        placeholders = result.get("description_placeholders", {})
-        missing_required_markdown = str(
-            placeholders.get(
-                const.PLACEHOLDER_DASHBOARD_MISSING_REQUIRED_DEPENDENCIES,
-                "- None",
-            )
-        ).strip()
-        bypass_required = missing_required_markdown != "- None"
+        if const.CFOF_DASHBOARD_INPUT_ACCESS_WARNING_ACK in schema_fields:
+            submit_input[const.CFOF_DASHBOARD_INPUT_ACCESS_WARNING_ACK] = True
+
         result = await hass.config_entries.options.async_configure(
             flow_id,
-            user_input={
-                const.CFOF_DASHBOARD_INPUT_DEPENDENCY_BYPASS: bypass_required,
-            },
+            user_input=submit_input,
         )
 
     return result
@@ -2153,3 +2154,109 @@ async def test_dashboard_configure_validation_no_assignees_and_no_admin(
     assert result.get("errors") == {
         const.CFOP_ERROR_BASE: const.TRANS_KEY_CFOF_DASHBOARD_NO_ASSIGNEES_WITHOUT_ADMIN
     }
+
+
+@pytest.mark.asyncio
+async def test_dashboard_create_requires_ack_for_unlinked_selected_users_when_kiosk_disabled(
+    hass: HomeAssistant,
+    scenario_minimal: SetupResult,
+) -> None:
+    """Dashboard review step requires acknowledgement for unlinked selected users."""
+    config_entry = scenario_minimal.config_entry
+    coordinator = config_entry.runtime_data
+    mock_create_dashboard = AsyncMock(return_value="kcd-chores")
+
+    zoe_id = next(
+        user_id
+        for user_id, user_data in coordinator.assignees_data.items()
+        if user_data.get(const.DATA_USER_NAME) == "Zoë"
+    )
+    coordinator.user_manager.update_user(
+        zoe_id,
+        {const.DATA_USER_HA_USER_ID: ""},
+        immediate_persist=True,
+    )
+
+    with (
+        patch(
+            "custom_components.choreops.helpers.dashboard_builder.async_dedupe_choreops_dashboards",
+            return_value={},
+        ),
+        patch(
+            "custom_components.choreops.helpers.dashboard_builder.create_choreops_dashboard",
+            mock_create_dashboard,
+        ),
+    ):
+        result = await hass.config_entries.options.async_init(config_entry.entry_id)
+        flow_id = result["flow_id"]
+
+        result = await hass.config_entries.options.async_configure(
+            flow_id,
+            user_input={
+                const.OPTIONS_FLOW_INPUT_MENU_SELECTION: const.OPTIONS_FLOW_DASHBOARD_GENERATOR
+            },
+        )
+        result = await hass.config_entries.options.async_configure(
+            flow_id,
+            user_input={
+                const.CFOF_DASHBOARD_INPUT_ACTION: const.DASHBOARD_ACTION_CREATE,
+                const.CFOF_DASHBOARD_INPUT_CHECK_CARDS: False,
+            },
+        )
+        result = await hass.config_entries.options.async_configure(
+            flow_id,
+            user_input={const.CFOF_DASHBOARD_INPUT_NAME: "Chores"},
+        )
+        assert result.get("step_id") == const.OPTIONS_FLOW_STEP_DASHBOARD_CONFIGURE
+
+        result = await hass.config_entries.options.async_configure(
+            flow_id,
+            user_input={
+                const.CFOF_DASHBOARD_SECTION_ASSIGNEE_VIEWS: {
+                    const.CFOF_DASHBOARD_INPUT_TEMPLATE_PROFILE: DEFAULT_ASSIGNEE_TEMPLATE_ID,
+                    const.CFOF_DASHBOARD_INPUT_ASSIGNEE_SELECTION: ["Zoë"],
+                },
+                const.CFOF_DASHBOARD_SECTION_ADMIN_VIEWS: {
+                    const.CFOF_DASHBOARD_INPUT_ADMIN_MODE: const.DASHBOARD_ADMIN_MODE_NONE,
+                },
+                const.CFOF_DASHBOARD_SECTION_ACCESS_SIDEBAR: {
+                    const.CFOF_DASHBOARD_INPUT_ICON: "mdi:clipboard-list",
+                    const.CFOF_DASHBOARD_INPUT_REQUIRE_ADMIN: False,
+                    const.CFOF_DASHBOARD_INPUT_SHOW_IN_SIDEBAR: True,
+                },
+            },
+        )
+
+        assert (
+            result.get("step_id")
+            == const.OPTIONS_FLOW_STEP_DASHBOARD_MISSING_DEPENDENCIES
+        )
+        assert const.CFOF_DASHBOARD_INPUT_ACCESS_WARNING_ACK in _schema_field_names(
+            result["data_schema"]
+        )
+        assert "Zoë" in str(
+            result.get("description_placeholders", {}).get(
+                const.PLACEHOLDER_DASHBOARD_ACCESS_WARNING,
+                "",
+            )
+        )
+
+        result = await hass.config_entries.options.async_configure(
+            flow_id,
+            user_input={},
+        )
+        assert (
+            result.get("step_id")
+            == const.OPTIONS_FLOW_STEP_DASHBOARD_MISSING_DEPENDENCIES
+        )
+        assert result.get("errors", {}).get(const.CFOP_ERROR_BASE) == (
+            const.TRANS_KEY_CFOF_DASHBOARD_ACCESS_WARNING_ACK_REQUIRED
+        )
+
+        result = await hass.config_entries.options.async_configure(
+            flow_id,
+            user_input={const.CFOF_DASHBOARD_INPUT_ACCESS_WARNING_ACK: True},
+        )
+
+    assert result.get("step_id") == const.OPTIONS_FLOW_STEP_DASHBOARD_GENERATOR
+    assert mock_create_dashboard.await_count == 1

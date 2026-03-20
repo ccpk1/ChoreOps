@@ -392,6 +392,7 @@ class AssigneeChoreClaimButton(ChoreOpsCoordinatorEntity, ButtonEntity):
                 self._assignee_name,
                 e,
             )
+            raise
         except (KeyError, ValueError, AttributeError) as e:
             const.LOGGER.error(
                 "ERROR: Failed to Claim Chore '%s' for Assignee '%s': %s",
@@ -526,6 +527,7 @@ class ApproverChoreApproveButton(ChoreOpsCoordinatorEntity, ButtonEntity):
                 self._assignee_name,
                 e,
             )
+            raise
         except (KeyError, ValueError, AttributeError) as e:
             const.LOGGER.error(
                 "ERROR: Failed to approve Chore '%s' for Assignee '%s': %s",
@@ -702,6 +704,7 @@ class ApproverChoreDisapproveButton(ChoreOpsCoordinatorEntity, ButtonEntity):
                 self._assignee_name,
                 e,
             )
+            raise
         except (KeyError, ValueError, AttributeError) as e:
             const.LOGGER.error(
                 "ERROR: Failed to Disapprove Chore '%s' for Assignee '%s': %s",
@@ -846,6 +849,7 @@ class AssigneeRewardRedeemButton(ChoreOpsCoordinatorEntity, ButtonEntity):
                 self._assignee_name,
                 e,
             )
+            raise
         except (KeyError, ValueError, AttributeError) as e:
             const.LOGGER.error(
                 "ERROR: Failed to Redeem Reward '%s' for Assignee '%s': %s",
@@ -982,6 +986,7 @@ class ApproverRewardApproveButton(ChoreOpsCoordinatorEntity, ButtonEntity):
                 self._assignee_name,
                 e,
             )
+            raise
         except (KeyError, ValueError, AttributeError) as e:
             const.LOGGER.error(
                 "ERROR: Failed to Approve Reward '%s' for Assignee '%s': %s",
@@ -1154,6 +1159,7 @@ class ApproverRewardDisapproveButton(ChoreOpsCoordinatorEntity, ButtonEntity):
                 self._assignee_name,
                 e,
             )
+            raise
         except (KeyError, ValueError, AttributeError) as e:
             const.LOGGER.error(
                 "ERROR: Failed to Disapprove Reward '%s' for Assignee '%s': %s",
@@ -1300,6 +1306,7 @@ class ApproverBonusApplyButton(ChoreOpsCoordinatorEntity, ButtonEntity):
                 self._assignee_name,
                 e,
             )
+            raise
         except (KeyError, ValueError, AttributeError) as e:
             const.LOGGER.error(
                 "ERROR: Failed to Apply Bonus '%s' for Assignee '%s': %s",
@@ -1453,6 +1460,7 @@ class ApproverPenaltyApplyButton(ChoreOpsCoordinatorEntity, ButtonEntity):
                 self._assignee_name,
                 e,
             )
+            raise
         except (KeyError, ValueError, AttributeError) as e:
             const.LOGGER.error(
                 "ERROR: Failed to Apply Penalty '%s' for Assignee '%s': %s",
@@ -1637,6 +1645,7 @@ class ApproverPointsAdjustButton(ChoreOpsCoordinatorEntity, ButtonEntity):
                 self._delta,
                 e,
             )
+            raise
         except (KeyError, ValueError, AttributeError) as e:
             const.LOGGER.error(
                 "ERROR: Failed to adjust points for Assignee '%s' by %d: %s",

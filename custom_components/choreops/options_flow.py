@@ -96,9 +96,11 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         self._dashboard_delete_selection: list[str] = []
         self._dashboard_dedupe_removed: dict[str, int] = {}
         self._dashboard_skip_dependency_validation_once: bool = False
+        self._dashboard_skip_access_warning_once: bool = False
         self._dashboard_pending_configure_input: dict[str, Any] | None = None
         self._dashboard_missing_required_dependencies: list[str] = []
         self._dashboard_missing_recommended_dependencies: list[str] = []
+        self._dashboard_unlinked_warning_user_names: list[str] = []
         self._dashboard_missing_dependency_metadata: dict[str, dict[str, str]] = {}
         self._dashboard_template_preferences_markdown: str = const.SENTINEL_EMPTY
         self._dashboard_ui_none_label: str = const.TRANS_KEY_EXC_DASHBOARD_LABEL_NONE
@@ -111,6 +113,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         self._dashboard_release_asset_cache_key: str | None = None
         self._dashboard_release_asset_cache: DashboardReleaseAssets | None = None
         self._dashboard_runtime_messages: dict[str, str] | None = None
+        self._pending_user_access_warning_input: dict[str, Any] | None = None
 
     async def _async_get_dashboard_runtime_message(
         self,
@@ -138,6 +141,82 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 message = message.format(**placeholders)
 
         return message
+
+    async def _async_get_exception_message(
+        self,
+        translation_key: str,
+        *,
+        placeholders: dict[str, Any] | None = None,
+        fallback: str = "",
+    ) -> str:
+        """Return localized exception text for options-flow warning placeholders."""
+        if self._dashboard_runtime_messages is None:
+            self._dashboard_runtime_messages = await translation.async_get_translations(
+                self.hass,
+                self.hass.config.language,
+                "exceptions",
+                integrations=[const.DOMAIN],
+            )
+
+        message = self._dashboard_runtime_messages.get(
+            f"component.{const.DOMAIN}.exceptions.{translation_key}.message",
+            fallback,
+        )
+        if placeholders:
+            with contextlib.suppress(KeyError, ValueError):
+                message = message.format(**placeholders)
+        return message
+
+    def _is_kiosk_mode_enabled(self) -> bool:
+        """Return whether kiosk mode is currently enabled for the integration."""
+        return bool(
+            self.config_entry.options.get(
+                const.CONF_KIOSK_MODE,
+                const.DEFAULT_KIOSK_MODE,
+            )
+        )
+
+    async def _async_get_user_access_warning_text(
+        self,
+        user_input: dict[str, Any],
+    ) -> str:
+        """Return the add/edit user warning text when needed."""
+        if not fh.should_warn_user_form_unlinked_non_kiosk(
+            user_input,
+            kiosk_mode_enabled=self._is_kiosk_mode_enabled(),
+        ):
+            return const.SENTINEL_EMPTY
+
+        return await self._async_get_exception_message(
+            const.TRANS_KEY_EXC_USER_NON_KIOSK_UNLINKED_WARNING,
+            fallback=const.SENTINEL_EMPTY,
+        )
+
+    def _should_pause_for_user_access_warning(
+        self,
+        user_input: dict[str, Any],
+    ) -> bool:
+        """Return whether the user form should pause once to show the warning."""
+        if not fh.should_warn_user_form_unlinked_non_kiosk(
+            user_input,
+            kiosk_mode_enabled=self._is_kiosk_mode_enabled(),
+        ):
+            self._pending_user_access_warning_input = None
+            return False
+
+        if self._pending_user_access_warning_input == user_input:
+            self._pending_user_access_warning_input = None
+            return False
+
+        self._pending_user_access_warning_input = dict(user_input)
+        return True
+
+    def _build_markdown_bullet_lines(self, items: list[str]) -> str:
+        """Return markdown bullet lines for simple string lists."""
+        if not items:
+            return self._dashboard_ui_none_label
+
+        return "\n".join(f"- {item}" for item in items)
 
     async def _async_refresh_dashboard_runtime_labels(self) -> None:
         """Refresh localized labels used in dashboard markdown placeholders."""
@@ -679,25 +758,30 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             )
 
             if not errors:
-                try:
-                    # Use UserManager for user-profile creation (handles linked profile internally)
-                    # Immediate persist for reload
-                    internal_id = coordinator.user_manager.create_user(
-                        user_input, immediate_persist=True
-                    )
-                    user_name = user_input.get(const.CFOF_USERS_INPUT_NAME, internal_id)
+                if self._should_pause_for_user_access_warning(user_input):
+                    errors[const.CFOP_ERROR_BASE] = const.SENTINEL_EMPTY
+                else:
+                    try:
+                        # Use UserManager for user-profile creation (handles linked profile internally)
+                        # Immediate persist for reload
+                        internal_id = coordinator.user_manager.create_user(
+                            user_input, immediate_persist=True
+                        )
+                        user_name = user_input.get(
+                            const.CFOF_USERS_INPUT_NAME, internal_id
+                        )
 
-                    self._mark_reload_needed()
+                        self._mark_reload_needed()
 
-                    const.LOGGER.debug(
-                        "Added user profile '%s' with ID: %s",
-                        user_name,
-                        internal_id,
-                    )
-                    return await self.async_step_init()
+                        const.LOGGER.debug(
+                            "Added user profile '%s' with ID: %s",
+                            user_name,
+                            internal_id,
+                        )
+                        return await self.async_step_init()
 
-                except EntityValidationError as err:
-                    errors[err.field] = err.translation_key
+                    except EntityValidationError as err:
+                        errors[err.field] = err.translation_key
 
         # Retrieve HA users and existing assignees for linking
         users = await self.hass.auth.async_get_users()
@@ -723,7 +807,10 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             data_schema=user_schema,
             errors=fh.map_user_form_errors(errors),
             description_placeholders={
-                const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_USERS
+                const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_USERS,
+                const.PLACEHOLDER_USER_ACCESS_WARNING: (
+                    await self._async_get_user_access_warning_text(user_input or {})
+                ),
             },
         )
 
@@ -762,34 +849,39 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             )
 
             if not errors:
-                try:
-                    # Build merged user-profile data using data_builders
-                    updated_approver = db.build_user_profile(
-                        user_input,
-                        existing=user_profile,
-                    )
+                if self._should_pause_for_user_access_warning(user_input):
+                    errors[const.CFOP_ERROR_BASE] = const.SENTINEL_EMPTY
+                else:
+                    try:
+                        # Build merged user-profile data using data_builders
+                        updated_approver = db.build_user_profile(
+                            user_input,
+                            existing=user_profile,
+                        )
 
-                    # Use UserManager for user-profile update (handles linked profile create/unlink)
-                    # Immediate persist for reload
-                    coordinator.user_manager.update_user(
-                        str(internal_id), dict(updated_approver), immediate_persist=True
-                    )
+                        # Use UserManager for user-profile update (handles linked profile create/unlink)
+                        # Immediate persist for reload
+                        coordinator.user_manager.update_user(
+                            str(internal_id),
+                            dict(updated_approver),
+                            immediate_persist=True,
+                        )
 
-                    await coordinator.system_manager.remove_conditional_entities(
-                        user_ids=[str(internal_id)]
-                    )
+                        await coordinator.system_manager.remove_conditional_entities(
+                            user_ids=[str(internal_id)]
+                        )
 
-                    const.LOGGER.debug(
-                        "Edited user profile '%s' with ID: %s",
-                        updated_approver[const.DATA_USER_NAME],
-                        internal_id,
-                    )
-                    self._mark_reload_needed()
-                    return await self.async_step_init()
+                        const.LOGGER.debug(
+                            "Edited user profile '%s' with ID: %s",
+                            updated_approver[const.DATA_USER_NAME],
+                            internal_id,
+                        )
+                        self._mark_reload_needed()
+                        return await self.async_step_init()
 
-                except EntityValidationError as err:
-                    # Map field-specific error for form highlighting
-                    errors[err.field] = err.translation_key
+                    except EntityValidationError as err:
+                        # Map field-specific error for form highlighting
+                        errors[err.field] = err.translation_key
 
         # Retrieve HA users and existing assignees for linking
         users = await self.hass.auth.async_get_users()
@@ -901,7 +993,10 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             data_schema=user_schema,
             errors=fh.map_user_form_errors(errors),
             description_placeholders={
-                const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_USERS
+                const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_USERS,
+                const.PLACEHOLDER_USER_ACCESS_WARNING: (
+                    await self._async_get_user_access_warning_text(suggested_values)
+                ),
             },
         )
 
@@ -4069,7 +4164,9 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             user_input = dh.normalize_dashboard_configure_input(user_input)
             await self._async_refresh_dashboard_runtime_labels()
             skip_dependency_validation = self._dashboard_skip_dependency_validation_once
+            skip_access_warning = self._dashboard_skip_access_warning_once
             self._dashboard_skip_dependency_validation_once = False
+            self._dashboard_skip_access_warning_once = False
             self._dashboard_dedupe_removed = {}
             selected_assignees_input = user_input.get(
                 const.CFOF_DASHBOARD_INPUT_ASSIGNEE_SELECTION,
@@ -4383,10 +4480,22 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                         )
 
                     if not errors:
+                        unlinked_warning_names = (
+                            []
+                            if skip_access_warning
+                            else fh.get_dashboard_unlinked_assignee_names_for_warning(
+                                coordinator,
+                                selected_assignees,
+                                kiosk_mode_enabled=self._is_kiosk_mode_enabled(),
+                            )
+                        )
                         self._dashboard_pending_configure_input = user_input
                         self._dashboard_missing_required_dependencies = missing_required
                         self._dashboard_missing_recommended_dependencies = (
                             missing_recommended
+                        )
+                        self._dashboard_unlinked_warning_user_names = (
+                            unlinked_warning_names
                         )
                         self._dashboard_missing_dependency_metadata = {
                             dependency_id: {
@@ -4633,6 +4742,9 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             continue_anyway = bool(
                 user_input.get(const.CFOF_DASHBOARD_INPUT_DEPENDENCY_BYPASS, False)
             )
+            acknowledge_access_warning = bool(
+                user_input.get(const.CFOF_DASHBOARD_INPUT_ACCESS_WARNING_ACK, False)
+            )
 
             if self._dashboard_missing_required_dependencies and not continue_anyway:
                 self._dashboard_status_message = await self._async_get_dashboard_runtime_message(
@@ -4665,14 +4777,71 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                     ),
                 )
 
+            if (
+                self._dashboard_unlinked_warning_user_names
+                and not acknowledge_access_warning
+            ):
+                errors[const.CFOP_ERROR_BASE] = (
+                    const.TRANS_KEY_CFOF_DASHBOARD_ACCESS_WARNING_ACK_REQUIRED
+                )
+
             if not self._dashboard_missing_required_dependencies or continue_anyway:
+                if (
+                    self._dashboard_unlinked_warning_user_names
+                    and not acknowledge_access_warning
+                ):
+                    schema = dh.build_dashboard_missing_dependencies_schema(
+                        show_dependency_bypass=bool(
+                            self._dashboard_missing_required_dependencies
+                        ),
+                        show_access_warning_ack=bool(
+                            self._dashboard_unlinked_warning_user_names
+                        ),
+                    )
+                    return self.async_show_form(
+                        step_id=const.OPTIONS_FLOW_STEP_DASHBOARD_MISSING_DEPENDENCIES,
+                        data_schema=schema,
+                        errors=errors,
+                        description_placeholders={
+                            const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_DASHBOARD_GENERATION,
+                            const.PLACEHOLDER_DASHBOARD_MISSING_REQUIRED_DEPENDENCIES: (
+                                self._build_dashboard_dependency_markdown_lines(
+                                    self._dashboard_missing_required_dependencies,
+                                    item_prefix="❌",
+                                )
+                            ),
+                            const.PLACEHOLDER_DASHBOARD_MISSING_RECOMMENDED_DEPENDENCIES: (
+                                self._build_dashboard_dependency_markdown_lines(
+                                    self._dashboard_missing_recommended_dependencies,
+                                    item_prefix="❌",
+                                )
+                            ),
+                            const.PLACEHOLDER_DASHBOARD_TEMPLATE_PREFERENCES: (
+                                self._dashboard_template_preferences_markdown
+                            ),
+                            const.PLACEHOLDER_DASHBOARD_ACCESS_WARNING: (
+                                await self._async_get_exception_message(
+                                    const.TRANS_KEY_EXC_DASHBOARD_UNLINKED_USERS_WARNING,
+                                    placeholders={
+                                        "user_list": self._build_markdown_bullet_lines(
+                                            self._dashboard_unlinked_warning_user_names
+                                        )
+                                    },
+                                    fallback=const.SENTINEL_EMPTY,
+                                )
+                            ),
+                        },
+                    )
+
                 pending_input = self._dashboard_pending_configure_input
                 self._dashboard_pending_configure_input = None
                 self._dashboard_skip_dependency_validation_once = True
+                self._dashboard_skip_access_warning_once = True
                 return await self.async_step_dashboard_configure(pending_input)
 
         schema = dh.build_dashboard_missing_dependencies_schema(
-            show_dependency_bypass=bool(self._dashboard_missing_required_dependencies)
+            show_dependency_bypass=bool(self._dashboard_missing_required_dependencies),
+            show_access_warning_ack=bool(self._dashboard_unlinked_warning_user_names),
         )
         return self.async_show_form(
             step_id=const.OPTIONS_FLOW_STEP_DASHBOARD_MISSING_DEPENDENCIES,
@@ -4694,6 +4863,19 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 ),
                 const.PLACEHOLDER_DASHBOARD_TEMPLATE_PREFERENCES: (
                     self._dashboard_template_preferences_markdown
+                ),
+                const.PLACEHOLDER_DASHBOARD_ACCESS_WARNING: (
+                    await self._async_get_exception_message(
+                        const.TRANS_KEY_EXC_DASHBOARD_UNLINKED_USERS_WARNING,
+                        placeholders={
+                            "user_list": self._build_markdown_bullet_lines(
+                                self._dashboard_unlinked_warning_user_names
+                            )
+                        },
+                        fallback=const.SENTINEL_EMPTY,
+                    )
+                    if self._dashboard_unlinked_warning_user_names
+                    else self._dashboard_ui_none_label
                 ),
             },
         )

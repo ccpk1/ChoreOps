@@ -18,6 +18,9 @@ from homeassistant.exceptions import HomeAssistantError
 import pytest
 
 from custom_components.choreops import const
+from custom_components.choreops.helpers.entity_helpers import (
+    get_points_adjustment_buttons,
+)
 from tests.helpers import (
     CHORE_STATE_CLAIMED,
     CHORE_STATE_PENDING,
@@ -26,11 +29,29 @@ from tests.helpers import (
     SetupResult,
     claim_chore,
     disapprove_chore,
+    find_bonus,
     find_chore,
+    find_penalty,
+    get_chore_buttons,
     get_dashboard_helper,
     setup_from_yaml,
 )
 from tests.helpers.workflows import find_reward, get_reward_buttons
+
+
+async def _press_button(
+    hass: HomeAssistant,
+    button_eid: str,
+    context: Context,
+) -> None:
+    """Press a button entity with explicit error propagation."""
+    await hass.services.async_call(
+        BUTTON_DOMAIN,
+        SERVICE_PRESS,
+        {"entity_id": button_eid},
+        blocking=True,
+        context=context,
+    )
 
 
 @pytest.fixture
@@ -66,20 +87,89 @@ async def test_kiosk_disabled_blocks_unauthorized_chore_claim_button(
 ) -> None:
     """Assignee claim button should enforce assignee auth when kiosk mode is disabled."""
     unauthorized_context = Context(user_id=mock_hass_users["assignee2"].id)
+    dashboard = get_dashboard_helper(hass, "zoe")
+    chore = find_chore(dashboard, "Make bed")
+    assert chore is not None
+
+    chore_state = hass.states.get(chore["eid"])
+    assert chore_state is not None
+
+    claim_button_eid = chore_state.attributes.get(
+        const.ATTR_CHORE_CLAIM_BUTTON_ENTITY_ID
+    )
+    assert claim_button_eid
 
     with patch(
         "custom_components.choreops.button.is_kiosk_mode_enabled", return_value=False
     ):
-        result = await claim_chore(
-            hass,
-            "zoe",
-            "Make bed",
-            context=unauthorized_context,
-        )
+        with pytest.raises(HomeAssistantError):
+            await hass.services.async_call(
+                BUTTON_DOMAIN,
+                SERVICE_PRESS,
+                {"entity_id": claim_button_eid},
+                blocking=True,
+                context=unauthorized_context,
+            )
 
-    assert result.success is True
-    assert result.state_before == CHORE_STATE_PENDING
-    assert result.state_after == CHORE_STATE_PENDING
+    chore_state = hass.states.get(chore["eid"])
+    assert chore_state is not None
+    assert chore_state.state == CHORE_STATE_PENDING
+
+
+async def test_kiosk_disabled_blocks_unauthorized_chore_approve_button(
+    hass: HomeAssistant,
+    scenario_minimal: SetupResult,
+    mock_hass_users: dict[str, Any],
+) -> None:
+    """Approver chore approve button should surface unauthorized failures."""
+    assignee_context = Context(user_id=mock_hass_users["assignee1"].id)
+    unauthorized_context = Context(user_id=mock_hass_users["assignee2"].id)
+
+    claim_result = await claim_chore(hass, "zoe", "Make bed", context=assignee_context)
+    assert claim_result.success is True
+
+    dashboard = get_dashboard_helper(hass, "zoe")
+    chore = find_chore(dashboard, "Make bed")
+    assert chore is not None
+
+    buttons = get_chore_buttons(hass, chore["eid"])
+    approve_button_eid = buttons["approve"]
+    assert approve_button_eid
+
+    with pytest.raises(HomeAssistantError):
+        await _press_button(hass, approve_button_eid, unauthorized_context)
+
+    chore_state = hass.states.get(chore["eid"])
+    assert chore_state is not None
+    assert chore_state.state == CHORE_STATE_CLAIMED
+
+
+async def test_kiosk_disabled_blocks_unauthorized_chore_disapprove_button(
+    hass: HomeAssistant,
+    scenario_minimal: SetupResult,
+    mock_hass_users: dict[str, Any],
+) -> None:
+    """Approver chore disapprove button should surface unauthorized failures."""
+    assignee_context = Context(user_id=mock_hass_users["assignee1"].id)
+    unauthorized_context = Context(user_id=mock_hass_users["assignee2"].id)
+
+    claim_result = await claim_chore(hass, "zoe", "Make bed", context=assignee_context)
+    assert claim_result.success is True
+
+    dashboard = get_dashboard_helper(hass, "zoe")
+    chore = find_chore(dashboard, "Make bed")
+    assert chore is not None
+
+    buttons = get_chore_buttons(hass, chore["eid"])
+    disapprove_button_eid = buttons["disapprove"]
+    assert disapprove_button_eid
+
+    with pytest.raises(HomeAssistantError):
+        await _press_button(hass, disapprove_button_eid, unauthorized_context)
+
+    chore_state = hass.states.get(chore["eid"])
+    assert chore_state is not None
+    assert chore_state.state == CHORE_STATE_CLAIMED
 
 
 async def test_kiosk_enabled_allows_unauthorized_chore_claim_button(
@@ -145,6 +235,171 @@ async def test_kiosk_enabled_skips_reward_assignee_auth_guard(
 
     mock_auth_for_assignee.assert_not_awaited()
     mock_redeem.assert_awaited_once()
+
+
+async def test_kiosk_disabled_blocks_unauthorized_reward_redeem_button(
+    hass: HomeAssistant,
+    scenario_full: SetupResult,
+    mock_hass_users: dict[str, Any],
+) -> None:
+    """Reward redeem button should surface unauthorized assignee failures."""
+    coordinator = scenario_full.coordinator
+    assignee_id = scenario_full.assignee_ids["Zoë"]
+    coordinator.users_data[assignee_id][const.DATA_USER_POINTS] = 100.0
+    await coordinator.async_refresh()
+
+    unauthorized_context = Context(user_id=mock_hass_users["assignee2"].id)
+    dashboard = get_dashboard_helper(hass, "zoe")
+    reward = find_reward(dashboard, "Extra Screen Time")
+    assert reward is not None
+
+    buttons = get_reward_buttons(hass, reward["eid"])
+    claim_button_eid = buttons["claim"]
+    assert claim_button_eid
+
+    with patch(
+        "custom_components.choreops.button.is_kiosk_mode_enabled", return_value=False
+    ):
+        with pytest.raises(HomeAssistantError):
+            await _press_button(hass, claim_button_eid, unauthorized_context)
+
+    reward_state = hass.states.get(reward["eid"])
+    assert reward_state is not None
+    assert reward_state.state == const.REWARD_STATE_AVAILABLE
+
+
+async def test_kiosk_disabled_blocks_unauthorized_reward_approve_button(
+    hass: HomeAssistant,
+    scenario_full: SetupResult,
+    mock_hass_users: dict[str, Any],
+) -> None:
+    """Reward approve button should surface unauthorized failures."""
+    coordinator = scenario_full.coordinator
+    assignee_id = scenario_full.assignee_ids["Zoë"]
+    coordinator.users_data[assignee_id][const.DATA_USER_POINTS] = 100.0
+    await coordinator.async_refresh()
+
+    assignee_context = Context(user_id=mock_hass_users["assignee1"].id)
+    unauthorized_context = Context(user_id=mock_hass_users["assignee2"].id)
+
+    dashboard = get_dashboard_helper(hass, "zoe")
+    reward = find_reward(dashboard, "Extra Screen Time")
+    assert reward is not None
+
+    claim_button_eid = get_reward_buttons(hass, reward["eid"])["claim"]
+    assert claim_button_eid
+
+    reward_claim_context = Context(user_id=mock_hass_users["assignee1"].id)
+    with patch.object(
+        coordinator.notification_manager, "notify_assignee", new=AsyncMock()
+    ):
+        await _press_button(hass, claim_button_eid, reward_claim_context)
+
+    dashboard = get_dashboard_helper(hass, "zoe")
+    reward = find_reward(dashboard, "Extra Screen Time")
+    assert reward is not None
+
+    buttons = get_reward_buttons(hass, reward["eid"])
+    approve_button_eid = buttons["approve"]
+    assert approve_button_eid
+
+    with pytest.raises(HomeAssistantError):
+        await _press_button(hass, approve_button_eid, unauthorized_context)
+
+    reward_state = hass.states.get(reward["eid"])
+    assert reward_state is not None
+    assert reward_state.state == const.REWARD_STATE_REQUESTED
+
+
+async def test_kiosk_disabled_blocks_unauthorized_reward_disapprove_button(
+    hass: HomeAssistant,
+    scenario_full: SetupResult,
+    mock_hass_users: dict[str, Any],
+) -> None:
+    """Reward disapprove button should surface unauthorized failures."""
+    coordinator = scenario_full.coordinator
+    assignee_id = scenario_full.assignee_ids["Zoë"]
+    coordinator.users_data[assignee_id][const.DATA_USER_POINTS] = 100.0
+    await coordinator.async_refresh()
+
+    assignee_context = Context(user_id=mock_hass_users["assignee1"].id)
+    unauthorized_context = Context(user_id=mock_hass_users["assignee2"].id)
+
+    dashboard = get_dashboard_helper(hass, "zoe")
+    reward = find_reward(dashboard, "Extra Screen Time")
+    assert reward is not None
+
+    claim_button_eid = get_reward_buttons(hass, reward["eid"])["claim"]
+    assert claim_button_eid
+
+    with patch.object(
+        coordinator.notification_manager, "notify_assignee", new=AsyncMock()
+    ):
+        await _press_button(hass, claim_button_eid, assignee_context)
+
+    reward_state = hass.states.get(reward["eid"])
+    assert reward_state is not None
+
+    disapprove_button_eid = reward_state.attributes.get(
+        const.ATTR_REWARD_DISAPPROVE_BUTTON_ENTITY_ID
+    )
+    assert disapprove_button_eid
+
+    with pytest.raises(HomeAssistantError):
+        await _press_button(hass, disapprove_button_eid, unauthorized_context)
+
+    reward_state = hass.states.get(reward["eid"])
+    assert reward_state is not None
+    assert reward_state.state == const.REWARD_STATE_REQUESTED
+
+
+async def test_kiosk_disabled_blocks_unauthorized_bonus_button(
+    hass: HomeAssistant,
+    scenario_full: SetupResult,
+    mock_hass_users: dict[str, Any],
+) -> None:
+    """Bonus button should surface unauthorized management failures."""
+    dashboard = get_dashboard_helper(hass, "zoe")
+    bonus = find_bonus(dashboard, "Extra Effort")
+    assert bonus is not None
+
+    unauthorized_context = Context(user_id=mock_hass_users["assignee2"].id)
+    with pytest.raises(HomeAssistantError):
+        await _press_button(hass, bonus["eid"], unauthorized_context)
+
+
+async def test_kiosk_disabled_blocks_unauthorized_penalty_button(
+    hass: HomeAssistant,
+    scenario_full: SetupResult,
+    mock_hass_users: dict[str, Any],
+) -> None:
+    """Penalty button should surface unauthorized management failures."""
+    dashboard = get_dashboard_helper(hass, "zoe")
+    penalty = find_penalty(dashboard, "Missed Chore")
+    assert penalty is not None
+
+    unauthorized_context = Context(user_id=mock_hass_users["assignee2"].id)
+    with pytest.raises(HomeAssistantError):
+        await _press_button(hass, penalty["eid"], unauthorized_context)
+
+
+async def test_kiosk_disabled_blocks_unauthorized_points_adjust_button(
+    hass: HomeAssistant,
+    scenario_full: SetupResult,
+    mock_hass_users: dict[str, Any],
+) -> None:
+    """Manual points adjust button should surface unauthorized failures."""
+    assignee_id = scenario_full.assignee_ids["Zoë"]
+    buttons = get_points_adjustment_buttons(
+        hass,
+        scenario_full.config_entry.entry_id,
+        assignee_id,
+    )
+    assert buttons
+
+    unauthorized_context = Context(user_id=mock_hass_users["assignee2"].id)
+    with pytest.raises(HomeAssistantError):
+        await _press_button(hass, str(buttons[0]["eid"]), unauthorized_context)
 
 
 async def test_options_flow_saves_kiosk_mode_toggle(

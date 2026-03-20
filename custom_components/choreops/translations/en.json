@@ -85,7 +85,7 @@
             },
             "data_description": {
               "name": "Unique name for this user profile.",
-              "ha_user_id": "Optional: Link this profile to a Home Assistant user.",
+              "ha_user_id": "Optional: Link this profile to a Home Assistant user. If kiosk mode is disabled, shared-device claim and redeem actions rely on this link.",
               "dashboard_language": "Language used for dashboard content and notifications.",
               "mobile_notify_service": "Select notification service or leave empty to disable notifications."
             }
@@ -555,7 +555,7 @@
       },
       "add_user": {
         "title": "Add User",
-        "description": "Provide the details for the new user profile.\n\n ℹ️ [Configuration Guide]({documentation_url})",
+        "description": "Provide the details for the new user profile.\n\n{user_access_warning}\n\n ℹ️ [Configuration Guide]({documentation_url})",
         "sections": {
           "section_identity_profile": {
             "name": "Identity and profile",
@@ -568,7 +568,7 @@
             },
             "data_description": {
               "name": "Unique name for this user profile.",
-              "ha_user_id": "Optional: Link this profile to a Home Assistant user.",
+              "ha_user_id": "Optional: Link this profile to a Home Assistant user. If kiosk mode is disabled, shared-device claim and redeem actions rely on this link.",
               "dashboard_language": "Language used for dashboard content and notifications.",
               "mobile_notify_service": "Select notification service or leave empty to disable notifications."
             }
@@ -986,7 +986,7 @@
       },
       "edit_user": {
         "title": "Edit User",
-        "description": "Modify the details of the selected user profile.\n\n ℹ️ [Configuration Guide]({documentation_url})",
+        "description": "Modify the details of the selected user profile.\n\n{user_access_warning}\n\n ℹ️ [Configuration Guide]({documentation_url})",
         "sections": {
           "section_identity_profile": {
             "name": "Identity and profile",
@@ -999,7 +999,7 @@
             },
             "data_description": {
               "name": "Unique name for this user profile.",
-              "ha_user_id": "Optional: Link this profile to a Home Assistant user.",
+              "ha_user_id": "Optional: Link this profile to a Home Assistant user. If kiosk mode is disabled, shared-device claim and redeem actions rely on this link.",
               "dashboard_language": "Language used for dashboard content and notifications.",
               "mobile_notify_service": "Select notification service or leave empty to disable notifications."
             }
@@ -1497,12 +1497,14 @@
       },
       "dashboard_missing_dependencies": {
         "title": "Review dashboard changes",
-        "description": "Review dependency status and template preferences for your selected templates before applying dashboard changes.\n\n ℹ️ [Dashboard configuration guide]({documentation_url})\n\n**Available Customizations**\n{dashboard_template_preferences}\n\n**Missing required dependencies**\n{dashboard_missing_required_dependencies}\n\n**Missing recommended dependencies**\n{dashboard_missing_recommended_dependencies}",
+        "description": "Review dependency status and template preferences for your selected templates before applying dashboard changes.\n\n ℹ️ [Dashboard configuration guide]({documentation_url})\n\n**Available Customizations**\n{dashboard_template_preferences}\n\n**Missing required dependencies**\n{dashboard_missing_required_dependencies}\n\n**Missing recommended dependencies**\n{dashboard_missing_recommended_dependencies}\n\n**Access-control warning**\n{dashboard_access_warning}",
         "data": {
-          "dashboard_dependency_bypass": "🚫 Continue anyway (requirements are missing)"
+          "dashboard_dependency_bypass": "🚫 Continue anyway (requirements are missing)",
+          "dashboard_access_warning_ack": "⚠️ Continue anyway (selected users are not linked)"
         },
         "data_description": {
-          "dashboard_dependency_bypass": "Acknowledge that required dependencies are missing and continue anyway. Dashboard may fail to render or behave incorrectly until required dependencies are installed."
+          "dashboard_dependency_bypass": "Acknowledge that required dependencies are missing and continue anyway. Dashboard may fail to render or behave incorrectly until required dependencies are installed.",
+          "dashboard_access_warning_ack": "Acknowledge that some selected users do not have linked Home Assistant users while kiosk mode is disabled. Claim and redeem buttons may not work as expected on shared devices until those users are linked or kiosk mode is enabled."
         }
       },
       "dashboard_create": {
@@ -1834,6 +1836,7 @@
       "dashboard_admin_per_assignee_template_required": "Per-user admin template is required when Admin Layout includes Per User.",
       "dashboard_admin_per_assignee_needs_assignees": "Per User Admin Layout requires at least one selected user.",
       "dashboard_dependency_ack_required": "Enable 'Continue anyway' to proceed, or go back and install missing required dependencies first.",
+      "dashboard_access_warning_ack_required": "Acknowledge the access-control warning to continue, or go back and link the affected users or enable kiosk mode.",
       "dashboard_nonselectable_templates": "One or more selected templates are unavailable for generation.",
       "dashboard_release_strict_pin_failed": "The selected dashboard release must be pinned exactly, but no effective release reference was available at execution time. Re-select the release in Step 1 and try again.",
       "dashboard_release_asset_prep_failed": "Unable to prepare selected online dashboard assets. Choose a different release or use latest compatible/current local templates and try again."
@@ -5083,6 +5086,12 @@
     },
     "dashboard_label_preferences_guide_not_provided": {
       "message": "Preferences guide not provided"
+    },
+    "user_non_kiosk_unlinked_warning": {
+      "message": "⚠️ **Access warning:** Kiosk mode is disabled and this user is not linked to a Home Assistant user. Shared-device claim and redeem buttons may not work for this user until you link a Home Assistant user or enable kiosk mode."
+    },
+    "dashboard_unlinked_users_warning": {
+      "message": "⚠️ Kiosk mode is disabled and these selected users do not have linked Home Assistant users:\n{user_list}\n\nClaim and redeem buttons may not work as expected on shared devices until those users are linked or kiosk mode is enabled."
     },
     "not_authorized_action": {
       "message": "You are not authorized to {action} for this assignee."
