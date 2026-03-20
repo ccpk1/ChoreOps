@@ -126,28 +126,17 @@ jobs:
           L10N_BRANCH: l10n_crowdin_action
           PR_TITLE: "chore(l10n): sync translations from Crowdin"
         run: |
-          # The Docker-based Crowdin action can leave git metadata owned by root.
-          # Restore ownership before local branch operations and pushes.
-          sudo chown -R "$(id -u):$(id -g)" .git
-
-          git config user.name "Crowdin Bot"
-          git config user.email "support+bot@crowdin.com"
-
-          git fetch origin "$TARGET_BRANCH"
-          if git ls-remote --exit-code --heads origin "$L10N_BRANCH" >/dev/null 2>&1; then
-            git fetch origin "$L10N_BRANCH"
-          fi
-
-          git checkout -B "$L10N_BRANCH" "origin/$TARGET_BRANCH"
-          git add custom_components/choreops/translations custom_components/choreops/translations_custom
-
-          if git diff --cached --quiet; then
-            echo "No translation changes to commit"
+          if ! git ls-remote --exit-code --heads origin "$L10N_BRANCH" >/dev/null 2>&1; then
+            echo "No translation branch found to open a PR from"
             exit 0
           fi
 
-          git commit -m "$PR_TITLE"
-          git push --force-with-lease "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:$L10N_BRANCH"
+          if git diff --quiet "origin/$TARGET_BRANCH" "origin/$L10N_BRANCH" -- \
+            custom_components/choreops/translations \
+            custom_components/choreops/translations_custom; then
+            echo "No translation changes to open a PR for"
+            exit 0
+          fi
 
           pr_number="$(gh pr list \
             --head "$L10N_BRANCH" \
