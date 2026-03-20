@@ -53,13 +53,23 @@ jobs:
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
           TRANSLATION_PR_TOKEN: ${{ secrets.TRANSLATION_PR_TOKEN }}
         run: |
-          if [ -z "$CROWDIN_PROJECT_ID" ] || [ -z "$CROWDIN_PERSONAL_TOKEN" ] || [ -z "$TRANSLATION_PR_TOKEN" ]; then
+          if [ -z "$CROWDIN_PROJECT_ID" ] || [ -z "$CROWDIN_PERSONAL_TOKEN" ]; then
             echo "run_crowdin=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::Translation sync secrets are not fully configured. Skipping translation sync."
-            echo "::notice::Set CROWDIN_PROJECT_ID, CROWDIN_PERSONAL_TOKEN, and TRANSLATION_PR_TOKEN repository secrets to enable this workflow."
+            echo "run_pr_automation=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Crowdin secrets are not configured. Skipping translation sync."
+            echo "::notice::Set CROWDIN_PROJECT_ID and CROWDIN_PERSONAL_TOKEN repository secrets to enable Crowdin sync."
           else
             echo "run_crowdin=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::Crowdin and PR automation secrets detected. Translation sync will run."
+            echo "::notice::Crowdin secrets detected. Translation sync will run."
+
+            if [ -z "$TRANSLATION_PR_TOKEN" ]; then
+              echo "run_pr_automation=false" >> "$GITHUB_OUTPUT"
+              echo "::warning::TRANSLATION_PR_TOKEN is not configured. Crowdin sync will run, but PR automation will be skipped."
+              echo "::notice::Set TRANSLATION_PR_TOKEN repository secret to enable translation PR creation and labeling."
+            else
+              echo "run_pr_automation=true" >> "$GITHUB_OUTPUT"
+              echo "::notice::PR automation token detected. Translation PR automation will run."
+            fi
           fi
 
       # STEP 1: Upload Sources
@@ -72,7 +82,7 @@ jobs:
           download_translations: false
           create_pull_request: false
         env:
-          GITHUB_TOKEN: ${{ secrets.TRANSLATION_PR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
 
@@ -100,12 +110,12 @@ jobs:
           download_translations: true
           create_pull_request: false
         env:
-          GITHUB_TOKEN: ${{ secrets.TRANSLATION_PR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
 
       - name: Create or update translation PR
-        if: steps.crowdin_preflight.outputs.run_crowdin == 'true'
+        if: steps.crowdin_preflight.outputs.run_pr_automation == 'true'
         env:
           GH_TOKEN: ${{ secrets.TRANSLATION_PR_TOKEN }}
           TARGET_BRANCH: ${{ steps.sync_branch.outputs.value }}
@@ -151,7 +161,7 @@ jobs:
           fi
 
       - name: Ensure translation PR labels
-        if: steps.crowdin_preflight.outputs.run_crowdin == 'true'
+        if: steps.crowdin_preflight.outputs.run_pr_automation == 'true'
         env:
           GH_TOKEN: ${{ secrets.TRANSLATION_PR_TOKEN }}
           BASE_BRANCH: ${{ steps.sync_branch.outputs.value }}
@@ -187,3 +197,8 @@ jobs:
         if: steps.crowdin_preflight.outputs.run_crowdin != 'true'
         run: |
           echo "Crowdin sync skipped: repository secrets are not configured yet."
+
+      - name: Translation PR automation skipped
+        if: steps.crowdin_preflight.outputs.run_crowdin == 'true' && steps.crowdin_preflight.outputs.run_pr_automation != 'true'
+        run: |
+          echo "Translation PR automation skipped: TRANSLATION_PR_TOKEN is not configured yet."
