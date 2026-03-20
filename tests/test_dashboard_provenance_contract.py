@@ -140,3 +140,73 @@ async def test_system_dashboard_helper_includes_shared_admin_identity_contract(
         for user_name, assignee_id in scenario_minimal.assignee_ids.items()
     }
     assert isinstance(attrs[const.ATTR_TRANSLATION_SENSOR_EID], str)
+
+
+@pytest.fixture
+async def scenario_multilang(
+    hass: HomeAssistant,
+    mock_hass_users: dict[str, Any],
+) -> SetupResult:
+    """Load multilingual scenario for shared-admin language tests."""
+    return await setup_from_yaml(
+        hass,
+        mock_hass_users,
+        "tests/scenarios/scenario_multilang.yaml",
+    )
+
+
+@pytest.mark.asyncio
+async def test_system_dashboard_helper_uses_backend_majority_language(
+    hass: HomeAssistant,
+    scenario_multilang: SetupResult,
+) -> None:
+    """Shared-admin helper uses the backend majority-language rule."""
+    helper_state = next(
+        state
+        for state in hass.states.async_all("sensor")
+        if state.attributes.get(const.ATTR_PURPOSE)
+        == const.TRANS_KEY_PURPOSE_SYSTEM_DASHBOARD_HELPER
+    )
+    coordinator = scenario_multilang.coordinator
+    resolved_language = coordinator.ui_manager.get_shared_admin_dashboard_language()
+
+    assert resolved_language == "en"
+    assert helper_state.attributes[const.TRANS_KEY_ATTR_LANGUAGE] == resolved_language
+    assert helper_state.attributes[const.ATTR_TRANSLATION_SENSOR_EID] == (
+        coordinator.ui_manager.get_translation_sensor_eid(resolved_language)
+    )
+
+
+@pytest.mark.asyncio
+async def test_shared_admin_language_tie_breaks_to_first_approver_language(
+    scenario_minimal: SetupResult,
+) -> None:
+    """Shared-admin language falls back to the first approval-capable user on ties."""
+    coordinator = scenario_minimal.coordinator
+    assignee_id = next(iter(scenario_minimal.assignee_ids.values()))
+    coordinator.users_data[assignee_id][const.DATA_USER_DASHBOARD_LANGUAGE] = "da"
+
+    assert coordinator.ui_manager.get_shared_admin_dashboard_language() == "en"
+
+
+@pytest.mark.asyncio
+async def test_shared_admin_language_is_not_selected_user_dependent(
+    hass: HomeAssistant,
+    scenario_multilang: SetupResult,
+) -> None:
+    """Changing the admin selector does not change shared-admin language."""
+    selector_state = next(
+        state
+        for state in hass.states.async_all("select")
+        if state.attributes.get(const.ATTR_PURPOSE)
+        == const.TRANS_KEY_PURPOSE_SYSTEM_DASHBOARD_ADMIN_USER
+    )
+    selector_attrs = dict(selector_state.attributes)
+    coordinator = scenario_multilang.coordinator
+
+    assert coordinator.ui_manager.get_shared_admin_dashboard_language() == "en"
+
+    hass.states.async_set(selector_state.entity_id, "Lila", selector_attrs)
+    await hass.async_block_till_done()
+
+    assert coordinator.ui_manager.get_shared_admin_dashboard_language() == "en"

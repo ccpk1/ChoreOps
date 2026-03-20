@@ -3984,64 +3984,9 @@ class SystemDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         )
         return entity_registry.async_get_entity_id("select", const.DOMAIN, unique_id)
 
-    def _get_selected_user(self) -> tuple[str | None, AssigneeData | None]:
-        """Return the selected user record from the admin selector, if available."""
-        selector_eid = self._get_admin_selector_eid()
-        if selector_eid is None:
-            return None, None
-
-        selector_state = self.hass.states.get(selector_eid)
-        if selector_state is None:
-            return None, None
-
-        selected_user_name = selector_state.state
-        if selected_user_name in {
-            const.SENTINEL_NONE_TEXT,
-            "",
-            "unavailable",
-            "unknown",
-        }:
-            return None, None
-
-        for user_id, user_data in self.coordinator.assignees_data.items():
-            if user_data.get(const.DATA_USER_NAME) == selected_user_name:
-                return user_id, user_data
-
-        return None, None
-
     def _resolve_dashboard_language(self) -> str:
         """Resolve the shared admin dashboard language for page-level chrome."""
-        selected_user_id, selected_user = self._get_selected_user()
-        if selected_user is not None:
-            selected_language = selected_user.get(const.DATA_USER_DASHBOARD_LANGUAGE)
-            if isinstance(selected_language, str) and selected_language:
-                return selected_language
-
-            if selected_user_id is not None:
-                linked_admins = sorted(
-                    (
-                        (
-                            str(approver_data.get(const.DATA_USER_NAME, "")).lower(),
-                            approver_id,
-                            approver_data,
-                        )
-                        for approver_id, approver_data in self.coordinator.approvers_data.items()
-                        if selected_user_id
-                        in cast(
-                            "list[str]",
-                            approver_data.get(const.DATA_USER_ASSOCIATED_USER_IDS, []),
-                        )
-                    ),
-                    key=lambda item: (item[0], item[1]),
-                )
-                for _, _, approver_data in linked_admins:
-                    approver_language = approver_data.get(
-                        const.DATA_USER_DASHBOARD_LANGUAGE
-                    )
-                    if isinstance(approver_language, str) and approver_language:
-                        return approver_language
-
-        return const.DEFAULT_DASHBOARD_LANGUAGE
+        return self.coordinator.ui_manager.get_shared_admin_dashboard_language()
 
     def _get_translation_sensor_eid(self, language_code: str) -> str | None:
         """Return the translation sensor entity ID for the resolved language."""

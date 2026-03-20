@@ -52,9 +52,9 @@ views:
 
               {#-- 2. Dynamic Lookups & Validations --#}
 
-              << template_snippets.admin_setup_peruser >>
+              {# shared_admin_translation_sensor_eid comes from the admin setup snippet #}
 
-              {%- set shared_admin_helper_eid = admin_selector_eid -%}
+              << template_snippets.admin_setup_peruser >>
 
               << template_snippets.admin_validation_missing_selector >>
 
@@ -67,12 +67,10 @@ views:
               {%- set selected_user_id = state_attr(selected_dashboard_helper, 'user_id') if has_selected_dashboard_helper else '' -%}
               {%- set selected_user_ui_control = state_attr(selected_dashboard_helper, 'ui_control') | default({}, true) if has_selected_dashboard_helper else {} -%}
               {%- set ui_root = namespace(
-                shared_admin=selected_user_ui_control if selected_user_ui_control is mapping else {},
+                shared_admin=shared_admin_ui_control if shared_admin_ui_control is mapping else {},
                 selected_user=selected_user_ui_control if selected_user_ui_control is mapping else {}
               ) -%}
               {%- set selected_dashboard_helpers = state_attr(selected_dashboard_helper, 'dashboard_helpers') or {} if has_selected_dashboard_helper else {} -%}
-              {%- set selected_translation_sensor = selected_dashboard_helpers.get('translation_sensor_eid') if has_selected_dashboard_helper else '' -%}
-              {%- set shared_admin_ui = state_attr(selected_translation_sensor, 'ui_translations') | default({}, true) if selected_translation_sensor not in ['', None, 'None'] and states(selected_translation_sensor) not in ['unknown', 'unavailable'] else {} -%}
               {%- set helper_sensor_entities = [selected_dashboard_helper] | expand if has_selected_dashboard_helper else [] -%}
               {%- set summary_helper = selected_dashboard_helper if has_selected_dashboard_helper else '' -%}
 
@@ -136,8 +134,6 @@ views:
                 {%- set helper_attrs = helper_state.attributes -%}
                 {%- set helper_name = helper_attrs.user_name | default(helper_state.name, true) -%}
                 {%- set dashboard_helpers = helper_attrs.dashboard_helpers | default({}, true) -%}
-                {%- set translation_sensor = dashboard_helpers.get('translation_sensor_eid') -%}
-                {%- set helper_ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor else ui -%}
                 {%- set pending_approvals = helper_attrs.pending_approvals | default({}, true) -%}
                 {%- set pending_chore_data = pending_approvals.get('chores', []) | default([], true) -%}
                 {%- set pending_reward_data = pending_approvals.get('rewards', []) | default([], true) -%}
@@ -150,7 +146,7 @@ views:
                   {%- set ns.total_chore_pending = ns.total_chore_pending + chore_count -%}
                   {%- set ns.total_reward_pending = ns.total_reward_pending + reward_count -%}
                   {%- set ns.pending_user_count = ns.pending_user_count + 1 -%}
-                  {%- set combined_summary = "<div style='display:flex;flex-direction:column;align-items:flex-end;justify-content:center;line-height:1;'><span style='font-size:16px;font-weight:700;'>" ~ total_count ~ "</span><span style='margin-top:4px;font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--secondary-text-color);'>" ~ helper_ui.get('approvals', 'err-approvals') ~ "</span></div>" -%}
+                  {%- set combined_summary = "<div style='display:flex;flex-direction:column;align-items:flex-end;justify-content:center;line-height:1;'><span style='font-size:16px;font-weight:700;'>" ~ total_count ~ "</span><span style='margin-top:4px;font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--secondary-text-color);'>" ~ ui.get('approvals', 'err-approvals') ~ "</span></div>" -%}
                   {%- set header_card = {
                     'type': 'custom:button-card',
                     'entity': helper_entity_id,
@@ -219,9 +215,9 @@ views:
                     {%- set last_completed_iso = state_attr(chore_eid, 'last_completed') if chore_eid not in ['', None, 'None'] else None -%}
                     {%- set claimed_at_display = (as_timestamp(claimed_at_iso) | timestamp_custom('%Y-%m-%d %-I:%M%p', true)) if claimed_at_iso not in ['', None, 'None'] else '' -%}
                     {%- set last_completed_display = (as_timestamp(last_completed_iso) | timestamp_custom('%Y-%m-%d', true)) if last_completed_iso not in ['', None, 'None'] else '' -%}
-                    {%- set meta_text = helper_ui.get('chore_claimed', 'err-chore_claimed') ~ ': ' ~ claimed_at_display if claimed_at_display != '' else helper_ui.get('chore', 'err-chore') -%}
+                    {%- set meta_text = ui.get('chore_claimed', 'err-chore_claimed') ~ ': ' ~ claimed_at_display if claimed_at_display != '' else ui.get('chore', 'err-chore') -%}
                     {%- if last_completed_display != '' -%}
-                      {%- set meta_text = meta_text ~ ' • ' ~ helper_ui.get('last', 'err-last') ~ ': ' ~ last_completed_display -%}
+                      {%- set meta_text = meta_text ~ ' • ' ~ ui.get('last', 'err-last') ~ ': ' ~ last_completed_display -%}
                     {%- endif -%}
                     {%- if approve_eid != '' or return_eid != '' -%}
                       {%- set row_ns.cards = row_ns.cards + [{
@@ -371,9 +367,9 @@ views:
                     {%- set last_approved_iso = state_attr(reward_eid, 'last_approved') if reward_eid not in ['', None, 'None'] else None -%}
                     {%- set requested_at_display = (as_timestamp(requested_at_iso) | timestamp_custom('%Y-%m-%d %-I:%M%p', true)) if requested_at_iso not in ['', None, 'None'] else '' -%}
                     {%- set last_approved_display = (as_timestamp(last_approved_iso) | timestamp_custom('%Y-%m-%d', true)) if last_approved_iso not in ['', None, 'None'] else '' -%}
-                    {%- set meta_text = helper_ui.get('reward_requested', 'err-reward_requested') ~ ': ' ~ requested_at_display if requested_at_display != '' else helper_ui.get('reward', 'err-reward') -%}
+                    {%- set meta_text = ui.get('reward_requested', 'err-reward_requested') ~ ': ' ~ requested_at_display if requested_at_display != '' else ui.get('reward', 'err-reward') -%}
                     {%- if last_approved_display != '' -%}
-                      {%- set meta_text = meta_text ~ ' • ' ~ helper_ui.get('last', 'err-last') ~ ': ' ~ last_approved_display -%}
+                      {%- set meta_text = meta_text ~ ' • ' ~ ui.get('last', 'err-last') ~ ': ' ~ last_approved_display -%}
                     {%- endif -%}
                     {%- if approve_eid != '' or return_eid != '' -%}
                       {%- set row_ns.cards = row_ns.cards + [{
@@ -669,8 +665,6 @@ views:
 
               << template_snippets.admin_setup_peruser >>
 
-              {%- set shared_admin_helper_eid = admin_selector_eid -%}
-
               << template_snippets.admin_validation_missing_selector >>
 
               << template_snippets.admin_validation_invalid_selection >>
@@ -682,12 +676,10 @@ views:
               {%- set selected_user_id = state_attr(selected_dashboard_helper, 'user_id') if has_selected_dashboard_helper else '' -%}
               {%- set selected_user_ui_control = state_attr(selected_dashboard_helper, 'ui_control') | default({}, true) if has_selected_dashboard_helper else {} -%}
               {%- set ui_root = namespace(
-                shared_admin=selected_user_ui_control if selected_user_ui_control is mapping else {},
+                shared_admin=shared_admin_ui_control if shared_admin_ui_control is mapping else {},
                 selected_user=selected_user_ui_control if selected_user_ui_control is mapping else {}
               ) -%}
               {%- set selected_dashboard_helpers = state_attr(selected_dashboard_helper, 'dashboard_helpers') or {} if has_selected_dashboard_helper else {} -%}
-              {%- set selected_translation_sensor = selected_dashboard_helpers.get('translation_sensor_eid') if has_selected_dashboard_helper else '' -%}
-              {%- set shared_admin_ui = state_attr(selected_translation_sensor, 'ui_translations') | default({}, true) if selected_translation_sensor not in ['', None, 'None'] and states(selected_translation_sensor) not in ['unknown', 'unavailable'] else {} -%}
               {%- set helper_sensor_entities = [selected_dashboard_helper] | expand if has_selected_dashboard_helper else [] -%}
               {%- set summary_helper = selected_dashboard_helper if has_selected_dashboard_helper else '' -%}
 
@@ -938,8 +930,6 @@ views:
 
               << template_snippets.admin_setup_peruser >>
 
-              {%- set shared_admin_helper_eid = admin_selector_eid -%}
-
               << template_snippets.admin_validation_missing_selector >>
 
               << template_snippets.admin_validation_invalid_selection >>
@@ -951,12 +941,10 @@ views:
               {%- set selected_user_id = state_attr(selected_dashboard_helper, 'user_id') if has_selected_dashboard_helper else '' -%}
               {%- set selected_user_ui_control = state_attr(selected_dashboard_helper, 'ui_control') | default({}, true) if has_selected_dashboard_helper else {} -%}
               {%- set ui_root = namespace(
-                shared_admin=selected_user_ui_control if selected_user_ui_control is mapping else {},
+                shared_admin=shared_admin_ui_control if shared_admin_ui_control is mapping else {},
                 selected_user=selected_user_ui_control if selected_user_ui_control is mapping else {}
               ) -%}
               {%- set selected_dashboard_helpers = state_attr(selected_dashboard_helper, 'dashboard_helpers') or {} if has_selected_dashboard_helper else {} -%}
-              {%- set selected_translation_sensor = selected_dashboard_helpers.get('translation_sensor_eid') if has_selected_dashboard_helper else '' -%}
-              {%- set shared_admin_ui = state_attr(selected_translation_sensor, 'ui_translations') | default({}, true) if selected_translation_sensor not in ['', None, 'None'] and states(selected_translation_sensor) not in ['unknown', 'unavailable'] else {} -%}
               {%- set helper_sensor_entities = [selected_dashboard_helper] | expand if has_selected_dashboard_helper else [] -%}
               {%- set summary_helper = selected_dashboard_helper if has_selected_dashboard_helper else '' -%}
 
@@ -1019,8 +1007,6 @@ views:
                 {%- set chore_select_entity = selected_dashboard_helpers.get('chore_select_eid') if has_selected_dashboard_helper else '' -%}
                 {%- set dashboard_date_helper = selected_dashboard_helpers.get('date_helper_eid') if has_selected_dashboard_helper else '' -%}
                 {%- set points_sensor = selected_core_sensors.get('points_eid') if has_selected_dashboard_helper else '' -%}
-                {%- set selected_translation_sensor = selected_dashboard_helpers.get('translation_sensor_eid') if has_selected_dashboard_helper else '' -%}
-                {%- set ui = state_attr(selected_translation_sensor, 'ui_translations') if selected_translation_sensor else ui -%}
                 {%- set selected_chore_name = (states(chore_select_entity) | default('')) if chore_select_entity not in ['', None, 'None'] else '' -%}
                 {%- set has_chore_selector = chore_select_entity not in ['', None, 'None'] -%}
                 {%- set has_selected_chore = has_selected_dashboard_helper and has_chore_selector and selected_chore_name not in ['None', 'none', '', 'unknown', 'unavailable'] -%}
@@ -2022,8 +2008,6 @@ views:
 
               << template_snippets.admin_setup_peruser >>
 
-              {%- set shared_admin_helper_eid = admin_selector_eid -%}
-
               << template_snippets.admin_validation_missing_selector >>
 
               << template_snippets.admin_validation_invalid_selection >>
@@ -2035,12 +2019,10 @@ views:
               {%- set selected_user_id = state_attr(selected_dashboard_helper, 'user_id') if has_selected_dashboard_helper else '' -%}
               {%- set selected_user_ui_control = state_attr(selected_dashboard_helper, 'ui_control') | default({}, true) if has_selected_dashboard_helper else {} -%}
               {%- set ui_root = namespace(
-                shared_admin=selected_user_ui_control if selected_user_ui_control is mapping else {},
+                shared_admin=shared_admin_ui_control if shared_admin_ui_control is mapping else {},
                 selected_user=selected_user_ui_control if selected_user_ui_control is mapping else {}
               ) -%}
               {%- set selected_dashboard_helpers = state_attr(selected_dashboard_helper, 'dashboard_helpers') or {} if has_selected_dashboard_helper else {} -%}
-              {%- set selected_translation_sensor = selected_dashboard_helpers.get('translation_sensor_eid') if has_selected_dashboard_helper else '' -%}
-              {%- set shared_admin_ui = state_attr(selected_translation_sensor, 'ui_translations') | default({}, true) if selected_translation_sensor not in ['', None, 'None'] and states(selected_translation_sensor) not in ['unknown', 'unavailable'] else {} -%}
               {%- set helper_sensor_entities = [selected_dashboard_helper] | expand if has_selected_dashboard_helper else [] -%}
               {%- set summary_helper = selected_dashboard_helper if has_selected_dashboard_helper else '' -%}
 
@@ -2251,8 +2233,6 @@ views:
 
               << template_snippets.admin_setup_peruser >>
 
-              {%- set shared_admin_helper_eid = admin_selector_eid -%}
-
               << template_snippets.admin_validation_missing_selector >>
 
               << template_snippets.admin_validation_invalid_selection >>
@@ -2264,12 +2244,10 @@ views:
               {%- set selected_user_id = state_attr(selected_dashboard_helper, 'user_id') if has_selected_dashboard_helper else '' -%}
               {%- set selected_user_ui_control = state_attr(selected_dashboard_helper, 'ui_control') | default({}, true) if has_selected_dashboard_helper else {} -%}
               {%- set ui_root = namespace(
-                shared_admin=selected_user_ui_control if selected_user_ui_control is mapping else {},
+                shared_admin=shared_admin_ui_control if shared_admin_ui_control is mapping else {},
                 selected_user=selected_user_ui_control if selected_user_ui_control is mapping else {}
               ) -%}
               {%- set selected_dashboard_helpers = state_attr(selected_dashboard_helper, 'dashboard_helpers') or {} if has_selected_dashboard_helper else {} -%}
-              {%- set selected_translation_sensor = selected_dashboard_helpers.get('translation_sensor_eid') if has_selected_dashboard_helper else '' -%}
-              {%- set shared_admin_ui = state_attr(selected_translation_sensor, 'ui_translations') | default({}, true) if selected_translation_sensor not in ['', None, 'None'] and states(selected_translation_sensor) not in ['unknown', 'unavailable'] else {} -%}
               {%- set helper_sensor_entities = [selected_dashboard_helper] | expand if has_selected_dashboard_helper else [] -%}
               {%- set summary_helper = selected_dashboard_helper if has_selected_dashboard_helper else '' -%}
 
@@ -2322,8 +2300,6 @@ views:
                 {%- set selected_dashboard_helpers = state_attr(selected_dashboard_helper, 'dashboard_helpers') or {} if has_selected_dashboard_helper else {} -%}
                 {%- set selected_core_sensors = state_attr(selected_dashboard_helper, 'core_sensors') or {} if has_selected_dashboard_helper else {} -%}
                 {%- set points_sensor = selected_core_sensors.get('points_eid') if has_selected_dashboard_helper else '' -%}
-                {%- set selected_translation_sensor = selected_dashboard_helpers.get('translation_sensor_eid') if has_selected_dashboard_helper else '' -%}
-                {%- set ui = state_attr(selected_translation_sensor, 'ui_translations') if selected_translation_sensor else ui -%}
                 {%- set selected_gamification_enabled = state_attr(selected_dashboard_helper, 'gamification_enabled') | default(false, true) if has_selected_dashboard_helper else false -%}
                 {%- set point_buttons = state_attr(selected_dashboard_helper, 'points_buttons') | default([], true) if has_selected_dashboard_helper else [] -%}
                 {%- set bonus_list = state_attr(selected_dashboard_helper, 'bonuses') | default([], true) if has_selected_dashboard_helper else [] -%}
@@ -3291,8 +3267,6 @@ views:
 
               << template_snippets.admin_setup_peruser >>
 
-              {%- set shared_admin_helper_eid = admin_selector_eid -%}
-
               << template_snippets.admin_validation_missing_selector >>
 
               << template_snippets.admin_validation_invalid_selection >>
@@ -3304,12 +3278,10 @@ views:
               {%- set selected_user_id = state_attr(selected_dashboard_helper, 'user_id') if has_selected_dashboard_helper else '' -%}
               {%- set selected_user_ui_control = state_attr(selected_dashboard_helper, 'ui_control') | default({}, true) if has_selected_dashboard_helper else {} -%}
               {%- set ui_root = namespace(
-                shared_admin=selected_user_ui_control if selected_user_ui_control is mapping else {},
+                shared_admin=shared_admin_ui_control if shared_admin_ui_control is mapping else {},
                 selected_user=selected_user_ui_control if selected_user_ui_control is mapping else {}
               ) -%}
               {%- set selected_dashboard_helpers = state_attr(selected_dashboard_helper, 'dashboard_helpers') or {} if has_selected_dashboard_helper else {} -%}
-              {%- set selected_translation_sensor = selected_dashboard_helpers.get('translation_sensor_eid') if has_selected_dashboard_helper else '' -%}
-              {%- set shared_admin_ui = state_attr(selected_translation_sensor, 'ui_translations') | default({}, true) if selected_translation_sensor not in ['', None, 'None'] and states(selected_translation_sensor) not in ['unknown', 'unavailable'] else {} -%}
               {%- set helper_sensor_entities = [selected_dashboard_helper] | expand if has_selected_dashboard_helper else [] -%}
               {%- set summary_helper = selected_dashboard_helper if has_selected_dashboard_helper else '' -%}
 

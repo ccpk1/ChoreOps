@@ -343,6 +343,64 @@ class UIManager(BaseManager):
         languages.add(const.DEFAULT_DASHBOARD_LANGUAGE)
         return languages
 
+    def get_shared_admin_dashboard_language(self) -> str:
+        """Resolve the stable shared-admin dashboard language.
+
+        The shared admin language is backend-owned and must not depend on the
+        currently selected user in the admin UI.
+        """
+        users = self.coordinator.users_data
+        if not users:
+            return const.DEFAULT_DASHBOARD_LANGUAGE
+
+        language_counts: dict[str, int] = {}
+        for user_data in users.values():
+            if not isinstance(user_data, dict):
+                continue
+
+            language = user_data.get(const.DATA_USER_DASHBOARD_LANGUAGE)
+            resolved_language = (
+                language
+                if isinstance(language, str) and language
+                else const.DEFAULT_DASHBOARD_LANGUAGE
+            )
+            language_counts[resolved_language] = (
+                language_counts.get(resolved_language, 0) + 1
+            )
+
+        if not language_counts:
+            return const.DEFAULT_DASHBOARD_LANGUAGE
+
+        winning_count = max(language_counts.values())
+        winning_languages = {
+            language
+            for language, count in language_counts.items()
+            if count == winning_count
+        }
+        if len(winning_languages) == 1:
+            return next(iter(winning_languages))
+
+        for user_data in users.values():
+            if not isinstance(user_data, dict):
+                continue
+            if not (
+                user_data.get(const.DATA_USER_CAN_APPROVE, False)
+                or user_data.get(const.DATA_USER_CAN_MANAGE, False)
+                or bool(user_data.get(const.DATA_USER_ASSOCIATED_USER_IDS))
+            ):
+                continue
+
+            language = user_data.get(const.DATA_USER_DASHBOARD_LANGUAGE)
+            resolved_language = (
+                language
+                if isinstance(language, str) and language
+                else const.DEFAULT_DASHBOARD_LANGUAGE
+            )
+            if resolved_language in winning_languages:
+                return resolved_language
+
+        return const.DEFAULT_DASHBOARD_LANGUAGE
+
     def remove_unused_translation_sensors(self) -> None:
         """Remove translation sensors for languages no longer in use.
 
