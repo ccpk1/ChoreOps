@@ -21,6 +21,7 @@ from homeassistant.core import HomeAssistant
 import pytest
 
 from custom_components.choreops import const
+from custom_components.choreops.data_builders import validate_chore_data
 from custom_components.choreops.helpers import flow_helpers
 from custom_components.choreops.utils.dt_utils import parse_daily_multi_times
 from tests.helpers import (
@@ -235,6 +236,57 @@ class TestDailyMultiValidation:
         """V-12: Empty times string is rejected."""
         errors = flow_helpers.validate_daily_multi_times("")
         assert errors != {}
+
+
+class TestEffectiveDueDateValidation:
+    """Tests for shared effective due-date validation across chore modes."""
+
+    def test_independent_weekly_missing_assignee_due_date_rejected(self) -> None:
+        """Independent recurring chores require a due date for every assigned assignee."""
+        errors = validate_chore_data(
+            {
+                const.DATA_CHORE_NAME: "Validator Weekly Missing",
+                const.DATA_CHORE_ASSIGNED_USER_IDS: ["assignee-1", "assignee-2"],
+                const.DATA_CHORE_RECURRING_FREQUENCY: const.FREQUENCY_WEEKLY,
+                const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_INDEPENDENT,
+                const.DATA_CHORE_APPROVAL_RESET_TYPE: const.DEFAULT_APPROVAL_RESET_TYPE,
+                const.DATA_CHORE_OVERDUE_HANDLING_TYPE: const.DEFAULT_OVERDUE_HANDLING_TYPE,
+                const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES: {
+                    "assignee-1": "2099-01-01T09:00:00+00:00",
+                    "assignee-2": None,
+                },
+            },
+            is_update=True,
+            current_chore_id="validator-chore",
+        )
+
+        assert errors == {
+            const.CFOP_ERROR_DUE_DATE: const.TRANS_KEY_CFOF_DATE_REQUIRED_FOR_FREQUENCY
+        }
+
+    def test_independent_assignee_past_due_date_rejected(self) -> None:
+        """Independent per-assignee due dates cannot be in the past."""
+        past_due_date = datetime(2024, 1, 1, 9, 0, tzinfo=UTC).isoformat()
+
+        errors = validate_chore_data(
+            {
+                const.DATA_CHORE_NAME: "Validator Past Due",
+                const.DATA_CHORE_ASSIGNED_USER_IDS: ["assignee-1"],
+                const.DATA_CHORE_RECURRING_FREQUENCY: const.FREQUENCY_DAILY,
+                const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_INDEPENDENT,
+                const.DATA_CHORE_APPROVAL_RESET_TYPE: const.DEFAULT_APPROVAL_RESET_TYPE,
+                const.DATA_CHORE_OVERDUE_HANDLING_TYPE: const.DEFAULT_OVERDUE_HANDLING_TYPE,
+                const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES: {
+                    "assignee-1": past_due_date,
+                },
+            },
+            is_update=True,
+            current_chore_id="validator-chore",
+        )
+
+        assert errors == {
+            const.CFOP_ERROR_DUE_DATE: const.TRANS_KEY_CFOF_DUE_DATE_IN_PAST
+        }
 
 
 # =============================================================================

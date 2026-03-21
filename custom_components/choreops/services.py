@@ -216,6 +216,81 @@ def _validate_non_zero_integer_amount(value: Any) -> int:
     return amount
 
 
+def _service_uses_chore_level_due_date(chore_data: dict[str, Any]) -> bool:
+    """Return whether the provided chore data uses a shared chore-level due date."""
+    completion_criteria = chore_data.get(
+        const.DATA_CHORE_COMPLETION_CRITERIA,
+        const.COMPLETION_CRITERIA_INDEPENDENT,
+    )
+    return completion_criteria in (
+        const.COMPLETION_CRITERIA_SHARED,
+        const.COMPLETION_CRITERIA_SHARED_FIRST,
+        const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
+        const.COMPLETION_CRITERIA_ROTATION_SMART,
+    )
+
+
+def _normalize_service_due_date_input(due_date_input: Any) -> str | None:
+    """Normalize a service due date payload to UTC ISO format for validation."""
+    parsed_due_date = dt_parse(
+        due_date_input,
+        default_tzinfo=const.DEFAULT_TIME_ZONE,
+        return_type=const.HELPER_RETURN_DATETIME_UTC,
+    )
+    if not parsed_due_date or not isinstance(parsed_due_date, datetime):
+        return None
+    return parsed_due_date.isoformat()
+
+
+def _build_service_chore_validation_data(
+    data_input: dict[str, Any],
+    assigned_assignee_ids: list[str],
+    *,
+    due_date_iso: str | None,
+    existing_chore: "ChoreData | dict[str, Any] | None" = None,
+) -> dict[str, Any]:
+    """Build normalized chore data for shared validation.
+
+    Services update partial payloads, so validation must merge the effective
+    due-date state from storage before calling the shared validator.
+    """
+    validation_data = dict(data_input)
+
+    if const.DATA_CHORE_ASSIGNED_USER_IDS not in validation_data:
+        validation_data[const.DATA_CHORE_ASSIGNED_USER_IDS] = assigned_assignee_ids
+
+    if existing_chore is not None:
+        for key in (
+            const.DATA_CHORE_RECURRING_FREQUENCY,
+            const.DATA_CHORE_APPROVAL_RESET_TYPE,
+            const.DATA_CHORE_OVERDUE_HANDLING_TYPE,
+            const.DATA_CHORE_COMPLETION_CRITERIA,
+        ):
+            if key not in validation_data:
+                validation_data[key] = existing_chore.get(key)
+
+    if _service_uses_chore_level_due_date(validation_data):
+        if due_date_iso is not None:
+            validation_data[const.DATA_CHORE_DUE_DATE] = due_date_iso
+        elif existing_chore is not None:
+            existing_due_date = existing_chore.get(const.DATA_CHORE_DUE_DATE)
+            if existing_due_date is not None:
+                validation_data[const.DATA_CHORE_DUE_DATE] = existing_due_date
+        return validation_data
+
+    if due_date_iso is not None:
+        validation_data[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] = dict.fromkeys(
+            assigned_assignee_ids, due_date_iso
+        )
+    elif existing_chore is not None:
+        validation_data[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] = dict(
+            existing_chore.get(const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {})
+        )
+
+    validation_data.pop(const.DATA_CHORE_DUE_DATE, None)
+    return validation_data
+
+
 # --- Service Schemas ---
 
 # Common schema base patterns for DRY principle
@@ -862,14 +937,17 @@ def async_setup_services(hass: HomeAssistant):
 
         # Extract due_date for special handling (not passed to build_chore)
         due_date_input = call.data.get(const.SERVICE_FIELD_CHORE_CRUD_DUE_DATE)
+        due_date_iso = _normalize_service_due_date_input(due_date_input)
 
-        # Include due_date in validation if provided
-        if due_date_input:
-            data_input[const.DATA_CHORE_DUE_DATE] = due_date_input
+        validation_data = _build_service_chore_validation_data(
+            data_input,
+            assignee_ids,
+            due_date_iso=due_date_iso,
+        )
 
         # Validate using shared validation (single source of truth)
         validation_errors = db.validate_chore_data(
-            data_input,
+            validation_data,
             coordinator.chores_data,
             is_update=False,
             current_chore_id=None,
@@ -889,7 +967,7 @@ def async_setup_services(hass: HomeAssistant):
 
             # Handle due_date via chore_manager (respects SHARED/INDEPENDENT)
             # Note: set_due_date handles its own persist
-            if due_date_input:
+            if due_date_input is not None:
                 await coordinator.chore_manager.set_due_date(
                     internal_id, due_date_input, assignee_id=None
                 )
@@ -1035,27 +1113,21 @@ def async_setup_services(hass: HomeAssistant):
 
         # Extract due_date for special handling
         due_date_input = call.data.get(const.SERVICE_FIELD_CHORE_CRUD_DUE_DATE)
+        due_date_iso = _normalize_service_due_date_input(due_date_input)
 
-        # Include due_date in validation if provided
-        if due_date_input is not None:
-            data_input[const.DATA_CHORE_DUE_DATE] = due_date_input
-
-        # For update: merge with existing data for accurate validation
-        # (assigned_user_ids may not be in data_input if not being updated)
-        validation_data = dict(data_input)
-        if const.DATA_CHORE_ASSIGNED_USER_IDS not in validation_data:
-            validation_data[const.DATA_CHORE_ASSIGNED_USER_IDS] = existing_chore.get(
-                const.DATA_CHORE_ASSIGNED_USER_IDS, []
+        assigned_assignee_ids = list(
+            data_input.get(
+                const.DATA_CHORE_ASSIGNED_USER_IDS,
+                existing_chore.get(const.DATA_CHORE_ASSIGNED_USER_IDS, []),
             )
-        # Similarly for other fields needed for combination validation
-        for key in (
-            const.DATA_CHORE_RECURRING_FREQUENCY,
-            const.DATA_CHORE_APPROVAL_RESET_TYPE,
-            const.DATA_CHORE_OVERDUE_HANDLING_TYPE,
-            const.DATA_CHORE_COMPLETION_CRITERIA,
-        ):
-            if key not in validation_data:
-                validation_data[key] = existing_chore.get(key)
+        )
+
+        validation_data = _build_service_chore_validation_data(
+            data_input,
+            assigned_assignee_ids,
+            due_date_iso=due_date_iso,
+            existing_chore=existing_chore,
+        )
 
         # Validate using shared validation (single source of truth)
         validation_errors = db.validate_chore_data(
@@ -1533,7 +1605,30 @@ def async_setup_services(hass: HomeAssistant):
                 "ChoreData", coordinator.chores_data.get(chore_id, {})
             )
             validation_data = dict(existing_chore_info)
-            validation_data[const.DATA_CHORE_DUE_DATE] = None
+
+            if ChoreEngine.uses_chore_level_due_date(existing_chore_info):
+                validation_data[const.DATA_CHORE_DUE_DATE] = None
+            else:
+                per_assignee_due_dates = dict(
+                    existing_chore_info.get(
+                        const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES,
+                        {},
+                    )
+                )
+                if assignee_id:
+                    per_assignee_due_dates[assignee_id] = None
+                else:
+                    for assigned_user_id in existing_chore_info.get(
+                        const.DATA_CHORE_ASSIGNED_USER_IDS,
+                        [],
+                    ):
+                        per_assignee_due_dates[assigned_user_id] = None
+
+                validation_data[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] = (
+                    per_assignee_due_dates
+                )
+                validation_data[const.DATA_CHORE_DUE_DATE] = None
+
             validation_errors = db.validate_chore_data(
                 validation_data,
                 coordinator.chores_data,

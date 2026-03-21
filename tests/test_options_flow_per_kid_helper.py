@@ -737,6 +737,57 @@ class TestPerAssigneeHelperEdit:
         assert len(date_values) == 2
         assert date_values[0] != date_values[1], "Assignees should have different dates"
 
+    async def test_pkh09b_edit_independent_weekly_rejects_missing_assignee_date(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """Weekly independent helper rejects merged per-assignee dates with blanks."""
+        config_entry = scenario_full.config_entry
+        coordinator = scenario_full.coordinator
+
+        chore_name = "Ørgänize Bookshelf"
+        chore_id = scenario_full.chore_ids[chore_name]
+        chore_data = coordinator.chores_data[chore_id]
+        assigned_assignee_ids = chore_data.get(DATA_CHORE_ASSIGNED_USER_IDS, [])
+        assigned_assignees = [
+            coordinator.assignees_data[assignee_id]["name"]
+            for assignee_id in assigned_assignee_ids
+        ]
+
+        result = await navigate_to_edit_chore(hass, config_entry.entry_id, chore_name)
+
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            user_input={
+                CFOF_CHORES_INPUT_NAME: chore_name,
+                CFOF_CHORES_INPUT_DEFAULT_POINTS: 18.0,
+                CFOF_CHORES_INPUT_ICON: "mdi:bookshelf",
+                CFOF_CHORES_INPUT_DESCRIPTION: "",
+                CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: assigned_assignees,
+                CFOF_CHORES_INPUT_RECURRING_FREQUENCY: "weekly",
+                CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_INDEPENDENT,
+            },
+        )
+
+        assert result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_USER_DETAILS
+
+        per_assignee_input: dict[str, Any] = {
+            f"applicable_days_{assigned_assignees[0]}": ["sat", "sun"],
+            f"applicable_days_{assigned_assignees[1]}": ["sat", "sun"],
+            f"clear_due_date_{assigned_assignees[0]}": True,
+        }
+
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            user_input=per_assignee_input,
+        )
+
+        assert result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_USER_DETAILS
+        assert result.get("errors") == {
+            const.CFOP_ERROR_BASE: const.TRANS_KEY_CFOF_DATE_REQUIRED_FOR_FREQUENCY
+        }
+
     async def test_pkh10_edit_independent_different_days_per_assignee(
         self,
         hass: HomeAssistant,

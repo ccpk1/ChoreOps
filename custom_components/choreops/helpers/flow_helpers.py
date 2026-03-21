@@ -1194,6 +1194,32 @@ def validate_chores_inputs(
     if due_date_str:
         data_dict[const.DATA_CHORE_DUE_DATE] = due_date_str
 
+    if (
+        data_dict[const.DATA_CHORE_COMPLETION_CRITERIA]
+        == const.COMPLETION_CRITERIA_INDEPENDENT
+    ):
+        if clear_due_date:
+            data_dict[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] = dict.fromkeys(
+                assigned_user_ids
+            )
+            data_dict.pop(const.DATA_CHORE_DUE_DATE, None)
+        elif due_date_str:
+            data_dict[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] = dict.fromkeys(
+                assigned_user_ids, due_date_str
+            )
+            data_dict.pop(const.DATA_CHORE_DUE_DATE, None)
+        elif existing_chore is not None:
+            existing_per_assignee_due_dates = existing_chore.get(
+                const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES,
+                {},
+            )
+            if isinstance(existing_per_assignee_due_dates, dict):
+                data_dict[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] = {
+                    assignee_id: existing_per_assignee_due_dates.get(assignee_id)
+                    for assignee_id in assigned_user_ids
+                }
+                data_dict.pop(const.DATA_CHORE_DUE_DATE, None)
+
     # Include points if provided
     if const.CFOF_CHORES_INPUT_DEFAULT_POINTS in user_input:
         data_dict[const.DATA_CHORE_DEFAULT_POINTS] = user_input[

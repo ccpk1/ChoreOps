@@ -1288,12 +1288,35 @@ def validate_chore_data(
         2. Name not duplicate
         3. At least one assignee assigned (create only)
         4. Points >= 0 (if provided)
-        5. Due date not in past (if provided)
+        5. Effective due dates not in past and parseable
         6. DAILY_MULTI + reset type combination
         7. Overdue + reset type combination
-        8. DAILY_MULTI requires due_date (unless INDEPENDENT multi-assignee)
-        9. AT_DUE_DATE_* reset types require due_date
+        8. DAILY_MULTI requires due dates
+        9. AT_DUE_DATE_* reset types require due dates
     """
+
+    def _uses_chore_level_due_date(completion_criteria: str) -> bool:
+        """Return whether this chore mode stores a single chore-level due date."""
+        return completion_criteria in (
+            const.COMPLETION_CRITERIA_SHARED,
+            const.COMPLETION_CRITERIA_SHARED_FIRST,
+            const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
+            const.COMPLETION_CRITERIA_ROTATION_SMART,
+        )
+
+    def _validate_due_date_value(raw_value: Any) -> str | None:
+        """Validate one due date value and return a translation key on error."""
+        parsed = dt_parse(
+            raw_value,
+            default_tzinfo=const.DEFAULT_TIME_ZONE,
+            return_type=const.HELPER_RETURN_DATETIME_UTC,
+        )
+        if not parsed or not isinstance(parsed, datetime.datetime):
+            return const.TRANS_KEY_CFOF_INVALID_DUE_DATE
+        if parsed < dt_now_utc():
+            return const.TRANS_KEY_CFOF_DUE_DATE_IN_PAST
+        return None
+
     errors: dict[str, str] = {}
 
     # === 1. Name validation ===
@@ -1341,28 +1364,6 @@ def validate_chore_data(
             errors[const.CFOP_ERROR_CHORE_POINTS] = const.TRANS_KEY_CFOF_INVALID_POINTS
             return errors
 
-    # === 5. Due date not in past ===
-    due_date_raw = data.get(const.DATA_CHORE_DUE_DATE)
-    due_dt: datetime.datetime | None = None
-    if due_date_raw:
-        try:
-            parsed = dt_parse(
-                due_date_raw,
-                default_tzinfo=const.DEFAULT_TIME_ZONE,
-                return_type=const.HELPER_RETURN_DATETIME_UTC,
-            )
-            # Type guard: ensure we got a datetime
-            if parsed and isinstance(parsed, datetime.datetime):
-                due_dt = parsed
-            if due_dt and due_dt < dt_now_utc():
-                errors[const.CFOP_ERROR_DUE_DATE] = (
-                    const.TRANS_KEY_CFOF_DUE_DATE_IN_PAST
-                )
-                return errors
-        except (ValueError, TypeError, AttributeError):
-            errors[const.CFOP_ERROR_DUE_DATE] = const.TRANS_KEY_CFOF_INVALID_DUE_DATE
-            return errors
-
     # === Extract config for combination validations ===
     recurring_frequency = data.get(
         const.DATA_CHORE_RECURRING_FREQUENCY, const.FREQUENCY_NONE
@@ -1376,6 +1377,28 @@ def validate_chore_data(
     completion_criteria = data.get(
         const.DATA_CHORE_COMPLETION_CRITERIA, const.COMPLETION_CRITERIA_INDEPENDENT
     )
+    due_date_raw = data.get(const.DATA_CHORE_DUE_DATE)
+    per_assignee_due_dates = _normalize_dict_field(
+        data.get(const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {})
+    )
+
+    # === 5. Effective due dates must be valid and not in the past ===
+    if _uses_chore_level_due_date(completion_criteria):
+        if due_date_raw:
+            if due_date_error := _validate_due_date_value(due_date_raw):
+                errors[const.CFOP_ERROR_DUE_DATE] = due_date_error
+                return errors
+        missing_required_due_date = not due_date_raw
+    else:
+        missing_required_due_date = False
+        for assignee_id in assigned_assignees:
+            assignee_due_date = per_assignee_due_dates.get(str(assignee_id))
+            if assignee_due_date in (None, const.SENTINEL_EMPTY):
+                missing_required_due_date = True
+                continue
+            if due_date_error := _validate_due_date_value(assignee_due_date):
+                errors[const.CFOP_ERROR_DUE_DATE] = due_date_error
+                return errors
 
     # === 6. DAILY_MULTI + reset type validation ===
     if recurring_frequency == const.FREQUENCY_DAILY_MULTI:
@@ -1402,26 +1425,26 @@ def validate_chore_data(
             )
             return errors
 
-    # === 8. DAILY_MULTI requires due_date ===
-    if recurring_frequency == const.FREQUENCY_DAILY_MULTI and not due_date_raw:
+    # === 8. DAILY_MULTI requires due dates ===
+    if recurring_frequency == const.FREQUENCY_DAILY_MULTI and missing_required_due_date:
         errors[const.CFOP_ERROR_DAILY_MULTI_DUE_DATE] = (
             const.TRANS_KEY_CFOF_ERROR_DAILY_MULTI_DUE_DATE_REQUIRED
         )
         return errors
 
-    # === 9. AT_DUE_DATE_* reset types require due_date ===
+    # === 9. AT_DUE_DATE_* reset types require due dates ===
     if approval_reset in (
         const.APPROVAL_RESET_AT_DUE_DATE_ONCE,
         const.APPROVAL_RESET_AT_DUE_DATE_MULTI,
     ):
-        if not due_date_raw:
+        if missing_required_due_date:
             errors[const.CFOP_ERROR_AT_DUE_DATE_RESET_REQUIRES_DUE_DATE] = (
                 const.TRANS_KEY_CFOF_ERROR_AT_DUE_DATE_RESET_REQUIRES_DUE_DATE
             )
             return errors
 
-    # === 10. Only NONE and DAILY may omit due_date ===
-    if not due_date_raw and recurring_frequency not in (
+    # === 10. Only NONE and DAILY may omit due dates ===
+    if missing_required_due_date and recurring_frequency not in (
         const.FREQUENCY_NONE,
         const.FREQUENCY_DAILY,
     ):
@@ -1448,7 +1471,7 @@ def validate_chore_data(
         if (
             completion_criteria not in rotation_criteria
             or approval_reset != const.APPROVAL_RESET_AT_MIDNIGHT_ONCE
-            or not due_date_raw
+            or missing_required_due_date
         ):
             errors[const.CFOP_ERROR_OVERDUE_RESET_COMBO] = (
                 const.TRANS_KEY_CFOF_ERROR_ALLOW_STEAL_INCOMPATIBLE

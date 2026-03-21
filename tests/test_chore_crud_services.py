@@ -19,6 +19,7 @@ See tests/AGENT_TEST_CREATION_INSTRUCTIONS.md for patterns used.
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 from unittest.mock import MagicMock, patch
 
@@ -26,6 +27,7 @@ from homeassistant.exceptions import HomeAssistantError
 import pytest
 import voluptuous as vol
 
+from custom_components.choreops import const
 from tests.helpers import (
     DOMAIN,
     SERVICE_CREATE_CHORE,
@@ -346,6 +348,53 @@ class TestCreateChoreEndToEnd:
         assert chore_sensor.attributes["completion_criteria"] == "shared_first"
         assert chore_sensor.attributes["recurring_frequency"] == "weekly"
 
+    @pytest.mark.asyncio
+    async def test_create_independent_weekly_uses_per_assignee_due_dates_only(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """Test service create stores independent recurring due dates per assignee only."""
+        new_due_date = datetime(2099, 1, 1, 9, 0, tzinfo=UTC)
+
+        with patch.object(scenario_full.coordinator, "_persist", new=MagicMock()):
+            response = await hass.services.async_call(
+                DOMAIN,
+                SERVICE_CREATE_CHORE,
+                {
+                    "name": "Independent Weekly Service Test",
+                    "assigned_user_names": ["Zoë", "Max!"],
+                    "points": 25,
+                    "frequency": "weekly",
+                    "completion_criteria": "independent",
+                    "due_date": new_due_date,
+                },
+                blocking=True,
+                return_response=True,
+            )
+
+        assert response is not None
+        chore_id = response.get("id")
+        assert isinstance(chore_id, str)
+
+        created_chore = scenario_full.coordinator.chores_data[chore_id]
+        assert created_chore.get(const.DATA_CHORE_DUE_DATE) is None
+
+        per_assignee_due_dates = created_chore.get(
+            const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES,
+            {},
+        )
+        assert set(per_assignee_due_dates) == {
+            scenario_full.assignee_ids["Zoë"],
+            scenario_full.assignee_ids["Max!"],
+        }
+
+        expected_due_date = new_due_date.isoformat()
+        assert all(
+            due_date == expected_due_date
+            for due_date in per_assignee_due_dates.values()
+        )
+
 
 # ============================================================================
 # UPDATE CHORE - SCHEMA VALIDATION TESTS
@@ -427,6 +476,40 @@ class TestUpdateChoreSchemaValidation:
         assert response is not None
         assert "id" in response
 
+    @pytest.mark.asyncio
+    async def test_update_weekly_independent_without_due_date_preserves_existing_dates(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """Test updating a weekly independent chore succeeds without resending due_date."""
+        chore_id = scenario_full.chore_ids["Ørgänize Bookshelf"]
+        existing_chore = scenario_full.coordinator.chores_data[chore_id]
+        existing_per_assignee_due_dates = dict(
+            existing_chore.get(const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {})
+        )
+
+        with patch.object(scenario_full.coordinator, "_persist", new=MagicMock()):
+            response = await hass.services.async_call(
+                DOMAIN,
+                SERVICE_UPDATE_CHORE,
+                {
+                    "id": chore_id,
+                    "points": 42,
+                },
+                blocking=True,
+                return_response=True,
+            )
+
+        assert response is not None
+        updated_chore = scenario_full.coordinator.chores_data[chore_id]
+        assert updated_chore[const.DATA_CHORE_DEFAULT_POINTS] == 42
+        assert updated_chore.get(const.DATA_CHORE_DUE_DATE) is None
+        assert (
+            updated_chore.get(const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {})
+            == existing_per_assignee_due_dates
+        )
+
 
 # ============================================================================
 # UPDATE CHORE - E2E TESTS
@@ -470,6 +553,44 @@ class TestUpdateChoreEndToEnd:
         chore_sensor = hass.states.get(chore["eid"])
         assert chore_sensor is not None
         assert chore_sensor.attributes["default_points"] == 888
+
+    @pytest.mark.asyncio
+    async def test_update_independent_weekly_due_date_applies_to_all_assignees(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """Test update service applies one independent due date to every assigned assignee."""
+        chore_id = scenario_full.chore_ids["Ørgänize Bookshelf"]
+        new_due_date = datetime(2099, 2, 1, 10, 30, tzinfo=UTC)
+
+        with patch.object(scenario_full.coordinator, "_persist", new=MagicMock()):
+            await hass.services.async_call(
+                DOMAIN,
+                SERVICE_UPDATE_CHORE,
+                {
+                    "id": chore_id,
+                    "due_date": new_due_date,
+                },
+                blocking=True,
+                return_response=True,
+            )
+
+        updated_chore = scenario_full.coordinator.chores_data[chore_id]
+        assert updated_chore.get(const.DATA_CHORE_DUE_DATE) is None
+
+        per_assignee_due_dates = updated_chore.get(
+            const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES,
+            {},
+        )
+        assert set(per_assignee_due_dates) == {
+            scenario_full.assignee_ids["Zoë"],
+            scenario_full.assignee_ids["Lila"],
+        }
+        assert all(
+            due_date == new_due_date.isoformat()
+            for due_date in per_assignee_due_dates.values()
+        )
 
 
 # ============================================================================

@@ -1948,23 +1948,22 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                                 const.TRANS_KEY_CFOF_INVALID_DUE_DATE
                             )
 
-            # Validate: If ALL dates are cleared, only none/daily may remain date-less
-            if not errors and not per_assignee_due_dates:
-                stored_chore = coordinator.chores_data.get(internal_id, {})
-                recurring_frequency = stored_chore.get(
-                    const.DATA_CHORE_RECURRING_FREQUENCY, const.FREQUENCY_NONE
+            if not errors:
+                validation_data = dict(stored_chore)
+                validation_data[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] = (
+                    per_assignee_due_dates
                 )
-                if recurring_frequency not in (
-                    const.FREQUENCY_NONE,
-                    const.FREQUENCY_DAILY,
-                ):
-                    errors[const.CFOP_ERROR_BASE] = (
-                        const.TRANS_KEY_CFOF_DATE_REQUIRED_FOR_FREQUENCY
-                    )
-                    const.LOGGER.debug(
-                        "Cannot clear all dates: frequency '%s' requires due dates",
-                        recurring_frequency,
-                    )
+                validation_data[const.DATA_CHORE_DUE_DATE] = None
+
+                validation_errors = db.validate_chore_data(
+                    validation_data,
+                    coordinator.chores_data,
+                    is_update=True,
+                    current_chore_id=str(internal_id),
+                )
+                if validation_errors:
+                    _error_field, error_key = next(iter(validation_errors.items()))
+                    errors[const.CFOP_ERROR_BASE] = error_key
 
             if not errors:
                 # Update the chore's per_assignee_due_dates using Manager CRUD
@@ -2235,15 +2234,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                                 return_type=const.HELPER_RETURN_DATETIME_UTC,
                             )
                             if utc_dt and isinstance(utc_dt, datetime):
-                                # Validate that due date is not in the past
-                                if utc_dt < dt_now_utc():
-                                    errors[const.CFOP_ERROR_BASE] = (
-                                        const.TRANS_KEY_CFOF_DUE_DATE_IN_PAST
-                                    )
-                                else:
-                                    per_assignee_due_dates[assignee_id] = (
-                                        utc_dt.isoformat()
-                                    )
+                                per_assignee_due_dates[assignee_id] = utc_dt.isoformat()
                         except (ValueError, TypeError):
                             errors[const.CFOP_ERROR_BASE] = (
                                 const.TRANS_KEY_CFOF_INVALID_DUE_DATE
@@ -2291,6 +2282,17 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 if is_daily_multi:
                     chore_data[const.DATA_CHORE_DAILY_MULTI_TIMES] = None
 
+                validation_errors = db.validate_chore_data(
+                    chore_data,
+                    coordinator.chores_data,
+                    is_update=True,
+                    current_chore_id=str(internal_id),
+                )
+                if validation_errors:
+                    _error_field, error_key = next(iter(validation_errors.items()))
+                    errors[const.CFOP_ERROR_BASE] = error_key
+
+            if not errors:
                 # Use Manager-owned CRUD (handles badge recalc and orphan cleanup)
                 coordinator.chore_manager.update_chore(
                     str(internal_id), chore_data, immediate_persist=True
