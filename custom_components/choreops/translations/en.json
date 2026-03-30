@@ -452,6 +452,7 @@
       "challenge_no_assignees_assigned": "At least one assignee must be assigned to the challenge",
       "invalid_achievement_count": "Invalid achievement count",
       "invalid_achievement_name": "Invalid achievement name",
+      "invalid_achievement_reward_points": "Achievement reward points must be zero or greater with up to 2 decimal places",
       "invalid_badge": "Invalid badge",
       "invalid_badge_count": "Invalid badge count",
       "invalid_badge_name": "Invalid badge name",
@@ -477,7 +478,7 @@
       "invalid_reward": "Invalid reward",
       "invalid_reward_count": "Invalid reward count",
       "invalid_reward_name": "Invalid reward name",
-      "invalid_reward_cost": "Reward cost must be zero or greater",
+      "invalid_reward_cost": "Reward cost must be zero or greater with up to 2 decimal places",
       "invalid_bonus": "Invalid bonus",
       "invalid_bonus_count": "Invalid bonus count",
       "invalid_bonus_name": "Invalid bonus name",
@@ -499,7 +500,7 @@
       "chore_options_require_assignment": "Chore workflow and gamification options require 'Allow Chores to be Assigned to Me' to be enabled first.",
       "invalid_update_interval": "Invalid update interval. Must be a positive integer.",
       "invalid_calendar_show_period": "Invalid calendar show period. Must be a positive integer.",
-      "invalid_default_chore_points": "Invalid default chore points. Must be a positive integer.",
+      "invalid_default_chore_points": "Invalid default chore points. Must be a positive number greater than 0 with at most 2 decimal places.",
       "invalid_retention_period": "Invalid retention period. Must be a positive integer.",
       "invalid_points_adjust_values": "Invalid points adjust values. Must be a list."
     },
@@ -550,7 +551,7 @@
           "default_chore_points": "Default Points per Chore"
         },
         "data_description": {
-          "default_chore_points": "Default points value used for new chores when custom points are not specified. Must be a whole number greater than 0."
+          "default_chore_points": "Default points value used for new chores when custom points are not specified. Must be a positive number greater than 0 with at most 2 decimal places."
         }
       },
       "add_user": {

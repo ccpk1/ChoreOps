@@ -31,6 +31,7 @@
      - Global setting applies to **default value prefill/fallback** only; existing chores keep their stored `default_points` unless explicitly edited.
      - Setting lives in `config_entry.options` (system settings), not `.storage/choreops/choreops_data`.
      - Chore runtime fallback order should be: `chore.default_points` → `config_entry.options[default_chore_points]` → hard fallback `const.DEFAULT_POINTS`.
+    - Historical note: This completed plan originally documented the setting as a whole-number input. That input contract was later superseded by decimal support in [docs/in-process/POINTS_DECIMAL_PRECISION_BACKEND_IN-PROCESS.md](../in-process/POINTS_DECIMAL_PRECISION_BACKEND_IN-PROCESS.md).
   - **Completion confirmation**: `[x]` All follow-up items completed before owner sign-off.
 
 ## Tracking expectations

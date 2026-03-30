@@ -127,18 +127,18 @@ async def test_manual_adjust_points_positive_amount_user_name(
         const.SERVICE_MANUAL_ADJUST_POINTS,
         {
             const.SERVICE_FIELD_USER_NAME: "Zoë",
-            const.SERVICE_FIELD_POINTS_AMOUNT: 7,
+            const.SERVICE_FIELD_POINTS_AMOUNT: 7.25,
             const.SERVICE_FIELD_REASON: "Excellent teamwork",
         },
         blocking=True,
     )
 
     after = _get_points(coordinator, assignee_id)
-    assert after == before + 7
+    assert after == before + 7.25
 
     ledger_entry = _get_last_ledger_entry(coordinator, assignee_id)
     assert ledger_entry[DATA_LEDGER_SOURCE] == const.POINTS_SOURCE_MANUAL
-    assert ledger_entry[DATA_LEDGER_AMOUNT] == 7.0
+    assert ledger_entry[DATA_LEDGER_AMOUNT] == 7.25
     assert ledger_entry[DATA_LEDGER_ITEM_NAME] == "Excellent teamwork"
 
 
@@ -158,18 +158,18 @@ async def test_manual_adjust_points_negative_amount_user_id_with_approver_name(
         {
             const.SERVICE_FIELD_APPROVER_NAME: "Môm Astrid Stârblüm",
             const.SERVICE_FIELD_USER_ID: assignee_id,
-            const.SERVICE_FIELD_POINTS_AMOUNT: -5,
+            const.SERVICE_FIELD_POINTS_AMOUNT: -5.5,
             const.SERVICE_FIELD_REASON: "Missed commitment",
         },
         blocking=True,
     )
 
     after = _get_points(coordinator, assignee_id)
-    assert after == before - 5
+    assert after == before - 5.5
 
     ledger_entry = _get_last_ledger_entry(coordinator, assignee_id)
     assert ledger_entry[DATA_LEDGER_SOURCE] == const.POINTS_SOURCE_MANUAL
-    assert ledger_entry[DATA_LEDGER_AMOUNT] == -5.0
+    assert ledger_entry[DATA_LEDGER_AMOUNT] == -5.5
     assert ledger_entry[DATA_LEDGER_ITEM_NAME] == "Missed commitment"
 
 
@@ -203,11 +203,11 @@ async def test_manual_adjust_points_user_id_preferred_when_name_mismatch(
 
 
 @pytest.mark.asyncio
-async def test_manual_adjust_points_rejects_zero_decimal_and_missing_assignee(
+async def test_manual_adjust_points_rejects_zero_excess_precision_and_missing_assignee(
     hass: HomeAssistant,
     scenario_full: SetupResult,
 ) -> None:
-    """Schema rejects amount=0, decimals, and missing assignee selector."""
+    """Schema rejects amount=0, precision above 2 decimals, and missing assignee."""
     _ = scenario_full
     with pytest.raises(vol.Invalid):
         await hass.services.async_call(
@@ -227,8 +227,8 @@ async def test_manual_adjust_points_rejects_zero_decimal_and_missing_assignee(
             const.SERVICE_MANUAL_ADJUST_POINTS,
             {
                 const.SERVICE_FIELD_USER_NAME: "Zoë",
-                const.SERVICE_FIELD_POINTS_AMOUNT: 1.5,
-                const.SERVICE_FIELD_REASON: "Invalid decimal",
+                const.SERVICE_FIELD_POINTS_AMOUNT: 1.234,
+                const.SERVICE_FIELD_REASON: "Invalid precision",
             },
             blocking=True,
         )
@@ -317,11 +317,11 @@ async def test_manual_adjust_points_multi_instance_explicit_target_applies_once(
         {
             const.SERVICE_FIELD_CONFIG_ENTRY_ID: second.config_entry.entry_id,
             const.SERVICE_FIELD_USER_NAME: "Zoë",
-            const.SERVICE_FIELD_POINTS_AMOUNT: 4,
+            const.SERVICE_FIELD_POINTS_AMOUNT: 4.75,
             const.SERVICE_FIELD_REASON: "Second entry only",
         },
         blocking=True,
     )
 
     assert _get_points(first.coordinator, first_assignee_id) == first_before
-    assert _get_points(second.coordinator, second_assignee_id) == second_before + 4
+    assert _get_points(second.coordinator, second_assignee_id) == second_before + 4.75

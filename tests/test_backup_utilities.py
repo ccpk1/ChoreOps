@@ -628,6 +628,7 @@ async def test_backup_includes_config_entry_settings(
     mock_config_entry.options = {
         const.CONF_POINTS_LABEL: "Stars",
         const.CONF_POINTS_ICON: "mdi:star",
+        const.CONF_DEFAULT_CHORE_POINTS: 2.5,
         const.CONF_UPDATE_INTERVAL: 10,
         const.CONF_CALENDAR_SHOW_PERIOD: 60,
         const.CONF_RETENTION_DAILY: 5,
@@ -668,6 +669,7 @@ async def test_backup_includes_config_entry_settings(
     assert len(settings) == 10
     assert settings[const.CONF_POINTS_LABEL] == "Stars"
     assert settings[const.CONF_POINTS_ICON] == "mdi:star"
+    assert settings[const.CONF_DEFAULT_CHORE_POINTS] == 2.5
     assert settings[const.CONF_UPDATE_INTERVAL] == 10
     assert settings[const.CONF_CALENDAR_SHOW_PERIOD] == 60
     assert settings[const.CONF_RETENTION_DAILY] == 5
@@ -705,6 +707,7 @@ async def test_roundtrip_preserves_all_settings(
     original_settings = {
         const.CONF_POINTS_LABEL: "Gems",
         const.CONF_POINTS_ICON: "mdi:diamond",
+        const.CONF_DEFAULT_CHORE_POINTS: 7.25,
         const.CONF_UPDATE_INTERVAL: 15,
         const.CONF_CALENDAR_SHOW_PERIOD: 120,
         const.CONF_RETENTION_DAILY: 10,

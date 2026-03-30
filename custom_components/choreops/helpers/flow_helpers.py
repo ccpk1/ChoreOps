@@ -134,6 +134,7 @@ import voluptuous as vol
 
 from .. import const
 from ..utils.dt_utils import dt_parse, dt_parse_duration
+from ..utils.math_utils import parse_points_value
 from . import entity_helpers as eh, translation_helpers as th
 
 # =============================================================================
@@ -196,7 +197,13 @@ def build_points_schema(
             vol.Required(
                 const.CFOF_SYSTEM_INPUT_DEFAULT_CHORE_POINTS,
                 default=default_default_chore_points,
-            ): cv.positive_int,
+            ): selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    mode=selector.NumberSelectorMode.BOX,
+                    min=0.01,
+                    step=0.01,
+                )
+            ),
         }
     )
 
@@ -246,9 +253,14 @@ def validate_points_inputs(user_input: dict[str, Any]) -> dict[str, str]:
     default_chore_points = user_input.get(const.CFOF_SYSTEM_INPUT_DEFAULT_CHORE_POINTS)
     if default_chore_points is not None:
         try:
-            if int(default_chore_points) <= 0:
-                raise ValueError
-        except (ValueError, TypeError):
+            user_input[const.CFOF_SYSTEM_INPUT_DEFAULT_CHORE_POINTS] = (
+                parse_points_value(
+                    default_chore_points,
+                    allow_negative=False,
+                    allow_zero=False,
+                )
+            )
+        except (TypeError, ValueError):
             errors[const.CFOP_ERROR_DEFAULT_CHORE_POINTS] = (
                 const.TRANS_KEY_CFOF_INVALID_DEFAULT_CHORE_POINTS
             )
@@ -831,7 +843,7 @@ def build_chore_schema(
             selector.NumberSelectorConfig(
                 mode=selector.NumberSelectorMode.BOX,
                 min=0,
-                step=0.1,
+                step=0.01,
             )
         ),
         vol.Required(
@@ -1222,9 +1234,16 @@ def validate_chores_inputs(
 
     # Include points if provided
     if const.CFOF_CHORES_INPUT_DEFAULT_POINTS in user_input:
-        data_dict[const.DATA_CHORE_DEFAULT_POINTS] = user_input[
-            const.CFOF_CHORES_INPUT_DEFAULT_POINTS
-        ]
+        try:
+            data_dict[const.DATA_CHORE_DEFAULT_POINTS] = parse_points_value(
+                user_input[const.CFOF_CHORES_INPUT_DEFAULT_POINTS],
+                allow_negative=False,
+                allow_zero=True,
+            )
+        except ValueError:
+            data_dict[const.DATA_CHORE_DEFAULT_POINTS] = user_input[
+                const.CFOF_CHORES_INPUT_DEFAULT_POINTS
+            ]
 
     # === Call shared validation (single source of truth) ===
     is_update = current_chore_id is not None
@@ -2107,7 +2126,7 @@ def build_badge_common_schema(
                         selector.NumberSelectorConfig(
                             mode=selector.NumberSelectorMode.BOX,
                             min=0.0,
-                            step=0.1,
+                            step=0.01,
                         )
                     ),
                     vol.Coerce(float),
@@ -2125,12 +2144,12 @@ def build_badge_common_schema(
                             selector.NumberSelector(
                                 selector.NumberSelectorConfig(
                                     mode=selector.NumberSelectorMode.BOX,
-                                    step=0.1,
-                                    min=0.1,
+                                    step=0.01,
+                                    min=0.01,
                                 )
                             ),
                             vol.Coerce(float),
-                            vol.Range(min=0.1),
+                            vol.Range(min=0.01),
                         ),
                     ),
                 }
@@ -2457,14 +2476,23 @@ def validate_badge_common_inputs(
                 const.CFOF_BADGES_INPUT_AWARD_POINTS, const.DEFAULT_ZERO
             )
             try:
-                if float(points) <= const.DEFAULT_ZERO:
-                    errors[const.CFOF_BADGES_INPUT_AWARD_POINTS] = (
-                        const.TRANS_KEY_CFOF_ERROR_AWARD_POINTS_MINIMUM
-                    )
-            except (TypeError, ValueError):
+                user_input[const.CFOF_BADGES_INPUT_AWARD_POINTS] = parse_points_value(
+                    points,
+                    allow_negative=False,
+                    allow_zero=False,
+                )
+            except ValueError:
                 errors[const.CFOF_BADGES_INPUT_AWARD_POINTS] = (
                     const.TRANS_KEY_CFOF_ERROR_AWARD_POINTS_MINIMUM
                 )
+            else:
+                if (
+                    user_input[const.CFOF_BADGES_INPUT_AWARD_POINTS]
+                    <= const.DEFAULT_ZERO
+                ):
+                    errors[const.CFOF_BADGES_INPUT_AWARD_POINTS] = (
+                        const.TRANS_KEY_CFOF_ERROR_AWARD_POINTS_MINIMUM
+                    )
         else:
             user_input[const.CFOF_BADGES_INPUT_AWARD_POINTS] = const.DEFAULT_ZERO
 
@@ -2475,14 +2503,25 @@ def validate_badge_common_inputs(
                 const.DEFAULT_POINTS_MULTIPLIER,
             )
             try:
-                if float(multiplier) <= const.DEFAULT_ZERO:
-                    errors[const.CFOF_BADGES_INPUT_POINTS_MULTIPLIER] = (
-                        const.TRANS_KEY_CFOF_ERROR_AWARD_INVALID_MULTIPLIER
+                user_input[const.CFOF_BADGES_INPUT_POINTS_MULTIPLIER] = (
+                    parse_points_value(
+                        multiplier,
+                        allow_negative=False,
+                        allow_zero=False,
                     )
-            except (TypeError, ValueError):
+                )
+            except ValueError:
                 errors[const.CFOF_BADGES_INPUT_POINTS_MULTIPLIER] = (
                     const.TRANS_KEY_CFOF_ERROR_AWARD_INVALID_MULTIPLIER
                 )
+            else:
+                if (
+                    user_input[const.CFOF_BADGES_INPUT_POINTS_MULTIPLIER]
+                    <= const.DEFAULT_ZERO
+                ):
+                    errors[const.CFOF_BADGES_INPUT_POINTS_MULTIPLIER] = (
+                        const.TRANS_KEY_CFOF_ERROR_AWARD_INVALID_MULTIPLIER
+                    )
         else:
             user_input[const.CFOF_BADGES_INPUT_POINTS_MULTIPLIER] = const.SENTINEL_NONE
 
@@ -2593,7 +2632,7 @@ def build_reward_schema(default=None):
                 selector.NumberSelectorConfig(
                     mode=selector.NumberSelectorMode.BOX,
                     min=0,
-                    step=0.1,
+                    step=0.01,
                 )
             ),
             vol.Optional(
@@ -2689,7 +2728,7 @@ def build_bonus_schema(default=None):
                 selector.NumberSelectorConfig(
                     mode=selector.NumberSelectorMode.BOX,
                     min=0,
-                    step=0.1,
+                    step=0.01,
                 )
             ),
             vol.Optional(
@@ -2730,6 +2769,9 @@ def validate_bonuses_inputs(
     data_dict: dict[str, Any] = {
         const.DATA_BONUS_NAME: user_input.get(const.CFOF_BONUSES_INPUT_NAME, ""),
     }
+
+    if const.CFOF_BONUSES_INPUT_POINTS in user_input:
+        data_dict[const.DATA_BONUS_POINTS] = user_input[const.CFOF_BONUSES_INPUT_POINTS]
 
     # Call shared validation (single source of truth)
     is_update = current_bonus_id is not None
@@ -2784,7 +2826,7 @@ def build_penalty_schema(default=None):
                 selector.NumberSelectorConfig(
                     mode=selector.NumberSelectorMode.BOX,
                     min=0,
-                    step=0.1,
+                    step=0.01,
                 )
             ),
             vol.Optional(
@@ -2825,6 +2867,11 @@ def validate_penalties_inputs(
     data_dict: dict[str, Any] = {
         const.DATA_PENALTY_NAME: user_input.get(const.CFOF_PENALTIES_INPUT_NAME, ""),
     }
+
+    if const.CFOF_PENALTIES_INPUT_POINTS in user_input:
+        data_dict[const.DATA_PENALTY_POINTS] = user_input[
+            const.CFOF_PENALTIES_INPUT_POINTS
+        ]
 
     # Call shared validation (single source of truth)
     is_update = current_penalty_id is not None
@@ -2934,7 +2981,7 @@ def build_achievement_schema(assignees_dict, chores_dict, default=None):
                 selector.NumberSelectorConfig(
                     mode=selector.NumberSelectorMode.BOX,
                     min=0,
-                    step=0.1,
+                    step=0.01,
                 )
             ),
         }
@@ -3027,6 +3074,10 @@ def validate_achievements_inputs(
             const.CFOF_ACHIEVEMENTS_INPUT_SELECTED_CHORE_ID, const.SENTINEL_EMPTY
         ),
         const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS: assigned_assignees,
+        const.DATA_ACHIEVEMENT_REWARD_POINTS: user_input.get(
+            const.CFOF_ACHIEVEMENTS_INPUT_REWARD_POINTS,
+            const.DEFAULT_ACHIEVEMENT_REWARD_POINTS,
+        ),
     }
 
     return db.validate_achievement_data(
@@ -3127,7 +3178,7 @@ def build_challenge_schema(assignees_dict, chores_dict, default=None):
                 selector.NumberSelectorConfig(
                     mode=selector.NumberSelectorMode.BOX,
                     min=0,
-                    step=0.1,
+                    step=0.01,
                 )
             ),
             vol.Optional(
@@ -3258,7 +3309,13 @@ def build_general_options_schema(default: dict | None = None) -> vol.Schema:
             vol.Required(
                 const.CFOF_SYSTEM_INPUT_DEFAULT_CHORE_POINTS,
                 default=default_default_chore_points,
-            ): cv.positive_int,
+            ): selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    mode=selector.NumberSelectorMode.BOX,
+                    min=0.01,
+                    step=0.01,
+                )
+            ),
             vol.Required(
                 const.CFOF_SYSTEM_INPUT_UPDATE_INTERVAL, default=default_interval
             ): cv.positive_int,
@@ -3359,14 +3416,14 @@ def parse_retention_periods(retention_str: str) -> tuple[int, int, int, int]:
 def build_all_system_settings_schema(
     default_points_label: str | None = None,
     default_points_icon: str | None = None,
-    default_default_chore_points: int | None = None,
+    default_default_chore_points: float | None = None,
     default_update_interval: int | None = None,
     default_calendar_show_period: int | None = None,
     default_retention_daily: int | None = None,
     default_retention_weekly: int | None = None,
     default_retention_monthly: int | None = None,
     default_retention_yearly: int | None = None,
-    default_points_adjust_values: list[int] | None = None,
+    default_points_adjust_values: list[float] | None = None,
 ) -> vol.Schema:
     """Build form schema for all 10 system settings.
 
@@ -3514,22 +3571,19 @@ def validate_all_system_settings(user_input: dict[str, Any]) -> dict[str, str]:
             )
 
     default_chore_points = user_input.get(const.CFOF_SYSTEM_INPUT_DEFAULT_CHORE_POINTS)
-    if default_chore_points is not None and not isinstance(default_chore_points, int):
+    if default_chore_points is not None:
         try:
-            parsed_default_points = int(default_chore_points)
-            if parsed_default_points <= 0:
-                raise ValueError
             user_input[const.CFOF_SYSTEM_INPUT_DEFAULT_CHORE_POINTS] = (
-                parsed_default_points
+                parse_points_value(
+                    default_chore_points,
+                    allow_negative=False,
+                    allow_zero=False,
+                )
             )
-        except (ValueError, TypeError):
+        except (TypeError, ValueError):
             errors[const.CFOP_ERROR_DEFAULT_CHORE_POINTS] = (
                 const.TRANS_KEY_CFOF_INVALID_DEFAULT_CHORE_POINTS
             )
-    elif isinstance(default_chore_points, int) and default_chore_points <= 0:
-        errors[const.CFOP_ERROR_DEFAULT_CHORE_POINTS] = (
-            const.TRANS_KEY_CFOF_INVALID_DEFAULT_CHORE_POINTS
-        )
 
     # Validate retention periods (all positive ints)
     for field, error_key in [

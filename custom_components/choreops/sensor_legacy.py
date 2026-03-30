@@ -52,6 +52,7 @@ from .helpers.device_helpers import (
     create_system_device_info,
 )
 from .helpers.entity_helpers import get_assignee_name_by_id, get_friendly_label
+from .utils.math_utils import round_points
 
 if TYPE_CHECKING:
     from .type_defs import AssigneeData, BonusData, ChoreData, PenaltyData, RewardData
@@ -59,6 +60,12 @@ if TYPE_CHECKING:
 # Platinum requirement: Parallel Updates
 # Set to 0 (unlimited) for coordinator-based entities that don't poll
 PARALLEL_UPDATES = 0
+
+
+def _legacy_point_value(value: float) -> float:
+    """Normalize legacy point sensor values to the shared decimal precision."""
+    return round_points(float(value))
+
 
 # ------------------------------------------------------------------------------------------
 # KID CHORE COMPLETION SENSORS
@@ -600,14 +607,14 @@ class AssigneePointsEarnedDailySensor(ChoreOpsCoordinatorEntity, SensorEntity):
         )
 
     @property
-    def native_value(self) -> int:
+    def native_value(self) -> float:
         """Return how many net points the assignee has earned so far today.
 
         Phase 7.5: Uses presentation cache instead of persisted stats.
         """
         stats = self.coordinator.statistics_manager.get_stats(self._assignee_id)
         value = stats.get(const.PRES_USER_POINTS_NET_TODAY, const.DEFAULT_ZERO)
-        return int(cast("float | int", value))
+        return _legacy_point_value(cast("float | int", value))
 
     @property
     def native_unit_of_measurement(self) -> str:
@@ -678,14 +685,14 @@ class AssigneePointsEarnedWeeklySensor(ChoreOpsCoordinatorEntity, SensorEntity):
         )
 
     @property
-    def native_value(self) -> int:
+    def native_value(self) -> float:
         """Return how many net points the assignee has earned this week.
 
         Phase 7.5: Uses presentation cache instead of persisted stats.
         """
         stats = self.coordinator.statistics_manager.get_stats(self._assignee_id)
         value = stats.get(const.PRES_USER_POINTS_NET_WEEK, const.DEFAULT_ZERO)
-        return int(cast("float | int", value))
+        return _legacy_point_value(cast("float | int", value))
 
     @property
     def native_unit_of_measurement(self) -> str:
@@ -756,14 +763,14 @@ class AssigneePointsEarnedMonthlySensor(ChoreOpsCoordinatorEntity, SensorEntity)
         )
 
     @property
-    def native_value(self) -> int:
+    def native_value(self) -> float:
         """Return how many net points the assignee has earned this month.
 
         Phase 7.5: Uses presentation cache instead of persisted stats.
         """
         stats = self.coordinator.statistics_manager.get_stats(self._assignee_id)
         value = stats.get(const.PRES_USER_POINTS_NET_MONTH, const.DEFAULT_ZERO)
-        return int(cast("float | int", value))
+        return _legacy_point_value(cast("float | int", value))
 
     @property
     def native_unit_of_measurement(self) -> str:
@@ -835,7 +842,7 @@ class AssigneePointsMaxEverSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         )
 
     @property
-    def native_value(self) -> int:
+    def native_value(self) -> float:
         """Return the highest points total the assignee has ever reached."""
         assignee_info: AssigneeData = cast(
             "AssigneeData", self.coordinator.assignees_data.get(self._assignee_id, {})
@@ -851,7 +858,7 @@ class AssigneePointsMaxEverSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         value = all_time_bucket.get(
             const.DATA_USER_POINT_PERIOD_HIGHEST_BALANCE, const.DEFAULT_ZERO
         )
-        return int(value)
+        return _legacy_point_value(float(value))
 
     @property
     def icon(self) -> str:

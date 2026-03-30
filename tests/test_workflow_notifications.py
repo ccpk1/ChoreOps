@@ -1095,6 +1095,42 @@ class TestNotificationLifecycleContract:
         assert call(assignee_id, due_window_tag) in clear_assignee.await_args_list
 
     @pytest.mark.asyncio
+    async def test_claimed_aggregate_notification_preserves_decimal_points(
+        self,
+        hass: HomeAssistant,
+        scenario_notifications: SetupResult,
+    ) -> None:
+        """Aggregated approver notification keeps decimal point values."""
+        coordinator = scenario_notifications.coordinator
+        assignee_id = scenario_notifications.assignee_ids["Zoë"]
+        chore_id = scenario_notifications.chore_ids["Feed the cat"]
+        coordinator.chores_data[chore_id][const.DATA_CHORE_DEFAULT_POINTS] = 10.5
+
+        with (
+            patch.object(
+                coordinator.chore_manager,
+                "get_pending_chore_count_for_assignee",
+                return_value=2,
+            ),
+            patch.object(
+                coordinator.notification_manager,
+                "notify_approvers_translated",
+                new=AsyncMock(),
+            ) as notify_approvers,
+        ):
+            await coordinator.notification_manager._handle_chore_claimed(
+                {
+                    "user_id": assignee_id,
+                    "user_name": "Zoë",
+                    "chore_id": chore_id,
+                    "chore_name": "Feed the cat",
+                }
+            )
+
+        notify_approvers.assert_awaited_once()
+        assert notify_approvers.await_args.kwargs["message_data"]["points"] == 10.5
+
+    @pytest.mark.asyncio
     async def test_approval_clears_canonical_transient_family_and_compatibility_tags(
         self,
         hass: HomeAssistant,

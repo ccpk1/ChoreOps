@@ -30,6 +30,7 @@
 
 - Because `amount` must be positive integer only, add/deduct direction must be explicit in schema (recommended enum field).
 - `approver_name` is optional; handler needs a deterministic fallback for logs/ledger context when omitted.
+- Historical note: The integer-only `amount` contract documented here was later superseded by the decimal-precision backend work in [docs/in-process/POINTS_DECIMAL_PRECISION_BACKEND_IN-PROCESS.md](../in-process/POINTS_DECIMAL_PRECISION_BACKEND_IN-PROCESS.md).
 
 5. **References**
    - [docs/ARCHITECTURE.md](../ARCHITECTURE.md)
@@ -45,7 +46,7 @@
      - Preferred service name: `manual_adjust_points` (verb + domain + intent; clearer than `adjust_points`).
      - Reuse current auth gate (`AUTH_ACTION_MANAGEMENT`) used by manual adjustment buttons and bonus/penalty services.
      - Keep ledger source as existing `POINTS_SOURCE_MANUAL` in [custom_components/choreops/const.py](../../custom_components/choreops/const.py#L1259).
-     - `amount` is **required positive integer** (`> 0`), decimals disallowed, zero disallowed.
+    - `amount` was originally defined here as **required positive integer** (`> 0`), decimals disallowed, zero disallowed. That contract was later superseded by decimal support in [docs/in-process/POINTS_DECIMAL_PRECISION_BACKEND_IN-PROCESS.md](../in-process/POINTS_DECIMAL_PRECISION_BACKEND_IN-PROCESS.md).
      - `reason` is **required** and persisted to ledger via existing `item_name`.
      - Support both `user_name` and `user_id` inputs for target user resolution.
      - `approver_name` remains available but **not required**.

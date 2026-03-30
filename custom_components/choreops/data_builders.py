@@ -52,6 +52,7 @@ import uuid
 from . import const
 from .type_defs import AssigneeData, BadgeData, ChoreData, RewardData, UserData
 from .utils.dt_utils import dt_now_utc, dt_parse
+from .utils.math_utils import parse_points_value
 
 # ==============================================================================
 # HELPER FUNCTIONS FOR FIELD NORMALIZATION
@@ -249,12 +250,17 @@ def validate_reward_data(
     if const.DATA_REWARD_COST in data:
         cost = data[const.DATA_REWARD_COST]
         try:
-            if float(cost) < 0:
+            normalized_cost = parse_points_value(
+                cost,
+                allow_negative=False,
+                allow_zero=True,
+            )
+            if normalized_cost < 0:
                 errors[const.CFOP_ERROR_REWARD_COST] = (
                     const.TRANS_KEY_CFOF_INVALID_REWARD_COST
                 )
                 return errors
-        except (ValueError, TypeError):
+        except ValueError:
             errors[const.CFOP_ERROR_REWARD_COST] = (
                 const.TRANS_KEY_CFOF_INVALID_REWARD_COST
             )
@@ -336,7 +342,11 @@ def build_reward(
     return RewardData(
         internal_id=internal_id,
         name=name,
-        cost=float(get_field(const.DATA_REWARD_COST, const.DEFAULT_REWARD_COST)),
+        cost=parse_points_value(
+            get_field(const.DATA_REWARD_COST, const.DEFAULT_REWARD_COST),
+            allow_negative=False,
+            allow_zero=True,
+        ),
         description=str(get_field(const.DATA_REWARD_DESCRIPTION, const.SENTINEL_EMPTY)),
         icon=str(get_field(const.DATA_REWARD_ICON, const.SENTINEL_EMPTY)),
         reward_labels=list(get_field(const.DATA_REWARD_LABELS, [])),
@@ -424,11 +434,13 @@ def validate_bonus_or_penalty_data(
     if entity_type == "bonus":
         name_key = const.DATA_BONUS_NAME
         error_field = const.CFOP_ERROR_BONUS_NAME
+        points_key = const.DATA_BONUS_POINTS
         invalid_name_key = const.TRANS_KEY_CFOF_INVALID_BONUS_NAME
         duplicate_key = const.TRANS_KEY_CFOF_DUPLICATE_BONUS
     elif entity_type == "penalty":
         name_key = const.DATA_PENALTY_NAME
         error_field = const.CFOP_ERROR_PENALTY_NAME
+        points_key = const.DATA_PENALTY_POINTS
         invalid_name_key = const.TRANS_KEY_CFOF_INVALID_PENALTY_NAME
         duplicate_key = const.TRANS_KEY_CFOF_DUPLICATE_PENALTY
     else:
@@ -457,6 +469,21 @@ def validate_bonus_or_penalty_data(
             if entity_data.get(name_key) == name:
                 errors[error_field] = duplicate_key
                 return errors
+
+    if points_key in data:
+        try:
+            parse_points_value(
+                data[points_key],
+                allow_negative=False,
+                allow_zero=True,
+            )
+        except ValueError:
+            errors[points_key] = (
+                const.TRANS_KEY_CFOF_INVALID_BONUS
+                if entity_type == "bonus"
+                else const.TRANS_KEY_CFOF_INVALID_PENALTY
+            )
+            return errors
 
     return errors
 
@@ -550,8 +577,13 @@ def build_bonus_or_penalty(
 
     # --- Points: positive for bonus, negative for penalty ---
     raw_points = get_field(points_key, default_points)
+    normalized_points = parse_points_value(
+        raw_points,
+        allow_negative=False,
+        allow_zero=True,
+    )
     # Ensure correct sign: bonus = positive, penalty = negative
-    stored_points = abs(float(raw_points)) if is_bonus else -abs(float(raw_points))
+    stored_points = normalized_points if is_bonus else -normalized_points
 
     # --- Internal ID: generate new for create, preserve for update ---
     if is_create or existing is None:
@@ -1355,12 +1387,17 @@ def validate_chore_data(
     if const.DATA_CHORE_DEFAULT_POINTS in data:
         points = data[const.DATA_CHORE_DEFAULT_POINTS]
         try:
-            if float(points) < 0:
+            normalized_points = parse_points_value(
+                points,
+                allow_negative=False,
+                allow_zero=True,
+            )
+            if normalized_points < 0:
                 errors[const.CFOP_ERROR_CHORE_POINTS] = (
                     const.TRANS_KEY_CFOF_INVALID_POINTS
                 )
                 return errors
-        except (ValueError, TypeError):
+        except ValueError:
             errors[const.CFOP_ERROR_CHORE_POINTS] = const.TRANS_KEY_CFOF_INVALID_POINTS
             return errors
 
@@ -2430,6 +2467,19 @@ def validate_achievement_data(
             )
             return errors
 
+    if const.DATA_ACHIEVEMENT_REWARD_POINTS in data:
+        try:
+            parse_points_value(
+                data[const.DATA_ACHIEVEMENT_REWARD_POINTS],
+                allow_negative=False,
+                allow_zero=True,
+            )
+        except ValueError:
+            errors[const.DATA_ACHIEVEMENT_REWARD_POINTS] = (
+                const.TRANS_KEY_CFOF_INVALID_ACHIEVEMENT_REWARD_POINTS
+            )
+            return errors
+
     return errors
 
 
@@ -2522,11 +2572,13 @@ def build_achievement(
                 const.DATA_ACHIEVEMENT_TARGET_VALUE, const.DEFAULT_ACHIEVEMENT_TARGET
             )
         ),
-        const.DATA_ACHIEVEMENT_REWARD_POINTS: float(
+        const.DATA_ACHIEVEMENT_REWARD_POINTS: parse_points_value(
             get_field(
                 const.DATA_ACHIEVEMENT_REWARD_POINTS,
                 const.DEFAULT_ACHIEVEMENT_REWARD_POINTS,
-            )
+            ),
+            allow_negative=False,
+            allow_zero=True,
         ),
         # Progress tracking - preserve from existing or initialize empty
         const.DATA_ACHIEVEMENT_PROGRESS: dict(
@@ -2726,12 +2778,20 @@ def validate_challenge_data(
     # === 7. Reward points >= 0 ===
     if const.DATA_CHALLENGE_REWARD_POINTS in data:
         try:
-            points = float(data[const.DATA_CHALLENGE_REWARD_POINTS])
+            points = parse_points_value(
+                data[const.DATA_CHALLENGE_REWARD_POINTS],
+                allow_negative=False,
+                allow_zero=True,
+            )
             if points < 0:
-                errors["base"] = const.TRANS_KEY_CFOF_CHALLENGE_POINTS_NEGATIVE
+                errors[const.DATA_CHALLENGE_REWARD_POINTS] = (
+                    const.TRANS_KEY_CFOF_CHALLENGE_POINTS_NEGATIVE
+                )
                 return errors
-        except (ValueError, TypeError):
-            errors["base"] = const.TRANS_KEY_CFOF_CHALLENGE_POINTS_INVALID
+        except ValueError:
+            errors[const.DATA_CHALLENGE_REWARD_POINTS] = (
+                const.TRANS_KEY_CFOF_CHALLENGE_POINTS_INVALID
+            )
             return errors
 
     return errors
@@ -2823,11 +2883,13 @@ def build_challenge(
         const.DATA_CHALLENGE_TARGET_VALUE: float(
             get_field(const.DATA_CHALLENGE_TARGET_VALUE, const.DEFAULT_CHALLENGE_TARGET)
         ),
-        const.DATA_CHALLENGE_REWARD_POINTS: float(
+        const.DATA_CHALLENGE_REWARD_POINTS: parse_points_value(
             get_field(
                 const.DATA_CHALLENGE_REWARD_POINTS,
                 const.DEFAULT_CHALLENGE_REWARD_POINTS,
-            )
+            ),
+            allow_negative=False,
+            allow_zero=True,
         ),
         const.DATA_CHALLENGE_START_DATE: str(
             get_field(const.DATA_CHALLENGE_START_DATE, const.SENTINEL_EMPTY)

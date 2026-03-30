@@ -10,12 +10,14 @@ Functions:
     - round_points: Consistent rounding to configured precision
     - apply_multiplier: Multiplier arithmetic with proper rounding
     - calculate_percentage: Progress percentage calculations
+    - parse_points_value: Parse a point-like numeric input with precision rules
     - parse_points_adjust_values: Parse pipe-separated point values (string input)
     - parse_points_adjust_values: Parse and normalize any adjustment value input
 """
 
 from __future__ import annotations
 
+from decimal import Decimal, InvalidOperation
 import logging
 
 # Module-level logger (no HA dependency)
@@ -123,6 +125,65 @@ def clamp(value: float, min_val: float, max_val: float) -> float:
         clamp(50, 0, 100) → 50
     """
     return max(min_val, min(value, max_val))
+
+
+def parse_points_value(
+    raw_input: object,
+    *,
+    allow_negative: bool = True,
+    allow_zero: bool = True,
+    max_decimals: int = DATA_FLOAT_PRECISION,
+) -> float:
+    """Parse and validate a numeric point value.
+
+    Args:
+        raw_input: Raw numeric input (int, float, or numeric string)
+        allow_negative: Whether negative values are allowed
+        allow_zero: Whether zero is allowed
+        max_decimals: Maximum supported fractional digits
+
+    Returns:
+        Normalized float rounded to max_decimals places
+
+    Raises:
+        TypeError: If the input is missing or not numeric
+        ValueError: If the input is not finite, exceeds the allowed decimal
+            precision, or violates sign/zero rules
+    """
+    if isinstance(raw_input, bool) or raw_input is None:
+        raise TypeError("value must be numeric")
+
+    if isinstance(raw_input, str):
+        normalized_input = raw_input.strip().replace(",", ".")
+        if not normalized_input:
+            raise ValueError("value must not be empty")
+    elif isinstance(raw_input, int | float):
+        normalized_input = str(raw_input)
+    else:
+        raise TypeError("value must be numeric")
+
+    try:
+        decimal_value = Decimal(normalized_input)
+    except InvalidOperation as err:
+        raise ValueError("value must be numeric") from err
+
+    if not decimal_value.is_finite():
+        raise ValueError("value must be finite")
+
+    exponent = decimal_value.as_tuple().exponent
+    if not isinstance(exponent, int):
+        raise TypeError("value must be numeric")
+
+    if exponent < -max_decimals:
+        raise ValueError(f"value must not exceed {max_decimals} decimal places")
+
+    if not allow_negative and decimal_value < 0:
+        raise ValueError("value must not be negative")
+
+    if not allow_zero and decimal_value == 0:
+        raise ValueError("value must not be zero")
+
+    return round_points(float(decimal_value), max_decimals)
 
 
 # ==============================================================================

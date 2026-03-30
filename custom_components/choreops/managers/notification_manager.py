@@ -29,6 +29,7 @@ from .. import const
 from ..engines.chore_engine import ChoreEngine
 from ..helpers import translation_helpers as th
 from ..utils.dt_utils import dt_format_short, dt_now_utc_iso, dt_to_utc
+from ..utils.math_utils import round_points
 from .base_manager import BaseManager
 
 if TYPE_CHECKING:
@@ -2106,7 +2107,7 @@ class NotificationManager(BaseManager):
                     "assignee_name": assignee_name,
                     "count": pending_count,
                     "latest_chore": chore_name,
-                    "points": int(chore_points),
+                    "points": round_points(float(chore_points)),
                 },
                 actions=actions,
                 extra_data=extra_data,

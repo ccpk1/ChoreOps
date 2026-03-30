@@ -120,6 +120,7 @@ from .utils.dt_utils import (
     dt_to_utc,
     dt_today_local,
 )
+from .utils.math_utils import round_points
 
 # Platinum requirement: Parallel Updates
 # Set to 0 (unlimited) for coordinator-based entities that don't poll
@@ -2730,7 +2731,9 @@ class AssigneeRewardStatusSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         reward_info: RewardData = cast(
             "RewardData", self.coordinator.rewards_data.get(self._reward_id, {})
         )
-        reward_cost = int(reward_info.get(const.DATA_REWARD_COST, 0))
+        reward_cost = round_points(
+            float(reward_info.get(const.DATA_REWARD_COST, const.DEFAULT_ZERO))
+        )
 
         if assignee_points >= reward_cost:
             return const.REWARD_STATE_AVAILABLE

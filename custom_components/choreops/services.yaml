@@ -343,7 +343,7 @@ apply_bonus:
 
 manual_adjust_points:
   name: "Manual Adjust Points"
-  description: "Adjust points manually for a user using a signed integer amount with a required reason recorded in the ledger."
+  description: "Adjust points manually for a user using a signed decimal amount with up to 2 fractional digits and a required reason recorded in the ledger."
   fields:
     config_entry_id:
       name: "Config Entry ID (Optional)"
@@ -382,14 +382,15 @@ manual_adjust_points:
         text:
     amount:
       name: "Amount"
-      description: "Signed whole-number points amount to adjust (for example 10 or -10; 0 is not allowed)."
-      example: -10
+      description: "Signed points amount to adjust with up to 2 decimal places (for example 10, -10, 2.5, or -2.5; 0 is not allowed)."
+      example: -10.5
       required: true
       selector:
         number:
           min: -1000
           max: 1000
           mode: box
+          step: 0.01
     reason:
       name: "Reason"
       description: "Required reason recorded in the transaction ledger item name."

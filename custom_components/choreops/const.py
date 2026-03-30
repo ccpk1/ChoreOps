@@ -1728,7 +1728,7 @@ DEFAULT_PENALTY_POINTS: Final = 1
 DEFAULT_PENDING_CHORES_UNIT: Final = "Pending Chores"
 DEFAULT_PENDING_REWARDS_UNIT: Final = "Pending Rewards"
 DEFAULT_POINTS: Final = 5
-DEFAULT_CHORE_POINTS: Final = DEFAULT_POINTS
+DEFAULT_CHORE_POINTS: Final = 5.0
 DEFAULT_POINTS_ADJUST_VALUES: list[float] = [+1.0, -1.0, +2.0, -2.0, +10.0, -10.0]
 DEFAULT_POINTS_LABEL: Final = "Points"
 DEFAULT_POINTS_MULTIPLIER = 1.0
@@ -3386,6 +3386,9 @@ TRANS_KEY_CFOF_END_DATE_BEFORE_START: Final = "end_date_before_start_date"
 TRANS_KEY_CFOF_INVALID_BONUS: Final = "invalid_bonus"
 TRANS_KEY_CFOF_INVALID_BONUS_COUNT: Final = "invalid_bonus_count"
 TRANS_KEY_CFOF_INVALID_BONUS_NAME: Final = "invalid_bonus_name"
+TRANS_KEY_CFOF_INVALID_ACHIEVEMENT_REWARD_POINTS: Final = (
+    "invalid_achievement_reward_points"
+)
 TRANS_KEY_CFOF_INVALID_CHALLENGE: Final = "invalid_challenge"
 TRANS_KEY_CFOF_INVALID_CHALLENGE_COUNT: Final = "invalid_challenge_count"
 TRANS_KEY_CFOF_INVALID_CHALLENGE_NAME: Final = "invalid_challenge_name"

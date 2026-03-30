@@ -6,7 +6,6 @@ Includes UI editor support with selectors for dropdowns and text inputs.
 """
 
 from datetime import datetime
-import re
 from typing import TYPE_CHECKING, Any, cast
 
 from homeassistant.config_entries import ConfigEntryState
@@ -27,6 +26,7 @@ from .helpers.auth_helpers import (
 )
 from .helpers.entity_helpers import get_item_id_or_raise
 from .utils.dt_utils import dt_parse
+from .utils.math_utils import parse_points_value
 
 if TYPE_CHECKING:
     from .coordinator import ChoreOpsDataCoordinator
@@ -195,25 +195,14 @@ def _resolve_manual_adjust_assignee_id(
     )
 
 
-def _validate_non_zero_integer_amount(value: Any) -> int:
-    """Validate manual adjustment amount as a signed non-zero integer."""
-    if isinstance(value, bool):
-        raise vol.Invalid("amount must be a non-zero integer")
-
-    if isinstance(value, int):
-        amount = value
-    elif isinstance(value, str):
-        stripped = value.strip()
-        if not re.fullmatch(r"[+-]?\d+", stripped):
-            raise vol.Invalid("amount must be a non-zero integer")
-        amount = int(stripped)
-    else:
-        raise vol.Invalid("amount must be a non-zero integer")
-
-    if amount == 0:
-        raise vol.Invalid("amount cannot be 0")
-
-    return amount
+def _validate_non_zero_decimal_amount(value: Any) -> float:
+    """Validate manual adjustment amount as signed non-zero decimal points."""
+    try:
+        return parse_points_value(value, allow_negative=True, allow_zero=False)
+    except (TypeError, ValueError) as err:
+        raise vol.Invalid(
+            "amount must be a signed non-zero number with at most 2 decimal places"
+        ) from err
 
 
 def _service_uses_chore_level_due_date(chore_data: dict[str, Any]) -> bool:
@@ -373,7 +362,7 @@ MANUAL_ADJUST_POINTS_SCHEMA = vol.All(
                 vol.Optional(const.SERVICE_FIELD_USER_NAME): cv.string,
                 vol.Required(
                     const.SERVICE_FIELD_POINTS_AMOUNT
-                ): _validate_non_zero_integer_amount,
+                ): _validate_non_zero_decimal_amount,
                 vol.Required(const.SERVICE_FIELD_REASON): vol.All(
                     cv.string,
                     vol.Length(min=1),
@@ -2460,7 +2449,7 @@ def async_setup_services(hass: HomeAssistant):
     # ======================================================================
 
     async def handle_manual_adjust_points(call: ServiceCall) -> None:
-        """Handle manual points adjustment using signed integer amount."""
+        """Handle manual points adjustment using signed decimal amount."""
         entry_id = _resolve_target_entry_id(hass, dict(call.data))
         if not entry_id:
             const.LOGGER.warning(
@@ -2475,7 +2464,7 @@ def async_setup_services(hass: HomeAssistant):
             const.DATA_USER_NAME, assignee_id
         )
 
-        amount = int(call.data[const.SERVICE_FIELD_POINTS_AMOUNT])
+        amount = float(call.data[const.SERVICE_FIELD_POINTS_AMOUNT])
         reason = str(call.data[const.SERVICE_FIELD_REASON])
         approver_name = cast(
             "str | None",
@@ -2500,14 +2489,14 @@ def async_setup_services(hass: HomeAssistant):
         if amount > 0:
             await coordinator.economy_manager.deposit(
                 assignee_id=assignee_id,
-                amount=float(amount),
+                amount=amount,
                 source=const.POINTS_SOURCE_MANUAL,
                 item_name=reason,
             )
         else:
             await coordinator.economy_manager.withdraw(
                 assignee_id=assignee_id,
-                amount=float(abs(amount)),
+                amount=abs(amount),
                 source=const.POINTS_SOURCE_MANUAL,
                 item_name=reason,
             )

@@ -252,6 +252,7 @@ async def test_diagnostics_includes_settings(hass, mock_config_entry, mock_coord
     mock_config_entry.options = {
         const.CONF_POINTS_LABEL: "Credits",
         const.CONF_POINTS_ICON: "mdi:currency-usd",
+        const.CONF_DEFAULT_CHORE_POINTS: 2.5,
         const.CONF_UPDATE_INTERVAL: 25,
         const.CONF_CALENDAR_SHOW_PERIOD: 45,
         const.CONF_RETENTION_DAILY: 8,
@@ -283,4 +284,4 @@ async def test_diagnostics_includes_settings(hass, mock_config_entry, mock_coord
     assert settings[const.CONF_RETENTION_MONTHLY] == 5
     assert settings[const.CONF_RETENTION_YEARLY] == 3
     assert settings[const.CONF_POINTS_ADJUST_VALUES] == [+3.0, -3.0]
-    assert settings[const.CONF_DEFAULT_CHORE_POINTS] == const.DEFAULT_POINTS
+    assert settings[const.CONF_DEFAULT_CHORE_POINTS] == 2.5
