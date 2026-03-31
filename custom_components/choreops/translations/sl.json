@@ -452,6 +452,7 @@
       "challenge_no_assignees_assigned": "Izzivu mora biti dodeljen vsaj en prejemnik",
       "invalid_achievement_count": "Neveljavno število dosežkov",
       "invalid_achievement_name": "Neveljavno ime dosežka",
+      "invalid_achievement_reward_points": "Točke nagrad za dosežke morajo biti nič ali večje, zaokrožene na največ dve decimalni mesti",
       "invalid_badge": "Neveljavna značka",
       "invalid_badge_count": "Neveljavno število značk",
       "invalid_badge_name": "Neveljavno ime značke",
@@ -477,7 +478,7 @@
       "invalid_reward": "Neveljavna nagrada",
       "invalid_reward_count": "Neveljavno število nagrad",
       "invalid_reward_name": "Neveljavno ime nagrade",
-      "invalid_reward_cost": "Stroški nagrade morajo biti nič ali večji",
+      "invalid_reward_cost": "Stroški nagrade morajo biti nič ali večji, zaokroženi na največ dve decimalni mesti.",
       "invalid_bonus": "Neveljaven bonus",
       "invalid_bonus_count": "Neveljavno število bonusov",
       "invalid_bonus_name": "Neveljavno ime bonusa",
@@ -499,7 +500,7 @@
       "chore_options_require_assignment": "Za možnosti poteka dela pri opravilih in gamifikacije je treba najprej omogočiti možnost »Dovoli dodeljevanje opravil meni«.",
       "invalid_update_interval": "Neveljaven interval posodabljanja. Biti mora pozitivno celo število.",
       "invalid_calendar_show_period": "Neveljavno obdobje prikaza koledarja. Biti mora pozitivno celo število.",
-      "invalid_default_chore_points": "Neveljavne privzete točke opravila. Biti mora pozitivno celo število.",
+      "invalid_default_chore_points": "Neveljavne privzete točke opravila. Število mora biti pozitivno, večje od 0, z največ dvema decimalnima mestoma.",
       "invalid_retention_period": "Neveljavno obdobje hrambe. Mora biti pozitivno celo število.",
       "invalid_points_adjust_values": "Neveljavne vrednosti prilagoditve točk. Mora biti seznam."
     },
@@ -550,7 +551,7 @@
           "default_chore_points": "Privzete točke na opravilo"
         },
         "data_description": {
-          "default_chore_points": "Privzeta vrednost točk, ki se uporablja za nova opravila, kadar točke po meri niso določene. Mora biti celo število, večje od 0."
+          "default_chore_points": "Privzeta vrednost točk, ki se uporablja za nova opravila, kadar niso določene točke po meri. Mora biti pozitivno število, večje od 0, z največ dvema decimalnima mestoma."
         }
       },
       "add_user": {

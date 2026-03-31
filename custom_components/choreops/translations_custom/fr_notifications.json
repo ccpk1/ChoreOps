@@ -8,7 +8,7 @@
   },
   "chore_disapproved_assignee": {
     "title": "↩️ La tâche est revenue",
-    "message": "{chore_name} nécessite plus de travail."
+    "message": "{chore_name} nécessite plus d'effort."
   },
   "chore_overdue_assignee": {
     "title": "⏰ Tâche ménagère en retard",

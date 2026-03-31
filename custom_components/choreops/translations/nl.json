@@ -452,6 +452,7 @@
       "challenge_no_assignees_assigned": "Er moet ten minste één persoon aan de uitdaging worden toegewezen.",
       "invalid_achievement_count": "Ongeldig aantal behaalde resultaten",
       "invalid_achievement_name": "Ongeldige prestatienaam",
+      "invalid_achievement_reward_points": "Prestatiebeloningspunten moeten nul of groter zijn, met maximaal twee decimalen.",
       "invalid_badge": "Ongeldige badge",
       "invalid_badge_count": "Ongeldig aantal badges",
       "invalid_badge_name": "Ongeldige badgenaam",
@@ -477,7 +478,7 @@
       "invalid_reward": "Ongeldige beloning",
       "invalid_reward_count": "Ongeldig aantal beloningen",
       "invalid_reward_name": "Ongeldige beloningsnaam",
-      "invalid_reward_cost": "De beloningskosten moeten nul of hoger zijn.",
+      "invalid_reward_cost": "De beloningskosten moeten nul of groter zijn, tot maximaal twee decimalen nauwkeurig.",
       "invalid_bonus": "Ongeldige bonus",
       "invalid_bonus_count": "Ongeldig bonusaantal",
       "invalid_bonus_name": "Ongeldige bonusnaam",
@@ -499,7 +500,7 @@
       "chore_options_require_assignment": "Voor de workflow van huishoudelijke taken en de gamificatie-opties moet eerst 'Taken aan mij toewijzen' zijn ingeschakeld.",
       "invalid_update_interval": "Ongeldig update-interval. Moet een positief geheel getal zijn.",
       "invalid_calendar_show_period": "Ongeldige kalenderweergaveperiode. Moet een positief geheel getal zijn.",
-      "invalid_default_chore_points": "Ongeldige standaardpunten voor klusjes. Moet een positief geheel getal zijn.",
+      "invalid_default_chore_points": "Ongeldige standaardpunten voor klusjes. Moet een positief getal zijn, groter dan 0, met maximaal 2 decimalen.",
       "invalid_retention_period": "Ongeldige bewaartermijn. Moet een positief geheel getal zijn.",
       "invalid_points_adjust_values": "Ongeldige punten passen waarden aan. Moet een lijst zijn."
     },
@@ -550,7 +551,7 @@
           "default_chore_points": "Standaardpunten per taak"
         },
         "data_description": {
-          "default_chore_points": "Standaardpuntenwaarde die wordt gebruikt voor nieuwe taken wanneer geen aangepaste punten zijn opgegeven. Moet een geheel getal groter dan 0 zijn."
+          "default_chore_points": "Standaardpuntenwaarde die wordt gebruikt voor nieuwe taken wanneer geen aangepaste punten zijn opgegeven. Moet een positief getal zijn, groter dan 0, met maximaal 2 decimalen."
         }
       },
       "add_user": {

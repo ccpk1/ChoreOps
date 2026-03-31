@@ -452,6 +452,7 @@
       "challenge_no_assignees_assigned": "Für die Herausforderung muss mindestens ein Bearbeiter zugewiesen werden.",
       "invalid_achievement_count": "Ungültige Anzahl von Errungenschaften",
       "invalid_achievement_name": "Ungültiger Errungenschaftsname",
+      "invalid_achievement_reward_points": "Die Punktzahl für die Leistungsprämie muss null oder höher sein (mit maximal zwei Dezimalstellen).",
       "invalid_badge": "Ungültiges Abzeichen",
       "invalid_badge_count": "Ungültige Anzahl von Abzeichen",
       "invalid_badge_name": "Ungültiger Abzeichenname",
@@ -477,7 +478,7 @@
       "invalid_reward": "Ungültige Belohnung",
       "invalid_reward_count": "Ungültige Anzahl von Belohnungen",
       "invalid_reward_name": "Ungültiger Belohnungsname",
-      "invalid_reward_cost": "Die Kosten der Belohnung müssen null oder größer sein.",
+      "invalid_reward_cost": "Die Kosten der Belohnung müssen null oder höher sein (mit maximal zwei Dezimalstellen).",
       "invalid_bonus": "Ungültiger Bonus",
       "invalid_bonus_count": "Ungültige Anzahl von Boni",
       "invalid_bonus_name": "Ungültiger Bonusname",
@@ -499,7 +500,7 @@
       "chore_options_require_assignment": "Für die Workflow- und Gamification-Optionen im Bereich der Aufgabenverwaltung muss zunächst die Option „Mir erlauben, Aufgaben zugewiesen zu bekommen“ aktiviert werden.",
       "invalid_update_interval": "Ungültiges Aktualisierungsintervall. Muss eine positive ganze Zahl sein.",
       "invalid_calendar_show_period": "Ungültiger Kalenderzeitraum. Muss eine positive ganze Zahl sein.",
-      "invalid_default_chore_points": "Ungültige Standard-Aufgabenpunkte. Muss eine positive ganze Zahl sein.",
+      "invalid_default_chore_points": "Ungültige Standard-Aufgabenpunkte. Es muss eine positive Zahl größer als 0 mit maximal 2 Dezimalstellen sein.",
       "invalid_retention_period": "Ungültige Aufbewahrungsfrist. Muss eine positive ganze Zahl sein.",
       "invalid_points_adjust_values": "Ungültige Punkte führen zu Wertkorrekturen. Es muss eine Liste sein."
     },
@@ -550,7 +551,7 @@
           "default_chore_points": "Standardpunkte pro Aufgabe"
         },
         "data_description": {
-          "default_chore_points": "Standardpunktwert, der für neue Aufgaben verwendet wird, wenn keine benutzerdefinierten Punkte angegeben werden. Muss eine ganze Zahl größer als 0 sein."
+          "default_chore_points": "Standardpunktwert, der für neue Aufgaben verwendet wird, wenn keine benutzerdefinierten Punkte angegeben werden. Muss eine positive Zahl größer als 0 mit maximal 2 Dezimalstellen sein."
         }
       },
       "add_user": {

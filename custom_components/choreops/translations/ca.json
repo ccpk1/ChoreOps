@@ -452,6 +452,7 @@
       "challenge_no_assignees_assigned": "Cal assignar com a mínim una persona al repte.",
       "invalid_achievement_count": "Recompte d'assoliments no vàlid",
       "invalid_achievement_name": "Nom d'assoliment no vàlid",
+      "invalid_achievement_reward_points": "Els punts de recompensa per assoliments han de ser zero o superiors amb un màxim de 2 decimals.",
       "invalid_badge": "Insígnia no vàlida",
       "invalid_badge_count": "Recompte de distintius no vàlid",
       "invalid_badge_name": "Nom de la insígnia no vàlid",
@@ -477,7 +478,7 @@
       "invalid_reward": "Recompensa no vàlida",
       "invalid_reward_count": "Recompte de recompenses no vàlid",
       "invalid_reward_name": "Nom de recompensa no vàlid",
-      "invalid_reward_cost": "El cost de la recompensa ha de ser zero o superior",
+      "invalid_reward_cost": "El cost de la recompensa ha de ser zero o superior amb un màxim de 2 decimals",
       "invalid_bonus": "Bonificació no vàlida",
       "invalid_bonus_count": "Recompte de bonificacions no vàlid",
       "invalid_bonus_name": "Nom de bonificació no vàlid",
@@ -499,7 +500,7 @@
       "chore_options_require_assignment": "El flux de treball de les tasques i les opcions de gamificació requereixen que primer estigui activada l'opció \"Permet que se m'assignin tasques\".",
       "invalid_update_interval": "Interval d'actualització no vàlid. Ha de ser un enter positiu.",
       "invalid_calendar_show_period": "Període de visualització del calendari no vàlid. Ha de ser un nombre enter positiu.",
-      "invalid_default_chore_points": "Punts de tasca predeterminats no vàlids. Ha de ser un nombre enter positiu.",
+      "invalid_default_chore_points": "Punts de tasca predeterminats no vàlids. Ha de ser un nombre positiu superior a 0 amb un màxim de 2 decimals.",
       "invalid_retention_period": "Període de retenció no vàlid. Ha de ser un nombre enter positiu.",
       "invalid_points_adjust_values": "Valors d'ajust de punts no vàlids. Ha de ser una llista."
     },
@@ -550,7 +551,7 @@
           "default_chore_points": "Punts per defecte per tasca"
         },
         "data_description": {
-          "default_chore_points": "Valor de punts per defecte utilitzat per a les tasques noves quan no s'especifiquen punts personalitzats. Ha de ser un nombre enter superior a 0."
+          "default_chore_points": "Valor de punts predeterminat que s'utilitza per a les tasques noves quan no s'especifiquen punts personalitzats. Ha de ser un nombre positiu superior a 0 amb un màxim de 2 decimals."
         }
       },
       "add_user": {
