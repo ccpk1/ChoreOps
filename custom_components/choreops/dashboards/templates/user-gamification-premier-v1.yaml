@@ -57,6 +57,8 @@ views:
 
                   {%- set pref_primary_tint_mix_pct = 14 -%}  {#-- Percent of var(--primary-color) mixed into the welcome-card background when fill is enabled. Allowed: 0-100. --#}
 
+                  {%- set pref_points_precision = 'fixed_0' -%}  {#-- Controls point formatting. Allowed: fixed_0, adaptive, fixed_1, fixed_2. --#}
+
                   {%- set pref_show_header_background = false -%}  {#-- Set to false to remove the welcome-card background fill and leave it transparent. Allowed: true, false. --#}
 
                   {%- set pref_show_header_thin_border = true -%}  {#-- Set to false to remove the thin outer border line. Accent borders are unaffected. Allowed: true, false. --#}
@@ -65,12 +67,16 @@ views:
                   {#-- 2. Dynamic Lookups & Validations --#}
 
                   {%- set pref_primary_tint_mix_pct = pref_primary_tint_mix_pct | int(default=14) -%}
+                  {%- set pref_points_precision = pref_points_precision | default('fixed_0') | string | lower -%}
                   {%- set pref_show_header_background = (pref_show_header_background | default('true') | string | lower) == 'true' -%}
                   {%- set pref_show_header_thin_border = (pref_show_header_thin_border | default('true') | string | lower) == 'true' -%}
                   {%- if pref_primary_tint_mix_pct < 0 -%}
                     {%- set pref_primary_tint_mix_pct = 0 -%}
                   {%- elif pref_primary_tint_mix_pct > 100 -%}
                     {%- set pref_primary_tint_mix_pct = 100 -%}
+                  {%- endif -%}
+                  {%- if pref_points_precision not in ['fixed_0', 'adaptive', 'fixed_1', 'fixed_2'] -%}
+                    {%- set pref_points_precision = 'fixed_0' -%}
                   {%- endif -%}
 
                   << template_snippets.user_setup >>
@@ -87,7 +93,7 @@ views:
                     {%- set highest_badge_entity = core_sensors.get('badges_eid') -%}
                     {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
                     {%- set ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor else {} -%}
-                    {%- set points = (states(points_sensor) | int(default=0)) if points_sensor else 0 -%}
+                    {%- set points_value = (states(points_sensor) | float(default=0)) if points_sensor else 0 -%}
                     {%- set points_label = (state_attr(points_sensor, 'unit_of_measurement') if points_sensor else None) or 'Points' -%}
                     {%- set points_icon = (state_attr(points_sensor, 'icon') if points_sensor else None) or 'mdi:star-circle' -%}
                     {%- set points_multiplier = (state_attr(points_sensor, 'points_multiplier') | float(default=1)) if points_sensor else 1 -%}
@@ -98,6 +104,22 @@ views:
 
                     {#-- 4. Build Display - essentials minimal --#}
                     {%- set p_icon = points_icon | default('mdi:star', true) -%}
+                    {%- set points_value = points_value | round(2) -%}
+                    {%- if pref_points_precision == 'adaptive' -%}
+                      {%- if points_value == (points_value | int) -%}
+                        {%- set points_display = (points_value | int) | string -%}
+                      {%- elif points_value == (points_value | round(1)) -%}
+                        {%- set points_display = '%.1f' | format(points_value) -%}
+                      {%- else -%}
+                        {%- set points_display = '%.2f' | format(points_value) -%}
+                      {%- endif -%}
+                    {%- elif pref_points_precision == 'fixed_1' -%}
+                      {%- set points_display = '%.1f' | format(points_value) -%}
+                    {%- elif pref_points_precision == 'fixed_2' -%}
+                      {%- set points_display = '%.2f' | format(points_value) -%}
+                    {%- else -%}
+                      {%- set points_display = (points_value | round(0) | int) | string -%}
+                    {%- endif -%}
                     {%- set multiplier_display = points_multiplier | int if points_multiplier == (points_multiplier | int) else points_multiplier -%}
 
                     {%- set rank_pill = '' -%}
@@ -136,7 +158,7 @@ views:
                     {%- if gamification_enabled -%}
                       {%- set right_col =
                         "<div style='text-align: right; flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; justify-content: flex-end; margin-left: 14px;'>"
-                        ~ "<div style='display: inline-flex; align-items: center; color: var(--primary-color); font-size: 22px; font-weight: 800; line-height: 1; white-space: nowrap;'><ha-icon icon='" ~ p_icon ~ "' style='width: 22px; height: 24px; margin-right: 6px; transform: translateY(-2px);'></ha-icon>" ~ points ~ "</div>"
+                        ~ "<div style='display: inline-flex; align-items: center; color: var(--primary-color); font-size: 22px; font-weight: 800; line-height: 1; white-space: nowrap;'><ha-icon icon='" ~ p_icon ~ "' style='width: 22px; height: 24px; margin-right: 6px; transform: translateY(-2px);'></ha-icon>" ~ points_display ~ "</div>"
                         ~ "<div style='font-size: 10px; text-transform: uppercase; font-weight: 700; opacity: 0.7; margin-top: 4px; letter-spacing: 0.5px;'>" ~ points_label ~ "</div>"
                         ~ "</div>"
                       -%}
@@ -363,8 +385,8 @@ views:
                     {%- set penalty_list = state_attr(dashboard_helper, 'penalties') | default([], true) -%}
                     {%- set highest_badge_attrs = states[highest_badge_entity].attributes | default({}, true) if highest_badge_entity else {} -%}
 
-                    {%- set points = (states(points_sensor) | int(default=0)) if points_sensor else 0 -%}
-                    {%- set points_earned_all_time = (state_attr(points_sensor, 'point_stat_points_earned_all_time') | int(default=0)) if points_sensor else 0 -%}
+                      {%- set points_value = (states(points_sensor) | float(default=0)) if points_sensor else 0 -%}
+                      {%- set points_earned_all_time_value = (state_attr(points_sensor, 'point_stat_points_earned_all_time') | float(default=0)) if points_sensor else 0 -%}
                     {%- set points_label = (state_attr(points_sensor, 'unit_of_measurement') if points_sensor else None) or 'Points' -%}
                     {%- set points_icon = (state_attr(points_sensor, 'icon') if points_sensor else None) or 'mdi:star-circle' -%}
                     {%- set points_multiplier = (state_attr(points_sensor, 'points_multiplier') | float(default=1)) if points_sensor else 1 -%}
@@ -373,6 +395,21 @@ views:
                     {%- set highest_badge_icon = (state_attr(highest_badge_entity, 'icon') if highest_badge_entity else None) or 'mdi:medal-outline' -%}
                     {%- set highest_badge_display = ui.get('none', 'err-none') if highest_badge in ['None', 'unknown', 'Unknown', 'unavailable'] else highest_badge -%}
                     {%- set points_multiplier_text = ('%.2f' | format(points_multiplier)) | regex_replace('\.?0+$', '') -%}
+                    {%- set points_value = points_value | round(2) -%}
+                    {%- set points_earned_all_time_value = points_earned_all_time_value | round(2) -%}
+                    {%- if pref_points_precision == 'adaptive' -%}
+                      {%- set points_display = ((points_value | int) | string) if points_value == (points_value | int) else (('%.1f' | format(points_value)) if points_value == (points_value | round(1)) else ('%.2f' | format(points_value))) -%}
+                      {%- set points_earned_all_time_display = ((points_earned_all_time_value | int) | string) if points_earned_all_time_value == (points_earned_all_time_value | int) else (('%.1f' | format(points_earned_all_time_value)) if points_earned_all_time_value == (points_earned_all_time_value | round(1)) else ('%.2f' | format(points_earned_all_time_value))) -%}
+                    {%- elif pref_points_precision == 'fixed_1' -%}
+                      {%- set points_display = '%.1f' | format(points_value) -%}
+                      {%- set points_earned_all_time_display = '%.1f' | format(points_earned_all_time_value) -%}
+                    {%- elif pref_points_precision == 'fixed_2' -%}
+                      {%- set points_display = '%.2f' | format(points_value) -%}
+                      {%- set points_earned_all_time_display = '%.2f' | format(points_earned_all_time_value) -%}
+                    {%- else -%}
+                      {%- set points_display = (points_value | round(0) | int) | string -%}
+                      {%- set points_earned_all_time_display = (points_earned_all_time_value | round(0) | int) | string -%}
+                    {%- endif -%}
                     {%- set safe_name = (name | string | replace('&', '&amp;') | replace('<', '&lt;') | replace('>', '&gt;')) -%}
                     {%- set rank_status = (highest_badge_attrs.get('badge_status', 'active') | string | lower) if highest_badge_attrs is mapping else 'active' -%}
                     {%- set rank_points_to_next = highest_badge_attrs.get('points_to_next_badge', 0) | int(default=0) if highest_badge_attrs is mapping else 0 -%}
@@ -418,7 +455,7 @@ views:
                       {%- set next_rank_target = next_rank_attrs.get('target') if next_rank_attrs.get('target') is mapping else {} -%}
                       {%- set next_rank_threshold = (next_rank_target.threshold_value | float(default=0)) if next_rank_target is mapping and next_rank_target else (next_rank_attrs.get('threshold_value', 0) | float(default=0)) -%}
                       {%- if next_rank_threshold > 0 -%}
-                        {%- set next_rank_to_unlock = rank_points_to_next if has_any_rank else (((next_rank_threshold - points_earned_all_time) | float(default=0) | round(0, 'ceil')) | int) -%}
+                        {%- set next_rank_to_unlock = rank_points_to_next if has_any_rank else (((next_rank_threshold - points_earned_all_time_value) | float(default=0) | round(0, 'ceil')) | int) -%}
                         {%- if next_rank_to_unlock < 0 -%}{%- set next_rank_to_unlock = 0 -%}{%- endif -%}
                         {%- set next_rank_progress = next_rank_threshold - next_rank_to_unlock -%}
                         {%- if next_rank_progress < 0 -%}{%- set next_rank_progress = 0 -%}{%- endif -%}
@@ -429,7 +466,7 @@ views:
                         {%- set next_rank_name = next_rank_name_raw[8:] if next_rank_name_raw[:8] == 'Badge - ' else next_rank_name_raw -%}
                         {%- set next_rank_name_safe = next_rank_name | replace('&', '&amp;') | replace('<', '&lt;') | replace('>', '&gt;') -%}
                         {%- set next_rank_icon = (next_rank_attrs.get('icon') or 'mdi:medal-outline') | string -%}
-                        {%- set rank_rows_html = rank_rows_html ~ "<div style='" ~ compact_row_base ~ "'><span style='" ~ compact_row_icon_wrap ~ "'><ha-icon icon='" ~ next_rank_icon ~ "' style='width:16px;height:16px;color:" ~ next_rank_color ~ ";transform:translateY(-4px);'></ha-icon></span><div style='min-width:0;padding-right:2px;font-size:11px;font-weight:600;color:var(--primary-text-color);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'>" ~ next_rank_name_safe ~ "</div><div style='display:grid;grid-template-columns:minmax(84px,1fr) auto;align-items:center;column-gap:8px;min-width:0;'><div style='height:6px;background:var(--divider-color);border-radius:999px;overflow:hidden;'><div style='width:" ~ next_rank_pct|string ~ "%;height:100%;background:" ~ next_rank_color ~ ";border-radius:999px;'></div></div><div style='font-size:10px;font-weight:700;color:" ~ next_rank_color ~ ";white-space:nowrap;'>" ~ (next_rank_progress | round(0) | int | string) ~ "/" ~ (next_rank_threshold | round(0) | int | string) ~ "</div></div></div>" -%}
+                        {%- set rank_rows_html = rank_rows_html ~ "<div style='" ~ compact_row_base ~ "'><span style='" ~ compact_row_icon_wrap ~ "'><ha-icon icon='" ~ next_rank_icon ~ "' style='width:16px;height:16px;color:" ~ next_rank_color ~ ";transform:translateY(-4px);'></ha-icon></span><div style='min-width:0;padding-right:2px;font-size:11px;font-weight:600;color:var(--primary-text-color);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'>" ~ next_rank_name_safe ~ "</div><div style='display:grid;grid-template-columns:minmax(84px,1fr) auto;align-items:center;column-gap:8px;min-width:0;'><div style='height:6px;background:var(--divider-color);border-radius:999px;overflow:hidden;'><div style='width:" ~ next_rank_pct|string ~ "%;height:100%;background:" ~ next_rank_color ~ ";border-radius:999px;'></div></div><div style='font-size:10px;font-weight:700;color:" ~ next_rank_color ~ ";white-space:nowrap;'>" ~ ((next_rank_progress | round(2)) | string | regex_replace('\.?0+$', '')) ~ "/" ~ ((next_rank_threshold | round(2)) | string | regex_replace('\.?0+$', '')) ~ "</div></div></div>" -%}
                       {%- endif -%}
                     {%- endif -%}
 
@@ -443,7 +480,7 @@ views:
                       {%- if maintenance_rank_pct > 100 -%}{%- set maintenance_rank_pct = 100 -%}{%- endif -%}
                       {%- if maintenance_rank_pct < 0 -%}{%- set maintenance_rank_pct = 0 -%}{%- endif -%}
                       {%- set maintenance_rank_color = 'var(--warning-color)' if rank_status in ['grace', 'demoted'] else ('var(--success-color)' if rank_maintenance_remaining <= 0 else 'var(--primary-color)') -%}
-                      {%- set rank_rows_html = rank_rows_html ~ "<div style='" ~ compact_row_base ~ "'><span style='" ~ compact_row_icon_wrap ~ "'><ha-icon icon='" ~ maintenance_rank_icon ~ "' style='width:16px;height:16px;color:" ~ maintenance_rank_color ~ ";transform:translateY(-4px);'></ha-icon></span><div style='min-width:0;padding-right:2px;font-size:11px;font-weight:600;color:var(--primary-text-color);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'>" ~ maintenance_rank_name_safe ~ "</div><div style='display:grid;grid-template-columns:minmax(84px,1fr) auto;align-items:center;column-gap:8px;min-width:0;'><div style='height:6px;background:var(--divider-color);border-radius:999px;overflow:hidden;'><div style='width:" ~ maintenance_rank_pct|string ~ "%;height:100%;background:" ~ maintenance_rank_color ~ ";border-radius:999px;'></div></div><div style='font-size:10px;font-weight:700;color:" ~ maintenance_rank_color ~ ";white-space:nowrap;'>" ~ (rank_cycle_points | round(0) | int | string) ~ "/" ~ (rank_maintenance_required | round(0) | int | string) ~ "</div></div></div>" -%}
+                      {%- set rank_rows_html = rank_rows_html ~ "<div style='" ~ compact_row_base ~ "'><span style='" ~ compact_row_icon_wrap ~ "'><ha-icon icon='" ~ maintenance_rank_icon ~ "' style='width:16px;height:16px;color:" ~ maintenance_rank_color ~ ";transform:translateY(-4px);'></ha-icon></span><div style='min-width:0;padding-right:2px;font-size:11px;font-weight:600;color:var(--primary-text-color);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'>" ~ maintenance_rank_name_safe ~ "</div><div style='display:grid;grid-template-columns:minmax(84px,1fr) auto;align-items:center;column-gap:8px;min-width:0;'><div style='height:6px;background:var(--divider-color);border-radius:999px;overflow:hidden;'><div style='width:" ~ maintenance_rank_pct|string ~ "%;height:100%;background:" ~ maintenance_rank_color ~ ";border-radius:999px;'></div></div><div style='font-size:10px;font-weight:700;color:" ~ maintenance_rank_color ~ ";white-space:nowrap;'>" ~ ((rank_cycle_points | round(2)) | string | regex_replace('\.?0+$', '')) ~ "/" ~ ((rank_maintenance_required | round(2)) | string | regex_replace('\.?0+$', '')) ~ "</div></div></div>" -%}
                     {%- endif -%}
 
                     {%- set rank_progress_section = "<div style='" ~ compact_section_base ~ "'><div style='" ~ compact_header_row ~ "'><div></div><span style='" ~ compact_header_icon_wrap ~ "'><ha-icon icon='mdi:medal-outline' style='width:13px;height:13px;color:var(--primary-color);transform:translateY(-4px);'></ha-icon></span><div style='min-width:0;width:100%;font-size:11px;font-weight:700;letter-spacing:0.35px;text-transform:uppercase;color:var(--secondary-text-color);justify-self:stretch;text-align:right;'>" ~ ui.get('ranks', 'err-ranks') ~ "</div></div>" ~ rank_rows_html ~ "</div>" if rank_rows_html | length > 0 else '' -%}
@@ -506,7 +543,7 @@ views:
                             {%- set achievement_icon = (achievement_attrs.get('icon') or 'mdi:trophy') | string -%}
                             {%- set achievement_color = 'var(--success-color)' if achievement_pct >= 100 else 'var(--primary-color)' -%}
                             {%- set achievement_ns.count = achievement_ns.count + 1 -%}
-                            {%- set achievement_ns.rows_html = achievement_ns.rows_html ~ "<div style='" ~ compact_row_base ~ "'><span style='" ~ compact_row_icon_wrap ~ "'><ha-icon icon='" ~ achievement_icon ~ "' style='width:16px;height:16px;color:" ~ achievement_color ~ ";transform:translateY(-4px);'></ha-icon></span><div style='min-width:0;padding-right:2px;font-size:11px;font-weight:600;color:var(--primary-text-color);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'>" ~ achievement_name_safe ~ "</div><div style='display:grid;grid-template-columns:minmax(84px,1fr) auto;align-items:center;column-gap:8px;min-width:0;'><div style='height:6px;background:var(--divider-color);border-radius:999px;overflow:hidden;'><div style='width:" ~ achievement_pct|string ~ "%;height:100%;background:" ~ achievement_color ~ ";border-radius:999px;'></div></div><div style='font-size:10px;font-weight:700;color:" ~ achievement_color ~ ";white-space:nowrap;'>" ~ (achievement_progress_clamped | round(0) | int | string) ~ "/" ~ achievement_target|string ~ "</div></div></div>" -%}
+                            {%- set achievement_ns.rows_html = achievement_ns.rows_html ~ "<div style='" ~ compact_row_base ~ "'><span style='" ~ compact_row_icon_wrap ~ "'><ha-icon icon='" ~ achievement_icon ~ "' style='width:16px;height:16px;color:" ~ achievement_color ~ ";transform:translateY(-4px);'></ha-icon></span><div style='min-width:0;padding-right:2px;font-size:11px;font-weight:600;color:var(--primary-text-color);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'>" ~ achievement_name_safe ~ "</div><div style='display:grid;grid-template-columns:minmax(84px,1fr) auto;align-items:center;column-gap:8px;min-width:0;'><div style='height:6px;background:var(--divider-color);border-radius:999px;overflow:hidden;'><div style='width:" ~ achievement_pct|string ~ "%;height:100%;background:" ~ achievement_color ~ ";border-radius:999px;'></div></div><div style='font-size:10px;font-weight:700;color:" ~ achievement_color ~ ";white-space:nowrap;'>" ~ ((achievement_progress_clamped | round(2)) | string | regex_replace('\.?0+$', '')) ~ "/" ~ ((achievement_target | round(2)) | string | regex_replace('\.?0+$', '')) ~ "</div></div></div>" -%}
                           {%- endif -%}
                         {%- endif -%}
                       {%- endif -%}
@@ -560,7 +597,7 @@ views:
                     {%- set adjustment_section = "<div style='" ~ compact_section_base ~ "'><div style='display:grid;grid-template-columns:" ~ ('minmax(0,1fr)' if effective_hide_penalties else 'repeat(2,minmax(0,1fr))') ~ ";gap:10px;align-items:stretch;'>" ~ bonus_card_html ~ ('' if effective_hide_penalties else penalty_card_html) ~ "</div></div>" -%}
 
                     {%- set highest_badge_line = "<div style='margin-top:4px;font-size:13px;line-height:1.3;color:var(--secondary-text-color);'>" ~ ui.get('highest_rank', 'err-highest_rank') ~ ": <span style='color:var(--primary-text-color);font-weight:600;'>" ~ (highest_badge_display | replace('&', '&amp;') | replace('<', '&lt;') | replace('>', '&gt;')) ~ "</span></div>" if highest_badge_display != ui.get('none', 'err-none') else '' -%}
-                    {%- set content_html = "<div style='display:flex;flex-direction:column;gap:0;width:100%;box-sizing:border-box;'><div style='display:flex;align-items:flex-start;gap:12px;padding-right:42px;box-sizing:border-box;'><div style='display:flex;align-items:center;gap:12px;min-width:0;flex:1;'><div style='width:52px;height:52px;border-radius:50%;background:color-mix(in srgb, var(--primary-color) 18%, var(--card-background-color));display:flex;align-items:center;justify-content:center;flex-shrink:0;'><ha-icon icon='" ~ highest_badge_icon ~ "' style='width:28px;height:28px;color:var(--primary-color);'></ha-icon></div><div style='min-width:0;'><div style='font-size:18px;font-weight:700;line-height:1.2;color:var(--primary-text-color);'>" ~ safe_name ~ "'s " ~ ui.get('showcase', 'err-showcase') ~ "</div>" ~ highest_badge_line ~ "</div></div></div><div style='display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:16px;'><div style='text-align:center;padding:10px 8px;border-radius:14px;background:color-mix(in srgb, var(--primary-color) 6%, var(--card-background-color));'><div style='font-size:11px;color:var(--secondary-text-color);line-height:1.2;'>" ~ ui.get('total_earned', 'err-total_earned') ~ "</div><div style='margin-top:4px;font-size:16px;font-weight:700;color:var(--primary-text-color);'>" ~ points_earned_all_time|string ~ "</div></div><div style='text-align:center;padding:10px 8px;border-radius:14px;background:color-mix(in srgb, var(--primary-color) 6%, var(--card-background-color));'><div style='font-size:11px;color:var(--secondary-text-color);line-height:1.2;'>" ~ ui.get('chores_completed', 'err-chores_completed') ~ "</div><div style='margin-top:4px;font-size:16px;font-weight:700;color:var(--primary-text-color);'>" ~ all_time_completed|string ~ "</div></div><div style='text-align:center;padding:10px 8px;border-radius:14px;background:color-mix(in srgb, var(--primary-color) 6%, var(--card-background-color));'><div style='font-size:11px;color:var(--secondary-text-color);line-height:1.2;'>" ~ ui.get('multiplier', 'err-multiplier') ~ "</div><div style='margin-top:4px;font-size:16px;font-weight:700;color:" ~ ('var(--warning-color)' if points_multiplier > 1 else 'var(--primary-text-color)') ~ ";'>x" ~ points_multiplier_text ~ "</div></div></div>" ~ earned_badges_section ~ ('' if effective_hide_overviews else rank_progress_section ~ quest_progress_section ~ achievement_progress_section ~ adjustment_section) ~ "</div>" -%}
+                    {%- set content_html = "<div style='display:flex;flex-direction:column;gap:0;width:100%;box-sizing:border-box;'><div style='display:flex;align-items:flex-start;gap:12px;padding-right:42px;box-sizing:border-box;'><div style='display:flex;align-items:center;gap:12px;min-width:0;flex:1;'><div style='width:52px;height:52px;border-radius:50%;background:color-mix(in srgb, var(--primary-color) 18%, var(--card-background-color));display:flex;align-items:center;justify-content:center;flex-shrink:0;'><ha-icon icon='" ~ highest_badge_icon ~ "' style='width:28px;height:28px;color:var(--primary-color);'></ha-icon></div><div style='min-width:0;'><div style='font-size:18px;font-weight:700;line-height:1.2;color:var(--primary-text-color);'>" ~ safe_name ~ "'s " ~ ui.get('showcase', 'err-showcase') ~ "</div>" ~ highest_badge_line ~ "</div></div></div><div style='display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:16px;'><div style='text-align:center;padding:10px 8px;border-radius:14px;background:color-mix(in srgb, var(--primary-color) 6%, var(--card-background-color));'><div style='font-size:11px;color:var(--secondary-text-color);line-height:1.2;'>" ~ ui.get('total_earned', 'err-total_earned') ~ "</div><div style='margin-top:4px;font-size:16px;font-weight:700;color:var(--primary-text-color);'>" ~ points_earned_all_time_display ~ "</div></div><div style='text-align:center;padding:10px 8px;border-radius:14px;background:color-mix(in srgb, var(--primary-color) 6%, var(--card-background-color));'><div style='font-size:11px;color:var(--secondary-text-color);line-height:1.2;'>" ~ ui.get('chores_completed', 'err-chores_completed') ~ "</div><div style='margin-top:4px;font-size:16px;font-weight:700;color:var(--primary-text-color);'>" ~ all_time_completed|string ~ "</div></div><div style='text-align:center;padding:10px 8px;border-radius:14px;background:color-mix(in srgb, var(--primary-color) 6%, var(--card-background-color));'><div style='font-size:11px;color:var(--secondary-text-color);line-height:1.2;'>" ~ ui.get('multiplier', 'err-multiplier') ~ "</div><div style='margin-top:4px;font-size:16px;font-weight:700;color:" ~ ('var(--warning-color)' if points_multiplier > 1 else 'var(--primary-text-color)') ~ ";'>x" ~ points_multiplier_text ~ "</div></div></div>" ~ earned_badges_section ~ ('' if effective_hide_overviews else rank_progress_section ~ quest_progress_section ~ achievement_progress_section ~ adjustment_section) ~ "</div>" -%}
 
                     {%- if gamification_enabled -%}
                       {{
@@ -999,7 +1036,7 @@ views:
                         {%- elif pref_sort_rewards in ['cost_asc', 'cost_desc'] -%}
                           {%- set ns.temp_list = [] -%}
                           {%- for reward in group.rewards -%}
-                            {%- set reward_cost = (reward.cost | int(default=999999)) if reward is mapping else 999999 -%}
+                            {%- set reward_cost = (reward.cost | float(default=999999)) if reward is mapping else 999999 -%}
                             {%- set ns.temp_list = ns.temp_list + [[reward_cost, reward]] -%}
                           {%- endfor -%}
                           {%- set sorted_list = ns.temp_list | sort -%}
@@ -1179,7 +1216,7 @@ views:
 
                             {%- for reward in group.rewards -%}
                               {%- set reward_name = reward.name if reward is mapping else 'Unknown' -%}
-                              {%- set reward_cost = (reward.cost | int(default=0)) if reward is mapping else 0 -%}
+                              {%- set reward_cost = (reward.cost | float(default=0)) if reward is mapping else 0 -%}
                               {%- set reward_sensor_eid = reward.eid if reward is mapping else '' -%}
                               {%- set reward_icon = state_attr(reward_sensor_eid, 'icon') | default('mdi:gift', true) -%}
                               {%- set reward_description = state_attr(reward_sensor_eid, 'description') | default('', true) -%}
@@ -2878,7 +2915,7 @@ views:
                             {%- if progress_pct < 0 -%}{%- set progress_pct = 0 -%}{%- endif -%}
                             {%- if progress_pct > 100 -%}{%- set progress_pct = 100 -%}{%- endif -%}
                             {%- set progress_display = ('%.0f' | format(progress_pct)) -%}
-                            {%- set progress_html = "<div style='margin-top:2px;padding:8px 10px;border-radius:8px;background:var(--secondary-background-color);border:1px solid var(--divider-color);'><div style='display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11px;'><span><ha-icon icon='mdi:trophy' style='width:14px;height:14px;color:" ~ status_color ~ ";transform:translateY(-1px);'></ha-icon> " ~ ui.get('progress', 'err-progress') ~ "</span><span style='font-weight:600;'>" ~ (achievement.progress_clamped | round(0) | int | string) ~ "/" ~ achievement.target_value|string ~ "</span></div><div style='margin-top:6px;display:flex;align-items:center;gap:6px;'><div style='flex:1;height:6px;background:var(--divider-color);border-radius:999px;overflow:hidden;'><div style='width:" ~ progress_display ~ "%;height:100%;background:" ~ status_color ~ ";border-radius:999px;'></div></div><span style='font-size:10px;color:var(--secondary-text-color);line-height:1;'>" ~ progress_display ~ "%</span></div></div>" -%}
+                            {%- set progress_html = "<div style='margin-top:2px;padding:8px 10px;border-radius:8px;background:var(--secondary-background-color);border:1px solid var(--divider-color);'><div style='display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11px;'><span><ha-icon icon='mdi:trophy' style='width:14px;height:14px;color:" ~ status_color ~ ";transform:translateY(-1px);'></ha-icon> " ~ ui.get('progress', 'err-progress') ~ "</span><span style='font-weight:600;'>" ~ ((achievement.progress_clamped | round(2)) | string | regex_replace('\.?0+$', '')) ~ "/" ~ ((achievement.target_value | round(2)) | string | regex_replace('\.?0+$', '')) ~ "</span></div><div style='margin-top:6px;display:flex;align-items:center;gap:6px;'><div style='flex:1;height:6px;background:var(--divider-color);border-radius:999px;overflow:hidden;'><div style='width:" ~ progress_display ~ "%;height:100%;background:" ~ status_color ~ ";border-radius:999px;'></div></div><span style='font-size:10px;color:var(--secondary-text-color);line-height:1;'>" ~ progress_display ~ "%</span></div></div>" -%}
                           {%- endif -%}
 
                           {%- set stats_left = '' -%}

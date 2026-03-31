@@ -246,6 +246,8 @@ views:
 
                   << template_snippets.user_override_helper >>
 
+                  {%- set pref_points_precision = 'fixed_0' -%}
+
 
                   {#-- 2. Dynamic Lookups & Validations --#}
 
@@ -254,6 +256,11 @@ views:
                   << template_snippets.admin_validation_missing_selector >>
 
                   << template_snippets.admin_validation_invalid_selection >>
+
+                  {%- set pref_points_precision = pref_points_precision | default('fixed_0') | string | lower -%}
+                  {%- if pref_points_precision not in ['fixed_0', 'adaptive', 'fixed_1', 'fixed_2'] -%}
+                    {%- set pref_points_precision = 'fixed_0' -%}
+                  {%- endif -%}
 
                   {%- if not skip_render -%}
 
@@ -278,14 +285,14 @@ views:
                     {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
                     {%- set ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor else {} -%}
 
-                    {%- set points = (states(points_sensor) | int(default=0)) if points_sensor else 0 -%}
+                    {%- set points_value = (states(points_sensor) | float(default=0)) if points_sensor else 0 -%}
                     {%- set points_attrs = states[points_sensor].attributes | default({}, true) if points_sensor else {} -%}
                     {%- set points_label = points_attrs.get('unit_of_measurement') | default('Pts') -%}
                     {%- set points_icon = points_attrs.get('icon') -%}
 
                     {#-- Points stats from user points sensor --#}
-                    {%- set points_earned_week = points_attrs.get('point_stat_points_earned_week', 0) | int(default=0) -%}
-                    {%- set points_spent_week = points_attrs.get('point_stat_points_spent_week', 0) | int(default=0) -%}
+                    {%- set points_earned_week = points_attrs.get('point_stat_points_earned_week', 0) | float(default=0) -%}
+                    {%- set points_spent_week = points_attrs.get('point_stat_points_spent_week', 0) | float(default=0) -%}
 
                     {#-- Chore stats from user chores sensor --#}
                     {%- set chores_attrs = states[total_chores_sensor].attributes | default({}, true) if total_chores_sensor else {} -%}
@@ -316,7 +323,7 @@ views:
 
                     {%- set content =
                       "## 👨‍👩‍👧 " ~ ui.get('approver_dashboard_for', 'err-approver_dashboard_for') ~ ": " ~ name ~ " \n"
-                      "#### <ha-icon icon=" ~ points_icon ~ "></ha-icon>&nbsp;&nbsp;" ~ points_label ~ ": &nbsp;&nbsp;" ~ points ~ "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" ~ badge_display ~ " \n\n" -%}
+                      "#### <ha-icon icon=" ~ points_icon ~ "></ha-icon>&nbsp;&nbsp;" ~ points_label ~ ": &nbsp;&nbsp;" ~ (((points_value | round(2)) | string | regex_replace('\.?0+$', ''))) ~ "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" ~ badge_display ~ " \n\n" -%}
 
                     {#-- STATUS TABLE: Pending Approvals and Overdue --#}
                     {%- set status_table = "<table width=100% border=0 cellspacing=0 cellpadding=0>" -%}
@@ -584,7 +591,7 @@ views:
                         {%- else -%}
                           {%- set ns.recurrence = ui.get('none', 'err-none') -%}
                         {%- endif -%}
-                        {%- set ns.chore_value = chore_state.attributes.get('default_points', 0) | int(default=0) -%}
+                        {%- set ns.chore_value = ((chore_state.attributes.get('default_points', 0) | float(default=0) | round(2)) | string | regex_replace('\.?0+$', '')) if pref_points_precision != 'fixed_0' else (chore_state.attributes.get('default_points', 0) | float(default=0) | round(0) | int) -%}
                         {%- set ns.chore_icon = chore_state.attributes.get('chore_icon', 'mdi:clipboard-check') -%}
                         {%- set ns.chore_description = chore_state.attributes.get('description', '') -%}
                         {%- set ns.chore_days = chore_state.attributes.get('applicable_days', []) -%}

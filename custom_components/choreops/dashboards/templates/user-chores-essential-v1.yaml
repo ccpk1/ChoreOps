@@ -49,8 +49,15 @@ views:
 
                   << template_snippets.user_override_helper >>
 
+                  {%- set pref_points_precision = 'fixed_0' -%}  {#-- Controls point formatting. Allowed: fixed_0, adaptive, fixed_1, fixed_2. --#}
+
 
                   {#-- 2. Dynamic Lookups & Validations --#}
+
+                  {%- set pref_points_precision = pref_points_precision | default('fixed_0') | string | lower -%}
+                  {%- if pref_points_precision not in ['fixed_0', 'adaptive', 'fixed_1', 'fixed_2'] -%}
+                    {%- set pref_points_precision = 'fixed_0' -%}
+                  {%- endif -%}
 
                   << template_snippets.user_setup >>
 
@@ -66,7 +73,7 @@ views:
                     {%- set highest_badge_entity = core_sensors.get('badges_eid') -%}
                     {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
                     {%- set ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor else {} -%}
-                    {%- set points = (states(points_sensor) | int(default=0)) if points_sensor else 0 -%}
+                    {%- set points_value = (states(points_sensor) | float(default=0)) if points_sensor else 0 -%}
                     {%- set points_label = (state_attr(points_sensor, 'unit_of_measurement') if points_sensor else None) or 'Points' -%}
                     {%- set points_icon = (state_attr(points_sensor, 'icon') if points_sensor else None) or 'mdi:star-circle' -%}
                     {%- set points_multiplier = (state_attr(points_sensor, 'points_multiplier') | float(default=1)) if points_sensor else 1 -%}
@@ -79,6 +86,22 @@ views:
 
                     {#-- 4. Build Display - essentials minimal --#}
                     {%- set p_icon = points_icon | default('mdi:star', true) -%}
+                    {%- set points_value = points_value | round(2) -%}
+                    {%- if pref_points_precision == 'adaptive' -%}
+                      {%- if points_value == (points_value | int) -%}
+                        {%- set points_display = (points_value | int) | string -%}
+                      {%- elif points_value == (points_value | round(1)) -%}
+                        {%- set points_display = '%.1f' | format(points_value) -%}
+                      {%- else -%}
+                        {%- set points_display = '%.2f' | format(points_value) -%}
+                      {%- endif -%}
+                    {%- elif pref_points_precision == 'fixed_1' -%}
+                      {%- set points_display = '%.1f' | format(points_value) -%}
+                    {%- elif pref_points_precision == 'fixed_2' -%}
+                      {%- set points_display = '%.2f' | format(points_value) -%}
+                    {%- else -%}
+                      {%- set points_display = (points_value | round(0) | int) | string -%}
+                    {%- endif -%}
                     {%- set multiplier_display = points_multiplier | int if points_multiplier == (points_multiplier | int) else points_multiplier -%}
 
                     {%- set badge_pill = '' -%}
@@ -106,7 +129,7 @@ views:
                     {%- if gamification_enabled -%}
                       {%- set right_col =
                         "<div style='text-align: right; flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; margin-left: 14px;'>"
-                        ~ "<div style='display: inline-flex; align-items: center; color: var(--primary-color); font-size: 22px; font-weight: 800; line-height: 1;'><ha-icon icon='" ~ p_icon ~ "' style='width: 22px; height: 24px; margin-right: 6px; transform: translateY(0px);'></ha-icon>" ~ points ~ "</div>"
+                        ~ "<div style='display: inline-flex; align-items: center; color: var(--primary-color); font-size: 22px; font-weight: 800; line-height: 1;'><ha-icon icon='" ~ p_icon ~ "' style='width: 22px; height: 24px; margin-right: 6px; transform: translateY(0px);'></ha-icon>" ~ points_display ~ "</div>"
                         ~ "<div style='font-size: 10px; text-transform: uppercase; font-weight: 700; opacity: 0.7; margin-top: 4px; letter-spacing: 0.5px;'>" ~ points_label ~ "</div>"
                         ~ badge_pill
                         ~ "</div>"

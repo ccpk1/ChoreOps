@@ -16,6 +16,14 @@
 - Home Assistant theme variables remain the default source for colors.
 - The accent preferences below are intentional product-specific exceptions for chore-state semantics and are declared as template variables for easier long-term maintenance.
 
+- `pref_points_precision` (default: `fixed_0`)
+  - Controls how point values are formatted in the welcome card.
+  - `fixed_0` shows a rounded whole-number display for compact layouts.
+  - `adaptive` shows whole numbers when possible, otherwise up to 2 decimals.
+  - `fixed_1` always shows 1 decimal place.
+  - `fixed_2` always shows 2 decimal places.
+  - Allowed: `fixed_0`, `adaptive`, `fixed_1`, `fixed_2`.
+
 ## Card: Chores
 
 - `pref_column_count` (default: `3`)

@@ -45,7 +45,14 @@ views:
 
                   << template_snippets.user_override_helper >>
 
+                  {%- set pref_points_precision = 'fixed_0' -%}  {#-- Controls point formatting. Allowed: fixed_0, adaptive, fixed_1, fixed_2. --#}
+
                   {#-- 2. Dynamic Lookups & Validations --#}
+
+                  {%- set pref_points_precision = pref_points_precision | default('fixed_0') | string | lower -%}
+                  {%- if pref_points_precision not in ['fixed_0', 'adaptive', 'fixed_1', 'fixed_2'] -%}
+                    {%- set pref_points_precision = 'fixed_0' -%}
+                  {%- endif -%}
 
                   << template_snippets.user_setup >>
 
@@ -61,7 +68,7 @@ views:
                     {%- set highest_badge_entity = core_sensors.get('badges_eid') -%}
                     {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
                     {%- set ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor else {} -%}
-                    {%- set points = (states(points_sensor) | int(default=0)) if points_sensor else 0 -%}
+                    {%- set points_value = (states(points_sensor) | float(default=0)) if points_sensor else 0 -%}
                     {%- set points_label = (state_attr(points_sensor, 'unit_of_measurement') if points_sensor else None) or 'Points' -%}
                     {%- set points_icon = (state_attr(points_sensor, 'icon') if points_sensor else None) or 'mdi:star-circle' -%}
                     {%- set weekly_completed = (state_attr(total_sensor, 'chore_stat_approved_week') | int(default=0)) if total_sensor else 0 -%}
@@ -71,6 +78,22 @@ views:
                     {%- set points_multiplier = (state_attr(points_sensor, 'points_multiplier') | float(default=1)) if points_sensor else 1 -%}
 
                     {#-- 4. Build Display --#}
+                    {%- set points_value = points_value | round(2) -%}
+                    {%- if pref_points_precision == 'adaptive' -%}
+                      {%- if points_value == (points_value | int) -%}
+                        {%- set points_display = (points_value | int) | string -%}
+                      {%- elif points_value == (points_value | round(1)) -%}
+                        {%- set points_display = '%.1f' | format(points_value) -%}
+                      {%- else -%}
+                        {%- set points_display = '%.2f' | format(points_value) -%}
+                      {%- endif -%}
+                    {%- elif pref_points_precision == 'fixed_1' -%}
+                      {%- set points_display = '%.1f' | format(points_value) -%}
+                    {%- elif pref_points_precision == 'fixed_2' -%}
+                      {%- set points_display = '%.2f' | format(points_value) -%}
+                    {%- else -%}
+                      {%- set points_display = (points_value | round(0) | int) | string -%}
+                    {%- endif -%}
                     {%- if highest_badge not in ['None', 'unknown', 'Unknown', 'unavailable'] -%}
                       {%- if points_multiplier > 1 -%}
                         {%- set badge_display = "<ha-icon icon='" ~ highest_badge_icon ~ "'></ha-icon> " ~ highest_badge ~ " (x" ~ points_multiplier|string ~ ")  \n" -%}
@@ -83,7 +106,7 @@ views:
 
                     {%- set content =
                       "## 👋 " ~ ui.get('welcome', 'err-welcome') ~ ", " ~ name ~ "! \n"
-                      "#### <ha-icon icon=" ~ points_icon ~ "></ha-icon>&nbsp;&nbsp;" ~ points_label ~ ": &nbsp;&nbsp;" ~ points ~ "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" ~ badge_display ~ " \n"
+                      "#### <ha-icon icon=" ~ points_icon ~ "></ha-icon>&nbsp;&nbsp;" ~ points_label ~ ": &nbsp;&nbsp;" ~ points_display ~ "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" ~ badge_display ~ " \n"
                       "**📅 " ~ ui.get('weekly_completed', 'err-weekly_completed') ~ ":** &nbsp;&nbsp;" ~ weekly_completed ~ "  \n"
                       "**☀️ " ~ ui.get('todays_completed', 'err-todays_completed') ~ ":** &nbsp;&nbsp;" ~ todays_completed ~ "  \n\n"
                     -%}
@@ -415,7 +438,23 @@ views:
                             'shared_first': ui.get('shared_first', 'err-shared_first')
                         } -%}
                         {%- set chore_state_display = (state_map[chore_state] if chore_state in state_map else chore_state) ~ ' (M)' if multi_approve == true else (state_map[chore_state] if chore_state in state_map else chore_state) -%}
-                        {%- set points = state_attr(chore_sensor_id, 'default_points') | string -%}
+                        {%- set points_value = state_attr(chore_sensor_id, 'default_points') | float(default=0) -%}
+                        {%- set points_value = points_value | round(2) -%}
+                        {%- if pref_points_precision == 'adaptive' -%}
+                          {%- if points_value == (points_value | int) -%}
+                            {%- set points = (points_value | int) | string -%}
+                          {%- elif points_value == (points_value | round(1)) -%}
+                            {%- set points = '%.1f' | format(points_value) -%}
+                          {%- else -%}
+                            {%- set points = '%.2f' | format(points_value) -%}
+                          {%- endif -%}
+                        {%- elif pref_points_precision == 'fixed_1' -%}
+                          {%- set points = '%.1f' | format(points_value) -%}
+                        {%- elif pref_points_precision == 'fixed_2' -%}
+                          {%- set points = '%.2f' | format(points_value) -%}
+                        {%- else -%}
+                          {%- set points = (points_value | round(0) | int) | string -%}
+                        {%- endif -%}
                         {%- set global_chore_state = state_attr(chore_sensor_id, 'global_state') -%}
                         {%- set streak = state_attr(chore_sensor_id, 'chore_current_streak') | string -%}
                         {%- set secondary = points_label ~ ': ' + points + '\n' + ui.get('streak', 'err-streak') + ': ' + streak + '\n \n' + ui.get('status', 'err-status') + ': ' + chore_state_display + '\n' + ui.get('due', 'err-due') + ': ' + due_date_short -%}
@@ -650,7 +689,7 @@ views:
                           {#-- Sort by reward cost --#}
                           {%- set ns.temp_list = [] -%}
                           {%- for reward in group.rewards -%}
-                            {%- set reward_cost = (reward.cost | int(default=999999)) if reward is mapping else 999999 -%}
+                            {%- set reward_cost = (reward.cost | float(default=999999)) if reward is mapping else 999999 -%}
                             {%- set ns.temp_list = ns.temp_list + [[reward_cost, reward]] -%}
                           {%- endfor -%}
                           {%- set sorted_list = ns.temp_list | sort -%}
@@ -689,7 +728,7 @@ views:
 
                         {%- for reward in group.rewards -%}
                           {%- set reward_name = reward.name if reward is mapping else 'Unknown' -%}
-                          {%- set reward_cost = (reward.cost | int(default=0)) if reward is mapping else 0 -%}
+                          {%- set reward_cost_value = (reward.cost | float(default=0)) if reward is mapping else 0 -%}
                           {%- set reward_claims = (reward.claims | int(default=0)) if reward is mapping else 0 -%}
                           {%- set reward_approvals = (reward.approvals | int(default=0)) if reward is mapping else 0 -%}
                           {%- set reward_sensor_eid = reward.eid if reward is mapping else '' -%}
@@ -730,11 +769,28 @@ views:
                           {#-- Select button entity based on reward state: disapprove for requested, claim for others --#}
                           {%- set active_button_eid = disapprove_button_eid if reward_state == 'requested' else claim_button_eid -%}
 
+                          {%- set reward_cost_value = reward_cost_value | round(2) -%}
+                          {%- if pref_points_precision == 'adaptive' -%}
+                            {%- if reward_cost_value == (reward_cost_value | int) -%}
+                              {%- set reward_cost_display = (reward_cost_value | int) | string -%}
+                            {%- elif reward_cost_value == (reward_cost_value | round(1)) -%}
+                              {%- set reward_cost_display = '%.1f' | format(reward_cost_value) -%}
+                            {%- else -%}
+                              {%- set reward_cost_display = '%.2f' | format(reward_cost_value) -%}
+                            {%- endif -%}
+                          {%- elif pref_points_precision == 'fixed_1' -%}
+                            {%- set reward_cost_display = '%.1f' | format(reward_cost_value) -%}
+                          {%- elif pref_points_precision == 'fixed_2' -%}
+                            {%- set reward_cost_display = '%.2f' | format(reward_cost_value) -%}
+                          {%- else -%}
+                            {%- set reward_cost_display = (reward_cost_value | round(0) | int) | string -%}
+                          {%- endif -%}
+
                           {%- set ns.group_cards = ns.group_cards + [{
                             'type': 'custom:mushroom-template-card',
                             'entity': reward_sensor_eid,
                             'primary': reward_name ~ " ( " ~ reward_state_display ~ " )",
-                            'secondary': "💰 " ~ ui.get('cost', 'err-cost') ~ ": " ~ reward_cost|string ~ " | 👍 " ~ reward_approvals|string ~ " | 📥 " ~ reward_claims|string,
+                            'secondary': "💰 " ~ ui.get('cost', 'err-cost') ~ ": " ~ reward_cost_display ~ " | 👍 " ~ reward_approvals|string ~ " | 📥 " ~ reward_claims|string,
                             'icon': reward_icon,
                             'icon_color': icon_color,
                             'badge_color': badge_color,
@@ -787,10 +843,16 @@ views:
                   {%- set entry_id = '<< integration.entry_id >>' -%}
                   {%- set lookup_key = entry_id ~ ':' ~ user_id -%}
 
+                  {%- set pref_points_precision = 'fixed_0' -%}
+
                   {%- set pref_show_penalties = true -%}
 
 
                   {#-- Type coercion for preferences --#}
+                  {%- set pref_points_precision = pref_points_precision | default('fixed_0') | string | lower -%}
+                  {%- if pref_points_precision not in ['fixed_0', 'adaptive', 'fixed_1', 'fixed_2'] -%}
+                    {%- set pref_points_precision = 'fixed_0' -%}
+                  {%- endif -%}
                   {%- set pref_show_penalties = (pref_show_penalties | default('true') | string | lower) == 'true' -%}
 
                   {#-- 2. Initialize Variables --#}
@@ -853,8 +915,8 @@ views:
                     {%- set gamification_enabled = helper_attrs.gamification_enabled | default(false, true) -%}
                     {%- set points_icon = (state_attr(points_sensor, 'icon') if points_sensor else None) or 'mdi:star-circle' -%}
                     {%- set points_label = (state_attr(points_sensor, 'unit_of_measurement') if points_sensor else None) or 'Points' -%}
-                    {%- set points = (states(points_sensor) | int(default=0)) if points_sensor else 0 -%}
-                    {%- set points_earned_all_time = (state_attr(points_sensor, 'point_stat_points_earned_all_time') | int(default=0)) if points_sensor else 0 -%}
+                    {%- set points_value = (states(points_sensor) | float(default=0)) if points_sensor else 0 -%}
+                    {%- set points_earned_all_time_value = (state_attr(points_sensor, 'point_stat_points_earned_all_time') | float(default=0)) if points_sensor else 0 -%}
                     {%- set all_time_completed = (state_attr(all_time_sensor, 'chore_stat_approved_all_time') | int(default=0)) if all_time_sensor else 0 -%}
                     {%- set highest_badge = ((states(highest_badge_entity) if highest_badge_entity else 'None') or 'None') -%}
                     {%- set highest_badge_icon = (state_attr(highest_badge_entity, 'icon') if highest_badge_entity else None) or 'mdi:medal-outline' -%}
@@ -867,6 +929,21 @@ views:
                     {%- set achievement_list = helper_attrs.achievements | default([], true) -%}
                     {%- set challenge_list = helper_attrs.challenges | default([], true) -%}
                     {#-- 4. Build Display --#}
+                    {%- set points_value = points_value | round(2) -%}
+                    {%- set points_earned_all_time_value = points_earned_all_time_value | round(2) -%}
+                    {%- if pref_points_precision == 'adaptive' -%}
+                      {%- set points_display = (points_value | int) | string if points_value == (points_value | int) else ('%.1f' | format(points_value) if points_value == (points_value | round(1)) else '%.2f' | format(points_value)) -%}
+                      {%- set points_earned_all_time = (points_earned_all_time_value | int) | string if points_earned_all_time_value == (points_earned_all_time_value | int) else ('%.1f' | format(points_earned_all_time_value) if points_earned_all_time_value == (points_earned_all_time_value | round(1)) else '%.2f' | format(points_earned_all_time_value)) -%}
+                    {%- elif pref_points_precision == 'fixed_1' -%}
+                      {%- set points_display = '%.1f' | format(points_value) -%}
+                      {%- set points_earned_all_time = '%.1f' | format(points_earned_all_time_value) -%}
+                    {%- elif pref_points_precision == 'fixed_2' -%}
+                      {%- set points_display = '%.2f' | format(points_value) -%}
+                      {%- set points_earned_all_time = '%.2f' | format(points_earned_all_time_value) -%}
+                    {%- else -%}
+                      {%- set points_display = (points_value | round(0) | int) | string -%}
+                      {%- set points_earned_all_time = (points_earned_all_time_value | round(0) | int) | string -%}
+                    {%- endif -%}
                     {%- set badge_display_line = ui.get('none', 'err-none') if highest_badge in ['None', 'unknown', 'Unknown', 'unavailable'] else "<ha-icon icon='" ~ highest_badge_icon ~ "'></ha-icon> " ~ highest_badge -%}
 
                     {%- for badge in badge_list -%}
@@ -978,7 +1055,7 @@ views:
 
                     {%- set ns.content =
                       "## 🏅 " ~ name ~ "’s " ~ ui.get('showcase', 'err-showcase') ~ "  \n"
-                      "<ha-icon icon=" ~ points_icon ~ "></ha-icon>" ~ "&nbsp;&nbsp;**" ~ points_label ~ ":** &nbsp;&nbsp;" ~ points ~ " "
+                      "<ha-icon icon=" ~ points_icon ~ "></ha-icon>" ~ "&nbsp;&nbsp;**" ~ points_label ~ ":** &nbsp;&nbsp;" ~ points_display ~ " "
                       "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**" ~ ui.get('earned_all_time', 'err-earned_all_time') ~ ":** &nbsp;&nbsp;" ~ points_earned_all_time ~ " \n\n"
                       "<ha-icon icon=" ~ 'mdi:broom' ~ "></ha-icon>" ~ "&nbsp;&nbsp;**" ~ ui.get('total_completed', 'err-total_completed') ~ ":** &nbsp;&nbsp;" ~ all_time_completed ~ " \n\n"
                       "**🥇 " ~ ui.get('highest_badge_earned', 'err-highest_badge_earned') ~ ":** &nbsp;&nbsp;" ~ badge_display_line ~ "  \n"
@@ -1100,8 +1177,8 @@ views:
                 {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
                 {%- set ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor else {} -%}
                 {%- set gamification_enabled = state_attr(dashboard_helper, 'gamification_enabled') | default(false, true) -%}
-                {%- set ns.points = (states(points_sensor) | int(default=0)) if points_sensor else 0 -%}
-                {%- set ns.points_earned_all_time = (state_attr(points_sensor, 'point_stat_points_earned_all_time') | int(default=0)) if points_sensor else 0 -%}
+                {%- set ns.points = (states(points_sensor) | float(default=0)) if points_sensor else 0 -%}
+                {%- set ns.points_earned_all_time = (state_attr(points_sensor, 'point_stat_points_earned_all_time') | float(default=0)) if points_sensor else 0 -%}
                 {%- set ns.points_label = (state_attr(points_sensor, 'unit_of_measurement') if points_sensor else None) | default('Pts', true) -%}
                 {%- set ns.highest_badge_sensor = core_sensors.get('badges_eid') -%}
                 {%- set hb_state = states(ns.highest_badge_sensor) if ns.highest_badge_sensor else 'unknown' -%}
@@ -1240,7 +1317,7 @@ views:
 
                   {#-- THRESHOLD --#}
                   {%- set content = content ~ "\n---\n" -%}
-                  {%- set content = content ~ "🎯 **" ~ ui.get('threshold', 'err-threshold') ~ ":** " ~ badge.threshold|int ~ " " ~ ns.points_label ~ "  \n" -%}
+                  {%- set content = content ~ "🎯 **" ~ ui.get('threshold', 'err-threshold') ~ ":** " ~ ((badge.threshold | round(2)) | string | regex_replace('\.?0+$', '')) ~ " " ~ ns.points_label ~ "  \n" -%}
 
                   {#-- AWARDS SECTION --#}
                     {%- set awards_parts = [] -%}
@@ -1248,7 +1325,7 @@ views:
                       {%- set awards_parts = awards_parts + ['x' ~ ('%.2f' | format(badge.points_multiplier) | regex_replace('\.?0+$', ''))] -%}
                     {%- endif -%}
                     {%- if badge.award_points > 0 -%}
-                      {%- set awards_parts = awards_parts + [('%.1f' | format(badge.award_points)) ~ ' ' ~ ns.points_label] -%}
+                      {%- set awards_parts = awards_parts + [(('%.2f' | format(badge.award_points)) | regex_replace('\.?0+$', '')) ~ ' ' ~ ns.points_label] -%}
                     {%- endif -%}
                     {%- if badge.award_bonuses | length > 0 -%}
                       {%- set awards_parts = awards_parts + [ui.get('bonus', 'err-bonus') ~ (' x' ~ (badge.award_bonuses | length) | string if badge.award_bonuses | length > 1 else '')] -%}
@@ -1280,10 +1357,10 @@ views:
 
                           {#- Progress Line -#}
                           {%- set req_pts = ns.m_required if ns.m_required > 0 else badge.maintenance -%}
-                          {%- set content = content ~ "- ⏳ **" ~ ui.get('in_progress', 'err-in_progress') ~ ":** " ~ ns.m_cycle_pts ~ " / " ~ req_pts ~ " " ~ ns.points_label ~ "  \n" -%}
+                          {%- set content = content ~ "- ⏳ **" ~ ui.get('in_progress', 'err-in_progress') ~ ":** " ~ ((ns.m_cycle_pts | round(2)) | string | regex_replace('\.?0+$', '')) ~ " / " ~ ((req_pts | round(2)) | string | regex_replace('\.?0+$', '')) ~ " " ~ ns.points_label ~ "  \n" -%}
 
                           {%- if ns.m_remaining > 0 -%}
-                              {%- set content = content ~ "- 🔥 **" ~ ui.get('need', 'err-need') ~ ":** " ~ ns.m_remaining ~ " " ~ ns.points_label ~ "  \n" -%}
+                              {%- set content = content ~ "- 🔥 **" ~ ui.get('need', 'err-need') ~ ":** " ~ ((ns.m_remaining | round(2)) | string | regex_replace('\.?0+$', '')) ~ " " ~ ns.points_label ~ "  \n" -%}
                           {%- else -%}
                               {%- set content = content ~ "- 🎉 " ~ ui.get('requirement_met', 'err-requirement_met') ~ " \n" -%}
                           {%- endif -%}
@@ -1316,7 +1393,7 @@ views:
                       {%- endif -%}
 
                       {%- if pts_val > 0 -%}
-                          {%- set footer_elements = footer_elements + ["🚀 **" ~ ui.get('to_unlock', 'err-to_unlock') ~ ":** " ~ pts_val ~ " " ~ ns.points_label] -%}
+                          {%- set footer_elements = footer_elements + ["🚀 **" ~ ui.get('to_unlock', 'err-to_unlock') ~ ":** " ~ ((pts_val | round(2)) | string | regex_replace('\.?0+$', '')) ~ " " ~ ns.points_label] -%}
                       {%- endif -%}
                   {%- endif -%}
 
@@ -1596,10 +1673,10 @@ views:
                         {%- if achievement_sensor_id -%}
                           {%- set achievement_name = state_attr(achievement_sensor_id, 'achievement_name') | default('Unknown') -%}
                           {%- set achievement_icon = state_attr(achievement_sensor_id, 'icon') or 'mdi:flag-checkered' -%}
-                          {%- set target_value = state_attr(achievement_sensor_id, 'target_value') | int(default=0) -%}
+                          {%- set target_value = state_attr(achievement_sensor_id, 'target_value') | float(default=0) -%}
                           {%- set raw_progress = state_attr(achievement_sensor_id, 'raw_progress') | float(default=0) -%}
                           {%- set awarded = state_attr(achievement_sensor_id, 'awarded') | default(false) -%}
-                          {%- set reward_points = state_attr(achievement_sensor_id, 'reward_points') | int(default=0) -%}
+                          {%- set reward_points = state_attr(achievement_sensor_id, 'reward_points') | float(default=0) -%}
                           {%- set achievement_type = state_attr(achievement_sensor_id, 'type') | default('total_within_window') -%}
                           {%- set progress_percentage = ((raw_progress / target_value) * 100) | round(1) if target_value > 0 else 0 -%}
                           {%- set associated_chore = state_attr(achievement_sensor_id, 'associated_chore') | default('') -%}
@@ -1608,10 +1685,11 @@ views:
                           {%- set assigned_users = state_attr(achievement_sensor_id, 'assigned_assignees') | default([], true) -%}
 
                         {%- set awarded_text = "✔️ " ~ ui.get('earned', 'err-earned') if awarded else "⌛ " ~ ui.get('in_progress', 'err-in_progress') -%}
+                        {%- set goal_type_value = ((target_value | round(2)) | string | regex_replace('\.?0+$', '')) -%}
                         {%- set goal_type_label =
-                          target_value ~ ' (' ~ ns.STREAK_GOAL ~ ')' if achievement_type == 'chore_streak'
-                          else target_value ~ ' (' ~ ns.DAILY_MINIMUM ~ ')' if achievement_type == 'daily_minimum'
-                          else target_value ~ ' (' ~ ns.TOTAL_CHORES ~ ')' -%}
+                          goal_type_value ~ ' (' ~ ns.STREAK_GOAL ~ ')' if achievement_type == 'chore_streak'
+                          else goal_type_value ~ ' (' ~ ns.DAILY_MINIMUM ~ ')' if achievement_type == 'daily_minimum'
+                          else goal_type_value ~ ' (' ~ ns.TOTAL_CHORES ~ ')' -%}
                         {%- set users_display = assigned_users | join(', ') if assigned_users | count > 0 else '' -%}
 
                         {%- set content = "## <ha-icon icon=" ~ achievement_icon ~ "></ha-icon> " ~ ui.get('achievement', 'err-achievement') ~ ": " ~ achievement_name ~ "  \n" -%}
@@ -1628,11 +1706,11 @@ views:
                         {%- set content = content ~ "**🎯 " ~ ui.get('goal', 'err-goal') ~ ":** &nbsp;&nbsp;" ~ goal_type_label ~ "  \n" -%}
 
                         {%- if reward_points > 0 -%}
-                          {%- set content = content ~ "**💎 " ~ ui.get('reward', 'err-reward') ~ ":** &nbsp;&nbsp;" ~ reward_points|string ~ " " ~ points_label ~ " \n" -%}
+                          {%- set content = content ~ "**💎 " ~ ui.get('reward', 'err-reward') ~ ":** &nbsp;&nbsp;" ~ (((reward_points | round(2)) | string | regex_replace('\.?0+$', ''))) ~ " " ~ points_label ~ " \n" -%}
                         {%- endif -%}
 
                         {%- if not awarded -%}
-                          {%- set content = content ~ "\n **📊 " ~ ui.get('progress', 'err-progress') ~ ":** &nbsp;&nbsp;" ~ raw_progress|int|string ~ "/" ~ target_value|string ~ " (" ~ progress_percentage|string ~ "%)  \n" -%}
+                          {%- set content = content ~ "\n **📊 " ~ ui.get('progress', 'err-progress') ~ ":** &nbsp;&nbsp;" ~ (((raw_progress | round(2)) | string | regex_replace('\.?0+$', ''))) ~ "/" ~ (((target_value | round(2)) | string | regex_replace('\.?0+$', ''))) ~ " (" ~ progress_percentage|string ~ "%)  \n" -%}
                         {%- endif -%}
 
                         {%- if users_display -%}
@@ -1740,10 +1818,10 @@ views:
                         {%- if challenge_sensor_id -%}
                           {%- set challenge_name = state_attr(challenge_sensor_id, 'challenge_name') | default('Unknown') -%}
                           {%- set challenge_icon = state_attr(challenge_sensor_id, 'icon') or 'mdi:flag-checkered' -%}
-                          {%- set target_value = state_attr(challenge_sensor_id, 'target_value') | int(default=0) -%}
+                          {%- set target_value = state_attr(challenge_sensor_id, 'target_value') | float(default=0) -%}
                           {%- set raw_progress = state_attr(challenge_sensor_id, 'raw_progress') | float(default=0) -%}
                           {%- set awarded = state_attr(challenge_sensor_id, 'awarded') | default(false) -%}
-                          {%- set reward_points = state_attr(challenge_sensor_id, 'reward_points') | int(default=0) -%}
+                          {%- set reward_points = state_attr(challenge_sensor_id, 'reward_points') | float(default=0) -%}
                           {%- set challenge_type = state_attr(challenge_sensor_id, 'type') | default('total_within_window') -%}
                           {%- set progress_percentage = ((raw_progress / target_value) * 100) | round(1) if target_value > 0 else 0 -%}
                           {%- set associated_chore = state_attr(challenge_sensor_id, 'associated_chore') | default('') -%}
@@ -1752,9 +1830,10 @@ views:
                           {%- set assigned_users = state_attr(challenge_sensor_id, 'assigned_assignees') | default([], true) -%}
 
                           {%- set awarded_text = "✔️ " ~ ui.get('earned', 'err-earned') if awarded else "⌛ " ~ ui.get('in_progress', 'err-in_progress') -%}
+                          {%- set goal_type_value = ((target_value | round(2)) | string | regex_replace('\.?0+$', '')) -%}
                           {%- set goal_type_label =
-                            target_value ~ ' (' ~ ui.get('total_chores', 'err-total_chores') ~ ')' if challenge_type == 'total_within_window'
-                            else target_value ~ ' (' ~ ui.get('per_day_goal', 'err-per_day_goal') ~ ')'
+                            goal_type_value ~ ' (' ~ ui.get('total_chores', 'err-total_chores') ~ ')' if challenge_type == 'total_within_window'
+                            else goal_type_value ~ ' (' ~ ui.get('per_day_goal', 'err-per_day_goal') ~ ')'
                           -%}
                           {%- set users_display = assigned_users | join(', ') if assigned_users | count > 0 else '' -%}
 
@@ -1779,11 +1858,11 @@ views:
                           {%- set content = content ~ "**📅 " ~ ui.get('end_date', 'err-end_date') ~ ":** &nbsp;&nbsp;" ~ end_date ~ "  \n" -%}
 
                           {%- if reward_points > 0 -%}
-                            {%- set content = content ~ "**💎 " ~ ui.get('reward', 'err-reward') ~ ":** &nbsp;&nbsp;" ~ reward_points|string ~ " " ~ points_label ~ " \n" -%}
+                            {%- set content = content ~ "**💎 " ~ ui.get('reward', 'err-reward') ~ ":** &nbsp;&nbsp;" ~ (((reward_points | round(2)) | string | regex_replace('\.?0+$', ''))) ~ " " ~ points_label ~ " \n" -%}
                           {%- endif -%}
 
                           {%- if not awarded -%}
-                            {%- set content = content ~ "\n **📊 " ~ ui.get('progress', 'err-progress') ~ ":** &nbsp;&nbsp;" ~ raw_progress|int|string ~ "/" ~ target_value|string ~ " (" ~ progress_percentage|string ~ "%)  \n" -%}
+                            {%- set content = content ~ "\n **📊 " ~ ui.get('progress', 'err-progress') ~ ":** &nbsp;&nbsp;" ~ (((raw_progress | round(2)) | string | regex_replace('\.?0+$', ''))) ~ "/" ~ (((target_value | round(2)) | string | regex_replace('\.?0+$', ''))) ~ " (" ~ progress_percentage|string ~ "%)  \n" -%}
                           {%- endif -%}
 
                           {%- if users_display -%}

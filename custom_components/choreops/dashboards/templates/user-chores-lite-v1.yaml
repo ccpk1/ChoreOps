@@ -55,8 +55,15 @@ views:
 
                     << template_snippets.user_override_helper | indent(width=20, first=true) >>
 
+                    {%- set pref_points_precision = 'fixed_0' -%}  {#-- Controls point formatting. Allowed: fixed_0, adaptive, fixed_1, fixed_2. --#}
+
 
                     {#-- 2. Dynamic Lookups & Validations --#}
+
+                    {%- set pref_points_precision = pref_points_precision | default('fixed_0') | string | lower -%}
+                    {%- if pref_points_precision not in ['fixed_0', 'adaptive', 'fixed_1', 'fixed_2'] -%}
+                      {%- set pref_points_precision = 'fixed_0' -%}
+                    {%- endif -%}
 
                     << template_snippets.user_setup | indent(width=20, first=true) >>
 
@@ -71,7 +78,7 @@ views:
                       {%- set total_sensor = core_sensors.get('chores_eid') -%}
                       {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
                       {%- set ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor else {} -%}
-                      {%- set points = (states(points_sensor) | int(default=0)) if points_sensor else 0 -%}
+                      {%- set points_value = (states(points_sensor) | float(default=0)) if points_sensor else 0 -%}
                       {%- set points_label = (state_attr(points_sensor, 'unit_of_measurement') if points_sensor else None) or ui.get('points_details', 'Points') -%}
                       {%- set overdue_now = (state_attr(total_sensor, 'chore_stat_current_overdue') | int(default=0)) if total_sensor else 0 -%}
                       {%- set due_today_open = (state_attr(total_sensor, 'chore_stat_current_due_today') | int(default=0)) if total_sensor else 0 -%}
@@ -79,9 +86,25 @@ views:
                       {%- set weekly_completed = (state_attr(total_sensor, 'chore_stat_approved_week') | int(default=0)) if total_sensor else 0 -%}
 
                       {#-- 4. Build Display --#}
+                      {%- set points_value = points_value | round(2) -%}
+                      {%- if pref_points_precision == 'adaptive' -%}
+                        {%- if points_value == (points_value | int) -%}
+                          {%- set points_display = (points_value | int) | string -%}
+                        {%- elif points_value == (points_value | round(1)) -%}
+                          {%- set points_display = '%.1f' | format(points_value) -%}
+                        {%- else -%}
+                          {%- set points_display = '%.2f' | format(points_value) -%}
+                        {%- endif -%}
+                      {%- elif pref_points_precision == 'fixed_1' -%}
+                        {%- set points_display = '%.1f' | format(points_value) -%}
+                      {%- elif pref_points_precision == 'fixed_2' -%}
+                        {%- set points_display = '%.2f' | format(points_value) -%}
+                      {%- else -%}
+                        {%- set points_display = (points_value | round(0) | int) | string -%}
+                      {%- endif -%}
                       {%- set content =
                         "## 👋 " ~ ui.get('welcome', 'err-welcome') ~ ", " ~ name ~ "\n"
-                        ~ ("**⭐ " ~ points_label ~ ":** " ~ points|string ~ "  \n" if gamification_enabled else "")
+                        ~ ("**⭐ " ~ points_label ~ ":** " ~ points_display ~ "  \n" if gamification_enabled else "")
                         ~ "**🧹 " ~ ui.get('overdue', 'err-overdue') ~ ":** " ~ overdue_now|string ~ ""
                         ~ "  •  **📅 " ~ ui.get('due_today', 'err-due_today') ~ ":** " ~ due_today_open|string ~ "  \n"
                         ~ "**☀️ " ~ ui.get('todays_completed', 'err-todays_completed') ~ ":** " ~ todays_completed|string

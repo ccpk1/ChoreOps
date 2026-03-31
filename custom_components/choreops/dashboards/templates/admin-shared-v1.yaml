@@ -1005,6 +1005,8 @@ views:
 
               {%- set pref_claim_accent = '#a957fa' -%}
 
+              {%- set pref_points_precision = 'fixed_0' -%}
+
               {%- set pref_chore_selector_column_count = 3 -%}
 
               {%- set pref_chore_action_column_count = 4 -%}
@@ -1026,8 +1028,12 @@ views:
               {%- set pref_chore_management_primary_tint_mix_pct = pref_chore_management_primary_tint_mix_pct | int(default=14) -%}
               {%- set pref_chore_management_show_header_background = (pref_chore_management_show_header_background | default('true') | string | lower) == 'true' -%}
               {%- set pref_chore_management_show_header_thin_border = (pref_chore_management_show_header_thin_border | default('true') | string | lower) == 'true' -%}
+              {%- set pref_points_precision = pref_points_precision | default('fixed_0') | string | lower -%}
               {%- set pref_chore_selector_column_count = pref_chore_selector_column_count | int(default=3) -%}
               {%- set pref_chore_action_column_count = pref_chore_action_column_count | int(default=4) -%}
+              {%- if pref_points_precision not in ['fixed_0', 'adaptive', 'fixed_1', 'fixed_2'] -%}
+                {%- set pref_points_precision = 'fixed_0' -%}
+              {%- endif -%}
               {%- if pref_chore_management_primary_tint_mix_pct < 0 -%}
                 {%- set pref_chore_management_primary_tint_mix_pct = 0 -%}
               {%- elif pref_chore_management_primary_tint_mix_pct > 100 -%}
@@ -1420,7 +1426,17 @@ views:
                   {%- set completion_type_key = chore_attrs.get('completion_criteria', 'independent') -%}
                   {%- set completion_type_display = ui.get(completion_type_key, completion_type_key | title) -%}
                   {%- set chore_icon = chore_attrs.get('icon', 'mdi:broom') -%}
-                  {%- set chore_value = chore_attrs.get('default_points', 0) | int(default=0) -%}
+                  {%- set chore_value_value = chore_attrs.get('default_points', 0) | float(default=0) -%}
+                  {%- set chore_value_value = chore_value_value | round(2) -%}
+                  {%- if pref_points_precision == 'adaptive' -%}
+                    {%- set chore_value = (chore_value_value | int) | string if chore_value_value == (chore_value_value | int) else ('%.1f' | format(chore_value_value) if chore_value_value == (chore_value_value | round(1)) else '%.2f' | format(chore_value_value)) -%}
+                  {%- elif pref_points_precision == 'fixed_1' -%}
+                    {%- set chore_value = '%.1f' | format(chore_value_value) -%}
+                  {%- elif pref_points_precision == 'fixed_2' -%}
+                    {%- set chore_value = '%.2f' | format(chore_value_value) -%}
+                  {%- else -%}
+                    {%- set chore_value = (chore_value_value | round(0) | int) | string -%}
+                  {%- endif -%}
                   {%- set points_label = (state_attr(points_sensor, 'unit_of_measurement') if points_sensor not in ['', None, 'None'] else None) or 'Points' -%}
                   {%- set recurrence_key = chore_attrs.get('recurring_frequency', 'none') -%}
                   {%- set recurrence_display = recurrence_map.get(recurrence_key, recurrence_key | title) -%}
@@ -2280,6 +2296,8 @@ views:
 
               {%- set pref_economy_management_show_header_thin_border = true -%}
 
+              {%- set pref_points_precision = 'fixed_0' -%}
+
 
               {#-- 2. Dynamic Lookups & Validations --#}
 
@@ -2297,6 +2315,10 @@ views:
               {%- set pref_economy_management_primary_tint_mix_pct = pref_economy_management_primary_tint_mix_pct | int(default=14) -%}
               {%- set pref_economy_management_show_header_background = (pref_economy_management_show_header_background | default('true') | string | lower) == 'true' -%}
               {%- set pref_economy_management_show_header_thin_border = (pref_economy_management_show_header_thin_border | default('true') | string | lower) == 'true' -%}
+              {%- set pref_points_precision = pref_points_precision | default('fixed_0') | string | lower -%}
+              {%- if pref_points_precision not in ['fixed_0', 'adaptive', 'fixed_1', 'fixed_2'] -%}
+                {%- set pref_points_precision = 'fixed_0' -%}
+              {%- endif -%}
               {%- if pref_economy_management_primary_tint_mix_pct < 0 -%}
                 {%- set pref_economy_management_primary_tint_mix_pct = 0 -%}
               {%- elif pref_economy_management_primary_tint_mix_pct > 100 -%}
@@ -2353,22 +2375,25 @@ views:
                   else economy_label
                 ) -%}
                 {%- set points_total_numeric = points_total_display | float(default=0) -%}
-                {%- set points_total_compact = points_total_numeric | round(0) | int | string -%}
+                {%- set points_total_numeric = points_total_numeric | round(2) -%}
+                {%- set points_total_compact = (points_total_numeric | int) | string if pref_points_precision == 'adaptive' and points_total_numeric == (points_total_numeric | int) else ('%.1f' | format(points_total_numeric) if pref_points_precision == 'fixed_1' else ('%.2f' | format(points_total_numeric) if pref_points_precision == 'fixed_2' else ((points_total_numeric | round(0) | int) | string if pref_points_precision != 'adaptive' else ('%.1f' | format(points_total_numeric) if points_total_numeric == (points_total_numeric | round(1)) else '%.2f' | format(points_total_numeric))))) -%}
                 {%- set points_multiplier = (state_attr(points_sensor, 'points_multiplier') | float(default=1)) if has_points_sensor else 1 -%}
                 {%- set points_multiplier_text = (points_multiplier | round(2)) | string -%}
                 {%- set points_week_earned = (state_attr(points_sensor, 'point_stat_points_earned_week') | float(default=0)) if has_points_sensor else 0 -%}
-                {%- set points_week_earned_text = (points_week_earned | round(0) | int) | string -%}
+                {%- set points_week_earned_text = ((points_week_earned | round(2)) | string | regex_replace('\.?0+$', '')) if pref_points_precision != 'fixed_0' else (points_week_earned | round(0) | int) | string -%}
                 {%- set points_avg_per_day_week = (state_attr(points_sensor, 'point_stat_avg_points_per_day_week') | float(default=0)) if has_points_sensor else 0 -%}
-                {%- set points_avg_per_day_text = (points_avg_per_day_week | round(0) | int) | string -%}
+                {%- set points_avg_per_day_text = ((points_avg_per_day_week | round(2)) | string | regex_replace('\.?0+$', '')) if pref_points_precision != 'fixed_0' else (points_avg_per_day_week | round(0) | int) | string -%}
                   {%- set points_by_source_all_time = (state_attr(points_sensor, 'point_stat_points_by_source_all_time') if has_points_sensor else {}) or {} -%}
-                  {%- set bonus_points_all_time = (points_by_source_all_time.get('bonuses', 0) | round(0) | int) if points_by_source_all_time is mapping else 0 -%}
-                  {%- set penalty_points_all_time = (points_by_source_all_time.get('penalties', 0) | round(0) | int) if points_by_source_all_time is mapping else 0 -%}
+                  {%- set bonus_points_all_time = (points_by_source_all_time.get('bonuses', 0) | float(default=0)) if points_by_source_all_time is mapping else 0 -%}
+                  {%- set penalty_points_all_time = (points_by_source_all_time.get('penalties', 0) | float(default=0)) if points_by_source_all_time is mapping else 0 -%}
+                {%- set bonus_points_all_time_text = ((bonus_points_all_time | abs | round(2)) | string | regex_replace('\.?0+$', '')) if pref_points_precision != 'fixed_0' else ((bonus_points_all_time | abs) | round(0) | int) | string -%}
+                {%- set penalty_points_all_time_text = ((penalty_points_all_time | abs | round(2)) | string | regex_replace('\.?0+$', '')) if pref_points_precision != 'fixed_0' else ((penalty_points_all_time | abs) | round(0) | int) | string -%}
                 {%- set button_grid_columns = 6 -%}
                 {%- set bonus_ns = namespace(rows_html='', top_count=0, total_points=0, total_applied=0) -%}
                 {%- for bonus in bonus_list | sort(attribute='applied', reverse=true) -%}
                   {%- if bonus is mapping -%}
                     {%- set bonus_applied = bonus.get('applied', 0) | int(default=0) -%}
-                    {%- set bonus_points = bonus.get('points', 0) | int(default=0) -%}
+                    {%- set bonus_points = bonus.get('points', 0) | float(default=0) -%}
                     {%- if bonus_applied > 0 -%}
                       {%- set bonus_ns.total_applied = bonus_ns.total_applied + bonus_applied -%}
                       {%- set bonus_ns.total_points = bonus_ns.total_points + (bonus_points * bonus_applied) -%}
@@ -2380,7 +2405,7 @@ views:
                       {%- set bonus_icon = (state_attr(bonus_button_eid, 'icon') if bonus_button_eid else none) | default('mdi:gift-outline', true) -%}
                       {%- set bonus_applied_label = (" x" ~ bonus_applied|string) if bonus_applied > 0 else '' -%}
                       {%- set bonus_ns.top_count = bonus_ns.top_count + 1 -%}
-                      {%- set bonus_ns.rows_html = bonus_ns.rows_html ~ "<div style='display:grid;grid-template-columns:18px minmax(0,1fr) auto;column-gap:8px;align-items:center;padding:5px 0;'><span style='width:18px;height:18px;display:flex;align-items:center;justify-content:center;'><ha-icon icon='" ~ bonus_icon ~ "' style='width:14px;height:14px;color:var(--success-color);transform:translateY(-3px);'></ha-icon></span><div style='min-width:0;font-size:12px;font-weight:600;color:var(--primary-text-color);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'>" ~ bonus_name_safe ~ "</div><div style='display:flex;align-items:center;gap:6px;font-size:10px;font-weight:700;white-space:nowrap;'><span style='color:var(--success-color);'>+" ~ bonus_points|string ~ "</span><span style='color:var(--secondary-text-color);'>" ~ (bonus_applied_label if bonus_applied_label | length > 0 else '•') ~ "</span></div></div>" -%}
+                      {%- set bonus_ns.rows_html = bonus_ns.rows_html ~ "<div style='display:grid;grid-template-columns:18px minmax(0,1fr) auto;column-gap:8px;align-items:center;padding:5px 0;'><span style='width:18px;height:18px;display:flex;align-items:center;justify-content:center;'><ha-icon icon='" ~ bonus_icon ~ "' style='width:14px;height:14px;color:var(--success-color);transform:translateY(-3px);'></ha-icon></span><div style='min-width:0;font-size:12px;font-weight:600;color:var(--primary-text-color);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'>" ~ bonus_name_safe ~ "</div><div style='display:flex;align-items:center;gap:6px;font-size:10px;font-weight:700;white-space:nowrap;'><span style='color:var(--success-color);'>+" ~ (((bonus_points | round(2)) | string | regex_replace('\.?0+$', ''))) ~ "</span><span style='color:var(--secondary-text-color);'>" ~ (bonus_applied_label if bonus_applied_label | length > 0 else '•') ~ "</span></div></div>" -%}
                     {%- endif -%}
                   {%- endif -%}
                 {%- endfor -%}
@@ -2388,7 +2413,7 @@ views:
                 {%- for penalty in penalty_list | sort(attribute='applied', reverse=true) -%}
                   {%- if penalty is mapping -%}
                     {%- set penalty_applied = penalty.get('applied', 0) | int(default=0) -%}
-                    {%- set penalty_points = penalty.get('points', 0) | int(default=0) -%}
+                    {%- set penalty_points = penalty.get('points', 0) | float(default=0) -%}
                     {%- if penalty_applied > 0 -%}
                       {%- set penalty_ns.total_applied = penalty_ns.total_applied + penalty_applied -%}
                       {%- set penalty_ns.total_points = penalty_ns.total_points + (penalty_points * penalty_applied) -%}
@@ -2400,10 +2425,12 @@ views:
                       {%- set penalty_icon = (state_attr(penalty_button_eid, 'icon') if penalty_button_eid else none) | default('mdi:alert-octagon-outline', true) -%}
                       {%- set penalty_applied_label = (" x" ~ penalty_applied|string) if penalty_applied > 0 else '' -%}
                       {%- set penalty_ns.top_count = penalty_ns.top_count + 1 -%}
-                      {%- set penalty_ns.rows_html = penalty_ns.rows_html ~ "<div style='display:grid;grid-template-columns:18px minmax(0,1fr) auto;column-gap:8px;align-items:center;padding:5px 0;'><span style='width:18px;height:18px;display:flex;align-items:center;justify-content:center;'><ha-icon icon='" ~ penalty_icon ~ "' style='width:14px;height:14px;color:var(--error-color);transform:translateY(-3px);'></ha-icon></span><div style='min-width:0;font-size:12px;font-weight:600;color:var(--primary-text-color);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'>" ~ penalty_name_safe ~ "</div><div style='display:flex;align-items:center;gap:6px;font-size:10px;font-weight:700;white-space:nowrap;'><span style='color:var(--error-color);'>" ~ penalty_points|string ~ "</span><span style='color:var(--secondary-text-color);'>" ~ (penalty_applied_label if penalty_applied_label | length > 0 else '•') ~ "</span></div></div>" -%}
+                      {%- set penalty_ns.rows_html = penalty_ns.rows_html ~ "<div style='display:grid;grid-template-columns:18px minmax(0,1fr) auto;column-gap:8px;align-items:center;padding:5px 0;'><span style='width:18px;height:18px;display:flex;align-items:center;justify-content:center;'><ha-icon icon='" ~ penalty_icon ~ "' style='width:14px;height:14px;color:var(--error-color);transform:translateY(-3px);'></ha-icon></span><div style='min-width:0;font-size:12px;font-weight:600;color:var(--primary-text-color);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'>" ~ penalty_name_safe ~ "</div><div style='display:flex;align-items:center;gap:6px;font-size:10px;font-weight:700;white-space:nowrap;'><span style='color:var(--error-color);'>" ~ (((penalty_points | round(2)) | string | regex_replace('\.?0+$', ''))) ~ "</span><span style='color:var(--secondary-text-color);'>" ~ (penalty_applied_label if penalty_applied_label | length > 0 else '•') ~ "</span></div></div>" -%}
                     {%- endif -%}
                   {%- endif -%}
                 {%- endfor -%}
+                {%- set bonus_total_points_text = ((bonus_ns.total_points | abs | round(2)) | string | regex_replace('\.?0+$', '')) if pref_points_precision != 'fixed_0' else ((bonus_ns.total_points | abs) | round(0) | int) | string -%}
+                {%- set penalty_total_points_text = ((penalty_ns.total_points | abs | round(2)) | string | regex_replace('\.?0+$', '')) if pref_points_precision != 'fixed_0' else ((penalty_ns.total_points | abs) | round(0) | int) | string -%}
                 {%- set points_per_day_compact = (ui.get('points_per_day', 'Points / Day') | replace(' / ', '/') | replace(' /', '/') | replace('/ ', '/')) -%}
                 {%- set hero_metrics_html = "<div style='display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;'><span style='display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:color-mix(in srgb, var(--primary-color) 10%, var(--card-background-color));font-size:11px;font-weight:700;color:var(--primary-text-color);'>⚡ x" ~ points_multiplier_text ~ " " ~ ui.get('active', 'err-active') ~ "</span><span style='display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:color-mix(in srgb, var(--success-color) 8%, var(--card-background-color));font-size:11px;font-weight:700;color:var(--primary-text-color);'>📅 +" ~ points_week_earned_text ~ " " ~ ui.get('this_week', 'This Week') ~ "</span><span style='display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:color-mix(in srgb, var(--warning-color) 9%, var(--card-background-color));font-size:11px;font-weight:700;color:var(--primary-text-color);'>📈 " ~ points_avg_per_day_text ~ " " ~ points_per_day_compact ~ "</span></div>" -%}
                 {%- set points_hero_card = {
@@ -2452,7 +2479,7 @@ views:
                   {%- set button_name_short = button_name[7:] if button_name[:7] == 'Points ' else button_name -%}
                   {%- set button_icon = (state_attr(button_eid, 'icon') if button_eid else none) | default('mdi:star-four-points-outline', true) -%}
                   {%- set button_delta_value = button_name_short | float(default=0) -%}
-                  {%- set button_delta_abs = (button_delta_value | abs | round(0) | int) | string -%}
+                  {%- set button_delta_abs = ((button_delta_value | abs | round(2)) | string | regex_replace('\.?0+$', '')) if pref_points_precision != 'fixed_0' else (button_delta_value | abs | round(0) | int) | string -%}
                   {%- set button_name_display = ('+' ~ button_delta_abs) if button_delta_value > 0 else ('-' ~ button_delta_abs) if button_delta_value < 0 else button_name_short -%}
                   {%- set is_positive = button_delta_value > 0 -%}
                   {%- set button_card = {
@@ -2508,9 +2535,9 @@ views:
                   {%- if bonus is mapping -%}
                     {%- set bonus_eid = bonus.get('eid') -%}
                     {%- set bonus_name = (bonus.get('name') or ui.get('bonus', 'err-bonus')) | string -%}
-                    {%- set bonus_points = bonus.get('points', 0) | int(default=0) -%}
+                    {%- set bonus_points = bonus.get('points', 0) | float(default=0) -%}
                     {%- set bonus_applied = bonus.get('applied', 0) | int(default=0) -%}
-                    {%- set bonus_points_display = ((bonus_points | abs) | round(0) | int) | string -%}
+                    {%- set bonus_points_display = ((bonus_points | abs | round(2)) | string | regex_replace('\.?0+$', '')) if pref_points_precision != 'fixed_0' else ((bonus_points | abs) | round(0) | int) | string -%}
                     {%- set bonus_icon = (state_attr(bonus_eid, 'icon') if bonus_eid else none) | default('mdi:gift-outline', true) -%}
                     {%- set bonus_action_cards.items = bonus_action_cards.items + [{
                       'type': 'custom:button-card',
@@ -2653,11 +2680,11 @@ views:
                   {%- if penalty is mapping -%}
                     {%- set penalty_eid = penalty.get('eid') -%}
                     {%- set penalty_name = (penalty.get('name') or ui.get('penalty', 'err-penalty')) | string -%}
-                    {%- set penalty_points = penalty.get('points', 0) | int(default=0) -%}
+                    {%- set penalty_points = penalty.get('points', 0) | float(default=0) -%}
                     {%- set penalty_applied = penalty.get('applied', 0) | int(default=0) -%}
                     {%- set penalty_icon = (state_attr(penalty_eid, 'icon') if penalty_eid else none) | default('mdi:alert-octagon-outline', true) -%}
                     {%- set penalty_points_abs = penalty_points | abs -%}
-                    {%- set penalty_points_display = (penalty_points_abs | round(0) | int) | string -%}
+                    {%- set penalty_points_display = ((penalty_points_abs | round(2)) | string | regex_replace('\.?0+$', '')) if pref_points_precision != 'fixed_0' else (penalty_points_abs | round(0) | int) | string -%}
                     {%- set penalty_action_cards.items = penalty_action_cards.items + [{
                       'type': 'custom:button-card',
                       'entity': penalty_eid if penalty_eid not in ['', none] else selected_dashboard_helper,
@@ -2798,12 +2825,12 @@ views:
                   {%- set show_penalty_history_action = has_points_sensor -%}
                   {%- set show_bonus_clear_action = bonus_ns.total_applied > 0 and selected_user_name not in ['', none] and integration_entry_id not in ['', none] -%}
                   {%- set show_penalty_clear_action = penalty_ns.total_applied > 0 and selected_user_name not in ['', none] and integration_entry_id not in ['', none] -%}
-                  {%- set bonus_all_time_html = ("<span style='display:inline-flex;align-items:center;margin-left:8px;padding:3px 10px;border-radius:999px;border:1px solid color-mix(in srgb, var(--success-color) 10%, var(--divider-color));background:color-mix(in srgb, var(--success-color) 3%, var(--card-background-color));font-size:10px;font-weight:600;line-height:1.2;color:var(--secondary-text-color);transform:translateY(-3px);'>" ~ ui.get('all_time', 'All time') ~ ": " ~ (((bonus_points_all_time | abs) | round(0) | int) | string) ~ "</span>") if show_bonus_history_action else '' -%}
-                  {%- set penalty_all_time_html = ("<span style='display:inline-flex;align-items:center;margin-left:8px;padding:3px 10px;border-radius:999px;border:1px solid color-mix(in srgb, var(--error-color) 10%, var(--divider-color));background:color-mix(in srgb, var(--error-color) 3%, var(--card-background-color));font-size:10px;font-weight:600;line-height:1.2;color:var(--secondary-text-color);transform:translateY(-3px);'>" ~ ui.get('all_time', 'All time') ~ ": -" ~ (((penalty_points_all_time | abs) | round(0) | int) | string) ~ "</span>") if show_penalty_history_action else '' -%}
+                  {%- set bonus_all_time_html = ("<span style='display:inline-flex;align-items:center;margin-left:8px;padding:3px 10px;border-radius:999px;border:1px solid color-mix(in srgb, var(--success-color) 10%, var(--divider-color));background:color-mix(in srgb, var(--success-color) 3%, var(--card-background-color));font-size:10px;font-weight:600;line-height:1.2;color:var(--secondary-text-color);transform:translateY(-3px);'>" ~ ui.get('all_time', 'All time') ~ ": " ~ bonus_points_all_time_text ~ "</span>") if show_bonus_history_action else '' -%}
+                  {%- set penalty_all_time_html = ("<span style='display:inline-flex;align-items:center;margin-left:8px;padding:3px 10px;border-radius:999px;border:1px solid color-mix(in srgb, var(--error-color) 10%, var(--divider-color));background:color-mix(in srgb, var(--error-color) 3%, var(--card-background-color));font-size:10px;font-weight:600;line-height:1.2;color:var(--secondary-text-color);transform:translateY(-3px);'>" ~ ui.get('all_time', 'All time') ~ ": -" ~ penalty_points_all_time_text ~ "</span>") if show_penalty_history_action else '' -%}
                   {%- set bonus_history_action_card = {
                     'type': 'custom:button-card',
                     'entity': points_sensor,
-                    'name': ui.get('all_time', 'All time') ~ ': ' ~ (((bonus_points_all_time | abs) | round(0) | int) | string),
+                    'name': ui.get('all_time', 'All time') ~ ': ' ~ bonus_points_all_time_text,
                     'show_icon': False,
                     'show_name': True,
                     'tap_action': {
@@ -2842,7 +2869,7 @@ views:
                   {%- set penalty_history_action_card = {
                     'type': 'custom:button-card',
                     'entity': points_sensor,
-                    'name': ui.get('all_time', 'All time') ~ ': ' ~ (((penalty_points_all_time | abs) | round(0) | int) | string),
+                    'name': ui.get('all_time', 'All time') ~ ': -' ~ penalty_points_all_time_text,
                     'show_icon': False,
                     'show_name': True,
                     'tap_action': {
@@ -3002,7 +3029,7 @@ views:
                     'entity': points_sensor
                   } if has_points_sensor else {'action': 'none'}),
                   'custom_fields': {
-                    'content': "<div style='display:flex;flex-direction:column;gap:0;'><div style='font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--secondary-text-color);'>✨ " ~ ui.get('bonus', 'err-bonus') ~ "</div><div style='margin-top:8px;display:flex;align-items:center;flex-wrap:wrap;'><span style='font-size:24px;font-weight:800;line-height:1;color:var(--success-color);'>+" ~ ((bonus_ns.total_points | abs | round(0) | int) | string) ~ "</span>" ~ bonus_all_time_html ~ "</div><div style='margin-top:6px;font-size:12px;font-weight:600;color:var(--secondary-text-color);'>" ~ bonus_ns.total_applied|string ~ " " ~ ui.get('applied', 'err-applied') ~ "</div></div>",
+                    'content': "<div style='display:flex;flex-direction:column;gap:0;'><div style='font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--secondary-text-color);'>✨ " ~ ui.get('bonus', 'err-bonus') ~ "</div><div style='margin-top:8px;display:flex;align-items:center;flex-wrap:wrap;'><span style='font-size:24px;font-weight:800;line-height:1;color:var(--success-color);'>+" ~ bonus_total_points_text ~ "</span>" ~ bonus_all_time_html ~ "</div><div style='margin-top:6px;font-size:12px;font-weight:600;color:var(--secondary-text-color);'>" ~ bonus_ns.total_applied|string ~ " " ~ ui.get('applied', 'err-applied') ~ "</div></div>",
                     'action': ({
                       'card': {
                         'type': 'grid',
@@ -3068,7 +3095,7 @@ views:
                     'entity': points_sensor
                   } if has_points_sensor else {'action': 'none'}),
                   'custom_fields': {
-                    'content': "<div style='display:flex;flex-direction:column;gap:0;'><div style='font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--secondary-text-color);'>💥 " ~ ui.get('penalty', 'err-penalty') ~ "</div><div style='margin-top:8px;display:flex;align-items:center;flex-wrap:wrap;'><span style='font-size:24px;font-weight:800;line-height:1;color:var(--error-color);'>-" ~ ((penalty_ns.total_points | abs | round(0) | int) | string) ~ "</span>" ~ penalty_all_time_html ~ "</div><div style='margin-top:6px;font-size:12px;font-weight:600;color:var(--secondary-text-color);'>" ~ penalty_ns.total_applied|string ~ " " ~ ui.get('applied', 'err-applied') ~ "</div></div>",
+                    'content': "<div style='display:flex;flex-direction:column;gap:0;'><div style='font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--secondary-text-color);'>💥 " ~ ui.get('penalty', 'err-penalty') ~ "</div><div style='margin-top:8px;display:flex;align-items:center;flex-wrap:wrap;'><span style='font-size:24px;font-weight:800;line-height:1;color:var(--error-color);'>-" ~ penalty_total_points_text ~ "</span>" ~ penalty_all_time_html ~ "</div><div style='margin-top:6px;font-size:12px;font-weight:600;color:var(--secondary-text-color);'>" ~ penalty_ns.total_applied|string ~ " " ~ ui.get('applied', 'err-applied') ~ "</div></div>",
                     'action': ({
                       'card': {
                         'type': 'grid',

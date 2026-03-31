@@ -10,6 +10,15 @@ This template has configurable `pref_*` values across the Approval Center and do
 - Home Assistant theme variables remain the default source for colors.
 - The accent preference below is an intentional product-specific exception for approval and claimed-state emphasis and is declared as a template variable for easier long-term maintenance.
 
+- `pref_points_precision` (default: `fixed_0`)
+  - Controls how point values are formatted in admin economy surfaces.
+  - Applies to available points totals, weekly/average point metrics, point action chips, and bonus/penalty values.
+  - `fixed_0` shows a rounded whole-number display for compact layouts.
+  - `adaptive` shows whole numbers when possible, otherwise up to 2 decimals.
+  - `fixed_1` always shows 1 decimal place.
+  - `fixed_2` always shows 2 decimal places.
+  - Allowed: `fixed_0`, `adaptive`, `fixed_1`, `fixed_2`.
+
 ## Card: Approval Center
 
 - `pref_claim_accent` (default: `#a957fa`)

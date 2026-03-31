@@ -2,6 +2,15 @@
 
 `user-kidschores-classic-v1` is the classic kid-focused user layout. It keeps the original multi-card structure with configurable `pref_*` values.
 
+- `pref_points_precision` (default: `fixed_0`)
+  - Controls how point values are formatted across the classic dashboard point displays.
+  - Applies to the welcome card, chore point values, reward costs, and showcase totals.
+  - `fixed_0` shows a rounded whole-number display for compact layouts.
+  - `adaptive` shows whole numbers when possible, otherwise up to 2 decimals.
+  - `fixed_1` always shows 1 decimal place.
+  - `fixed_2` always shows 2 decimal places.
+  - Allowed: `fixed_0`, `adaptive`, `fixed_1`, `fixed_2`.
+
 ## Card: Chores
 
 - `pref_column_count` (default: `2`)
