@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+import re
 from typing import Any
 
 import jinja2
@@ -195,11 +196,17 @@ def _build_runtime_template_env(
             return mock_states[entity_id].attributes.get(attr_name)
         return None
 
+    def regex_replace_filter(value: object, pattern: str, replacement: str = "") -> str:
+        """Mirror Home Assistant's regex_replace filter for runtime template tests."""
+
+        return re.sub(pattern, replacement, str(value))
+
     env = jinja2.Environment(undefined=jinja2.StrictUndefined)
     env.filters["expand"] = expand_filter
     env.tests["search"] = lambda value, pattern: (
         __import__("re").search(pattern, value) is not None
     )
+    env.filters["regex_replace"] = regex_replace_filter
     env.tests["match"] = lambda value, pattern: (
         __import__("re").match(pattern, value) is not None
     )
