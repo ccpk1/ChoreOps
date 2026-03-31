@@ -452,6 +452,7 @@
       "challenge_no_assignees_assigned": "Pelo menos um responsável deve ser designado para o desafio.",
       "invalid_achievement_count": "Contagem de conquistas inválida",
       "invalid_achievement_name": "Nome de conquista inválido",
+      "invalid_achievement_reward_points": "Os pontos de recompensa por conquistas devem ser zero ou superiores, com até 2 casas decimais.",
       "invalid_badge": "Crachá inválido",
       "invalid_badge_count": "Contagem de crachás inválida",
       "invalid_badge_name": "Nome de crachá inválido",
@@ -477,7 +478,7 @@
       "invalid_reward": "Recompensa inválida",
       "invalid_reward_count": "Contagem de recompensas inválida",
       "invalid_reward_name": "Nome de recompensa inválido",
-      "invalid_reward_cost": "O custo da recompensa deve ser zero ou superior.",
+      "invalid_reward_cost": "O custo da recompensa deve ser zero ou superior, com até duas casas decimais.",
       "invalid_bonus": "Bónus inválido",
       "invalid_bonus_count": "Contagem de bónus inválida",
       "invalid_bonus_name": "Nome de bónus inválido",
@@ -499,7 +500,7 @@
       "chore_options_require_assignment": "Para que as opções de workflow e de gamificação de tarefas sejam implementadas, é necessário ativar a opção \"Permitir que as tarefas me sejam atribuídas\".",
       "invalid_update_interval": "Intervalo de atualização inválido. Deve ser um número inteiro positivo.",
       "invalid_calendar_show_period": "Período de apresentação do calendário inválido. Deve ser um número inteiro positivo.",
-      "invalid_default_chore_points": "Pontos de tarefas padrão inválidos. Deve ser um número inteiro positivo.",
+      "invalid_default_chore_points": "Pontos de tarefas padrão inválidos. Deve ser um número positivo maior que 0 com um máximo de 2 casas decimais.",
       "invalid_retention_period": "Período de conservação inválido. Deve ser um número inteiro positivo.",
       "invalid_points_adjust_values": "Valores de ajuste de pontos inválidos. Deve ser uma lista."
     },
@@ -550,7 +551,7 @@
           "default_chore_points": "Pontos padrão por tarefa"
         },
         "data_description": {
-          "default_chore_points": "Valor predefinido de pontos utilizado para novas tarefas quando não são especificados pontos personalizados. Deve ser um número inteiro maior que 0."
+          "default_chore_points": "Valor predefinido em pontos utilizado para novas tarefas quando não são especificados pontos personalizados. Deve ser um número positivo maior que 0 com um máximo de 2 casas decimais."
         }
       },
       "add_user": {

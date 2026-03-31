@@ -452,6 +452,7 @@
       "challenge_no_assignees_assigned": "Al menos un cesionario debe estar asignado al desafío.",
       "invalid_achievement_count": "Cantidad de logros no válida",
       "invalid_achievement_name": "Nombre de logro no válido",
+      "invalid_achievement_reward_points": "Los puntos de recompensa por logros deben ser cero o mayores, con hasta dos decimales.",
       "invalid_badge": "Insignia no válida",
       "invalid_badge_count": "Cantidad de insignias no válida",
       "invalid_badge_name": "Nombre de insignia no válido",
@@ -477,7 +478,7 @@
       "invalid_reward": "Recompensa no válida",
       "invalid_reward_count": "Cantidad de recompensas no válida",
       "invalid_reward_name": "Nombre de recompensa no válido",
-      "invalid_reward_cost": "El costo de la recompensa debe ser cero o mayor",
+      "invalid_reward_cost": "El costo de la recompensa debe ser cero o mayor con hasta 2 decimales.",
       "invalid_bonus": "Bonificación no válida",
       "invalid_bonus_count": "Cantidad de bonificaciones no válida",
       "invalid_bonus_name": "Nombre de bonificación no válido",
@@ -499,7 +500,7 @@
       "chore_options_require_assignment": "Las opciones de flujo de trabajo de tareas y gamificación requieren que primero se habilite \"Permitir que se me asignen tareas\".",
       "invalid_update_interval": "Intervalo de actualización no válido. Debe ser un entero positivo.",
       "invalid_calendar_show_period": "Periodo de visualización del calendario no válido. Debe ser un entero positivo.",
-      "invalid_default_chore_points": "Puntos de tarea predeterminados no válidos. Debe ser un entero positivo.",
+      "invalid_default_chore_points": "Puntos de tareas predeterminados no válidos. Debe ser un número positivo mayor que 0 con un máximo de 2 decimales.",
       "invalid_retention_period": "Periodo de retención no válido. Debe ser un número entero positivo.",
       "invalid_points_adjust_values": "Los valores de ajuste de puntos no son válidos. Debe ser una lista."
     },
@@ -550,7 +551,7 @@
           "default_chore_points": "Puntos predeterminados por tarea"
         },
         "data_description": {
-          "default_chore_points": "Valor de puntos predeterminado utilizado para las nuevas tareas cuando no se especifican puntos personalizados. Debe ser un número entero mayor que 0."
+          "default_chore_points": "Valor de puntos predeterminado que se utiliza para las nuevas tareas cuando no se especifican puntos personalizados. Debe ser un número positivo mayor que 0 con un máximo de 2 decimales."
         }
       },
       "add_user": {

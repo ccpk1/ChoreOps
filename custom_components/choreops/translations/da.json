@@ -452,6 +452,7 @@
       "challenge_no_assignees_assigned": "Mindst én person skal være tildelt udfordringen",
       "invalid_achievement_count": "Ugyldigt antal præstationer",
       "invalid_achievement_name": "Ugyldigt præstationsnavn",
+      "invalid_achievement_reward_points": "Præstationsbelønningspoint skal være nul eller større med op til 2 decimaler",
       "invalid_badge": "Ugyldigt badge",
       "invalid_badge_count": "Ugyldigt antal badges",
       "invalid_badge_name": "Ugyldigt badgenavn",
@@ -477,7 +478,7 @@
       "invalid_reward": "Ugyldig belønning",
       "invalid_reward_count": "Ugyldigt antal belønninger",
       "invalid_reward_name": "Ugyldigt belønningsnavn",
-      "invalid_reward_cost": "Belønningsomkostningerne skal være nul eller større",
+      "invalid_reward_cost": "Belønningsomkostningerne skal være nul eller større med op til 2 decimaler",
       "invalid_bonus": "Ugyldig bonus",
       "invalid_bonus_count": "Ugyldigt bonusantal",
       "invalid_bonus_name": "Ugyldigt bonusnavn",
@@ -499,7 +500,7 @@
       "chore_options_require_assignment": "Indstillinger for opgaver og gamification kræver, at \"Tillad, at opgaver tildeles mig\" først er aktiveret.",
       "invalid_update_interval": "Ugyldigt opdateringsinterval. Skal være et positivt heltal.",
       "invalid_calendar_show_period": "Ugyldig kalendervisningsperiode. Skal være et positivt heltal.",
-      "invalid_default_chore_points": "Ugyldige standardopgaver. Skal være et positivt heltal.",
+      "invalid_default_chore_points": "Ugyldige standardopgaver. Skal være et positivt tal større end 0 med højst 2 decimaler.",
       "invalid_retention_period": "Ugyldig opbevaringsperiode. Skal være et positivt heltal.",
       "invalid_points_adjust_values": "Ugyldige pointjusteringsværdier. Skal være en liste."
     },
@@ -550,7 +551,7 @@
           "default_chore_points": "Standardpoint pr. opgave"
         },
         "data_description": {
-          "default_chore_points": "Standardpointværdien bruges til nye opgaver, når der ikke er angivet brugerdefinerede point. Skal være et heltal større end 0."
+          "default_chore_points": "Standardpointværdien bruges til nye opgaver, når der ikke er angivet brugerdefinerede point. Skal være et positivt tal større end 0 med højst 2 decimaler."
         }
       },
       "add_user": {

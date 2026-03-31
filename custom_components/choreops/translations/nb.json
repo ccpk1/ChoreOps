@@ -452,6 +452,7 @@
       "challenge_no_assignees_assigned": "Minst én tildeler må være tildelt utfordringen",
       "invalid_achievement_count": "Ugyldig antall prestasjoner",
       "invalid_achievement_name": "Ugyldig prestasjonsnavn",
+      "invalid_achievement_reward_points": "Prestasjonsbelønningspoeng må være null eller større med opptil 2 desimaler",
       "invalid_badge": "Ugyldig merke",
       "invalid_badge_count": "Ugyldig antall merke",
       "invalid_badge_name": "Ugyldig merkenavn",
@@ -477,7 +478,7 @@
       "invalid_reward": "Ugyldig belønning",
       "invalid_reward_count": "Ugyldig belønningstall",
       "invalid_reward_name": "Ugyldig belønningsnavn",
-      "invalid_reward_cost": "Belønningskostnaden må være null eller høyere",
+      "invalid_reward_cost": "Belønningskostnaden må være null eller større med opptil to desimaler",
       "invalid_bonus": "Ugyldig bonus",
       "invalid_bonus_count": "Ugyldig bonusantall",
       "invalid_bonus_name": "Ugyldig bonusnavn",
@@ -499,7 +500,7 @@
       "chore_options_require_assignment": "Alternativer for arbeidsflyt og gamification for husarbeid krever at «Tillat at husarbeid tildeles meg» først er aktivert.",
       "invalid_update_interval": "Ugyldig oppdateringsintervall. Må være et positivt heltall.",
       "invalid_calendar_show_period": "Ugyldig kalendervisningsperiode. Må være et positivt heltall.",
-      "invalid_default_chore_points": "Ugyldige standard gjøremålspoeng. Må være et positivt heltall.",
+      "invalid_default_chore_points": "Ugyldige standard gjøremålspoeng. Må være et positivt tall større enn 0 med maksimalt 2 desimaler.",
       "invalid_retention_period": "Ugyldig oppbevaringsperiode. Må være et positivt heltall.",
       "invalid_points_adjust_values": "Ugyldige poengjusteringsverdier. Må være en liste."
     },
@@ -550,7 +551,7 @@
           "default_chore_points": "Standardpoeng per gjøremål"
         },
         "data_description": {
-          "default_chore_points": "Standardpoengverdien brukes for nye gjøremål når tilpassede poeng ikke er spesifisert. Må være et heltall større enn 0."
+          "default_chore_points": "Standardpoengverdi brukes for nye gjøremål når tilpassede poeng ikke er spesifisert. Må være et positivt tall større enn 0 med maksimalt 2 desimaler."
         }
       },
       "add_user": {
