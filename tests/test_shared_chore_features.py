@@ -28,6 +28,7 @@ from typing import TYPE_CHECKING, Any
 from homeassistant.core import Context, HomeAssistant
 import pytest
 
+from custom_components.choreops import const
 from custom_components.choreops.utils.dt_utils import dt_now_utc
 from tests.helpers import (
     # Pending claim action constants
@@ -608,6 +609,78 @@ class TestSharedAllPendingClaimAutoApprove:
             get_chore_state_from_sensor(hass, "max", "Shared All Pending Auto Approve")
             == CHORE_STATE_PENDING
         )
+
+    @pytest.mark.asyncio
+    async def test_shared_all_auto_approve_pending_updates_completion_bookkeeping(
+        self,
+        hass: HomeAssistant,
+        shared_scenario: SetupResult,
+        mock_hass_users: dict[str, Any],
+    ) -> None:
+        """AUTO_APPROVE updates completion timestamps and shared completion stats."""
+        coordinator = shared_scenario.coordinator
+        chore_id = shared_scenario.chore_ids["Shared All Pending Auto Approve"]
+        zoe_id = shared_scenario.assignee_ids["Zoë"]
+        max_id = shared_scenario.assignee_ids["Max!"]
+
+        assignee1_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        assignee2_ctx = Context(user_id=mock_hass_users["assignee2"].id)
+
+        await claim_chore(hass, "zoe", "Shared All Pending Auto Approve", assignee1_ctx)
+        await claim_chore(hass, "max", "Shared All Pending Auto Approve", assignee2_ctx)
+
+        zoe_claimed_at = (
+            coordinator.assignees_data[zoe_id]
+            .get(const.DATA_USER_CHORE_DATA, {})
+            .get(chore_id, {})
+            .get(const.DATA_USER_CHORE_DATA_LAST_CLAIMED)
+        )
+        max_claimed_at = (
+            coordinator.assignees_data[max_id]
+            .get(const.DATA_USER_CHORE_DATA, {})
+            .get(chore_id, {})
+            .get(const.DATA_USER_CHORE_DATA_LAST_CLAIMED)
+        )
+        assert zoe_claimed_at is not None
+        assert max_claimed_at is not None
+
+        set_chore_due_date_to_past(coordinator, chore_id, days_ago=1)
+        await coordinator.chore_manager._on_midnight_rollover(now_utc=dt_now_utc())
+        await hass.async_block_till_done()
+
+        zoe_chore_data = (
+            coordinator.assignees_data[zoe_id]
+            .get(const.DATA_USER_CHORE_DATA, {})
+            .get(chore_id, {})
+        )
+        max_chore_data = (
+            coordinator.assignees_data[max_id]
+            .get(const.DATA_USER_CHORE_DATA, {})
+            .get(chore_id, {})
+        )
+        chore_info = coordinator.chores_data[chore_id]
+
+        assert zoe_chore_data.get(const.DATA_USER_CHORE_DATA_LAST_APPROVED) is not None
+        assert max_chore_data.get(const.DATA_USER_CHORE_DATA_LAST_APPROVED) is not None
+        assert (
+            zoe_chore_data.get(const.DATA_USER_CHORE_DATA_LAST_COMPLETED)
+            == zoe_claimed_at
+        )
+        assert (
+            max_chore_data.get(const.DATA_USER_CHORE_DATA_LAST_COMPLETED)
+            == max_claimed_at
+        )
+        assert chore_info.get(const.DATA_CHORE_LAST_COMPLETED) == max(
+            zoe_claimed_at,
+            max_claimed_at,
+        )
+
+        completed_counts = coordinator.statistics_manager.get_chore_completed_counts(
+            chore_id,
+            [zoe_id, max_id],
+        )
+        assert completed_counts[zoe_id] == 1
+        assert completed_counts[max_id] == 1
 
     @pytest.mark.asyncio
     async def test_shared_all_auto_approve_pending_second_midnight_is_stable(

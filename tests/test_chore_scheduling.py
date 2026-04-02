@@ -113,6 +113,8 @@ from tests.helpers import (
     DATA_CHORE_RECURRING_FREQUENCY,
     DATA_USER_CHORE_DATA,
     DATA_USER_CHORE_DATA_APPROVAL_PERIOD_START,
+    DATA_USER_CHORE_DATA_LAST_APPROVED,
+    DATA_USER_CHORE_DATA_LAST_CLAIMED,
     DATA_USER_CHORE_DATA_STATE,
     DATA_USER_POINTS,
     DOMAIN,
@@ -1781,12 +1783,20 @@ class TestPendingClaimAutoApprove:
 
         # Claim the chore
         await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Test User")
+        assignee_chore_data = (
+            coordinator.assignees_data.get(zoe_id, {})
+            .get(DATA_USER_CHORE_DATA, {})
+            .get(chore_id, {})
+        )
+        claimed_at = assignee_chore_data.get(DATA_USER_CHORE_DATA_LAST_CLAIMED)
+        assert claimed_at is not None, "Claim flow should record last_claimed"
 
         # Set due date to past so reset will process the chore
         set_chore_due_date_to_past(coordinator, chore_id, zoe_id, days_ago=1)
 
         # Trigger reset
         await coordinator.chore_manager._on_midnight_rollover(now_utc=dt_now_utc())
+        await hass.async_block_till_done()
 
         # Verify points awarded (auto-approval happened)
         assignee_info = coordinator.assignees_data.get(zoe_id, {})
@@ -1796,6 +1806,22 @@ class TestPendingClaimAutoApprove:
             f"AUTO_APPROVE should award {chore_points} points. "
             f"Before: {points_before}, After: {points_after}, Expected: {points_before + chore_points}"
         )
+
+        assignee_chore_data = assignee_info.get(DATA_USER_CHORE_DATA, {}).get(
+            chore_id, {}
+        )
+        approved_at = assignee_chore_data.get(DATA_USER_CHORE_DATA_LAST_APPROVED)
+        completed_at = assignee_chore_data.get(
+            const.DATA_USER_CHORE_DATA_LAST_COMPLETED
+        )
+
+        assert approved_at is not None, "Auto-approval should record last_approved"
+        assert completed_at == claimed_at, (
+            "Boundary auto-approval should preserve the claim timestamp as last_completed"
+        )
+        assert dt_to_utc(approved_at) is not None
+        assert dt_to_utc(claimed_at) is not None
+        assert dt_to_utc(approved_at) >= dt_to_utc(claimed_at)
 
     @pytest.mark.asyncio
     async def test_pending_auto_approve_then_resets_to_pending(

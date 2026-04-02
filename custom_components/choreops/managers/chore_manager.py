@@ -18,6 +18,8 @@ for cross-domain communication (economy, notifications, achievements).
 from __future__ import annotations
 
 import asyncio
+from contextlib import AsyncExitStack
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any, cast
 
@@ -72,6 +74,50 @@ if TYPE_CHECKING:
 # Type alias for scan results - uses dict for simplicity
 # Keys: chore_id, assignee_id, due_dt (datetime), chore_info (dict), time_until_due (timedelta)
 ChoreTimeEntry = dict[str, Any]
+
+
+@dataclass(slots=True)
+class ApprovalMutationResult:
+    """Canonical result of an approval state mutation."""
+
+    assignee_id: str
+    chore_id: str
+    chore_data: ChoreData
+    assignee_name: str
+    assigned_assignees: list[str]
+    base_points: float
+    previous_state: str
+    effective_date_iso: str
+    new_streak: int
+    completion_criteria: str
+    completion_assignee_ids: list[str]
+    completion_streak_tallies: dict[str, int]
+
+
+@dataclass(slots=True)
+class ApprovalSignalPlan:
+    """Signal emission plan for a completed approval mutation."""
+
+    mutation_result: ApprovalMutationResult
+    approver_name: str
+    approval_origin: str
+    notify_assignee: bool
+
+
+@dataclass(slots=True)
+class BoundaryResetPlan:
+    """Execution plan for a single assignee/chore boundary reset."""
+
+    assignee_id: str
+    chore_id: str
+    chore_info: ChoreData
+    assignee_state: str
+    trigger: str
+    requires_auto_approve_pending: bool
+    effective_decision: ResetDecision
+    reschedule_assignee_id: str | None
+    allow_reschedule: bool
+    should_clear_due_date: bool
 
 
 __all__ = ["ChoreManager"]
@@ -818,6 +864,245 @@ class ChoreManager(BaseManager):
                 approval_origin=const.CHORE_APPROVAL_ORIGIN_MANUAL,
             )
 
+    def _build_completion_signal_payload(
+        self,
+        *,
+        assignee_id: str,
+        chore_id: str,
+        chore_data: ChoreData,
+        assigned_assignees: list[str],
+        completion_criteria: str,
+        effective_date_iso: str,
+        new_streak: int,
+    ) -> tuple[list[str], dict[str, int]]:
+        """Build completion payload while approval state is still authoritative."""
+        is_independent_mode = (
+            completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT
+        )
+        is_single_claimer_mode = ChoreEngine.is_single_claimer_mode(chore_data)
+
+        if is_independent_mode or is_single_claimer_mode:
+            return [assignee_id], {assignee_id: new_streak}
+
+        if completion_criteria != const.COMPLETION_CRITERIA_SHARED:
+            return [], {}
+
+        if not self._all_assignees_approved(chore_id, assigned_assignees):
+            return [], {}
+
+        streak_tallies: dict[str, int] = {}
+        completion_assignee_ids: list[str] = []
+
+        for assigned_assignee_id in assigned_assignees:
+            if not assigned_assignee_id:
+                continue
+
+            assigned_assignee_info = self._coordinator.assignees_data.get(
+                assigned_assignee_id
+            )
+            if not assigned_assignee_info:
+                continue
+
+            assignee_chore_dict: dict[str, Any] = assigned_assignee_info.get(
+                const.DATA_USER_CHORE_DATA, {}
+            )
+            assigned_chore_data = assignee_chore_dict.get(chore_id, {})
+            assigned_periods = assigned_chore_data.get(
+                const.DATA_USER_CHORE_DATA_PERIODS, {}
+            )
+            assigned_daily = assigned_periods.get(
+                const.DATA_USER_CHORE_DATA_PERIODS_DAILY, {}
+            )
+            assigned_last_completed = assigned_chore_data.get(
+                const.DATA_USER_CHORE_DATA_LAST_COMPLETED
+            )
+            assigned_previous_streak = assigned_chore_data.get(
+                const.DATA_USER_CHORE_DATA_CURRENT_STREAK,
+                0,
+            )
+            if not assigned_previous_streak and assigned_last_completed:
+                assigned_local_dt = dt_parse(
+                    assigned_last_completed,
+                    return_type=HELPER_RETURN_DATETIME_LOCAL,
+                )
+                if assigned_local_dt and isinstance(assigned_local_dt, datetime):
+                    assigned_date_key = assigned_local_dt.date().isoformat()
+                    assigned_last_data = assigned_daily.get(assigned_date_key, {})
+                    assigned_previous_streak = assigned_last_data.get(
+                        const.DATA_USER_CHORE_DATA_PERIOD_STREAK_TALLY, 0
+                    )
+
+            streak_tallies[assigned_assignee_id] = ChoreEngine.calculate_streak(
+                current_streak=assigned_previous_streak,
+                previous_last_completed_iso=assigned_last_completed,
+                current_work_date_iso=effective_date_iso,
+                chore_data=chore_data,
+            )
+            completion_assignee_ids.append(assigned_assignee_id)
+
+        return completion_assignee_ids, streak_tallies
+
+    def _apply_approval_mutation_locked(
+        self,
+        assignee_id: str,
+        chore_id: str,
+        points_override: float | None = None,
+    ) -> ApprovalMutationResult | None:
+        """Apply canonical approval state mutation without persistence or emits."""
+        # Validate entities exist
+        self._validate_assignee_and_chore(assignee_id, chore_id)
+
+        # Landlord duty: Ensure periods structures exist before statistics writes
+        self._ensure_assignee_structures(assignee_id, chore_id)
+
+        chore_data = self._coordinator.chores_data[chore_id]
+        assignee_info = self._coordinator.assignees_data[assignee_id]
+        assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
+
+        previous_state = assignee_chore_data.get(
+            const.DATA_USER_CHORE_DATA_STATE, const.CHORE_STATE_PENDING
+        )
+        is_approved = self.chore_is_approved_in_period(assignee_id, chore_id)
+
+        can_approve, _ = ChoreEngine.can_approve_chore(
+            assignee_chore_data=assignee_chore_data,
+            chore_data=chore_data,
+            is_approved_in_period=is_approved,
+        )
+
+        if not can_approve:
+            const.LOGGER.info(
+                "Race condition prevented: chore '%s' for assignee '%s' already processed",
+                chore_data.get(const.DATA_CHORE_NAME),
+                assignee_info.get(const.DATA_USER_NAME),
+            )
+            return None
+
+        default_chore_points = self._coordinator.config_entry.options.get(
+            const.CONF_DEFAULT_CHORE_POINTS,
+            const.DEFAULT_CHORE_POINTS,
+        )
+        base_points = float(
+            points_override
+            if points_override is not None
+            else chore_data.get(const.DATA_CHORE_DEFAULT_POINTS, default_chore_points)
+        )
+
+        assignee_name = assignee_info.get(const.DATA_USER_NAME, "Unknown")
+        assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
+        has_pending_claim = self.chore_has_pending_claim(assignee_id, chore_id)
+        previous_streak = assignee_chore_data.get(
+            const.DATA_USER_CHORE_DATA_CURRENT_STREAK, 0
+        )
+
+        effects = ChoreEngine.calculate_transition(
+            chore_data=chore_data,
+            actor_assignee_id=assignee_id,
+            action=CHORE_ACTION_APPROVE,
+            assigned_assignees=assigned_assignees,
+            assignee_name=assignee_name,
+        )
+
+        for effect in effects:
+            self._apply_effect(effect, chore_id)
+
+        now_iso = dt_now_utc_iso()
+        previous_last_completed = assignee_chore_data.get(
+            const.DATA_USER_CHORE_DATA_LAST_COMPLETED
+        )
+
+        assignee_chore_data[const.DATA_USER_CHORE_DATA_LAST_APPROVED] = now_iso
+
+        completion_criteria = chore_data.get(
+            const.DATA_CHORE_COMPLETION_CRITERIA,
+            const.COMPLETION_CRITERIA_INDEPENDENT,
+        )
+        if not has_pending_claim:
+            assignee_chore_data[const.DATA_USER_CHORE_DATA_LAST_CLAIMED] = now_iso
+            if completion_criteria != const.COMPLETION_CRITERIA_INDEPENDENT:
+                chore_data[const.DATA_CHORE_LAST_CLAIMED] = now_iso
+            self._handle_claim_criteria(chore_id, assignee_id, assignee_name)
+
+        effective_date_iso = self._resolve_approval_effective_date_iso(
+            assignee_chore_data,
+            now_iso,
+        )
+        new_streak = ChoreEngine.calculate_streak(
+            current_streak=previous_streak,
+            previous_last_completed_iso=previous_last_completed,
+            current_work_date_iso=effective_date_iso,
+            chore_data=chore_data,
+        )
+
+        assignee_chore_data[const.DATA_USER_CHORE_DATA_CURRENT_STREAK] = new_streak
+        assignee_chore_data[const.DATA_USER_CHORE_DATA_CURRENT_MISSED_STREAK] = 0
+
+        self._update_global_state(chore_id)
+        self._set_last_completed_timestamp(
+            chore_id, assignee_id, effective_date_iso, now_iso
+        )
+        self._decrement_pending_count(assignee_id, chore_id)
+        self._handle_completion_criteria(chore_id, assignee_id, assignee_name)
+
+        completion_assignee_ids, completion_streak_tallies = (
+            self._build_completion_signal_payload(
+                assignee_id=assignee_id,
+                chore_id=chore_id,
+                chore_data=chore_data,
+                assigned_assignees=assigned_assignees,
+                completion_criteria=completion_criteria,
+                effective_date_iso=effective_date_iso,
+                new_streak=new_streak,
+            )
+        )
+
+        return ApprovalMutationResult(
+            assignee_id=assignee_id,
+            chore_id=chore_id,
+            chore_data=chore_data,
+            assignee_name=assignee_name,
+            assigned_assignees=assigned_assignees,
+            base_points=base_points,
+            previous_state=previous_state,
+            effective_date_iso=effective_date_iso,
+            new_streak=new_streak,
+            completion_criteria=completion_criteria,
+            completion_assignee_ids=completion_assignee_ids,
+            completion_streak_tallies=completion_streak_tallies,
+        )
+
+    def _emit_approval_signal_plan(self, signal_plan: ApprovalSignalPlan) -> None:
+        """Emit canonical approval-related signals after persistence."""
+        mutation = signal_plan.mutation_result
+        self._emit_chore_approved_event(
+            assignee_id=mutation.assignee_id,
+            chore_id=mutation.chore_id,
+            chore_data=mutation.chore_data,
+            assignee_name=mutation.assignee_name,
+            approver_name=signal_plan.approver_name,
+            base_points=mutation.base_points,
+            previous_state=mutation.previous_state,
+            effective_date_iso=mutation.effective_date_iso,
+            approval_origin=signal_plan.approval_origin,
+            notify_assignee=signal_plan.notify_assignee,
+        )
+
+        if mutation.completion_assignee_ids:
+            self.emit(
+                const.SIGNAL_SUFFIX_CHORE_COMPLETED,
+                chore_id=mutation.chore_id,
+                assignee_ids=mutation.completion_assignee_ids,
+                effective_date=mutation.effective_date_iso,
+                streak_tallies=mutation.completion_streak_tallies,
+            )
+
+    def _emit_approval_signal_plans(
+        self, signal_plans: list[ApprovalSignalPlan]
+    ) -> None:
+        """Emit approval-related signals in deterministic order."""
+        for signal_plan in signal_plans:
+            self._emit_approval_signal_plan(signal_plan)
+
     async def _approve_chore_locked(
         self,
         approver_name: str,
@@ -835,142 +1120,17 @@ class ChoreManager(BaseManager):
             points_override: Optional point override
             approval_origin: Source of approval (manual, auto_approve, auto_reset)
         """
-        # Validate entities exist
-        self._validate_assignee_and_chore(assignee_id, chore_id)
-
-        # Landlord duty: Ensure periods structures exist before statistics writes
-        self._ensure_assignee_structures(assignee_id, chore_id)
-
-        chore_data = self._coordinator.chores_data[chore_id]
-        assignee_info = self._coordinator.assignees_data[assignee_id]
-        assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
-
-        # Get previous state for event payload
-        previous_state = assignee_chore_data.get(
-            const.DATA_USER_CHORE_DATA_STATE, const.CHORE_STATE_PENDING
+        approval_result = self._apply_approval_mutation_locked(
+            assignee_id,
+            chore_id,
+            points_override,
         )
+        if approval_result is None:
+            return
 
-        # Get validation inputs
-        is_approved = self.chore_is_approved_in_period(assignee_id, chore_id)
-
-        # Re-validate inside lock (race condition protection)
-        can_approve, error_key = ChoreEngine.can_approve_chore(
-            assignee_chore_data=assignee_chore_data,
-            chore_data=chore_data,
-            is_approved_in_period=is_approved,
-        )
-
-        if not can_approve:
-            # Race condition: another approver already approved
-            const.LOGGER.info(
-                "Race condition prevented: chore '%s' for assignee '%s' already processed",
-                chore_data.get(const.DATA_CHORE_NAME),
-                assignee_info.get(const.DATA_USER_NAME),
-            )
-            return  # Graceful exit - expected behavior
-
-        # Calculate base points (EconomyManager owns multiplier application)
-        default_chore_points = self._coordinator.config_entry.options.get(
-            const.CONF_DEFAULT_CHORE_POINTS,
-            const.DEFAULT_CHORE_POINTS,
-        )
-        base_points = float(
-            points_override
-            if points_override is not None
-            else chore_data.get(const.DATA_CHORE_DEFAULT_POINTS, default_chore_points)
-        )
-
-        # Get assignee name for effects
-        assignee_name = assignee_info.get(const.DATA_USER_NAME, "Unknown")
-        assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
-
-        # Check if this is a direct approval (no pending claim)
-        # Used to set claim fields for consistency
-        has_pending_claim = self.chore_has_pending_claim(assignee_id, chore_id)
-
-        # Get previous streak from last completion date (schedule-aware)
-        # For weekly/biweekly chores, yesterday won't have data - must use last_completed date
-        # =====================================================================
-        # GET PREVIOUS STREAK VALUES FROM CHORE DATA (NOT DAILY BUCKETS)
-        # =====================================================================
-        # Phase 5 Fix: Read from chore data level to survive retention pruning
-        # (daily buckets only retained for 7 days, breaks weekly/monthly streaks)
-        previous_streak = assignee_chore_data.get(
-            const.DATA_USER_CHORE_DATA_CURRENT_STREAK, 0
-        )
-
-        # Calculate effects
-        effects = ChoreEngine.calculate_transition(
-            chore_data=chore_data,
-            actor_assignee_id=assignee_id,
-            action=CHORE_ACTION_APPROVE,
-            assigned_assignees=assigned_assignees,
-            assignee_name=assignee_name,
-        )
-
-        # Apply effects
-        for effect in effects:
-            self._apply_effect(effect, chore_id)
-
-        # =====================================================================
-        # UPDATE TIMESTAMPS AND CALCULATE STREAK
-        # =====================================================================
-        now_iso = dt_now_utc_iso()
-        previous_last_completed = assignee_chore_data.get(
-            const.DATA_USER_CHORE_DATA_LAST_COMPLETED
-        )
-
-        # Set last_approved timestamp (audit/financial timestamp)
-        assignee_chore_data[const.DATA_USER_CHORE_DATA_LAST_APPROVED] = now_iso
-
-        # If no pending claim existed, this is a direct approval
-        # Set claim fields to match approval (combined claim+approve action)
-        if not has_pending_claim:
-            assignee_chore_data[const.DATA_USER_CHORE_DATA_LAST_CLAIMED] = now_iso
-            completion_criteria = chore_data.get(
-                const.DATA_CHORE_COMPLETION_CRITERIA,
-                const.COMPLETION_CRITERIA_INDEPENDENT,
-            )
-            if completion_criteria != const.COMPLETION_CRITERIA_INDEPENDENT:
-                chore_data[const.DATA_CHORE_LAST_CLAIMED] = now_iso
-            self._handle_claim_criteria(chore_id, assignee_id, assignee_name)
-
-        # Extract effective_date (when assignee did the work) for statistics/scheduling
-        effective_date_iso = self._resolve_approval_effective_date_iso(
-            assignee_chore_data,
-            now_iso,
-        )
-
-        # Calculate streak using schedule-aware logic (approver-lag-proof)
-        # Uses last_completed (work date) not last_approved (approver action date)
-        # Phase 5 Change: Store result at chore data level (survives retention pruning)
-        new_streak = ChoreEngine.calculate_streak(
-            current_streak=previous_streak,
-            previous_last_completed_iso=previous_last_completed,
-            current_work_date_iso=effective_date_iso,
-            chore_data=chore_data,
-        )
-
-        # Store current streak at chore data level (never pruned)
-        assignee_chore_data[const.DATA_USER_CHORE_DATA_CURRENT_STREAK] = new_streak
-
-        # Reset missed streak to 0 on completion (failure chain broken)
-        assignee_chore_data[const.DATA_USER_CHORE_DATA_CURRENT_MISSED_STREAK] = 0
-
-        # Update global chore state
-        self._update_global_state(chore_id)
-
-        # Set last_completed timestamp (always runs on approval)
-        # Stored per completion criteria: INDEPENDENT in assignee data, SHARED at chore level
-        self._set_last_completed_timestamp(
-            chore_id, assignee_id, effective_date_iso, now_iso
-        )
-
-        # Decrement pending count
-        self._decrement_pending_count(assignee_id, chore_id)
-
-        # Set completed_by based on completion criteria
-        self._handle_completion_criteria(chore_id, assignee_id, assignee_name)
+        chore_data = approval_result.chore_data
+        assigned_assignees = approval_result.assigned_assignees
+        completion_criteria = approval_result.completion_criteria
 
         # Handle UPON_COMPLETION reset type: immediately reset to PENDING
         # Other reset types (AT_MIDNIGHT_*, AT_DUE_DATE_*) stay APPROVED until
@@ -1116,101 +1276,14 @@ class ChoreManager(BaseManager):
                 **rotation_signal_payload,
             )
 
-        self._emit_chore_approved_event(
-            assignee_id=assignee_id,
-            chore_id=chore_id,
-            chore_data=chore_data,
-            assignee_name=assignee_name,
-            approver_name=approver_name,
-            base_points=base_points,
-            previous_state=previous_state,
-            effective_date_iso=effective_date_iso,
-            approval_origin=approval_origin,
-            notify_assignee=True,
-        )
-
-        # Emit completion milestone based on completion criteria
-        # - single-claimer modes (INDEPENDENT/SHARED_FIRST/ROTATION_*):
-        #   approving assignee gets immediate completion credit
-        # - SHARED (all): all assignees get credit when last assignee is approved
-        #
-        # Contract note (P1): In immediate-reset branches (for example
-        # UPON_COMPLETION), completion/approved milestones can emit while the
-        # post-settle assignee-visible state has already converged to PENDING.
-        # This is intentional lifecycle milestone semantics, not a strict
-        # final-state equality guarantee.
-        if is_independent_mode or is_single_claimer_mode:
-            self.emit(
-                const.SIGNAL_SUFFIX_CHORE_COMPLETED,
-                chore_id=chore_id,
-                assignee_ids=[assignee_id],
-                effective_date=effective_date_iso,
-                streak_tallies={assignee_id: new_streak},
+        self._emit_approval_signal_plan(
+            ApprovalSignalPlan(
+                mutation_result=approval_result,
+                approver_name=approver_name,
+                approval_origin=approval_origin,
+                notify_assignee=True,
             )
-        elif completion_criteria == const.COMPLETION_CRITERIA_SHARED:
-            # Shared (all): only emit when ALL assigned assignees have been approved
-            if self._all_assignees_approved(chore_id, assigned_assignees):
-                # Calculate streak for each assignee
-                streak_tallies = {}
-                for assigned_assignee_id in assigned_assignees:
-                    if not assigned_assignee_id:
-                        continue
-                    # Get assignee's chore_data and yesterday's streak
-                    assigned_assignee_info = self._coordinator.assignees_data.get(
-                        assigned_assignee_id
-                    )
-                    if not assigned_assignee_info:
-                        continue
-                    assignee_chore_dict: dict[str, Any] = assigned_assignee_info.get(
-                        const.DATA_USER_CHORE_DATA, {}
-                    )
-                    assigned_chore_data = assignee_chore_dict.get(chore_id, {})
-                    assigned_periods = assigned_chore_data.get(
-                        const.DATA_USER_CHORE_DATA_PERIODS, {}
-                    )
-                    assigned_daily = assigned_periods.get(
-                        const.DATA_USER_CHORE_DATA_PERIODS_DAILY, {}
-                    )
-                    assigned_last_completed = assigned_chore_data.get(
-                        const.DATA_USER_CHORE_DATA_LAST_COMPLETED
-                    )
-                    # Get streak from last completion date (not yesterday - schedule-aware!)
-                    assigned_previous_streak = assigned_chore_data.get(
-                        const.DATA_USER_CHORE_DATA_CURRENT_STREAK,
-                        0,
-                    )
-                    if not assigned_previous_streak and assigned_last_completed:
-                        # Convert UTC timestamp to local timezone for bucket lookup
-                        assigned_local_dt = dt_parse(
-                            assigned_last_completed,
-                            return_type=HELPER_RETURN_DATETIME_LOCAL,
-                        )
-                        if assigned_local_dt and isinstance(
-                            assigned_local_dt, datetime
-                        ):
-                            assigned_date_key = assigned_local_dt.date().isoformat()
-                            assigned_last_data = assigned_daily.get(
-                                assigned_date_key, {}
-                            )
-                            assigned_previous_streak = assigned_last_data.get(
-                                const.DATA_USER_CHORE_DATA_PERIOD_STREAK_TALLY, 0
-                            )
-                    # Calculate streak for this assignee
-                    assigned_streak = ChoreEngine.calculate_streak(
-                        current_streak=assigned_previous_streak,
-                        previous_last_completed_iso=assigned_last_completed,
-                        current_work_date_iso=effective_date_iso,
-                        chore_data=chore_data,
-                    )
-                    streak_tallies[assigned_assignee_id] = assigned_streak
-
-                self.emit(
-                    const.SIGNAL_SUFFIX_CHORE_COMPLETED,
-                    chore_id=chore_id,
-                    assignee_ids=assigned_assignees,
-                    effective_date=effective_date_iso,
-                    streak_tallies=streak_tallies,
-                )
+        )
 
         # StatisticsManager handles cache refresh and entity notification via signal handlers
 
@@ -1218,7 +1291,7 @@ class ChoreManager(BaseManager):
             "Approval processed: assignee=%s chore=%s base_points=%.2f by=%s",
             assignee_id,
             chore_id,
-            base_points,
+            approval_result.base_points,
             approver_name,
         )
 
@@ -2193,12 +2266,14 @@ class ChoreManager(BaseManager):
         reset_count = 0
         reset_pairs: set[tuple[str, str]] = set()
         rotation_payloads: list[dict[str, Any]] = []
+        approval_signal_plans: list[ApprovalSignalPlan] = []
 
         # Process SHARED/SHARED_FIRST chores
         for entry in scan.get(const.CHORE_SCAN_RESULT_APPROVAL_RESET_SHARED, []):
             chore_id = entry["chore_id"]
             chore_info = entry["chore_info"]
             should_reschedule_shared = False
+            shared_plans: list[BoundaryResetPlan] = []
 
             # Reset all assigned assignees
             assigned_assignees = chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
@@ -2218,10 +2293,7 @@ class ChoreManager(BaseManager):
                     trigger=trigger,
                 )
 
-                (
-                    reset_applied,
-                    should_reschedule,
-                ) = await self._process_boundary_reset_assignee(
+                plan = self._build_boundary_reset_plan(
                     assignee_id=assignee_id,
                     chore_id=chore_id,
                     chore_info=cast("ChoreData", chore_info),
@@ -2230,9 +2302,28 @@ class ChoreManager(BaseManager):
                     category=cast("ResetBoundaryCategory | None", category),
                     reschedule_assignee_id=None,
                     allow_reschedule=False,
-                    rotation_payloads=rotation_payloads,
                 )
+                if plan is not None:
+                    shared_plans.append(plan)
 
+            boundary_approval_plans = [
+                plan for plan in shared_plans if plan.requires_auto_approve_pending
+            ]
+            if boundary_approval_plans:
+                (
+                    new_signal_plans,
+                    applied_pairs,
+                ) = await self._apply_boundary_auto_approvals(boundary_approval_plans)
+                approval_signal_plans.extend(new_signal_plans)
+                for plan in shared_plans:
+                    if (plan.assignee_id, plan.chore_id) in applied_pairs:
+                        plan.assignee_state = const.CHORE_STATE_APPROVED
+
+            for plan in shared_plans:
+                reset_applied, should_reschedule = self._execute_boundary_reset_plan(
+                    plan,
+                    rotation_payloads,
+                )
                 if not reset_applied:
                     continue
 
@@ -2240,7 +2331,7 @@ class ChoreManager(BaseManager):
                     should_reschedule_shared = True
 
                 reset_count += 1
-                reset_pairs.add((assignee_id, chore_id))
+                reset_pairs.add((plan.assignee_id, plan.chore_id))
 
             if should_reschedule_shared:
                 self._reschedule_chore_due(chore_id)
@@ -2266,7 +2357,7 @@ class ChoreManager(BaseManager):
                     trigger=trigger,
                 )
 
-                reset_applied, _ = await self._process_boundary_reset_assignee(
+                plan = self._build_boundary_reset_plan(
                     assignee_id=assignee_id,
                     chore_id=chore_id,
                     chore_info=cast("ChoreData", chore_info),
@@ -2275,7 +2366,22 @@ class ChoreManager(BaseManager):
                     category=cast("ResetBoundaryCategory | None", category),
                     reschedule_assignee_id=assignee_id,
                     allow_reschedule=True,
-                    rotation_payloads=rotation_payloads,
+                )
+                if plan is None:
+                    continue
+
+                if plan.requires_auto_approve_pending:
+                    (
+                        new_signal_plans,
+                        applied_pairs,
+                    ) = await self._apply_boundary_auto_approvals([plan])
+                    approval_signal_plans.extend(new_signal_plans)
+                    if (plan.assignee_id, plan.chore_id) in applied_pairs:
+                        plan.assignee_state = const.CHORE_STATE_APPROVED
+
+                reset_applied, _ = self._execute_boundary_reset_plan(
+                    plan,
+                    rotation_payloads,
                 )
 
                 if not reset_applied:
@@ -2296,6 +2402,7 @@ class ChoreManager(BaseManager):
             reset_count=reset_count,
             rotation_payloads=rotation_payloads,
         )
+        self._emit_approval_signal_plans(approval_signal_plans)
 
         return reset_count, reset_pairs
 
@@ -2327,7 +2434,7 @@ class ChoreManager(BaseManager):
             return const.CHORE_STATE_APPROVED
         return const.CHORE_STATE_PENDING
 
-    async def _process_boundary_reset_assignee(
+    def _build_boundary_reset_plan(
         self,
         *,
         assignee_id: str,
@@ -2338,15 +2445,8 @@ class ChoreManager(BaseManager):
         category: ResetBoundaryCategory | None,
         reschedule_assignee_id: str | None,
         allow_reschedule: bool,
-        rotation_payloads: list[dict[str, Any]],
-    ) -> tuple[bool, bool]:
-        """Execute boundary reset pipeline for one assignee/chore pair.
-
-        Pipeline order: derive context -> decide -> handle pending -> apply.
-
-        Returns:
-            Tuple[reset_applied, should_reschedule_shared]
-        """
+    ) -> BoundaryResetPlan | None:
+        """Build a deterministic boundary reset plan for one assignee/chore pair."""
         has_pending_claim = self.chore_has_pending_claim(assignee_id, chore_id)
         pending_claim_action = chore_info.get(
             const.DATA_CHORE_APPROVAL_RESET_PENDING_CLAIM_ACTION,
@@ -2374,22 +2474,7 @@ class ChoreManager(BaseManager):
         )
 
         if decision == const.CHORE_RESET_DECISION_HOLD:
-            return False, False
-
-        assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
-
-        if has_pending_claim and decision in (
-            const.CHORE_RESET_DECISION_AUTO_APPROVE_PENDING,
-            const.CHORE_RESET_DECISION_RESET_ONLY,
-            const.CHORE_RESET_DECISION_RESET_AND_RESCHEDULE,
-        ):
-            if await self._handle_pending_chore_claim_at_reset(
-                assignee_id,
-                chore_id,
-                chore_info,
-                assignee_chore_data,
-            ):
-                return False, False
+            return None
 
         effective_decision = decision
         if decision == const.CHORE_RESET_DECISION_AUTO_APPROVE_PENDING:
@@ -2420,6 +2505,74 @@ class ChoreManager(BaseManager):
                 const.CHORE_RESET_DECISION_RESET_AND_RESCHEDULE,
             )
         )
+
+        return BoundaryResetPlan(
+            assignee_id=assignee_id,
+            chore_id=chore_id,
+            chore_info=chore_info,
+            assignee_state=assignee_state,
+            trigger=trigger,
+            requires_auto_approve_pending=(
+                has_pending_claim
+                and decision == const.CHORE_RESET_DECISION_AUTO_APPROVE_PENDING
+            ),
+            effective_decision=effective_decision,
+            reschedule_assignee_id=reschedule_assignee_id,
+            allow_reschedule=allow_reschedule,
+            should_clear_due_date=should_clear_due_date,
+        )
+
+    async def _apply_boundary_auto_approvals(
+        self,
+        plans: list[BoundaryResetPlan],
+    ) -> tuple[list[ApprovalSignalPlan], set[tuple[str, str]]]:
+        """Apply pending boundary auto-approvals before reset actions run."""
+        if not plans:
+            return [], set()
+
+        ordered_plans = sorted(
+            plans, key=lambda plan: (plan.chore_id, plan.assignee_id)
+        )
+        signal_plans: list[ApprovalSignalPlan] = []
+        applied_pairs: set[tuple[str, str]] = set()
+
+        async with AsyncExitStack() as stack:
+            for plan in ordered_plans:
+                await stack.enter_async_context(
+                    self._get_lock(plan.assignee_id, plan.chore_id)
+                )
+
+            for plan in ordered_plans:
+                approval_result = self._apply_approval_mutation_locked(
+                    plan.assignee_id,
+                    plan.chore_id,
+                )
+                if approval_result is None:
+                    continue
+
+                signal_plans.append(
+                    ApprovalSignalPlan(
+                        mutation_result=approval_result,
+                        approver_name="auto_reset",
+                        approval_origin=const.CHORE_APPROVAL_ORIGIN_AUTO_RESET,
+                        notify_assignee=False,
+                    )
+                )
+                applied_pairs.add((plan.assignee_id, plan.chore_id))
+
+        return signal_plans, applied_pairs
+
+    def _execute_boundary_reset_plan(
+        self,
+        plan: BoundaryResetPlan,
+        rotation_payloads: list[dict[str, Any]],
+    ) -> tuple[bool, bool]:
+        """Execute boundary reset side effects for a prepared plan."""
+        assignee_id = plan.assignee_id
+        chore_id = plan.chore_id
+        chore_info = plan.chore_info
+        assignee_state = plan.assignee_state
+        effective_decision = plan.effective_decision
 
         overdue_handling = chore_info.get(
             const.DATA_CHORE_OVERDUE_HANDLING_TYPE,
@@ -2453,7 +2606,7 @@ class ChoreManager(BaseManager):
             assignee_state == const.CHORE_STATE_MISSED
             and overdue_handling
             == const.OVERDUE_HANDLING_AT_DUE_DATE_MARK_MISSED_AND_LOCK
-            and trigger == const.CHORE_SCAN_TRIGGER_MIDNIGHT
+            and plan.trigger == const.CHORE_SCAN_TRIGGER_MIDNIGHT
             and ChoreEngine.is_rotation_mode(chore_info)
         ):
             current_turn_holder = chore_info.get(
@@ -2473,104 +2626,18 @@ class ChoreManager(BaseManager):
                 "assignee_id": assignee_id,
                 "chore_id": chore_id,
                 "decision": effective_decision,
-                "reschedule_assignee_id": reschedule_assignee_id,
-                "allow_reschedule": allow_reschedule,
-                "clear_due_date": should_clear_due_date,
+                "reschedule_assignee_id": plan.reschedule_assignee_id,
+                "allow_reschedule": plan.allow_reschedule,
+                "clear_due_date": plan.should_clear_due_date,
             }
         )
 
         should_reschedule_shared = (
-            not should_clear_due_date
-            and not allow_reschedule
+            not plan.should_clear_due_date
+            and not plan.allow_reschedule
             and effective_decision == const.CHORE_RESET_DECISION_RESET_AND_RESCHEDULE
         )
         return True, should_reschedule_shared
-
-    async def _handle_pending_chore_claim_at_reset(
-        self,
-        assignee_id: str,
-        chore_id: str,
-        chore_info: ChoreData,
-        assignee_chore_data: AssigneeChoreDataEntry,
-    ) -> bool:
-        """Handle pending claim based on approval reset pending claim action.
-
-        Called during scheduled resets (midnight, due date) to determine
-        how to handle claims that weren't approved before reset.
-
-        Args:
-            assignee_id: The assignee's internal ID
-            chore_id: The chore's internal ID
-            chore_info: The chore data dictionary
-            assignee_chore_data: The assignee's chore data for clearing pending count
-
-        Returns:
-            True if reset should be SKIPPED for this assignee (HOLD action)
-            False if reset should CONTINUE (CLEAR or after AUTO_APPROVE)
-        """
-        # Check if assignee has pending claim
-        if not self.chore_has_pending_claim(assignee_id, chore_id):
-            return False  # No pending claim, continue with reset
-
-        pending_claim_action = chore_info.get(
-            const.DATA_CHORE_APPROVAL_RESET_PENDING_CLAIM_ACTION,
-            const.APPROVAL_RESET_PENDING_CLAIM_CLEAR,
-        )
-
-        if pending_claim_action == const.APPROVAL_RESET_PENDING_CLAIM_HOLD:
-            # HOLD: Skip reset for this assignee, leave claim pending
-            const.LOGGER.debug(
-                "Chore Reset - HOLD pending claim for Assignee '%s' on Chore '%s'",
-                assignee_id,
-                chore_id,
-            )
-            return True  # Skip reset for this assignee
-
-        if pending_claim_action == const.APPROVAL_RESET_PENDING_CLAIM_AUTO_APPROVE:
-            # AUTO_APPROVE: Approve the pending claim before reset
-            # Landlord duty: Ensure periods structures exist before statistics writes
-            self._ensure_assignee_structures(assignee_id, chore_id)
-
-            const.LOGGER.debug(
-                "Chore Reset - AUTO_APPROVE pending claim for Assignee '%s' on Chore '%s'",
-                assignee_id,
-                chore_id,
-            )
-            assignee_info: UserData | dict[str, Any] = (
-                self._coordinator.assignees_data.get(assignee_id, {})
-            )
-            assignee_name = assignee_info.get(const.DATA_USER_NAME, "Unknown")
-            base_points = float(
-                chore_info.get(const.DATA_CHORE_DEFAULT_POINTS, const.DEFAULT_POINTS)
-            )
-            previous_state = assignee_chore_data.get(
-                const.DATA_USER_CHORE_DATA_STATE,
-                const.CHORE_STATE_PENDING,
-            )
-            now_iso = dt_now_utc_iso()
-            effective_date_iso = self._resolve_approval_effective_date_iso(
-                assignee_chore_data,
-                now_iso,
-            )
-
-            self._emit_chore_approved_event(
-                assignee_id=assignee_id,
-                chore_id=chore_id,
-                chore_data=chore_info,
-                assignee_name=assignee_name,
-                approver_name="auto_reset",
-                base_points=base_points,
-                previous_state=previous_state,
-                effective_date_iso=effective_date_iso,
-                approval_origin=const.CHORE_APPROVAL_ORIGIN_AUTO_RESET,
-                notify_assignee=False,
-            )
-
-        # CLEAR (default) or after AUTO_APPROVE: Clear pending_claim_count
-        if assignee_chore_data:
-            assignee_chore_data[const.DATA_USER_CHORE_DATA_PENDING_CLAIM_COUNT] = 0
-
-        return False  # Continue with reset
 
     def _resolve_approval_effective_date_iso(
         self,
