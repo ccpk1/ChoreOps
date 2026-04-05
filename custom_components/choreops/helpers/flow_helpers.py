@@ -935,7 +935,7 @@ def build_chore_schema(
         ): selector.BooleanSelector(),
         vol.Optional(
             const.CFOF_CHORES_INPUT_CUSTOM_INTERVAL,
-            default=default.get(const.CFOF_CHORES_INPUT_CUSTOM_INTERVAL, None),
+            default=default.get(const.CFOF_CHORES_INPUT_CUSTOM_INTERVAL, 1),
         ): vol.Any(
             None,
             selector.NumberSelector(
@@ -946,7 +946,10 @@ def build_chore_schema(
         ),
         vol.Optional(
             const.CFOF_CHORES_INPUT_CUSTOM_INTERVAL_UNIT,
-            default=default.get(const.CFOF_CHORES_INPUT_CUSTOM_INTERVAL_UNIT, None),
+            default=default.get(
+                const.CFOF_CHORES_INPUT_CUSTOM_INTERVAL_UNIT,
+                const.TIME_UNIT_DAYS,
+            ),
         ): vol.Any(
             None,
             selector.SelectSelector(
