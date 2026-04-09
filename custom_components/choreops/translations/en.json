@@ -1644,6 +1644,7 @@
           "retention_yearly": "Yearly Data Retention (Years)",
           "show_legacy_entities": "Show Extra Entities",
           "kiosk_mode": "Enable Kiosk Mode for Assignee Claims",
+          "admin_approval_bypass": "Allow Home Assistant Admin Accounts to Approve",
           "backups_max_retained": "Maximum Backups to Retain",
           "backup_action_selection": "Backup Actions"
         },
@@ -1659,6 +1660,7 @@
           "retention_yearly": "Number of years of yearly historical data to retain before cleanup. Minimum 1, maximum 10.",
           "show_legacy_entities": "Show extra entities like sensor and selects that are now consolidated into the dashboard helper sensor. These entities are optional for backward compatibility with existing automations.",
           "kiosk_mode": "Allows assignee chore/reward claim buttons to work on shared wall tablets without requiring the dashboard user to match the assignee's Home Assistant user link. Security warning: anyone with access to that device can submit assignee claims.",
+          "admin_approval_bypass": "When enabled, Home Assistant admin accounts can use chore and reward approval actions across the integration. When disabled, admin accounts cannot approve chores or rewards just because they are Home Assistant admins.",
           "backups_max_retained": "Maximum number of backup files to keep per tag (e.g., 5 manual backups, 5 data_reset backups). Older backups are automatically deleted after each new backup is created. Set to 0 to disable automatic backups completely.",
           "backup_action_selection": "Choose a backup management action: create a manual backup, delete a backup, or restore from a backup."
         }

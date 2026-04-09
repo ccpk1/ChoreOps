@@ -25,6 +25,7 @@ from custom_components.choreops.helpers.auth_helpers import (
     AUTH_ACTION_APPROVAL,
     AUTH_ACTION_MANAGEMENT,
     AUTH_ACTION_PARTICIPATION,
+    is_admin_approval_bypass_enabled,
     is_kiosk_mode_enabled,
     is_user_authorized_for_action,
 )
@@ -336,6 +337,36 @@ class TestAuthorizationHelpers:
 
         assert is_authorized is True
 
+    async def test_admin_approval_override_can_be_disabled(
+        self,
+        hass: HomeAssistant,
+        scenario_minimal: SetupResult,
+        mock_hass_users: dict[str, Any],
+    ) -> None:
+        """Admin approval bypass should follow the general option when disabled."""
+        config_entry = scenario_minimal.config_entry
+        assignee_id = scenario_minimal.assignee_ids["Zoë"]
+
+        hass.config_entries.async_update_entry(
+            config_entry,
+            options={
+                **config_entry.options,
+                const.CONF_ADMIN_APPROVAL_BYPASS: False,
+            },
+        )
+        await hass.async_block_till_done()
+
+        assert is_admin_approval_bypass_enabled(hass) is False
+
+        is_authorized = await is_user_authorized_for_action(
+            hass,
+            mock_hass_users["admin"].id,
+            AUTH_ACTION_APPROVAL,
+            target_user_id=assignee_id,
+        )
+
+        assert is_authorized is False
+
     async def test_linked_approver_authorized_for_target_assignee(
         self,
         hass: HomeAssistant,
@@ -523,6 +554,14 @@ class TestAuthorizationHelpers:
         await hass.async_block_till_done()
 
         assert is_kiosk_mode_enabled(hass) is True
+
+    async def test_admin_approval_bypass_defaults_to_enabled(
+        self,
+        hass: HomeAssistant,
+        scenario_minimal: SetupResult,
+    ) -> None:
+        """Admin approval bypass should default to enabled for compatibility."""
+        assert is_admin_approval_bypass_enabled(hass) is True
 
 
 class TestDatetimeBoundaryHandling:

@@ -406,7 +406,7 @@ async def test_options_flow_saves_kiosk_mode_toggle(
     hass: HomeAssistant,
     scenario_minimal: SetupResult,
 ) -> None:
-    """General options flow should persist kiosk mode setting."""
+    """General options flow should persist kiosk mode and admin approval settings."""
     config_entry = scenario_minimal.config_entry
 
     result = await hass.config_entries.options.async_init(config_entry.entry_id)
@@ -426,6 +426,7 @@ async def test_options_flow_saves_kiosk_mode_toggle(
             const.CFOF_SYSTEM_INPUT_RETENTION_PERIODS: "14|5|3|3",
             const.CFOF_SYSTEM_INPUT_SHOW_LEGACY_ENTITIES: False,
             const.CFOF_SYSTEM_INPUT_KIOSK_MODE: True,
+            const.CFOF_SYSTEM_INPUT_ADMIN_APPROVAL_BYPASS: False,
             const.CFOF_SYSTEM_INPUT_BACKUPS_MAX_RETAINED: 5,
         },
     )
@@ -435,6 +436,7 @@ async def test_options_flow_saves_kiosk_mode_toggle(
     updated_entry = hass.config_entries.async_get_entry(config_entry.entry_id)
     assert updated_entry is not None
     assert updated_entry.options.get(const.CONF_KIOSK_MODE) is True
+    assert updated_entry.options.get(const.CONF_ADMIN_APPROVAL_BYPASS) is False
 
 
 async def test_service_claim_auth_stays_strict_with_kiosk_enabled(

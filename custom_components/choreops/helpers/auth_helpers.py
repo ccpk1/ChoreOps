@@ -67,6 +67,22 @@ def is_kiosk_mode_enabled(hass: HomeAssistant) -> bool:
     return const.DEFAULT_KIOSK_MODE
 
 
+def is_admin_approval_bypass_enabled(hass: HomeAssistant) -> bool:
+    """Return whether Home Assistant admins bypass approval link checks."""
+    entries = hass.config_entries.async_entries(const.DOMAIN)
+    if not entries:
+        return const.DEFAULT_ADMIN_APPROVAL_BYPASS
+
+    for entry in entries:
+        if entry.state.name == "LOADED":
+            return entry.options.get(
+                const.CONF_ADMIN_APPROVAL_BYPASS,
+                const.DEFAULT_ADMIN_APPROVAL_BYPASS,
+            )
+
+    return const.DEFAULT_ADMIN_APPROVAL_BYPASS
+
+
 # ==============================================================================
 # Authorization Checks
 # ==============================================================================
@@ -269,8 +285,9 @@ async def _has_approval_authority_for_target(
     if not user:
         return False
 
+    admin_approval_bypass_enabled = is_admin_approval_bypass_enabled(hass)
     if user.is_admin:
-        return True
+        return admin_approval_bypass_enabled
 
     coordinator: ChoreOpsDataCoordinator | None = _get_choreops_coordinator(hass)
     if not coordinator:

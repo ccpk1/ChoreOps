@@ -3326,6 +3326,10 @@ def build_general_options_schema(default: dict | None = None) -> vol.Schema:
         const.CONF_SHOW_LEGACY_ENTITIES, const.DEFAULT_SHOW_LEGACY_ENTITIES
     )
     default_kiosk_mode = default.get(const.CONF_KIOSK_MODE, const.DEFAULT_KIOSK_MODE)
+    default_admin_approval_bypass = default.get(
+        const.CONF_ADMIN_APPROVAL_BYPASS,
+        const.DEFAULT_ADMIN_APPROVAL_BYPASS,
+    )
 
     return vol.Schema(
         {
@@ -3360,6 +3364,10 @@ def build_general_options_schema(default: dict | None = None) -> vol.Schema:
             vol.Required(
                 const.CFOF_SYSTEM_INPUT_KIOSK_MODE,
                 default=default_kiosk_mode,
+            ): selector.BooleanSelector(),
+            vol.Required(
+                const.CFOF_SYSTEM_INPUT_ADMIN_APPROVAL_BYPASS,
+                default=default_admin_approval_bypass,
             ): selector.BooleanSelector(),
             vol.Required(
                 const.CFOF_SYSTEM_INPUT_BACKUPS_MAX_RETAINED,

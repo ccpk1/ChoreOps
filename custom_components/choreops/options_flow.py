@@ -5055,6 +5055,10 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 const.CFOF_SYSTEM_INPUT_KIOSK_MODE,
                 const.DEFAULT_KIOSK_MODE,
             )
+            self._entry_options[const.CONF_ADMIN_APPROVAL_BYPASS] = user_input.get(
+                const.CFOF_SYSTEM_INPUT_ADMIN_APPROVAL_BYPASS,
+                const.DEFAULT_ADMIN_APPROVAL_BYPASS,
+            )
 
             # Update backup retention (count-based)
             self._entry_options[const.CONF_BACKUPS_MAX_RETAINED] = user_input.get(
@@ -5065,7 +5069,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 "General Options Updated: Points Adjust Values=%s, "
                 "Default Chore Points=%s, Update Interval=%s, Calendar Period to Show=%s, "
                 "Retention Periods=%s, "
-                "Show Legacy Entities=%s, Kiosk Mode=%s, Backup Retention=%s",
+                "Show Legacy Entities=%s, Kiosk Mode=%s, Admin Approval Bypass=%s, Backup Retention=%s",
                 self._entry_options.get(const.CONF_POINTS_ADJUST_VALUES),
                 self._entry_options.get(const.CONF_DEFAULT_CHORE_POINTS),
                 self._entry_options.get(const.CONF_UPDATE_INTERVAL),
@@ -5073,6 +5077,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 retention_str,
                 self._entry_options.get(const.CONF_SHOW_LEGACY_ENTITIES),
                 self._entry_options.get(const.CONF_KIOSK_MODE),
+                self._entry_options.get(const.CONF_ADMIN_APPROVAL_BYPASS),
                 self._entry_options.get(const.CONF_BACKUPS_MAX_RETAINED),
             )
 

@@ -1178,6 +1178,47 @@ class TestAuthorizationAcceptance:
         )
 
     @pytest.mark.asyncio
+    async def test_admin_override_disabled_denies_unlinked_admin_approval(
+        self,
+        hass: HomeAssistant,
+        setup_chore_services_scenario: SetupResult,
+        mock_hass_users: dict[str, Any],
+    ) -> None:
+        """Admin approval should follow linked-approver rules when bypass is disabled."""
+        coordinator = setup_chore_services_scenario.coordinator
+        config_entry = setup_chore_services_scenario.config_entry
+        assignee_id = setup_chore_services_scenario.assignee_ids["Zoë"]
+        chore_id = setup_chore_services_scenario.chore_ids["Independent Daily Task"]
+
+        hass.config_entries.async_update_entry(
+            config_entry,
+            options={
+                **config_entry.options,
+                const.CONF_ADMIN_APPROVAL_BYPASS: False,
+            },
+        )
+        await hass.async_block_till_done()
+
+        with patch.object(
+            coordinator.notification_manager, "notify_assignee", new=AsyncMock()
+        ):
+            await coordinator.chore_manager.claim_chore(assignee_id, chore_id, "Zoë")
+
+        admin_context = Context(user_id=mock_hass_users["admin"].id)
+        with pytest.raises(HomeAssistantError):
+            await hass.services.async_call(
+                const.DOMAIN,
+                const.SERVICE_APPROVE_CHORE,
+                {
+                    const.SERVICE_FIELD_APPROVER_NAME: "Admin User",
+                    const.SERVICE_FIELD_USER_NAME: "Zoë",
+                    const.SERVICE_FIELD_CHORE_NAME: "Independent Daily Task",
+                },
+                blocking=True,
+                context=admin_context,
+            )
+
+    @pytest.mark.asyncio
     async def test_non_approver_denied_approve_action(
         self,
         hass: HomeAssistant,
