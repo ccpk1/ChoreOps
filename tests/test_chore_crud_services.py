@@ -21,7 +21,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from homeassistant.exceptions import HomeAssistantError
 import pytest
@@ -607,6 +607,36 @@ class TestUpdateChoreSchemaValidation:
 
 class TestUpdateChoreEndToEnd:
     """Test update_chore end-to-end functionality via dashboard helper."""
+
+    @pytest.mark.asyncio
+    async def test_assignment_change_triggers_entity_sync(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """Test assignment changes trigger runtime entity synchronization."""
+        chore_id = scenario_full.chore_ids["Täke Öut Trash"]
+
+        with (
+            patch.object(scenario_full.coordinator, "_persist", new=MagicMock()),
+            patch.object(
+                scenario_full.coordinator,
+                "async_sync_entities_after_service_create",
+                new=AsyncMock(),
+            ) as mock_sync,
+        ):
+            await hass.services.async_call(
+                DOMAIN,
+                SERVICE_UPDATE_CHORE,
+                {
+                    "id": chore_id,
+                    "assigned_user_names": ["Max!"],
+                },
+                blocking=True,
+                return_response=True,
+            )
+
+        mock_sync.assert_awaited_once()
 
     @pytest.mark.asyncio
     async def test_updated_points_reflects_in_dashboard_helper(

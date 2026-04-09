@@ -1136,6 +1136,9 @@ def async_setup_services(hass: HomeAssistant):
                 existing_chore.get(const.DATA_CHORE_ASSIGNED_USER_IDS, []),
             )
         )
+        assignments_changed = const.DATA_CHORE_ASSIGNED_USER_IDS in data_input and set(
+            assigned_assignee_ids
+        ) != set(existing_chore.get(const.DATA_CHORE_ASSIGNED_USER_IDS, []))
 
         validation_data = _build_service_chore_validation_data(
             data_input,
@@ -1175,6 +1178,9 @@ def async_setup_services(hass: HomeAssistant):
                 chore_dict[const.DATA_CHORE_NAME],
                 chore_id,
             )
+
+            if assignments_changed:
+                await coordinator.async_sync_entities_after_service_create()
 
             return {const.SERVICE_FIELD_CHORE_CRUD_ID: chore_id}
 
