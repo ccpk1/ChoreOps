@@ -59,6 +59,17 @@
 - `pref_exclude_states` (default: `[]`)
   - Excludes chores by state.
 
+- `pref_exclude_nonrecurring_no_due_date` (default: `false`)
+  - Hides chores that are both non-recurring and missing a due date.
+  - Daily chores without a due date are not affected.
+  - Allowed: `true`, `false`.
+
+- `pref_max_due_date_days` (default: `0`)
+  - Hides chores whose due date is more than this many days ahead.
+  - Applies only to chores that have a due date.
+  - `0` disables the filter.
+  - Allowed: `0` or a positive integer.
+
 - `pref_exclude_group_list` (default: `[]`)
   - Excludes one or more rendered chore groups from the card.
   - Allowed values: `overdue`, `today_morning`, `today`, `this_week`, `later`.
@@ -116,5 +127,7 @@ The lite profile uses one tap action per reward tile.
 - Keep the light default behavior: change nothing and let the helper-provided sorting do the work.
 - Hide completed chores: set `pref_exclude_completed: true`.
 - Hide blocked-result chores on shared/rotation heavy installs: set `pref_exclude_blocked: true`.
+- Hide unscheduled one-off chores: set `pref_exclude_nonrecurring_no_due_date: true`.
+- Hide long-range future chores: set `pref_max_due_date_days: 7`.
 - Hide the Later section: set `pref_exclude_group_list: ['later']`.
 - Prefer label buckets over time buckets: set `pref_use_label_grouping: true` and provide `pref_label_display_order`.

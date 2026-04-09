@@ -160,6 +160,10 @@ views:
 
                     {%- set pref_exclude_states = [] -%}
 
+                    {%- set pref_exclude_nonrecurring_no_due_date = false -%}
+
+                    {%- set pref_max_due_date_days = 0 -%}
+
                     {%- set pref_exclude_group_list = [] -%}
 
                     {%- set pref_use_label_grouping = false -%}
@@ -190,6 +194,11 @@ views:
                           {%- set pref_exclude_states = pref_exclude_states + [blocked_state] -%}
                         {%- endif -%}
                       {%- endfor -%}
+                    {%- endif -%}
+                    {%- set pref_exclude_nonrecurring_no_due_date = (pref_exclude_nonrecurring_no_due_date | default(false, true) | string | lower) == 'true' -%}
+                    {%- set pref_max_due_date_days = pref_max_due_date_days | int(default=0) -%}
+                    {%- if pref_max_due_date_days < 0 -%}
+                      {%- set pref_max_due_date_days = 0 -%}
                     {%- endif -%}
                     {%- set pref_exclude_group_list = pref_exclude_group_list if pref_exclude_group_list is iterable and pref_exclude_group_list is not string else [] -%}
                     {%- set pref_exclude_group_list = pref_exclude_group_list | map('lower') | list -%}
@@ -238,9 +247,13 @@ views:
                         {%- set chore_labels = chore.labels if chore is mapping else state_attr(chore_sensor_id, 'labels') | default([], true) -%}
                         {%- set chore_primary_group = chore.primary_group if chore is mapping else state_attr(chore_sensor_id, 'primary_group') | default('other') -%}
                         {%- set chore_is_today_am = chore.is_today_am if chore is mapping else state_attr(chore_sensor_id, 'is_today_am') -%}
+                        {%- set chore_due_date = state_attr(chore_sensor_id, 'due_date') -%}
+                        {%- set chore_recurring_frequency = state_attr(chore_sensor_id, 'recurring_frequency') | default('', true) | string | lower -%}
 
                         {%- if not (chore_labels | select('in', pref_exclude_label_list) | list | count > 0) -%}
                           {%- if chore_status in pref_exclude_states -%}
+                          {%- elif pref_exclude_nonrecurring_no_due_date and chore_due_date in [none, 'unknown', 'unavailable'] and chore_recurring_frequency in ['', 'none'] -%}
+                          {%- elif pref_max_due_date_days > 0 and chore_due_date not in [none, 'unknown', 'unavailable'] and ((as_timestamp(chore_due_date) | default(0, true)) - (as_timestamp(now()) | default(0, true))) > (pref_max_due_date_days * 86400) -%}
                           {%- elif chore_status == 'overdue' and pref_use_overdue_grouping -%}
                             {%- set ns.overdue_buttons = ns.overdue_buttons + [chore_sensor_id] -%}
                             {%- set ns.visible_count = ns.visible_count + 1 -%}

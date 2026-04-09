@@ -5,6 +5,8 @@
 	{%- set chore_labels = chore.labels if chore is mapping else state_attr(chore_sensor_id, 'labels') | default([], true) -%}
 	{%- set chore_primary_group = chore.primary_group if chore is mapping else state_attr(chore_sensor_id, 'primary_group') | default('other') -%}
 	{%- set chore_is_today_am = chore.is_today_am if chore is mapping else state_attr(chore_sensor_id, 'is_today_am') -%}
+	{%- set chore_due_date = state_attr(chore_sensor_id, 'due_date') -%}
+	{%- set chore_recurring_frequency = state_attr(chore_sensor_id, 'recurring_frequency') | default('', true) | string | lower -%}
 
 	{#-- Step 1: Skip if chore labels match exclude list --#}
 	{%- if not (chore_labels | select('in', pref_exclude_label_list) | list | count > 0) -%}
@@ -12,6 +14,14 @@
 		{#-- Step 2: Skip chores by excluded states preference --#}
 		{%- if chore_status in effective_exclude_states -%}
 			{#-- Skip this chore --#}
+
+		{#-- Step 2b: Skip non-recurring chores with no due date when configured --#}
+		{%- elif pref_exclude_nonrecurring_no_due_date and chore_due_date in [none, 'unknown', 'unavailable'] and chore_recurring_frequency in ['', 'none'] -%}
+			{#-- Skip unscheduled one-off chore --#}
+
+		{#-- Step 2c: Skip chores beyond the due-date horizon when configured --#}
+		{%- elif pref_max_due_date_days > 0 and chore_due_date not in [none, 'unknown', 'unavailable'] and ((as_timestamp(chore_due_date) | default(0, true)) - (as_timestamp(now()) | default(0, true))) > (pref_max_due_date_days * 86400) -%}
+			{#-- Skip far-future due-dated chore --#}
 
 		{#-- Step 3: Handle overdue chores (highest priority) --#}
 		{%- elif chore_status == 'overdue' and effective_use_overdue_grouping -%}

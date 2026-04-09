@@ -253,6 +253,10 @@ views:
 
                   {%- set pref_exclude_states = [] -%}  {#-- Example: ['completed', 'completed_by_other', 'not_my_turn', 'missed'] --#}
 
+                  {%- set pref_exclude_nonrecurring_no_due_date = false -%}
+
+                  {%- set pref_max_due_date_days = 0 -%}  {#-- 0 disables; positive integer hides chores due beyond this many days ahead. --#}
+
                   {%- set pref_exclude_group_list = [] -%}  {#-- Example: ['later', 'this_week'] --#}
 
                   {%- set pref_use_label_grouping = false -%}

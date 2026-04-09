@@ -115,6 +115,17 @@ Recommended ranges:
   - Example: `['completed', 'completed_by_other', 'not_my_turn', 'missed']`.
   - Allowed: array of lowercase state strings.
 
+- `pref_exclude_nonrecurring_no_due_date` (default: `false`)
+  - Hides chores that are both non-recurring and missing a due date.
+  - Daily chores without a due date are not affected.
+  - Allowed: `true`, `false`.
+
+- `pref_max_due_date_days` (default: `0`)
+  - Hides chores whose due date is more than this many days ahead.
+  - Applies only to chores that have a due date.
+  - `0` disables the filter.
+  - Allowed: `0` or a positive integer.
+
 - `pref_exclude_group_list` (default: `[]`)
   - Excludes one or more rendered chore groups from the card.
   - Allowed values: `overdue`, `today_morning`, `today`, `this_week`, `later`.

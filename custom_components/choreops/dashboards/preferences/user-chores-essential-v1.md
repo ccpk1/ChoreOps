@@ -62,6 +62,17 @@
   - Example: `['completed', 'completed_by_other', 'not_my_turn', 'missed']`.
   - Allowed: array of lowercase state strings.
 
+- `pref_exclude_nonrecurring_no_due_date` (default: `false`)
+  - Hides chores that are both non-recurring and missing a due date.
+  - Daily chores without a due date are not affected.
+  - Allowed: `true`, `false`.
+
+- `pref_max_due_date_days` (default: `0`)
+  - Hides chores whose due date is more than this many days ahead.
+  - Applies only to chores that have a due date.
+  - `0` disables the filter.
+  - Allowed: `0` or a positive integer.
+
 - `pref_exclude_group_list` (default: `[]`)
   - Excludes one or more rendered chore groups from the card.
   - Allowed values: `overdue`, `today_morning`, `today`, `this_week`, `later`.
@@ -114,6 +125,8 @@
 
 - Keep it minimal: set only `pref_column_count`, leave everything else as default.
 - Hide done chores: add `completed` to `pref_exclude_states` (for example `['completed']`).
+- Hide unscheduled one-off chores: set `pref_exclude_nonrecurring_no_due_date: true`.
+- Hide long-range future chores: set `pref_max_due_date_days: 7`.
 - Hide Later chores: set `pref_exclude_group_list: ['later']`.
 - Build a label board: set `pref_use_label_grouping: true` and define `pref_label_display_order`.
 - Prioritize urgent work: keep `pref_use_overdue_grouping: true` and use `pref_sort_within_groups: by_state_and_date`.
