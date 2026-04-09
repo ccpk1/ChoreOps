@@ -62,6 +62,15 @@
   - Example: `['completed', 'completed_by_other', 'not_my_turn', 'missed']`.
   - Allowed: array of lowercase state strings.
 
+- `pref_exclude_group_list` (default: `[]`)
+  - Excludes one or more rendered chore groups from the card.
+  - Allowed values: `overdue`, `today_morning`, `today`, `this_week`, `later`.
+  - Exclusions apply after the dashboard resolves which groups exist.
+  - If a listed group does not exist in the current configuration, it is ignored.
+  - Example: `['later']` hides the Later bucket.
+  - Example: `['later', 'this_week']` hides the Later and Due This Week buckets.
+  - When `pref_use_today_grouping` is `true`, exclude both `today_morning` and `today` to hide all today chores.
+
 - `pref_use_label_grouping` (default: `false`)
   - Groups chores by labels instead of time buckets.
   - Allowed: `true`, `false`.
@@ -105,6 +114,7 @@
 
 - Keep it minimal: set only `pref_column_count`, leave everything else as default.
 - Hide done chores: add `completed` to `pref_exclude_states` (for example `['completed']`).
+- Hide Later chores: set `pref_exclude_group_list: ['later']`.
 - Build a label board: set `pref_use_label_grouping: true` and define `pref_label_display_order`.
 - Prioritize urgent work: keep `pref_use_overdue_grouping: true` and use `pref_sort_within_groups: by_state_and_date`.
 

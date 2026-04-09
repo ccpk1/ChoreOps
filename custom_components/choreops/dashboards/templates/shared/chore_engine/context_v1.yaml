@@ -55,6 +55,15 @@
 {%- set pref_exclude_completed = (pref_exclude_completed | default(false, true) | string | lower) == 'true' -%}
 {%- set pref_exclude_states = pref_exclude_states if pref_exclude_states is iterable and pref_exclude_states is not string else [] -%}
 {%- set pref_exclude_states = pref_exclude_states | map('lower') | list -%}
+{%- set pref_exclude_group_list = pref_exclude_group_list if pref_exclude_group_list is iterable and pref_exclude_group_list is not string else [] -%}
+{%- set pref_exclude_group_list = pref_exclude_group_list | map('lower') | list -%}
+{%- set ns_valid_exclude_groups = namespace(items=[]) -%}
+{%- for group_id in pref_exclude_group_list -%}
+  {%- if group_id in ['overdue', 'today_morning', 'today', 'this_week', 'later'] and group_id not in ns_valid_exclude_groups.items -%}
+    {%- set ns_valid_exclude_groups.items = ns_valid_exclude_groups.items + [group_id] -%}
+  {%- endif -%}
+{%- endfor -%}
+{%- set pref_exclude_group_list = ns_valid_exclude_groups.items -%}
 {%- if pref_exclude_completed and 'completed' not in pref_exclude_states -%}
   {%- set pref_exclude_states = pref_exclude_states + ['completed'] -%}
 {%- endif -%}

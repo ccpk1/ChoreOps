@@ -59,6 +59,15 @@
 - `pref_exclude_states` (default: `[]`)
   - Excludes chores by state.
 
+- `pref_exclude_group_list` (default: `[]`)
+  - Excludes one or more rendered chore groups from the card.
+  - Allowed values: `overdue`, `today_morning`, `today`, `this_week`, `later`.
+  - Exclusions apply after the dashboard resolves which groups exist.
+  - If a listed group does not exist in the current configuration, it is ignored.
+  - Example: `['later']` hides the Later bucket.
+  - Example: `['later', 'this_week']` hides the Later and Due This Week buckets.
+  - In `today_morning` mode, excluding `today` hides only the later-today bucket. Exclude both `today_morning` and `today` to hide all today chores.
+
 - `pref_use_label_grouping` (default: `false`)
   - Groups chores by labels instead of time buckets.
 
@@ -107,4 +116,5 @@ The lite profile uses one tap action per reward tile.
 - Keep the light default behavior: change nothing and let the helper-provided sorting do the work.
 - Hide completed chores: set `pref_exclude_completed: true`.
 - Hide blocked-result chores on shared/rotation heavy installs: set `pref_exclude_blocked: true`.
+- Hide the Later section: set `pref_exclude_group_list: ['later']`.
 - Prefer label buckets over time buckets: set `pref_use_label_grouping: true` and provide `pref_label_display_order`.

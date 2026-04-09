@@ -208,6 +208,8 @@ views:
 
                   {%- set pref_exclude_states = [] -%}  {#-- Example: ['completed', 'completed_by_other', 'not_my_turn', 'missed'] --#}
 
+                  {%- set pref_exclude_group_list = [] -%}  {#-- Example: ['later', 'this_week'] --#}
+
                   {%- set pref_use_label_grouping = false -%}
 
                   {%- set pref_exclude_label_list = [] -%}  {#-- Example: ['junk_label', 'skip_this'] --#}
@@ -240,6 +242,15 @@ views:
                   {%- if pref_exclude_completed and 'completed' not in pref_exclude_states -%}
                     {%- set pref_exclude_states = pref_exclude_states + ['completed'] -%}
                   {%- endif -%}
+                  {%- set pref_exclude_group_list = pref_exclude_group_list if pref_exclude_group_list is iterable and pref_exclude_group_list is not string else [] -%}
+                  {%- set pref_exclude_group_list = pref_exclude_group_list | map('lower') | list -%}
+                  {%- set ns_group_filter = namespace(valid=[]) -%}
+                  {%- for group_id in pref_exclude_group_list -%}
+                    {%- if group_id in ['overdue', 'today_morning', 'today', 'this_week', 'later'] and group_id not in ns_group_filter.valid -%}
+                      {%- set ns_group_filter.valid = ns_group_filter.valid + [group_id] -%}
+                    {%- endif -%}
+                  {%- endfor -%}
+                  {%- set pref_exclude_group_list = ns_group_filter.valid -%}
                   {%- set pref_use_label_grouping = pref_use_label_grouping | default(false, true) -%}
                   {%- set pref_exclude_label_list = pref_exclude_label_list if pref_exclude_label_list is iterable else [] -%}
                   {%- set pref_label_display_order = pref_label_display_order if pref_label_display_order is iterable else [] -%}
@@ -351,7 +362,7 @@ views:
                             {%- endif -%}
                           {%- endfor -%}
                           {%- if ns.temp_label_buttons | length > 0 -%}
-                            {%- set ns.label_button_groups = ns.label_button_groups + [{'name': label, 'buttons': ns.temp_label_buttons, 'icon': 'mdi:label'}] -%}
+                            {%- set ns.label_button_groups = ns.label_button_groups + [{'id': 'none', 'name': label, 'buttons': ns.temp_label_buttons, 'icon': 'mdi:label'}] -%}
                           {%- endif -%}
                         {%- endif -%}
                       {%- endfor -%}
@@ -369,7 +380,7 @@ views:
                               {%- endif -%}
                             {%- endfor -%}
                             {%- if ns.temp_label_buttons | length > 0 -%}
-                              {%- set ns.label_button_groups = ns.label_button_groups + [{'name': label, 'buttons': ns.temp_label_buttons, 'icon': 'mdi:label'}] -%}
+                              {%- set ns.label_button_groups = ns.label_button_groups + [{'id': 'none', 'name': label, 'buttons': ns.temp_label_buttons, 'icon': 'mdi:label'}] -%}
                             {%- endif -%}
                           {%- endif -%}
                         {%- endfor -%}
@@ -378,10 +389,10 @@ views:
 
                     {#-- Build the button groups --#}
                     {%- set button_groups = [
-                        {'name': "!!!!!!!!!!! " ~ ui.get('overdue', 'err-overdue') ~ " !!!!!!!!!!!", 'buttons': ns.overdue_buttons, 'icon': 'mdi:alert-octagon'},
-                        {'name': ui.get('due_this_morning', 'err-due_this_morning'), 'buttons': ns.am_buttons, 'icon': 'mdi:alarm'},
-                        {'name': ui.get('due_today', 'err-due_today'), 'buttons': ns.today_buttons, 'icon': 'mdi:calendar-today'},
-                        {'name': ui.get('due_this_week', 'err-due_this_week'), 'buttons': ns.this_week_buttons, 'icon': 'mdi:calendar-week'}
+                      {'id': 'overdue', 'name': "!!!!!!!!!!! " ~ ui.get('overdue', 'err-overdue') ~ " !!!!!!!!!!!", 'buttons': ns.overdue_buttons, 'icon': 'mdi:alert-octagon'},
+                      {'id': 'today_morning', 'name': ui.get('due_this_morning', 'err-due_this_morning'), 'buttons': ns.am_buttons, 'icon': 'mdi:alarm'},
+                      {'id': 'today', 'name': ui.get('due_today', 'err-due_today'), 'buttons': ns.today_buttons, 'icon': 'mdi:calendar-today'},
+                      {'id': 'this_week', 'name': ui.get('due_this_week', 'err-due_this_week'), 'buttons': ns.this_week_buttons, 'icon': 'mdi:calendar-week'}
                     ] -%}
 
                     {#-- Insert label-based groups --#}
@@ -389,8 +400,12 @@ views:
 
                     {#-- Continue with bonus group --#}
                     {%- set button_groups = button_groups + [
-                        {'name': ui.get('upcoming_bonus', 'err-upcoming_bonus'), 'buttons': ns.other_buttons, 'icon': 'mdi:calendar-clock'}
+                        {'id': 'later', 'name': ui.get('upcoming_bonus', 'err-upcoming_bonus'), 'buttons': ns.other_buttons, 'icon': 'mdi:calendar-clock'}
                     ] -%}
+
+                    {%- if pref_exclude_group_list | length > 0 -%}
+                      {%- set button_groups = button_groups | rejectattr('id', 'in', pref_exclude_group_list) | list -%}
+                    {%- endif -%}
 
                     {#-- Sort chores within each group based on preference --#}
                     {%- if pref_sort_within_groups != 'default' -%}
@@ -411,7 +426,7 @@ views:
                             {%- endif -%}
                             {#-- Extract just the entity IDs --#}
                             {%- set sorted_buttons = sorted_list | map('last') | list -%}
-                            {%- set ns.sorted_groups = ns.sorted_groups + [{'name': group.name, 'buttons': sorted_buttons, 'icon': group.icon}] -%}
+                            {%- set ns.sorted_groups = ns.sorted_groups + [{'id': group.id, 'name': group.name, 'buttons': sorted_buttons, 'icon': group.icon}] -%}
                           {%- elif pref_sort_within_groups in ['date_asc', 'date_desc'] -%}
                             {#-- Build list of (due_date_timestamp, eid) tuples for sorting --#}
                             {%- set ns.temp_list = [] -%}
@@ -431,7 +446,7 @@ views:
                             {%- endif -%}
                             {#-- Extract just the entity IDs --#}
                             {%- set sorted_buttons = sorted_list | map('last') | list -%}
-                            {%- set ns.sorted_groups = ns.sorted_groups + [{'name': group.name, 'buttons': sorted_buttons, 'icon': group.icon}] -%}
+                            {%- set ns.sorted_groups = ns.sorted_groups + [{'id': group.id, 'name': group.name, 'buttons': sorted_buttons, 'icon': group.icon}] -%}
                           {%- elif pref_sort_within_groups == 'by_state_and_date' -%}
                             {#-- Actionability sort: overdue, due, pending, waiting, claimed, completed, completed_by_other, not_my_turn, missed --#}
                             {%- set ns.temp_list = [] -%}
@@ -469,7 +484,7 @@ views:
                             {%- endfor -%}
                             {%- set sorted_list = ns.temp_list | sort -%}
                             {%- set sorted_buttons = sorted_list | map('last') | list -%}
-                            {%- set ns.sorted_groups = ns.sorted_groups + [{'name': group.name, 'buttons': sorted_buttons, 'icon': group.icon}] -%}
+                            {%- set ns.sorted_groups = ns.sorted_groups + [{'id': group.id, 'name': group.name, 'buttons': sorted_buttons, 'icon': group.icon}] -%}
                           {%- else -%}
                             {%- set ns.sorted_groups = ns.sorted_groups + [group] -%}
                           {%- endif -%}

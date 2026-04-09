@@ -34,6 +34,14 @@
 - `pref_exclude_completed` (default: `false`)
   - Hide completed chores from the display.
   - Allowed: `true`, `false`.
+- `pref_exclude_group_list` (default: `[]`)
+  - Exclude one or more rendered chore groups from the card.
+  - Allowed values: `overdue`, `today_morning`, `today`, `this_week`, `later`.
+  - Exclusions apply after the dashboard resolves which groups exist.
+  - If a listed group does not exist in the current configuration, it is ignored.
+  - Example: `['later']` hides the Later bucket.
+  - Example: `['later', 'this_week']` hides the Later and Due This Week buckets.
+  - When `pref_use_today_grouping` is `true`, exclude both `today_morning` and `today` to hide all today chores.
 - `pref_use_label_grouping` (default: `false`)
   - Group chores by labels.
   - Allowed: `true`, `false`.
