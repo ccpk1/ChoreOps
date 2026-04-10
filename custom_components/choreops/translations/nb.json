@@ -452,6 +452,7 @@
       "challenge_no_assignees_assigned": "Minst én tildeler må være tildelt utfordringen",
       "invalid_achievement_count": "Ugyldig antall prestasjoner",
       "invalid_achievement_name": "Ugyldig prestasjonsnavn",
+      "invalid_achievement_reward_points": "Prestasjonsbelønningspoeng må være null eller større med opptil 2 desimaler",
       "invalid_badge": "Ugyldig merke",
       "invalid_badge_count": "Ugyldig antall merke",
       "invalid_badge_name": "Ugyldig merkenavn",
@@ -461,6 +462,10 @@
       "invalid_chore_count": "Ugyldig antall gjøremål",
       "rotation_min_assignees": "Rotasjonsoppgaver krever minst 2 tildelte personer",
       "invalid_chore_name": "Ugyldig navn på gjøremål",
+      "custom_interval_required": "Tilpasset intervall kreves for tilpassede frekvenser",
+      "custom_interval_invalid": "Tilpasset intervall må være et heltall større enn null",
+      "custom_interval_unit_required": "Tilpasset intervallenhet kreves for tilpassede frekvenser",
+      "custom_interval_unit_invalid": "Tilpasset intervallenhet må være timer, dager, uker eller måneder",
       "invalid_points": "Poeng må være null eller større",
       "invalid_overdue_reset_combination": "Håndteringen av forfalte forsinkelser «Nullstill ved forfallsdato» fungerer bare med tilbakestillingstyper ved midnatt. Velg «Ved midnatt (én gang)» eller «Ved midnatt (gjentakende)» for tilbakestillingstypen for godkjenning.",
       "invalid_due_date": "Ugyldig forfallsdato",
@@ -477,7 +482,7 @@
       "invalid_reward": "Ugyldig belønning",
       "invalid_reward_count": "Ugyldig belønningstall",
       "invalid_reward_name": "Ugyldig belønningsnavn",
-      "invalid_reward_cost": "Belønningskostnaden må være null eller høyere",
+      "invalid_reward_cost": "Belønningskostnaden må være null eller større med opptil to desimaler",
       "invalid_bonus": "Ugyldig bonus",
       "invalid_bonus_count": "Ugyldig bonusantall",
       "invalid_bonus_name": "Ugyldig bonusnavn",
@@ -499,7 +504,7 @@
       "chore_options_require_assignment": "Alternativer for arbeidsflyt og gamification for husarbeid krever at «Tillat at husarbeid tildeles meg» først er aktivert.",
       "invalid_update_interval": "Ugyldig oppdateringsintervall. Må være et positivt heltall.",
       "invalid_calendar_show_period": "Ugyldig kalendervisningsperiode. Må være et positivt heltall.",
-      "invalid_default_chore_points": "Ugyldige standard gjøremålspoeng. Må være et positivt heltall.",
+      "invalid_default_chore_points": "Ugyldige standard gjøremålspoeng. Må være et positivt tall større enn 0 med maksimalt 2 desimaler.",
       "invalid_retention_period": "Ugyldig oppbevaringsperiode. Må være et positivt heltall.",
       "invalid_points_adjust_values": "Ugyldige poengjusteringsverdier. Må være en liste."
     },
@@ -550,7 +555,7 @@
           "default_chore_points": "Standardpoeng per gjøremål"
         },
         "data_description": {
-          "default_chore_points": "Standardpoengverdien brukes for nye gjøremål når tilpassede poeng ikke er spesifisert. Må være et heltall større enn 0."
+          "default_chore_points": "Standardpoengverdi brukes for nye gjøremål når tilpassede poeng ikke er spesifisert. Må være et positivt tall større enn 0 med maksimalt 2 desimaler."
         }
       },
       "add_user": {
@@ -1639,6 +1644,7 @@
           "retention_yearly": "Årlig datalagring (år)",
           "show_legacy_entities": "Vis ekstra enheter",
           "kiosk_mode": "Aktiver kioskmodus for krav fra rettighetshaver",
+          "admin_approval_bypass": "Tillat godkjenning av Home Assistant-administratorkontoer",
           "backups_max_retained": "Maksimalt antall sikkerhetskopier å beholde",
           "backup_action_selection": "Sikkerhetskopieringshandlinger"
         },
@@ -1654,6 +1660,7 @@
           "retention_yearly": "Antall år med årlige historiske data som skal oppbevares før opprydding. Minimum 1, maksimum 10.",
           "show_legacy_entities": "Vis ekstra enheter som sensor og selects som nå er konsolidert inn i dashbordets hjelpesensor. Disse enhetene er valgfrie for bakoverkompatibilitet med eksisterende automatiseringer.",
           "kiosk_mode": "Lar knapper for krav på gjøremål/belønninger for den tildelte fungere på nettbrett med delt vegg uten at dashbordbrukeren må matche den tildelte mottakerens Home Assistant-brukerlenke. Sikkerhetsadvarsel: Alle med tilgang til den enheten kan sende inn krav fra den tildelte.",
+          "admin_approval_bypass": "Når dette er aktivert, kan Home Assistant-administratorkontoer bruke godkjenningshandlinger for gjøremål og belønninger på tvers av integrasjonen. Når dette er deaktivert, kan ikke administratorkontoer godkjenne gjøremål eller belønninger bare fordi de er Home Assistant-administratorer.",
           "backups_max_retained": "Maksimalt antall sikkerhetskopier som skal beholdes per tag (f.eks. 5 manuelle sikkerhetskopier, 5 data_reset-sikkerhetskopier). Eldre sikkerhetskopier slettes automatisk etter at hver ny sikkerhetskopi opprettes. Sett til 0 for å deaktivere automatiske sikkerhetskopier fullstendig.",
           "backup_action_selection": "Velg en handling for sikkerhetskopieringsadministrasjon: opprett en manuell sikkerhetskopi, slett en sikkerhetskopi eller gjenopprett fra en sikkerhetskopi."
         }
@@ -3042,6 +3049,53 @@
           "name": "Bruker-ID",
           "description": "Brukerens interne ID. Kun avanserte brukere – bruk brukernavn i stedet.",
           "example": "abc123-def456"
+        }
+      }
+    },
+    "reschedule_chores_after": {
+      "name": "Planlegg gjøremål etterpå",
+      "description": "Planlegg ett eller flere gjøremål slik at neste forfallsdato faller etter den angitte datoen og klokkeslettet. Gjentakende gjøremål går videre til neste planlagte forekomst etter grensen. Ikke-gjentakende gjøremål som forfaller på eller før grensen flyttes til grensen med mindre skip_non_recurring er aktivert. Delte gjøremål hoppes over med mindre reschedule_shared er aktivert.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Konfigurasjonsoppførings-ID (valgfritt)",
+          "description": "Bruk dette hvis du har mer enn ett ChoreOps-oppsett. Det er rettet mot ett spesifikt oppsett.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Navn på konfigurasjonsoppføring (valgfritt)",
+          "description": "Bruk dette hvis du har mer enn ett ChoreOps-oppsett, og hvert av dem har unike navn. Hvis navnene gjentas, bruk Config Entry ID.",
+          "example": "Familiearbeid"
+        },
+        "after": {
+          "name": "Etter",
+          "description": "Grense dato og klokkeslett. Gjøremål som forfaller på eller før denne verdien vurderes for omplanlegging.",
+          "example": "2026-07-14T18:00:00Z"
+        },
+        "chore_ids": {
+          "name": "Husarbeid-ID-er",
+          "description": "Valgfri liste over gjøremåls-ID-er som skal målrettes. Hvis disse ID-ene er oppgitt, prioriteres de over gjøremålsnavn."
+        },
+        "chore_names": {
+          "name": "Navn på husarbeid",
+          "description": "Valgfri liste over gjøremålsnavn som skal målrettes når chore_ids ikke er oppgitt."
+        },
+        "user_ids": {
+          "name": "Bruker-ID-er",
+          "description": "Valgfri liste over tildeler-ID-er for å begrense uavhengige gjøremålsoppdateringer. Hvis oppgitt, prioriteres disse ID-ene over brukernavn."
+        },
+        "user_names": {
+          "name": "Brukernavn",
+          "description": "Valgfri liste over navn på tildelere for å begrense uavhengige oppdateringer av gjøremål når bruker-ID-er ikke er oppgitt."
+        },
+        "reschedule_shared": {
+          "name": "Planlegg delte gjøremål på nytt",
+          "description": "Aktiver dette for å tillate at delte og rotasjonsoppgaver kan omplanlegges. Dette påvirker alle som er tildelt disse oppgavene.",
+          "example": "falsk"
+        },
+        "skip_non_recurring": {
+          "name": "Hopp over ikke-gjentakende gjøremål",
+          "description": "Aktiver dette for å la engangsoppgaver være uendret i stedet for å flytte forfallsdatoen til grensen.",
+          "example": "falsk"
         }
       }
     },

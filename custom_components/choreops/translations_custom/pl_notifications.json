@@ -1,0 +1,142 @@
+{
+  "_comment_assignee_section": "══════════════════════════════════════════════════════════════════",
+  "_comment_assignee_desc": "POWIADOMIENIA DLA PRZYPISANYCÓW: Zgrywalizowany, drugoosobowy, zachęcający ton z emotikonami. BRAK prefiksu „ChoreOps:”.",
+  "_comment_assignee_footer": "══════════════════════════════════════════════════════════════════",
+  "chore_approved_assignee": {
+    "title": "🎉 Zadanie zatwierdzone!",
+    "message": "{chore_name} zatwierdzono! Zdobyłeś {points} punktów"
+  },
+  "chore_disapproved_assignee": {
+    "title": "↩️ Powrót do pracy",
+    "message": "{chore_name} wymaga jeszcze dopracowania."
+  },
+  "chore_overdue_assignee": {
+    "title": "⏰ Zaległe obowiązki",
+    "message": "{chore_name} jest spóźnione! Wykonaj je teraz, aby zdobyć {points} punktów"
+  },
+  "chore_overdue_steal_available": {
+    "title": "⚡ Alert o obowiązkach domowych",
+    "message": "{chore_name} jest przeterminowany i można go ukraść! Wykonaj go najpierw, aby zdobyć {points} punktów."
+  },
+  "chore_missed_assignee": {
+    "title": "😔 Obowiązek wygasł",
+    "message": "{chore_name} wygasło bez ukończenia."
+  },
+  "chore_due_reminder_assignee": {
+    "title": "⏰ Przypomnienie o obowiązkach domowych",
+    "message": "{chore_name} jest należne za {minutes} minut! Wartość {points} punktów"
+  },
+  "chore_due_window_assignee": {
+    "title": "🎯 Obowiązek domowy do oddania teraz",
+    "message": "{chore_name} jest teraz należne! Wykonaj zadanie w ciągu {hours} godzin, aby zdobyć {points} punktów"
+  },
+  "reward_approved_assignee": {
+    "title": "🎉 Nagroda zatwierdzona!",
+    "message": "{reward_name} zatwierdzono!"
+  },
+  "reward_disapproved_assignee": {
+    "title": "💭 Prośba o nagrodę zwrócona",
+    "message": "{reward_name} tym razem nie został zatwierdzony."
+  },
+  "badge_earned_assignee": {
+    "title": "🥇 Odznaka zdobyta!",
+    "message": "Zdobyłeś odznakę {badge_name}!"
+  },
+  "achievement_earned_assignee": {
+    "title": "🏆 Osiągnięcie zdobyte!",
+    "message": "Zarobiłeś {achievement_name}! Kontynuuj świetną pracę"
+  },
+  "challenge_completed_assignee": {
+    "title": "🏁 Wyzwanie ukończone!",
+    "message": "Ukończyłeś {challenge_name}! Kontynuuj świetną pracę"
+  },
+  "penalty_applied_assignee": {
+    "title": "⚠️ Zastosowano karę",
+    "message": "{penalty_name}: {points} punktów odjętych. Wracamy na właściwe tory!"
+  },
+  "bonus_applied_assignee": {
+    "title": "⭐ Bonus zastosowany!",
+    "message": "{bonus_name}: Zdobyłeś {points} punktów bonusowych! Świetna robota"
+  },
+  "multiplier_changed_assignee": {
+    "title": "⚖️ Zaktualizowano mnożnik",
+    "message": "Twój mnożnik punktów zmienił się z {old_multiplier}x na {new_multiplier}x"
+  },
+  "_comment_approver_section": "══════════════════════════════════════════════════════════════════",
+  "_comment_approver_desc": "POWIADOMIENIA DLA ZATWIERDZAJĄCYCH: informacyjne, w trzeciej osobie, z możliwością podjęcia działania. Format: „{assignee_name}: Działanie”. BRAK prefiksu „ChoreOps:”.",
+  "_comment_approver_footer": "══════════════════════════════════════════════════════════════════",
+  "chore_claimed_approver": {
+    "title": "✋ {assignee_name}: Zajęcie domowe zgłoszone",
+    "message": "{assignee_name} twierdził, że {chore_name}"
+  },
+  "chore_reminder_approver": {
+    "title": "⏰ {assignee_name}: Wymagana zgoda",
+    "message": "Przypomnienie: {chore_name} zgłoszony przez {assignee_name} czeka na Twoją recenzję"
+  },
+  "chore_overdue_approver": {
+    "title": "⚠️ {assignee_name}: Zaległe obowiązki",
+    "message": "Obowiązek {assignee_name} {chore_name} jest spóźniony (termin: {due_date})"
+  },
+  "pending_chores_approver": {
+    "title": "📋 {assignee_name}: {count} Oczekujące",
+    "message": "{count} zadań oczekujących na sprawdzenie. Ostatnie: {latest_chore} (+{points} pkt)"
+  },
+  "reward_claimed_approver": {
+    "title": "🎁 {assignee_name}: Prośba o nagrodę",
+    "message": "{assignee_name} zażądał {reward_name} za {points} punktów"
+  },
+  "reward_reminder_approver": {
+    "title": "⏰ {assignee_name}: Nagroda w toku",
+    "message": "Przypomnienie: {reward_name} zażądane przez {assignee_name} czeka na Twoją akceptację"
+  },
+  "badge_earned_approver": {
+    "title": "🥇 {assignee_name}: Zdobyta odznaka",
+    "message": "{assignee_name} zdobył odznakę {badge_name}!"
+  },
+  "achievement_earned_approver": {
+    "title": "🏆 {assignee_name}: Osiągnięcie",
+    "message": "{assignee_name} zarobiło {achievement_name}"
+  },
+  "challenge_completed_approver": {
+    "title": "🏁 {assignee_name}: Wyzwanie wykonane",
+    "message": "{assignee_name} ukończono {challenge_name}"
+  },
+  "multiplier_changed_approver": {
+    "title": "⚖️ {assignee_name}: Zaktualizowano mnożnik",
+    "message": "Zmieniono mnożnik punktów {assignee_name}z {old_multiplier}x na {new_multiplier}x"
+  },
+  "_comment_system_section": "══════════════════════════════════════════════════════════════════",
+  "_comment_system_desc": "POWIADOMIENIA SYSTEMOWE/ADMINISTRACYJNE: Operacje zarządzania danymi",
+  "_comment_system_footer": "══════════════════════════════════════════════════════════════════",
+  "data_reset": {
+    "title": "🔄 ChoreOps: Resetowanie danych",
+    "message": "Dane systemowe zostały zresetowane"
+  },
+  "data_reset_global": {
+    "title": "🔄 ChoreOps: Pełny reset",
+    "message": "Wszystkie dane systemowe zostały przywrócone do wartości domyślnych"
+  },
+  "data_reset_assignee": {
+    "title": "🔄 ChoreOps: Resetowanie przypisanego",
+    "message": "Resetowanie danych dla {assignee_name}"
+  },
+  "data_reset_item_type": {
+    "title": "🔄 ChoreOps: {item_type} Reset",
+    "message": "Wszystkie dane {item_type} zostały zresetowane"
+  },
+  "data_reset_item": {
+    "title": "🔄 ChoreOps: Resetowanie przedmiotów",
+    "message": "{item_type} '{item_name}' został zresetowany"
+  },
+  "_comment_actions_section": "══════════════════════════════════════════════════════════════════",
+  "_comment_actions_desc": "PRZYCISKI AKCJI POWIADOMIENIA: Łagodniejszy, bardziej zachęcający język",
+  "_comment_actions_footer": "══════════════════════════════════════════════════════════════════",
+  "actions": {
+    "approve": "✅ Zatwierdź",
+    "claim": "✋ Udało mi się!",
+    "complete": "✅ Zakończ",
+    "disapprove": "↩️ Nie zgadzam się",
+    "remind_30": "⏰ Przypomnij za 30 minut",
+    "skip": "⏭️ Pomiń"
+  }
+}

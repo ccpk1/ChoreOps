@@ -5,7 +5,7 @@
   "section_weekly_summary": "## 📊 Résumé hebdomadaire",
   "section_highlights": "## 🌟 Points forts",
   "section_daily_activity": "## 📅 Activité quotidienne",
-  "range_label": "Gamme",
+  "range_label": "Plage",
   "range_short": "{start_date} → {end_date}",
   "total_points_earned": "Points totaux obtenus",
   "total_points_spent": "Points totaux dépensés",

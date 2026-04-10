@@ -452,6 +452,7 @@
       "challenge_no_assignees_assigned": "Izzivu mora biti dodeljen vsaj en prejemnik",
       "invalid_achievement_count": "Neveljavno število dosežkov",
       "invalid_achievement_name": "Neveljavno ime dosežka",
+      "invalid_achievement_reward_points": "Točke nagrad za dosežke morajo biti nič ali večje, zaokrožene na največ dve decimalni mesti",
       "invalid_badge": "Neveljavna značka",
       "invalid_badge_count": "Neveljavno število značk",
       "invalid_badge_name": "Neveljavno ime značke",
@@ -461,6 +462,10 @@
       "invalid_chore_count": "Neveljavno število opravil",
       "rotation_min_assignees": "Za rotacijska opravila sta potrebna vsaj dva dodeljena delavca",
       "invalid_chore_name": "Neveljavno ime opravila",
+      "custom_interval_required": "Za frekvence po meri je potreben interval po meri",
+      "custom_interval_invalid": "Interval po meri mora biti celo število, večje od nič",
+      "custom_interval_unit_required": "Za frekvence po meri je potrebna intervalna enota po meri",
+      "custom_interval_unit_invalid": "Enota intervala po meri mora biti ure, dnevi, tedni ali meseci",
       "invalid_points": "Točke morajo biti nič ali večje",
       "invalid_overdue_reset_combination": "Obravnava zamud »Ob datumu zapadlosti, nato ponastavitev« deluje samo pri vrstah ponastavitve ob polnoči. Za vrsto ponastavitve odobritve izberite »Ob polnoči (enkrat)« ali »Ob polnoči (ponavljajoče se)«.",
       "invalid_due_date": "Neveljaven rok",
@@ -477,7 +482,7 @@
       "invalid_reward": "Neveljavna nagrada",
       "invalid_reward_count": "Neveljavno število nagrad",
       "invalid_reward_name": "Neveljavno ime nagrade",
-      "invalid_reward_cost": "Stroški nagrade morajo biti nič ali večji",
+      "invalid_reward_cost": "Stroški nagrade morajo biti nič ali večji, zaokroženi na največ dve decimalni mesti.",
       "invalid_bonus": "Neveljaven bonus",
       "invalid_bonus_count": "Neveljavno število bonusov",
       "invalid_bonus_name": "Neveljavno ime bonusa",
@@ -499,7 +504,7 @@
       "chore_options_require_assignment": "Za možnosti poteka dela pri opravilih in gamifikacije je treba najprej omogočiti možnost »Dovoli dodeljevanje opravil meni«.",
       "invalid_update_interval": "Neveljaven interval posodabljanja. Biti mora pozitivno celo število.",
       "invalid_calendar_show_period": "Neveljavno obdobje prikaza koledarja. Biti mora pozitivno celo število.",
-      "invalid_default_chore_points": "Neveljavne privzete točke opravila. Biti mora pozitivno celo število.",
+      "invalid_default_chore_points": "Neveljavne privzete točke opravila. Število mora biti pozitivno, večje od 0, z največ dvema decimalnima mestoma.",
       "invalid_retention_period": "Neveljavno obdobje hrambe. Mora biti pozitivno celo število.",
       "invalid_points_adjust_values": "Neveljavne vrednosti prilagoditve točk. Mora biti seznam."
     },
@@ -550,7 +555,7 @@
           "default_chore_points": "Privzete točke na opravilo"
         },
         "data_description": {
-          "default_chore_points": "Privzeta vrednost točk, ki se uporablja za nova opravila, kadar točke po meri niso določene. Mora biti celo število, večje od 0."
+          "default_chore_points": "Privzeta vrednost točk, ki se uporablja za nova opravila, kadar niso določene točke po meri. Mora biti pozitivno število, večje od 0, z največ dvema decimalnima mestoma."
         }
       },
       "add_user": {
@@ -1639,6 +1644,7 @@
           "retention_yearly": "Letno hrambo podatkov (leta)",
           "show_legacy_entities": "Prikaži dodatne entitete",
           "kiosk_mode": "Omogoči način kioska za zahtevke dodeljevalca",
+          "admin_approval_bypass": "Dovoli odobritev skrbniškim računom za domačega pomočnika",
           "backups_max_retained": "Največje število varnostnih kopij za shranjevanje",
           "backup_action_selection": "Varnostna dejanja"
         },
@@ -1654,6 +1660,7 @@
           "retention_yearly": "Število let letnih zgodovinskih podatkov, ki jih je treba hraniti pred čiščenjem. Najmanj 1, največ 10.",
           "show_legacy_entities": "Prikažite dodatne entitete, kot sta senzor in izbire, ki so zdaj združene v senzor pomočnika nadzorne plošče. Te entitete so izbirne zaradi združljivosti z obstoječimi avtomatizacijami.",
           "kiosk_mode": "Omogoča, da gumbi za zahtevke za opravila/nagrade dodeljeni osebi delujejo na skupnih stenskih tablicah, ne da bi se uporabnik nadzorne plošče moral ujemati z uporabniško povezavo dodeljene osebe za Home Assistant. Varnostno opozorilo: zahtevke za dodeljeno osebo lahko odda vsak, ki ima dostop do te naprave.",
+          "admin_approval_bypass": "Ko je omogočeno, lahko skrbniški računi za Home Assistant uporabljajo dejanja odobritve opravil in nagrad v celotni integraciji. Ko je onemogočeno, skrbniški računi ne morejo odobriti opravil ali nagrad samo zato, ker so skrbniki Home Assistant.",
           "backups_max_retained": "Največje število varnostnih kopij datotek, ki jih lahko hranite na oznako (npr. 5 ročnih varnostnih kopij, 5 varnostnih kopij data_reset). Starejše varnostne kopije se samodejno izbrišejo po vsaki novi varnostni kopiji. Nastavite na 0, da popolnoma onemogočite samodejne varnostne kopije.",
           "backup_action_selection": "Izberite dejanje upravljanja varnostnih kopij: ustvarite ročno varnostno kopijo, izbrišite varnostno kopijo ali obnovite iz varnostne kopije."
         }
@@ -3042,6 +3049,53 @@
           "name": "ID uporabnika",
           "description": "Notranji ID uporabnika. Samo za napredne uporabnike – namesto tega uporabite uporabniško_ime.",
           "example": "abc123-def456"
+        }
+      }
+    },
+    "reschedule_chores_after": {
+      "name": "Prestavite opravila po",
+      "description": "Prestavite eno ali več opravil tako, da njihov naslednji rok pade po določenem datumu in uri. Ponavljajoča se opravila premaknejo na naslednjo načrtovano ponovitev po meji. Neponavljajoča se opravila, ki zapadejo na ali pred mejo, se premaknejo na mejo, razen če je omogočena možnost skip_non_recurring. Deljena opravila se preskočijo, razen če je omogočena možnost reschedule_shared.",
+      "fields": {
+        "config_entry_id": {
+          "name": "ID vnosa konfiguracije (neobvezno)",
+          "description": "Uporabite to možnost, če imate več kot eno nastavitev ChoreOps. Cilja na eno specifično nastavitev.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Ime vnosa konfiguracije (neobvezno)",
+          "description": "Uporabite to možnost, če imate več kot eno nastavitev ChoreOps in ima vsaka edinstveno ime. Če se imena ponavljajo, uporabite ID vnosa konfiguracije.",
+          "example": "Družinska opravila"
+        },
+        "after": {
+          "name": "Po",
+          "description": "Mejni datum in čas. Opravila, ki zapadejo na ali pred to vrednostjo, se upoštevajo za prerazporeditev.",
+          "example": "2026-07-14T18:00:00Z"
+        },
+        "chore_ids": {
+          "name": "ID-ji opravil",
+          "description": "Neobvezen seznam ID-jev opravil za ciljanje. Če so navedeni, imajo ti ID-ji prednost pred imeni opravil."
+        },
+        "chore_names": {
+          "name": "Imena opravil",
+          "description": "Neobvezen seznam imen opravil, na katera se bo ciljalo, če niso navedeni ID-ji opravil."
+        },
+        "user_ids": {
+          "name": "ID-ji uporabnikov",
+          "description": "Neobvezen seznam ID-jev dodeljenikov za omejitev neodvisnih posodobitev opravil. Če so navedeni, imajo ti ID-ji prednost pred uporabniškimi imeni."
+        },
+        "user_names": {
+          "name": "Uporabniška imena",
+          "description": "Neobvezen seznam imen dodeljenih oseb za omejitev neodvisnih posodobitev opravil, če uporabniški ID-ji niso navedeni."
+        },
+        "reschedule_shared": {
+          "name": "Prestavitev skupnih opravil",
+          "description": "Omogočite to možnost, da omogočite prerazporeditev deljenih in rotacijskih opravil. To vpliva na vse osebe, ki so jim dodeljena ta opravila.",
+          "example": "lažno"
+        },
+        "skip_non_recurring": {
+          "name": "Preskoči neponavljajoča se opravila",
+          "description": "Omogočite to možnost, če želite, da se neponavljajoča se opravila ne spremenijo, namesto da se njihov rok premakne na mejo.",
+          "example": "lažno"
         }
       }
     },

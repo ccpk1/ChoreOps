@@ -452,6 +452,7 @@
       "challenge_no_assignees_assigned": "Mindst én person skal være tildelt udfordringen",
       "invalid_achievement_count": "Ugyldigt antal præstationer",
       "invalid_achievement_name": "Ugyldigt præstationsnavn",
+      "invalid_achievement_reward_points": "Præstationsbelønningspoint skal være nul eller større med op til 2 decimaler",
       "invalid_badge": "Ugyldigt badge",
       "invalid_badge_count": "Ugyldigt antal badges",
       "invalid_badge_name": "Ugyldigt badgenavn",
@@ -461,6 +462,10 @@
       "invalid_chore_count": "Ugyldigt antal opgaver",
       "rotation_min_assignees": "Rotationsopgaver kræver mindst 2 tildelte personer",
       "invalid_chore_name": "Ugyldigt navn på opgave",
+      "custom_interval_required": "Brugerdefineret interval er påkrævet for brugerdefinerede frekvenser",
+      "custom_interval_invalid": "Brugerdefineret interval skal være et heltal større end nul",
+      "custom_interval_unit_required": "Brugerdefineret intervalenhed kræves for brugerdefinerede frekvenser",
+      "custom_interval_unit_invalid": "Brugerdefineret intervalenhed skal være timer, dage, uger eller måneder",
       "invalid_points": "Point skal være nul eller større",
       "invalid_overdue_reset_combination": "Håndtering af forsinkede transaktioner 'Nulstil derefter ved forfaldsdato' fungerer kun med nulstillingstyper ved midnat. Vælg venligst 'Ved midnat (én gang)' eller 'Ved midnat (gentagende)' for nulstillingstypen for godkendelse.",
       "invalid_due_date": "Ugyldig forfaldsdato",
@@ -477,7 +482,7 @@
       "invalid_reward": "Ugyldig belønning",
       "invalid_reward_count": "Ugyldigt antal belønninger",
       "invalid_reward_name": "Ugyldigt belønningsnavn",
-      "invalid_reward_cost": "Belønningsomkostningerne skal være nul eller større",
+      "invalid_reward_cost": "Belønningsomkostningerne skal være nul eller større med op til 2 decimaler",
       "invalid_bonus": "Ugyldig bonus",
       "invalid_bonus_count": "Ugyldigt bonusantal",
       "invalid_bonus_name": "Ugyldigt bonusnavn",
@@ -499,7 +504,7 @@
       "chore_options_require_assignment": "Indstillinger for opgaver og gamification kræver, at \"Tillad, at opgaver tildeles mig\" først er aktiveret.",
       "invalid_update_interval": "Ugyldigt opdateringsinterval. Skal være et positivt heltal.",
       "invalid_calendar_show_period": "Ugyldig kalendervisningsperiode. Skal være et positivt heltal.",
-      "invalid_default_chore_points": "Ugyldige standardopgaver. Skal være et positivt heltal.",
+      "invalid_default_chore_points": "Ugyldige standardopgaver. Skal være et positivt tal større end 0 med højst 2 decimaler.",
       "invalid_retention_period": "Ugyldig opbevaringsperiode. Skal være et positivt heltal.",
       "invalid_points_adjust_values": "Ugyldige pointjusteringsværdier. Skal være en liste."
     },
@@ -550,7 +555,7 @@
           "default_chore_points": "Standardpoint pr. opgave"
         },
         "data_description": {
-          "default_chore_points": "Standardpointværdien bruges til nye opgaver, når der ikke er angivet brugerdefinerede point. Skal være et heltal større end 0."
+          "default_chore_points": "Standardpointværdien bruges til nye opgaver, når der ikke er angivet brugerdefinerede point. Skal være et positivt tal større end 0 med højst 2 decimaler."
         }
       },
       "add_user": {
@@ -1639,6 +1644,7 @@
           "retention_yearly": "Årlig dataopbevaring (år)",
           "show_legacy_entities": "Vis ekstra enheder",
           "kiosk_mode": "Aktivér kiosktilstand for krav fra tildeler",
+          "admin_approval_bypass": "Tillad godkendelse af Home Assistant-administratorkonti",
           "backups_max_retained": "Maksimal sikkerhedskopiering at beholde",
           "backup_action_selection": "Sikkerhedskopieringshandlinger"
         },
@@ -1654,6 +1660,7 @@
           "retention_yearly": "Antal år med årlige historiske data, der skal opbevares før oprydning. Minimum 1, maksimum 10.",
           "show_legacy_entities": "Vis ekstra enheder som sensor og selects, der nu er konsolideret i dashboard-hjælpesensoren. Disse enheder er valgfrie for bagudkompatibilitet med eksisterende automatiseringer.",
           "kiosk_mode": "Tillader knapper til krav om pligter/belønninger for den tildelte person at fungere på tablets med delt væg uden at dashboardbrugeren skal matche den tildelte persons Home Assistant-brugerlink. Sikkerhedsadvarsel: Enhver med adgang til den pågældende enhed kan indsende krav fra den tildelte person.",
+          "admin_approval_bypass": "Når det er aktiveret, kan Home Assistant-administratorkonti bruge handlinger til godkendelse af pligter og belønninger på tværs af integrationen. Når det er deaktiveret, kan administratorkonti ikke godkende pligter eller belønninger, blot fordi de er Home Assistant-administratorer.",
           "backups_max_retained": "Maksimalt antal backupfiler, der skal gemmes pr. tag (f.eks. 5 manuelle backups, 5 data_reset backups). Ældre backups slettes automatisk, efter hver ny backup oprettes. Indstil til 0 for at deaktivere automatiske backups helt.",
           "backup_action_selection": "Vælg en handling til administration af sikkerhedskopier: opret en manuel sikkerhedskopi, slet en sikkerhedskopi eller gendan fra en sikkerhedskopi."
         }
@@ -3042,6 +3049,53 @@
           "name": "Bruger-ID",
           "description": "Brugerens interne ID. Kun for avancerede brugere - brug brugernavn i stedet.",
           "example": "abc123-def456"
+        }
+      }
+    },
+    "reschedule_chores_after": {
+      "name": "Omplanlæg pligter efter",
+      "description": "Omplanlæg en eller flere opgaver, så deres næste forfaldsdato falder efter den angivne dato og det angivne klokkeslæt. Tilbagevendende opgaver rykker frem til den næste planlagte forekomst efter grænsen. Ikke-tilbagevendende opgaver, der forfalder på eller før grænsen, flyttes til grænsen, medmindre skip_non_recurring er aktiveret. Delte opgaver springes over, medmindre reschedule_shared er aktiveret.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Konfigurationsindgangs-ID (valgfrit)",
+          "description": "Brug dette, hvis du har mere end én ChoreOps-opsætning. Den er rettet mod én specifik opsætning.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Navn på konfigurationspost (valgfrit)",
+          "description": "Brug dette, hvis du har mere end én ChoreOps-opsætning, og de hver især har unikke navne. Hvis navnene gentages, skal du bruge Config Entry ID.",
+          "example": "Familiepligter"
+        },
+        "after": {
+          "name": "Efter",
+          "description": "Grænsedato og -tidspunkt. Huslige pligter, der forfalder på eller før denne værdi, tages i betragtning til omplanlægning.",
+          "example": "2026-07-14T18:00:00Z"
+        },
+        "chore_ids": {
+          "name": "Huslige pligt-ID'er",
+          "description": "Valgfri liste over pligt-ID'er, der skal målrettes. Hvis angivet, har disse ID'er forrang over pligtnavne."
+        },
+        "chore_names": {
+          "name": "Navne på huslige pligter",
+          "description": "Valgfri liste over opgaver, der skal målrettes mod, når chore_ids ikke er angivet."
+        },
+        "user_ids": {
+          "name": "Bruger-ID'er",
+          "description": "Valgfri liste over tildeler-ID'er for at begrænse uafhængige opdateringer af opgaver. Hvis disse ID'er angives, har de forrang over brugernavne."
+        },
+        "user_names": {
+          "name": "Brugernavne",
+          "description": "Valgfri liste over navne på tildelte personer for at begrænse uafhængige opdateringer af opgaver, når bruger-id'er ikke er angivet."
+        },
+        "reschedule_shared": {
+          "name": "Omplanlæg fælles pligter",
+          "description": "Aktivér dette for at tillade omplanlægning af delte og rotationsopgaver. Dette påvirker alle tildelte på disse opgaver.",
+          "example": "falsk"
+        },
+        "skip_non_recurring": {
+          "name": "Spring ikke-tilbagevendende pligter over",
+          "description": "Aktiver dette for at lade engangsopgaver være uændrede i stedet for at flytte deres forfaldsdato til grænsen.",
+          "example": "falsk"
         }
       }
     },
