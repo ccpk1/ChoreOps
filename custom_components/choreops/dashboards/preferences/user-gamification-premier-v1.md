@@ -115,6 +115,26 @@ Recommended ranges:
   - Example: `['completed', 'completed_by_other', 'not_my_turn', 'missed']`.
   - Allowed: array of lowercase state strings.
 
+- `pref_exclude_nonrecurring_no_due_date` (default: `false`)
+  - Hides chores that are both non-recurring and missing a due date.
+  - Daily chores without a due date are not affected.
+  - Allowed: `true`, `false`.
+
+- `pref_max_due_date_days` (default: `0`)
+  - Hides chores whose due date is more than this many days ahead.
+  - Applies only to chores that have a due date.
+  - `0` disables the filter.
+  - Allowed: `0` or a positive integer.
+
+- `pref_exclude_group_list` (default: `[]`)
+  - Excludes one or more rendered chore groups from the card.
+  - Allowed values: `overdue`, `today_morning`, `today`, `this_week`, `later`.
+  - Exclusions apply after the dashboard resolves which groups exist.
+  - If a listed group does not exist in the current configuration, it is ignored.
+  - Example: `['later']` hides the Later bucket.
+  - Example: `['later', 'this_week']` hides the Later and Due This Week buckets.
+  - In `today_morning` mode, excluding `today` hides only the later-today bucket. Exclude both `today_morning` and `today` to hide all today chores.
+
 - `pref_use_label_grouping` (default: `false`)
   - Groups chores by labels instead of time buckets.
   - Allowed: `true`, `false`.
