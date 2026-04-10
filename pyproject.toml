@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "choreops"
-version = "0.5.0"
+version = "1.0.7"
 description = "ChoreOps Home Assistant Integration - Gamified chore tracking for households"
 readme = "README.md"
 authors = [{ name = "ChoreOps Contributors" }]

@@ -21,7 +21,7 @@ from homeassistant.core import HomeAssistant
 import pytest
 
 from custom_components.choreops import const
-from custom_components.choreops.data_builders import validate_chore_data
+from custom_components.choreops.data_builders import build_chore, validate_chore_data
 from custom_components.choreops.helpers import flow_helpers
 from custom_components.choreops.utils.dt_utils import parse_daily_multi_times
 from tests.helpers import (
@@ -691,6 +691,45 @@ class TestCustomFrequencyValidation:
         assert errors[const.CFOP_ERROR_CUSTOM_INTERVAL] == (
             const.TRANS_KEY_CFOF_CUSTOM_INTERVAL_REQUIRED
         )
+
+    @pytest.mark.asyncio
+    async def test_custom_frequency_accepts_whole_number_float_interval(
+        self,
+        hass: HomeAssistant,
+    ) -> None:
+        """CUSTOM frequency accepts whole-number float interval values."""
+        user_input = {
+            CFOF_CHORES_INPUT_NAME: "Custom Chore",
+            const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: ["Zoë"],
+            const.CFOF_CHORES_INPUT_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_SHARED,
+            const.CFOF_CHORES_INPUT_RECURRING_FREQUENCY: const.FREQUENCY_CUSTOM,
+            const.CFOF_CHORES_INPUT_CUSTOM_INTERVAL: 1.0,
+            const.CFOF_CHORES_INPUT_CUSTOM_INTERVAL_UNIT: const.TIME_UNIT_DAYS,
+            const.CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: const.APPROVAL_RESET_UPON_COMPLETION,
+            const.CFOF_CHORES_INPUT_OVERDUE_HANDLING_TYPE: const.OVERDUE_HANDLING_AT_DUE_DATE,
+            const.CFOF_CHORES_INPUT_DUE_DATE: "2099-01-01T09:00:00+00:00",
+        }
+
+        assignees_dict = {"Zoë": "zoe-id"}
+        errors, _due_date_str = flow_helpers.validate_chores_inputs(
+            user_input, assignees_dict, {}
+        )
+
+        assert errors == {}
+
+    def test_build_chore_normalizes_whole_number_string_custom_interval(self) -> None:
+        """Built chore data stores custom interval values as integers."""
+        chore = build_chore(
+            {
+                const.DATA_CHORE_NAME: "Builder Custom",
+                const.DATA_CHORE_ASSIGNED_USER_IDS: ["assignee-1"],
+                const.DATA_CHORE_RECURRING_FREQUENCY: const.FREQUENCY_CUSTOM,
+                const.DATA_CHORE_CUSTOM_INTERVAL: "2",
+                const.DATA_CHORE_CUSTOM_INTERVAL_UNIT: const.TIME_UNIT_DAYS,
+            }
+        )
+
+        assert chore[const.DATA_CHORE_CUSTOM_INTERVAL] == 2
 
     def test_validate_chore_data_rejects_invalid_custom_interval_unit(self) -> None:
         """Custom frequencies require a supported interval unit."""

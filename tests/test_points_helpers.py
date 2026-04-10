@@ -205,6 +205,36 @@ def test_build_chore_schema_defaults_custom_fields_when_existing_values_are_none
     )
 
 
+def test_build_chore_schema_coerces_custom_interval_to_int() -> None:
+    """Test chore schema coerces custom interval selector values to int."""
+    schema = fh.build_chore_schema(
+        {"Alex": "user-1"},
+        {
+            const.CFOF_CHORES_INPUT_RECURRING_FREQUENCY: const.FREQUENCY_CUSTOM,
+        },
+    )
+
+    result = schema(
+        {
+            fh.CHORE_SECTION_ROOT_FORM: {
+                const.CFOF_CHORES_INPUT_NAME: "Custom chore",
+                const.CFOF_CHORES_INPUT_DEFAULT_POINTS: 5,
+                const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: ["Alex"],
+                const.CFOF_CHORES_INPUT_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_INDEPENDENT,
+            },
+            fh.CHORE_SECTION_SCHEDULE: {
+                const.CFOF_CHORES_INPUT_RECURRING_FREQUENCY: const.FREQUENCY_CUSTOM,
+                const.CFOF_CHORES_INPUT_CUSTOM_INTERVAL: 2.0,
+                const.CFOF_CHORES_INPUT_CUSTOM_INTERVAL_UNIT: const.TIME_UNIT_DAYS,
+            },
+        }
+    )
+
+    schedule = result[fh.CHORE_SECTION_SCHEDULE]
+    assert schedule[const.CFOF_CHORES_INPUT_CUSTOM_INTERVAL] == 2
+    assert isinstance(schedule[const.CFOF_CHORES_INPUT_CUSTOM_INTERVAL], int)
+
+
 def test_validate_chores_inputs_rejects_more_than_two_decimals() -> None:
     """Test chore validation rejects precision beyond 2 decimals."""
     errors, _due_date = fh.validate_chores_inputs(

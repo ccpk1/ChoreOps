@@ -1349,6 +1349,18 @@ def validate_chore_data(
             return const.TRANS_KEY_CFOF_DUE_DATE_IN_PAST
         return None
 
+    def _normalize_custom_interval(value: Any) -> Any:
+        """Normalize selector-style custom interval values before validation."""
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, float) and value.is_integer():
+            return int(value)
+        if isinstance(value, str):
+            stripped = value.strip()
+            if stripped.isdigit():
+                return int(stripped)
+        return value
+
     errors: dict[str, str] = {}
 
     # === 1. Name validation ===
@@ -1495,7 +1507,9 @@ def validate_chore_data(
         const.FREQUENCY_CUSTOM,
         const.FREQUENCY_CUSTOM_FROM_COMPLETE,
     ):
-        custom_interval = data.get(const.DATA_CHORE_CUSTOM_INTERVAL)
+        custom_interval = _normalize_custom_interval(
+            data.get(const.DATA_CHORE_CUSTOM_INTERVAL)
+        )
         custom_interval_unit = data.get(const.DATA_CHORE_CUSTOM_INTERVAL_UNIT)
 
         if custom_interval in (None, const.SENTINEL_EMPTY):
@@ -1639,6 +1653,10 @@ def build_chore(
         if is_custom_frequency
         else None
     )
+    if isinstance(custom_interval, float) and custom_interval.is_integer():
+        custom_interval = int(custom_interval)
+    elif isinstance(custom_interval, str) and custom_interval.strip().isdigit():
+        custom_interval = int(custom_interval.strip())
     custom_interval_unit = (
         get_field(const.DATA_CHORE_CUSTOM_INTERVAL_UNIT, None)
         if is_custom_frequency

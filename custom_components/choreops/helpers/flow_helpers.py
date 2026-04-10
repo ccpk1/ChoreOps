@@ -945,10 +945,14 @@ def build_chore_schema(
             ),
         ): vol.Any(
             None,
-            selector.NumberSelector(
-                selector.NumberSelectorConfig(
-                    mode=selector.NumberSelectorMode.BOX, min=1, step=1
-                )
+            vol.All(
+                selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        mode=selector.NumberSelectorMode.BOX, min=1, step=1
+                    )
+                ),
+                vol.Coerce(int),
+                vol.Range(min=1),
             ),
         ),
         vol.Optional(
