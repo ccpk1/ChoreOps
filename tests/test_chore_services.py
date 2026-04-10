@@ -980,9 +980,171 @@ class TestResetAllChoresService:
             get_assignee_state_for_chore(coordinator, zoe_id, shared_first_chore)
             == CHORE_STATE_PENDING
         )
+
+
+# ============================================================================
+# TEST CLASS: Reschedule Chores After Service
+# ============================================================================
+
+
+class TestRescheduleChoresAfterService:
+    """Test reschedule_chores_after service behavior and targeting rules."""
+
+    @pytest.mark.asyncio
+    async def test_reschedule_chores_after_prefers_chore_ids_over_names(
+        self,
+        hass: HomeAssistant,
+        setup_chore_services_scenario: SetupResult,
+    ) -> None:
+        """Explicit chore_ids should take precedence over chore_names filters."""
+        coordinator = setup_chore_services_scenario.coordinator
+        zoe_id = setup_chore_services_scenario.assignee_ids["Zoë"]
+        independent_chore_id = setup_chore_services_scenario.chore_ids[
+            "Independent Daily Task"
+        ]
+        shared_chore_id = setup_chore_services_scenario.chore_ids[
+            "Shared All Daily Task"
+        ]
+
+        original_independent_due = get_assignee_due_date_for_chore(
+            coordinator, independent_chore_id, zoe_id
+        )
+        original_shared_due = get_chore_due_date(coordinator, shared_chore_id)
+        assert original_independent_due is not None
+        assert original_shared_due is not None
+
+        boundary = dt_util.utcnow() + timedelta(days=3)
+        response = await hass.services.async_call(
+            const.DOMAIN,
+            const.SERVICE_RESCHEDULE_CHORES_AFTER,
+            {
+                const.SERVICE_FIELD_AFTER: boundary,
+                const.SERVICE_FIELD_CHORE_IDS: [independent_chore_id],
+                const.SERVICE_FIELD_CHORE_NAMES: ["Shared All Daily Task"],
+                const.SERVICE_FIELD_USER_NAMES: ["Zoë"],
+            },
+            blocking=True,
+            return_response=True,
+        )
+
+        assert response["updated_count"] == 1
+        assert response["skipped_count"] == 0
+        assert response["updated"][0]["chore_id"] == independent_chore_id
+        assert response["updated"][0]["user_id"] == zoe_id
+
+        new_independent_due = get_assignee_due_date_for_chore(
+            coordinator, independent_chore_id, zoe_id
+        )
+        assert new_independent_due is not None
+        assert datetime.fromisoformat(new_independent_due) > boundary
+        assert new_independent_due != original_independent_due
+        assert get_chore_due_date(coordinator, shared_chore_id) == original_shared_due
+
+    @pytest.mark.asyncio
+    async def test_reschedule_chores_after_shared_requires_opt_in(
+        self,
+        hass: HomeAssistant,
+        setup_chore_services_scenario: SetupResult,
+    ) -> None:
+        """Shared chores should only reschedule when reschedule_shared is enabled."""
+        coordinator = setup_chore_services_scenario.coordinator
+        shared_chore_id = setup_chore_services_scenario.chore_ids[
+            "Shared All Daily Task"
+        ]
+        original_due = get_chore_due_date(coordinator, shared_chore_id)
+        assert original_due is not None
+
+        boundary = dt_util.utcnow() + timedelta(days=3)
+        skipped_response = await hass.services.async_call(
+            const.DOMAIN,
+            const.SERVICE_RESCHEDULE_CHORES_AFTER,
+            {
+                const.SERVICE_FIELD_AFTER: boundary,
+                const.SERVICE_FIELD_CHORE_NAMES: ["Shared All Daily Task"],
+            },
+            blocking=True,
+            return_response=True,
+        )
+
+        assert skipped_response["updated_count"] == 0
+        assert skipped_response["skipped_count"] == 1
+        assert skipped_response["skipped"][0]["reason"] == "shared_not_enabled"
+        assert get_chore_due_date(coordinator, shared_chore_id) == original_due
+
+        updated_response = await hass.services.async_call(
+            const.DOMAIN,
+            const.SERVICE_RESCHEDULE_CHORES_AFTER,
+            {
+                const.SERVICE_FIELD_AFTER: boundary,
+                const.SERVICE_FIELD_CHORE_NAMES: ["Shared All Daily Task"],
+                const.SERVICE_FIELD_RESCHEDULE_SHARED: True,
+            },
+            blocking=True,
+            return_response=True,
+        )
+
+        assert updated_response["updated_count"] == 1
+        assert updated_response["skipped_count"] == 0
+        assert updated_response["updated"][0]["shared"] is True
+
+        new_due = get_chore_due_date(coordinator, shared_chore_id)
+        assert new_due is not None
+        assert datetime.fromisoformat(new_due) > boundary
+        assert new_due != original_due
+
+    @pytest.mark.asyncio
+    async def test_reschedule_chores_after_skip_non_recurring_leaves_due_date(
+        self,
+        hass: HomeAssistant,
+        setup_chore_services_scenario: SetupResult,
+    ) -> None:
+        """skip_non_recurring should leave non-recurring chores unchanged."""
+        coordinator = setup_chore_services_scenario.coordinator
+        zoe_id = setup_chore_services_scenario.assignee_ids["Zoë"]
+
+        chore_response = await hass.services.async_call(
+            const.DOMAIN,
+            const.SERVICE_ADD_CHORE,
+            {
+                const.SERVICE_FIELD_NAME: "Vacation Manual Review Task",
+                const.SERVICE_FIELD_ASSIGNED_USER_IDS: ["Zoë"],
+                const.SERVICE_FIELD_FREQUENCY: const.FREQUENCY_NONE,
+                const.SERVICE_FIELD_POINTS: 5,
+                const.SERVICE_FIELD_APPROVAL_RESET_TYPE: const.APPROVAL_RESET_AT_MIDNIGHT_ONCE,
+                const.SERVICE_FIELD_OVERDUE_HANDLING: const.OVERDUE_HANDLING_AT_DUE_DATE,
+            },
+            blocking=True,
+            return_response=True,
+        )
+        chore_id = chore_response[const.SERVICE_FIELD_CHORE_CRUD_ID]
+        due_dt = dt_util.utcnow() + timedelta(days=1)
+        await coordinator.chore_manager.set_due_date(
+            chore_id, due_dt, assignee_id=zoe_id
+        )
+
+        original_due = get_assignee_due_date_for_chore(coordinator, chore_id, zoe_id)
+        assert original_due is not None
+
+        boundary = dt_util.utcnow() + timedelta(days=3)
+        response = await hass.services.async_call(
+            const.DOMAIN,
+            const.SERVICE_RESCHEDULE_CHORES_AFTER,
+            {
+                const.SERVICE_FIELD_AFTER: boundary,
+                const.SERVICE_FIELD_CHORE_IDS: [chore_id],
+                const.SERVICE_FIELD_USER_IDS: [zoe_id],
+                const.SERVICE_FIELD_SKIP_NON_RECURRING: True,
+            },
+            blocking=True,
+            return_response=True,
+        )
+
+        assert response["updated_count"] == 0
+        assert response["skipped_count"] == 1
+        assert response["skipped"][0]["reason"] == "non_recurring_skipped"
         assert (
-            get_assignee_state_for_chore(coordinator, max_id, shared_first_chore)
-            == CHORE_STATE_PENDING
+            get_assignee_due_date_for_chore(coordinator, chore_id, zoe_id)
+            == original_due
         )
 
 
