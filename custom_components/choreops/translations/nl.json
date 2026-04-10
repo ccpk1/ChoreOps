@@ -452,6 +452,7 @@
       "challenge_no_assignees_assigned": "Er moet ten minste één persoon aan de uitdaging worden toegewezen.",
       "invalid_achievement_count": "Ongeldig aantal behaalde resultaten",
       "invalid_achievement_name": "Ongeldige prestatienaam",
+      "invalid_achievement_reward_points": "Prestatiebeloningspunten moeten nul of groter zijn, met maximaal twee decimalen.",
       "invalid_badge": "Ongeldige badge",
       "invalid_badge_count": "Ongeldig aantal badges",
       "invalid_badge_name": "Ongeldige badgenaam",
@@ -461,6 +462,10 @@
       "invalid_chore_count": "Ongeldig aantal taken",
       "rotation_min_assignees": "Voor de roulerende taken zijn minimaal 2 toegewezen personen nodig.",
       "invalid_chore_name": "Ongeldige taaknaam",
+      "custom_interval_required": "Voor aangepaste frequenties is een aangepast interval vereist.",
+      "custom_interval_invalid": "Het aangepaste interval moet een geheel getal groter dan nul zijn.",
+      "custom_interval_unit_required": "Voor aangepaste frequenties is een aangepaste intervaleenheid vereist.",
+      "custom_interval_unit_invalid": "De aangepaste intervaleenheid moet uren, dagen, weken of maanden zijn.",
       "invalid_points": "Het aantal punten moet nul of hoger zijn.",
       "invalid_overdue_reset_combination": "De optie 'Op de vervaldatum en dan opnieuw instellen' voor het afhandelen van te late betalingen werkt alleen met resettypes die om middernacht plaatsvinden. Selecteer 'Om middernacht (eenmalig)' of 'Om middernacht (herhalend)' voor het type goedkeuringsreset.",
       "invalid_due_date": "Ongeldige vervaldatum",
@@ -477,7 +482,7 @@
       "invalid_reward": "Ongeldige beloning",
       "invalid_reward_count": "Ongeldig aantal beloningen",
       "invalid_reward_name": "Ongeldige beloningsnaam",
-      "invalid_reward_cost": "De beloningskosten moeten nul of hoger zijn.",
+      "invalid_reward_cost": "De beloningskosten moeten nul of groter zijn, tot maximaal twee decimalen nauwkeurig.",
       "invalid_bonus": "Ongeldige bonus",
       "invalid_bonus_count": "Ongeldig bonusaantal",
       "invalid_bonus_name": "Ongeldige bonusnaam",
@@ -499,7 +504,7 @@
       "chore_options_require_assignment": "Voor de workflow van huishoudelijke taken en de gamificatie-opties moet eerst 'Taken aan mij toewijzen' zijn ingeschakeld.",
       "invalid_update_interval": "Ongeldig update-interval. Moet een positief geheel getal zijn.",
       "invalid_calendar_show_period": "Ongeldige kalenderweergaveperiode. Moet een positief geheel getal zijn.",
-      "invalid_default_chore_points": "Ongeldige standaardpunten voor klusjes. Moet een positief geheel getal zijn.",
+      "invalid_default_chore_points": "Ongeldige standaardpunten voor klusjes. Moet een positief getal zijn, groter dan 0, met maximaal 2 decimalen.",
       "invalid_retention_period": "Ongeldige bewaartermijn. Moet een positief geheel getal zijn.",
       "invalid_points_adjust_values": "Ongeldige punten passen waarden aan. Moet een lijst zijn."
     },
@@ -550,7 +555,7 @@
           "default_chore_points": "Standaardpunten per taak"
         },
         "data_description": {
-          "default_chore_points": "Standaardpuntenwaarde die wordt gebruikt voor nieuwe taken wanneer geen aangepaste punten zijn opgegeven. Moet een geheel getal groter dan 0 zijn."
+          "default_chore_points": "Standaardpuntenwaarde die wordt gebruikt voor nieuwe taken wanneer geen aangepaste punten zijn opgegeven. Moet een positief getal zijn, groter dan 0, met maximaal 2 decimalen."
         }
       },
       "add_user": {
@@ -1639,6 +1644,7 @@
           "retention_yearly": "Jaarlijkse gegevensbewaring (jaren)",
           "show_legacy_entities": "Extra entiteiten weergeven",
           "kiosk_mode": "Schakel de kioskmodus in voor claims van toegewezenen.",
+          "admin_approval_bypass": "Sta Home Assistant-beheerdersaccounts toe om goedkeuring te verlenen.",
           "backups_max_retained": "Maximale back-ups die bewaard kunnen worden",
           "backup_action_selection": "Back-upacties"
         },
@@ -1654,6 +1660,7 @@
           "retention_yearly": "Aantal jaren aan jaarlijkse historische gegevens die bewaard moeten worden vóór de opschoning. Minimaal 1, maximaal 10.",
           "show_legacy_entities": "Toon extra entiteiten zoals sensoren en selecties die nu zijn samengevoegd in de dashboardhelper-sensor. Deze entiteiten zijn optioneel voor compatibiliteit met bestaande automatiseringen.",
           "kiosk_mode": "Hiermee kunnen knoppen voor het claimen van taken/beloningen voor toegewezen medewerkers werken op gedeelde tablets, zonder dat de dashboardgebruiker de Home Assistant-gebruikerslink van de toegewezen medewerker hoeft te koppelen. Beveiligingswaarschuwing: iedereen met toegang tot dat apparaat kan claims voor toegewezen medewerkers indienen.",
+          "admin_approval_bypass": "Wanneer deze functie is ingeschakeld, kunnen Home Assistant-beheerders taken en beloningen goedkeuren via de hele integratie. Wanneer deze functie is uitgeschakeld, kunnen beheerders geen taken of beloningen goedkeuren, simpelweg omdat ze Home Assistant-beheerders zijn.",
           "backups_max_retained": "Maximaal aantal back-upbestanden per tag (bijv. 5 handmatige back-ups, 5 data_reset back-ups). Oudere back-ups worden automatisch verwijderd nadat elke nieuwe back-up is gemaakt. Stel in op 0 om automatische back-ups volledig uit te schakelen.",
           "backup_action_selection": "Kies een back-upbeheeractie: een handmatige back-up maken, een back-up verwijderen of een back-up terugzetten."
         }
@@ -3042,6 +3049,53 @@
           "name": "Gebruikers-ID",
           "description": "De interne ID van de gebruiker. Alleen voor gevorderde gebruikers: gebruik in plaats daarvan user_name.",
           "example": "abc123-def456"
+        }
+      }
+    },
+    "reschedule_chores_after": {
+      "name": "Verplaats de klusjes naar de volgende datum.",
+      "description": "Verplaats een of meer taken zodat hun volgende vervaldatum na de opgegeven datum en tijd valt. Terugkerende taken worden verplaatst naar de eerstvolgende geplande uitvoering na de grens. Niet-terugkerende taken die op of vóór de grens moeten worden uitgevoerd, worden naar de grens verplaatst, tenzij skip_non_recurring is ingeschakeld. Gedeelde taken worden overgeslagen, tenzij reschedule_shared is ingeschakeld.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Configuratie-item-ID (optioneel)",
+          "description": "Gebruik dit als u meer dan één ChoreOps-configuratie hebt. Het is gericht op één specifieke configuratie.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Configuratie-itemnaam (optioneel)",
+          "description": "Gebruik dit als u meer dan één ChoreOps-configuratie hebt en deze elk een unieke naam hebben. Als de namen zich herhalen, gebruik dan de configuratie-item-ID.",
+          "example": "Huishoudelijke klusjes"
+        },
+        "after": {
+          "name": "Na",
+          "description": "Grensdatum en -tijd. Klusjes die op of vóór deze datum af moeten zijn, komen in aanmerking voor herplanning.",
+          "example": "2026-07-14T18:00:00Z"
+        },
+        "chore_ids": {
+          "name": "Taak-ID's",
+          "description": "Optionele lijst met taak-ID's waarop de taak moet worden gericht. Indien opgegeven, hebben deze ID's voorrang op de taaknamen."
+        },
+        "chore_names": {
+          "name": "Namen van klusjes",
+          "description": "Optionele lijst met namen van taken die moeten worden aangepakt wanneer er geen chore_ids zijn opgegeven."
+        },
+        "user_ids": {
+          "name": "Gebruikers-ID's",
+          "description": "Optionele lijst met toegewezen ID's om onafhankelijke taakupdates te beperken. Indien opgegeven, hebben deze ID's voorrang op gebruikersnamen."
+        },
+        "user_names": {
+          "name": "Gebruikersnamen",
+          "description": "Optionele lijst met namen van toegewezen personen om onafhankelijke taakupdates te beperken wanneer gebruikers-ID's niet zijn opgegeven."
+        },
+        "reschedule_shared": {
+          "name": "Verplaats de gezamenlijke klusjes",
+          "description": "Schakel deze optie in om gedeelde en roulerende taken opnieuw in te plannen. Dit heeft gevolgen voor alle personen die aan deze taken zijn toegewezen.",
+          "example": "onjuist"
+        },
+        "skip_non_recurring": {
+          "name": "Sla eenmalige klusjes over",
+          "description": "Schakel deze optie in om eenmalige taken ongewijzigd te laten in plaats van hun vervaldatum naar de uiterste datum te verplaatsen.",
+          "example": "onjuist"
         }
       }
     },

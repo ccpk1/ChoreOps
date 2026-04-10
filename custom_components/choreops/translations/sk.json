@@ -452,6 +452,7 @@
       "challenge_no_assignees_assigned": "K výzve musí byť priradený aspoň jeden účastník",
       "invalid_achievement_count": "Neplatný počet úspechov",
       "invalid_achievement_name": "Neplatný názov úspechu",
+      "invalid_achievement_reward_points": "Body za odmenu za úspech musia byť nula alebo viac s maximálne dvoma desatinnými miestami",
       "invalid_badge": "Neplatný odznak",
       "invalid_badge_count": "Neplatný počet odznakov",
       "invalid_badge_name": "Neplatný názov odznaku",
@@ -461,6 +462,10 @@
       "invalid_chore_count": "Neplatný počet úloh",
       "rotation_min_assignees": "Rotačné úlohy vyžadujú aspoň 2 pridelených osôb",
       "invalid_chore_name": "Neplatný názov úlohy",
+      "custom_interval_required": "Pre vlastné frekvencie je potrebný vlastný interval.",
+      "custom_interval_invalid": "Vlastný interval musí byť celé číslo väčšie ako nula",
+      "custom_interval_unit_required": "Pre vlastné frekvencie je potrebná vlastná intervalová jednotka",
+      "custom_interval_unit_invalid": "Vlastná intervalová jednotka musí byť hodiny, dni, týždne alebo mesiace",
       "invalid_points": "Body musia byť nula alebo viac",
       "invalid_overdue_reset_combination": "Manipulácia s oneskorením „V deň splatnosti a potom reset“ funguje iba s typmi resetovania o polnoci. Ako typ resetovania schválenia vyberte možnosť „O polnoci (raz)“ alebo „O polnoci (opakujúce sa)“.",
       "invalid_due_date": "Neplatný dátum splatnosti",
@@ -477,7 +482,7 @@
       "invalid_reward": "Neplatná odmena",
       "invalid_reward_count": "Neplatný počet odmien",
       "invalid_reward_name": "Neplatný názov odmeny",
-      "invalid_reward_cost": "Cena odmeny musí byť nula alebo vyššia",
+      "invalid_reward_cost": "Cena odmeny musí byť nula alebo vyššia s presnosťou na maximálne 2 desatinné miesta.",
       "invalid_bonus": "Neplatný bonus",
       "invalid_bonus_count": "Neplatný počet bonusov",
       "invalid_bonus_name": "Neplatný názov bonusu",
@@ -499,7 +504,7 @@
       "chore_options_require_assignment": "Možnosti pracovného postupu domácich prác a gamifikácie vyžadujú, aby bola najprv povolená možnosť „Povoliť priradenie domácich prác mne“.",
       "invalid_update_interval": "Neplatný interval aktualizácie. Musí to byť kladné celé číslo.",
       "invalid_calendar_show_period": "Neplatné obdobie zobrazenia kalendára. Musí to byť kladné celé číslo.",
-      "invalid_default_chore_points": "Neplatné predvolené body úloh. Musí to byť kladné celé číslo.",
+      "invalid_default_chore_points": "Neplatné predvolené body úloh. Musí to byť kladné číslo väčšie ako 0 s maximálne 2 desatinnými miestami.",
       "invalid_retention_period": "Neplatná doba uchovávania. Musí to byť kladné celé číslo.",
       "invalid_points_adjust_values": "Neplatné hodnoty úpravy bodov. Musí to byť zoznam."
     },
@@ -550,7 +555,7 @@
           "default_chore_points": "Predvolené body za domácu úlohu"
         },
         "data_description": {
-          "default_chore_points": "Predvolená hodnota bodov použitá pre nové úlohy, keď nie sú zadané vlastné body. Musí to byť celé číslo väčšie ako 0."
+          "default_chore_points": "Predvolená hodnota bodov použitá pre nové úlohy, keď nie sú zadané vlastné body. Musí to byť kladné číslo väčšie ako 0 s maximálne 2 desatinnými miestami."
         }
       },
       "add_user": {
@@ -1639,6 +1644,7 @@
           "retention_yearly": "Ročné uchovávanie údajov (roky)",
           "show_legacy_entities": "Zobraziť ďalšie entity",
           "kiosk_mode": "Povoliť režim kiosku pre nároky nadobúdateľa",
+          "admin_approval_bypass": "Povoliť schvaľovanie administrátorským účtom domáceho asistenta",
           "backups_max_retained": "Maximálny počet záloh na uchovanie",
           "backup_action_selection": "Zálohovacie akcie"
         },
@@ -1654,6 +1660,7 @@
           "retention_yearly": "Počet rokov ročných historických údajov, ktoré sa majú uchovávať pred vyčistením. Minimálne 1, maximálne 10.",
           "show_legacy_entities": "Zobraziť ďalšie entity, ako napríklad senzor a výbery, ktoré sú teraz zlúčené do pomocného senzora na dashboarde. Tieto entity sú voliteľné kvôli spätnej kompatibilite s existujúcimi automatizáciami.",
           "kiosk_mode": "Umožňuje tlačidlám pre uplatnenie nároku na úlohy/odmeny priradenej osoby fungovať na zdieľaných nástenných tabletoch bez toho, aby sa používateľ ovládacieho panela musel zhodovať s odkazom používateľa Home Assistant priradenej osoby. Bezpečnostné upozornenie: nároky na priradenú osobu môže odoslať ktokoľvek s prístupom k danému zariadeniu.",
+          "admin_approval_bypass": "Keď je táto funkcia povolená, administrátorské účty služby Home Assistant môžu v rámci integrácie používať akcie schvaľovania domácich úloh a odmien. Keď je táto funkcia zakázaná, administrátorské účty nemôžu schvaľovať domáce úlohy ani odmeny len preto, že sú administrátormi služby Home Assistant.",
           "backups_max_retained": "Maximálny počet záložných súborov, ktoré sa majú uchovávať na tag (napr. 5 manuálnych záloh, 5 záloh typu data_reset). Staršie zálohy sa automaticky odstránia po vytvorení každej novej zálohy. Nastavením na hodnotu 0 úplne vypnete automatické zálohy.",
           "backup_action_selection": "Vyberte akciu správy záloh: vytvorenie manuálnej zálohy, odstránenie zálohy alebo obnovenie zo zálohy."
         }
@@ -3042,6 +3049,53 @@
           "name": "ID používateľa",
           "description": "Interné ID používateľa. Len pre pokročilých používateľov – použite namiesto toho meno_používateľa.",
           "example": "abc123-def456"
+        }
+      }
+    },
+    "reschedule_chores_after": {
+      "name": "Preplánujte si domáce práce po",
+      "description": "Preplánujte jednu alebo viac domácich úloh tak, aby ich ďalší dátum splatnosti pripadol na zadaný dátum a čas. Opakujúce sa domáce úlohy sa presunú na ďalší naplánovaný výskyt za hranicou. Neopakujúce sa domáce úlohy s termínom splatnosti v deň alebo pred hranicou sa presunú na hranicu, pokiaľ nie je povolená možnosť skip_non_recurring. Zdieľané domáce úlohy sa preskočia, pokiaľ nie je povolená možnosť reschedule_shared.",
+      "fields": {
+        "config_entry_id": {
+          "name": "ID konfiguračnej položky (voliteľné)",
+          "description": "Použite toto, ak máte viac ako jedno nastavenie ChoreOps. Zameriava sa na jedno konkrétne nastavenie.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Názov konfiguračnej položky (voliteľné)",
+          "description": "Použite toto, ak máte viacero nastavení ChoreOps a každé z nich má jedinečný názov. Ak sa názvy opakujú, použite ID položky konfigurácie.",
+          "example": "Rodinné práce"
+        },
+        "after": {
+          "name": "Po",
+          "description": "Hraničný dátum a čas. Domáce úlohy splatné v tento deň alebo skôr sa berú do úvahy pri preplánovaní.",
+          "example": "2026-07-14T18:00:00Z"
+        },
+        "chore_ids": {
+          "name": "ID úloh",
+          "description": "Voliteľný zoznam ID úloh, na ktoré sa má zamerať. Ak sú zadané, tieto ID majú prednosť pred názvami_úloh."
+        },
+        "chore_names": {
+          "name": "Názvy úloh",
+          "description": "Voliteľný zoznam názvov úloh, na ktoré sa má zamerať, ak nie sú poskytnuté identifikátory úloh."
+        },
+        "user_ids": {
+          "name": "ID používateľov",
+          "description": "Voliteľný zoznam ID pridelených osôb na obmedzenie nezávislých aktualizácií úloh. Ak sú zadané, tieto ID majú prednosť pred menami používateľov."
+        },
+        "user_names": {
+          "name": "Používateľské mená",
+          "description": "Voliteľný zoznam mien priradených osôb na obmedzenie nezávislých aktualizácií úloh, keď nie sú poskytnuté identifikátory používateľov."
+        },
+        "reschedule_shared": {
+          "name": "Preplánujte si spoločné domáce práce",
+          "description": "Povoľte túto možnosť, ak chcete povoliť zmenu plánovania zdieľaných a rotačných úloh. Toto ovplyvní všetkých osôb poverených týmito úlohami.",
+          "example": "nepravdivé"
+        },
+        "skip_non_recurring": {
+          "name": "Preskočiť neopakujúce sa domáce práce",
+          "description": "Povoľte túto možnosť, ak chcete, aby sa jednorazové úlohy nezmenili namiesto presunutia ich termínu na hranicu.",
+          "example": "nepravdivé"
         }
       }
     },

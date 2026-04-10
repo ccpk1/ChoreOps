@@ -452,6 +452,7 @@
       "challenge_no_assignees_assigned": "Pelo menos um responsável deve ser designado para o desafio.",
       "invalid_achievement_count": "Contagem de conquistas inválida",
       "invalid_achievement_name": "Nome de conquista inválido",
+      "invalid_achievement_reward_points": "Os pontos de recompensa por conquistas devem ser zero ou superiores, com até 2 casas decimais.",
       "invalid_badge": "Crachá inválido",
       "invalid_badge_count": "Contagem de crachás inválida",
       "invalid_badge_name": "Nome de crachá inválido",
@@ -461,6 +462,10 @@
       "invalid_chore_count": "Contagem de tarefas inválida",
       "rotation_min_assignees": "As tarefas rotativas requerem pelo menos 2 pessoas atribuídas.",
       "invalid_chore_name": "Nome de tarefa inválido",
+      "custom_interval_required": "É necessário um intervalo personalizado para frequências personalizadas.",
+      "custom_interval_invalid": "O intervalo personalizado deve ser um número inteiro superior a zero.",
+      "custom_interval_unit_required": "É necessário um intervalo de frequência personalizado para definir frequências personalizadas.",
+      "custom_interval_unit_invalid": "A unidade de intervalo personalizada deve ser horas, dias, semanas ou meses.",
       "invalid_points": "A pontuação deve ser zero ou superior.",
       "invalid_overdue_reset_combination": "A opção \"Repor na data de vencimento\" só funciona com reinicializações à meia-noite. Selecione \"À meia-noite (uma vez)\" ou \"À meia-noite (repetíveis)\" para obter o tipo de reposição de aprovação.",
       "invalid_due_date": "Data de vencimento inválida",
@@ -477,7 +482,7 @@
       "invalid_reward": "Recompensa inválida",
       "invalid_reward_count": "Contagem de recompensas inválida",
       "invalid_reward_name": "Nome de recompensa inválido",
-      "invalid_reward_cost": "O custo da recompensa deve ser zero ou superior.",
+      "invalid_reward_cost": "O custo da recompensa deve ser zero ou superior, com até duas casas decimais.",
       "invalid_bonus": "Bónus inválido",
       "invalid_bonus_count": "Contagem de bónus inválida",
       "invalid_bonus_name": "Nome de bónus inválido",
@@ -499,7 +504,7 @@
       "chore_options_require_assignment": "Para que as opções de workflow e de gamificação de tarefas sejam implementadas, é necessário ativar a opção \"Permitir que as tarefas me sejam atribuídas\".",
       "invalid_update_interval": "Intervalo de atualização inválido. Deve ser um número inteiro positivo.",
       "invalid_calendar_show_period": "Período de apresentação do calendário inválido. Deve ser um número inteiro positivo.",
-      "invalid_default_chore_points": "Pontos de tarefas padrão inválidos. Deve ser um número inteiro positivo.",
+      "invalid_default_chore_points": "Pontos de tarefas padrão inválidos. Deve ser um número positivo maior que 0 com um máximo de 2 casas decimais.",
       "invalid_retention_period": "Período de conservação inválido. Deve ser um número inteiro positivo.",
       "invalid_points_adjust_values": "Valores de ajuste de pontos inválidos. Deve ser uma lista."
     },
@@ -550,7 +555,7 @@
           "default_chore_points": "Pontos padrão por tarefa"
         },
         "data_description": {
-          "default_chore_points": "Valor predefinido de pontos utilizado para novas tarefas quando não são especificados pontos personalizados. Deve ser um número inteiro maior que 0."
+          "default_chore_points": "Valor predefinido em pontos utilizado para novas tarefas quando não são especificados pontos personalizados. Deve ser um número positivo maior que 0 com um máximo de 2 casas decimais."
         }
       },
       "add_user": {
@@ -1639,6 +1644,7 @@
           "retention_yearly": "Retenção anual de dados (anos)",
           "show_legacy_entities": "Mostrar entidades adicionais",
           "kiosk_mode": "Ativar o Modo Quiosque para Sinistros de Cessionário",
+          "admin_approval_bypass": "Permitir que as contas de administrador do Home Assistant aprovem",
           "backups_max_retained": "Número máximo de backups a manter.",
           "backup_action_selection": "Ações de backup"
         },
@@ -1654,6 +1660,7 @@
           "retention_yearly": "Número de anos de dados históricos anuais a manter antes da limpeza. Mínimo 1, máximo 10.",
           "show_legacy_entities": "Apresente entidades adicionais, como sensores e seleções, que estão agora consolidadas no sensor auxiliar do painel. Estas entidades são opcionais para manter a compatibilidade com versões anteriores de automatizações.",
           "kiosk_mode": "Permite que os botões de pedido de tarefas/recompensas do responsável funcionem em tablets partilhados na parede, sem exigir que o utilizador do painel de controlo corresponda ao utilizador do Home Assistant do responsável. Aviso de segurança: qualquer pessoa com acesso a este dispositivo pode enviar pedidos de tarefas/recompensas do responsável.",
+          "admin_approval_bypass": "Quando ativada, a integração permite que as contas de administrador do Home Assistant utilizem ações de aprovação de tarefas e recompensas. Quando desativadas, estas contas não podem aprovar tarefas ou recompensas apenas por serem administradoras do Home Assistant.",
           "backups_max_retained": "Número máximo de ficheiros de cópia de segurança a manter por etiqueta (ex.: 5 cópias de segurança manuais, 5 cópias de segurança de reposição de dados). Os backups mais antigos são automaticamente eliminados após a criação de cada novo backup. Defina para 0 para desativar completamente os backups automáticos.",
           "backup_action_selection": "Escolha uma ação de gestão de cópias de segurança: criar uma cópia de segurança manual, eliminar uma cópia de segurança ou restaurar a partir de uma cópia de segurança."
         }
@@ -3042,6 +3049,53 @@
           "name": "ID do utilizador",
           "description": "O ID interno do utilizador. Apenas para utilizadores avançados - utilize user_name em vez disso.",
           "example": "abc123-def456"
+        }
+      }
+    },
+    "reschedule_chores_after": {
+      "name": "Remarcar tarefas após",
+      "description": "Remarque uma ou mais tarefas para que a próxima data de vencimento seja posterior à data e hora especificadas. As tarefas recorrentes avançam para a próxima ocorrência agendada após o limite. As tarefas não recorrentes com vencimento até ao limite são movidas para o limite, a menos que a opção `skip_non_recurring` esteja ativada. As tarefas partilhadas são ignoradas, a menos que a opção `reschedule_shared` esteja ativada.",
+      "fields": {
+        "config_entry_id": {
+          "name": "ID da entrada de configuração (opcional)",
+          "description": "Utilize esta opção se tiver mais do que uma configuração do ChoreOps. É direcionada para uma configuração específica.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Nome da entrada de configuração (opcional)",
+          "description": "Utilize esta opção se tiver mais do que uma configuração do ChoreOps e cada uma delas tiver um nome único. Se os nomes se repetirem, utilize o ID da entrada de configuração.",
+          "example": "Tarefas familiares"
+        },
+        "after": {
+          "name": "Depois",
+          "description": "Data e hora limite. As tarefas com vencimento até essa data e hora serão consideradas para reagendamento.",
+          "example": "2026-07-14T18:00:00Z"
+        },
+        "chore_ids": {
+          "name": "IDs de tarefas",
+          "description": "Lista opcional de IDs de tarefas a selecionar. Se forem fornecidos, estes IDs têm precedência sobre os nomes das tarefas."
+        },
+        "chore_names": {
+          "name": "Nomes das Tarefas",
+          "description": "Lista opcional de nomes de tarefas a selecionar quando os IDs das tarefas não são fornecidos."
+        },
+        "user_ids": {
+          "name": "IDs de utilizador",
+          "description": "Lista opcional de IDs de responsáveis para limitar as atualizações independentes de tarefas. Se forem fornecidos, estes IDs têm precedência sobre os nomes de utilizador."
+        },
+        "user_names": {
+          "name": "Nomes de utilizador",
+          "description": "Lista opcional de nomes de responsáveis para limitar as atualizações independentes de tarefas quando não são fornecidos IDs de utilizador."
+        },
+        "reschedule_shared": {
+          "name": "Remarcar as tarefas partilhadas",
+          "description": "Ative esta opção para permitir o reagendamento de tarefas partilhadas e rotativas. Isto afetará todos os responsáveis por estas tarefas.",
+          "example": "FALSO"
+        },
+        "skip_non_recurring": {
+          "name": "Ignorar tarefas não recorrentes",
+          "description": "Ative esta opção para manter as tarefas não recorrentes inalteradas, em vez de mover a data de vencimento para o limite.",
+          "example": "FALSO"
         }
       }
     },

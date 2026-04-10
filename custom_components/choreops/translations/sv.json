@@ -452,6 +452,7 @@
       "challenge_no_assignees_assigned": "Minst en person måste tilldelas utmaningen",
       "invalid_achievement_count": "Ogiltigt antal prestationer",
       "invalid_achievement_name": "Ogiltigt prestationsnamn",
+      "invalid_achievement_reward_points": "Belöningspoäng för prestationer måste vara noll eller större med upp till två decimaler.",
       "invalid_badge": "Ogiltigt märke",
       "invalid_badge_count": "Ogiltigt antal märken",
       "invalid_badge_name": "Ogiltigt märkesnamn",
@@ -461,6 +462,10 @@
       "invalid_chore_count": "Ogiltigt antal sysslor",
       "rotation_min_assignees": "Rotationssysslor kräver minst 2 tilldelade personer",
       "invalid_chore_name": "Ogiltigt namn på syssla",
+      "custom_interval_required": "Anpassat intervall krävs för anpassade frekvenser",
+      "custom_interval_invalid": "Anpassat intervall måste vara ett heltal större än noll",
+      "custom_interval_unit_required": "Anpassad intervallenhet krävs för anpassade frekvenser",
+      "custom_interval_unit_invalid": "Anpassad intervallenhet måste vara timmar, dagar, veckor eller månader",
       "invalid_points": "Poängen måste vara noll eller större",
       "invalid_overdue_reset_combination": "Hanteringen av förseningar \"Återställ sedan vid förfallodatum\" fungerar endast med återställningstyperna midnatt. Välj \"Vid midnatt (en gång)\" eller \"Vid midnatt (upprepad)\" för återställningstypen för godkännande.",
       "invalid_due_date": "Ogiltigt förfallodatum",
@@ -477,7 +482,7 @@
       "invalid_reward": "Ogiltig belöning",
       "invalid_reward_count": "Ogiltigt antal belöningar",
       "invalid_reward_name": "Ogiltigt belöningsnamn",
-      "invalid_reward_cost": "Belöningskostnaden måste vara noll eller högre",
+      "invalid_reward_cost": "Belöningskostnaden måste vara noll eller större med upp till två decimaler",
       "invalid_bonus": "Ogiltig bonus",
       "invalid_bonus_count": "Ogiltigt bonusantal",
       "invalid_bonus_name": "Ogiltigt bonusnamn",
@@ -499,7 +504,7 @@
       "chore_options_require_assignment": "Alternativ för sysslor och gamification kräver att \"Tillåt att sysslor tilldelas mig\" först är aktiverat.",
       "invalid_update_interval": "Ogiltigt uppdateringsintervall. Måste vara ett positivt heltal.",
       "invalid_calendar_show_period": "Ogiltig kalendervisningsperiod. Måste vara ett positivt heltal.",
-      "invalid_default_chore_points": "Ogiltiga standardpoäng för sysslor. Måste vara ett positivt heltal.",
+      "invalid_default_chore_points": "Ogiltiga standardpoäng för sysslor. Måste vara ett positivt tal större än 0 med högst 2 decimaler.",
       "invalid_retention_period": "Ogiltig lagringsperiod. Måste vara ett positivt heltal.",
       "invalid_points_adjust_values": "Ogiltiga poängjusteringsvärden. Måste vara en lista."
     },
@@ -550,7 +555,7 @@
           "default_chore_points": "Standardpoäng per syssla"
         },
         "data_description": {
-          "default_chore_points": "Standardpoängvärde som används för nya sysslor när anpassade poäng inte anges. Måste vara ett heltal större än 0."
+          "default_chore_points": "Standardpoängvärde som används för nya sysslor när anpassade poäng inte anges. Måste vara ett positivt tal större än 0 med högst 2 decimaler."
         }
       },
       "add_user": {
@@ -1639,6 +1644,7 @@
           "retention_yearly": "Årlig datalagring (år)",
           "show_legacy_entities": "Visa extra enheter",
           "kiosk_mode": "Aktivera kioskläge för anspråk från tilldelare",
+          "admin_approval_bypass": "Tillåt att Home Assistant-administratörskonton godkänns",
           "backups_max_retained": "Maximalt antal säkerhetskopior att behålla",
           "backup_action_selection": "Säkerhetskopieringsåtgärder"
         },
@@ -1654,6 +1660,7 @@
           "retention_yearly": "Antal år av årliga historiska data som ska behållas före sanering. Minst 1, högst 10.",
           "show_legacy_entities": "Visa extra entiteter som sensor och selects som nu är konsoliderade i instrumentpanelshjälpsensorn. Dessa entiteter är valfria för bakåtkompatibilitet med befintliga automatiseringar.",
           "kiosk_mode": "Tillåter att knappar för att ansöka om sysslor/belöning för tilldelade fungerar på surfplattor med delad vägg utan att instrumentpanelsanvändaren behöver matcha den tilldelades Home Assistant-användarlänk. Säkerhetsvarning: alla med åtkomst till den enheten kan skicka in anspråk för tilldelade.",
+          "admin_approval_bypass": "När det är aktiverat kan administratörskonton för Home Assistant använda åtgärder för godkännande av sysslor och belöningar i hela integrationen. När det är inaktiverat kan administratörskonton inte godkänna sysslor eller belöningar bara för att de är Home Assistant-administratörer.",
           "backups_max_retained": "Maximalt antal säkerhetskopior att behålla per tagg (t.ex. 5 manuella säkerhetskopior, 5 data_reset-säkerhetskopior). Äldre säkerhetskopior raderas automatiskt efter att varje ny säkerhetskopia skapas. Ställ in på 0 för att inaktivera automatiska säkerhetskopior helt.",
           "backup_action_selection": "Välj en åtgärd för säkerhetskopieringshantering: skapa en manuell säkerhetskopia, ta bort en säkerhetskopia eller återställ från en säkerhetskopia."
         }
@@ -3042,6 +3049,53 @@
           "name": "Användar-ID",
           "description": "Användarens interna ID. Endast avancerade användare - använd användarnamn istället.",
           "example": "abc123-def456"
+        }
+      }
+    },
+    "reschedule_chores_after": {
+      "name": "Omplanera sysslor efteråt",
+      "description": "Schemalägg om en eller flera sysslor så att deras nästa förfallodatum infaller efter det angivna datumet och tiden. Återkommande sysslor flyttas till nästa schemalagda händelse efter gränsen. Icke-återkommande sysslor som förfaller på eller före gränsen flyttas till gränsen om inte skip_non_recurring är aktiverat. Delade sysslor hoppas över om inte reschedule_shared är aktiverat.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Konfigurationspost-ID (valfritt)",
+          "description": "Använd detta om du har mer än en ChoreOps-inställning. Den riktar sig mot en specifik inställning.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Konfigurationspostnamn (valfritt)",
+          "description": "Använd detta om du har fler än en ChoreOps-konfiguration och de har unika namn. Om namnen upprepas, använd Config Entry ID.",
+          "example": "Familjesysslor"
+        },
+        "after": {
+          "name": "Efter",
+          "description": "Gränsdatum och tid. Sysslor som ska utföras på eller före detta värde beaktas för omplanering.",
+          "example": "2026-07-14T18:00:00Z"
+        },
+        "chore_ids": {
+          "name": "Sysslor-ID:n",
+          "description": "Valfri lista med sysslo-ID:n att rikta in sig på. Om dessa ID:n anges har de företräde framför sysslonamn."
+        },
+        "chore_names": {
+          "name": "Namn på sysslor",
+          "description": "Valfri lista med sysslor som ska riktas in när chore_ids inte anges."
+        },
+        "user_ids": {
+          "name": "Användar-ID:n",
+          "description": "Valfri lista över tilldelade ID:n för att begränsa oberoende sysslouppdateringar. Om dessa ID:n anges har de företräde framför användarnamn."
+        },
+        "user_names": {
+          "name": "Användarnamn",
+          "description": "Valfri lista över tilldelades namn för att begränsa oberoende sysslouppdateringar när user_id:n inte anges."
+        },
+        "reschedule_shared": {
+          "name": "Omplanera delade sysslor",
+          "description": "Aktivera detta för att tillåta att delade och roterande sysslor omschemaläggs. Detta påverkar alla tilldelade på dessa sysslor.",
+          "example": "falsk"
+        },
+        "skip_non_recurring": {
+          "name": "Hoppa över icke-återkommande sysslor",
+          "description": "Aktivera detta för att lämna engångssysslor oförändrade istället för att flytta deras förfallodatum till gränsen.",
+          "example": "falsk"
         }
       }
     },

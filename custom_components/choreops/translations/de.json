@@ -452,6 +452,7 @@
       "challenge_no_assignees_assigned": "Für die Herausforderung muss mindestens ein Bearbeiter zugewiesen werden.",
       "invalid_achievement_count": "Ungültige Anzahl von Errungenschaften",
       "invalid_achievement_name": "Ungültiger Errungenschaftsname",
+      "invalid_achievement_reward_points": "Die Punktzahl für die Leistungsprämie muss null oder höher sein (mit maximal zwei Dezimalstellen).",
       "invalid_badge": "Ungültiges Abzeichen",
       "invalid_badge_count": "Ungültige Anzahl von Abzeichen",
       "invalid_badge_name": "Ungültiger Abzeichenname",
@@ -461,6 +462,10 @@
       "invalid_chore_count": "Ungültige Anzahl von Hausarbeiten",
       "rotation_min_assignees": "Für die Rotationsaufgaben werden mindestens 2 Personen zugewiesen.",
       "invalid_chore_name": "Ungültiger Name der Hausarbeit",
+      "custom_interval_required": "Für benutzerdefinierte Frequenzen ist ein benutzerdefiniertes Intervall erforderlich.",
+      "custom_interval_invalid": "Das benutzerdefinierte Intervall muss eine ganze Zahl größer als null sein.",
+      "custom_interval_unit_required": "Für benutzerdefinierte Frequenzen ist eine benutzerdefinierte Intervalleinheit erforderlich.",
+      "custom_interval_unit_invalid": "Die benutzerdefinierte Intervalleinheit muss Stunden, Tage, Wochen oder Monate sein.",
       "invalid_points": "Die Punktzahl muss null oder größer sein.",
       "invalid_overdue_reset_combination": "Die Funktion „Zum Fälligkeitsdatum zurücksetzen“ funktioniert nur bei Zurücksetzungstypen um Mitternacht. Bitte wählen Sie für den Genehmigungs-Zurücksetzungstyp „Um Mitternacht (einmalig)“ oder „Um Mitternacht (wiederkehrend)“.",
       "invalid_due_date": "Ungültiges Fälligkeitsdatum",
@@ -477,7 +482,7 @@
       "invalid_reward": "Ungültige Belohnung",
       "invalid_reward_count": "Ungültige Anzahl von Belohnungen",
       "invalid_reward_name": "Ungültiger Belohnungsname",
-      "invalid_reward_cost": "Die Kosten der Belohnung müssen null oder größer sein.",
+      "invalid_reward_cost": "Die Kosten der Belohnung müssen null oder höher sein (mit maximal zwei Dezimalstellen).",
       "invalid_bonus": "Ungültiger Bonus",
       "invalid_bonus_count": "Ungültige Anzahl von Boni",
       "invalid_bonus_name": "Ungültiger Bonusname",
@@ -499,7 +504,7 @@
       "chore_options_require_assignment": "Für die Workflow- und Gamification-Optionen im Bereich der Aufgabenverwaltung muss zunächst die Option „Mir erlauben, Aufgaben zugewiesen zu bekommen“ aktiviert werden.",
       "invalid_update_interval": "Ungültiges Aktualisierungsintervall. Muss eine positive ganze Zahl sein.",
       "invalid_calendar_show_period": "Ungültiger Kalenderzeitraum. Muss eine positive ganze Zahl sein.",
-      "invalid_default_chore_points": "Ungültige Standard-Aufgabenpunkte. Muss eine positive ganze Zahl sein.",
+      "invalid_default_chore_points": "Ungültige Standard-Aufgabenpunkte. Es muss eine positive Zahl größer als 0 mit maximal 2 Dezimalstellen sein.",
       "invalid_retention_period": "Ungültige Aufbewahrungsfrist. Muss eine positive ganze Zahl sein.",
       "invalid_points_adjust_values": "Ungültige Punkte führen zu Wertkorrekturen. Es muss eine Liste sein."
     },
@@ -550,7 +555,7 @@
           "default_chore_points": "Standardpunkte pro Aufgabe"
         },
         "data_description": {
-          "default_chore_points": "Standardpunktwert, der für neue Aufgaben verwendet wird, wenn keine benutzerdefinierten Punkte angegeben werden. Muss eine ganze Zahl größer als 0 sein."
+          "default_chore_points": "Standardpunktwert, der für neue Aufgaben verwendet wird, wenn keine benutzerdefinierten Punkte angegeben werden. Muss eine positive Zahl größer als 0 mit maximal 2 Dezimalstellen sein."
         }
       },
       "add_user": {
@@ -1639,6 +1644,7 @@
           "retention_yearly": "Jährliche Datenaufbewahrungsdauer (Jahre)",
           "show_legacy_entities": "Zusätzliche Entitäten anzeigen",
           "kiosk_mode": "Kioskmodus für Empfängeransprüche aktivieren",
+          "admin_approval_bypass": "Erlauben Sie Home Assistant-Administratoren, dies zu genehmigen",
           "backups_max_retained": "Maximale Anzahl der aufzubewahrenden Backups",
           "backup_action_selection": "Sicherungsaktionen"
         },
@@ -1654,6 +1660,7 @@
           "retention_yearly": "Anzahl der Jahre an jährlichen historischen Daten, die vor der Bereinigung aufbewahrt werden sollen. Minimum 1, Maximum 10.",
           "show_legacy_entities": "Es werden zusätzliche Entitäten wie Sensoren und Auswahllisten angezeigt, die nun im Dashboard-Hilfssensor zusammengefasst sind. Diese Entitäten sind optional, um die Abwärtskompatibilität mit bestehenden Automatisierungen zu gewährleisten.",
           "kiosk_mode": "Ermöglicht die Nutzung der Schaltflächen zur Anforderung von Aufgaben/Belohnungen für zugewiesene Mitarbeiter auf gemeinsam genutzten Wandtablets, ohne dass der Dashboard-Nutzer die Home-Assistant-Benutzerverknüpfung des zugewiesenen Mitarbeiters bestätigen muss. Sicherheitshinweis: Jeder, der Zugriff auf dieses Gerät hat, kann Aufgaben-/Belohnungsanforderungen einreichen.",
+          "admin_approval_bypass": "Wenn diese Option aktiviert ist, können Home Assistant-Administratorkonten Aufgaben und Belohnungen innerhalb der Integration genehmigen. Wenn sie deaktiviert ist, können Administratorkonten Aufgaben oder Belohnungen nicht genehmigen, nur weil sie Home Assistant-Administratoren sind.",
           "backups_max_retained": "Maximale Anzahl der pro Tag aufzubewahrenden Sicherungsdateien (z. B. 5 manuelle Sicherungen, 5 data_reset-Sicherungen). Ältere Sicherungen werden nach jeder neuen Sicherung automatisch gelöscht. Setzen Sie den Wert auf 0, um automatische Sicherungen vollständig zu deaktivieren.",
           "backup_action_selection": "Wählen Sie eine Backup-Verwaltungsaktion: Manuelles Backup erstellen, Backup löschen oder aus einem Backup wiederherstellen."
         }
@@ -2758,7 +2765,7 @@
       }
     },
     "set_rotation_turn": {
-      "name": "Drehrichtung einstellen",
+      "name": "Rotation einstellen",
       "description": "Weisen Sie die aktuelle Runde manuell einem bestimmten Bearbeiter in einer Rotationsaufgabe zu. Funktioniert nur für Rotationsaufgaben (rotation_simple oder rotation_smart). Verwenden Sie entweder die ID oder den Namen zur Identifizierung.",
       "fields": {
         "config_entry_id": {
@@ -3042,6 +3049,53 @@
           "name": "Benutzer-ID",
           "description": "Die interne Benutzer-ID. Nur für fortgeschrittene Benutzer – bitte stattdessen den Benutzernamen verwenden.",
           "example": "abc123-def456"
+        }
+      }
+    },
+    "reschedule_chores_after": {
+      "name": "Aufgaben neu planen",
+      "description": "Verschieben Sie eine oder mehrere Aufgaben so, dass ihr nächster Fälligkeitstermin nach dem angegebenen Datum und der angegebenen Uhrzeit liegt. Wiederkehrende Aufgaben werden nach dem festgelegten Zeitpunkt zum nächsten geplanten Termin verschoben. Einmalige Aufgaben, die am oder vor dem festgelegten Zeitpunkt fällig sind, werden auf diesen Zeitpunkt verschoben, es sei denn, „Nicht wiederkehrende Aufgaben überspringen“ ist aktiviert. Gemeinsam genutzte Aufgaben werden übersprungen, es sei denn, „Gemeinsame Aufgaben neu planen“ ist aktiviert.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Konfigurationseintrags-ID (optional)",
+          "description": "Verwenden Sie diese Option, wenn Sie mehrere ChoreOps-Setups haben. Sie ist auf ein bestimmtes Setup ausgerichtet.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Name des Konfigurationseintrags (optional)",
+          "description": "Verwenden Sie diese Option, wenn Sie mehrere ChoreOps-Setups mit jeweils eindeutigen Namen haben. Bei sich wiederholenden Namen verwenden Sie die Konfigurationseintrags-ID.",
+          "example": "Familienaufgaben"
+        },
+        "after": {
+          "name": "Nach",
+          "description": "Stichtag und -uhrzeit. Aufgaben, die bis zu diesem Zeitpunkt fällig sind, werden auf eine mögliche Neuplanung geprüft.",
+          "example": "2026-07-14T18:00:00Z"
+        },
+        "chore_ids": {
+          "name": "Aufgaben-IDs",
+          "description": "Optionale Liste von Aufgaben-IDs, die als Ziel verwendet werden sollen. Falls angegeben, haben diese IDs Vorrang vor den Aufgabennamen."
+        },
+        "chore_names": {
+          "name": "Aufgabennamen",
+          "description": "Optionale Liste von Aufgabennamen, die anvisiert werden sollen, wenn keine chore_ids angegeben sind."
+        },
+        "user_ids": {
+          "name": "Benutzer-IDs",
+          "description": "Optionale Liste von Bearbeiter-IDs zur Begrenzung unabhängiger Aufgabenaktualisierungen. Falls angegeben, haben diese IDs Vorrang vor Benutzernamen."
+        },
+        "user_names": {
+          "name": "Benutzernamen",
+          "description": "Optionale Liste von Namen der Bearbeiter, um unabhängige Aufgabenaktualisierungen einzuschränken, wenn keine Benutzer-IDs angegeben werden."
+        },
+        "reschedule_shared": {
+          "name": "Gemeinsame Aufgaben neu planen",
+          "description": "Aktivieren Sie diese Option, um gemeinsam genutzte und rotierende Aufgaben neu zu planen. Dies betrifft alle Personen, denen diese Aufgaben zugewiesen sind.",
+          "example": "FALSCH"
+        },
+        "skip_non_recurring": {
+          "name": "Nicht wiederkehrende Aufgaben überspringen",
+          "description": "Aktivieren Sie diese Option, damit einmalige Aufgaben unverändert bleiben, anstatt deren Fälligkeitsdatum in den Bereich zu verschieben.",
+          "example": "FALSCH"
         }
       }
     },

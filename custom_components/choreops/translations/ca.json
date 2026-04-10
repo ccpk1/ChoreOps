@@ -452,6 +452,7 @@
       "challenge_no_assignees_assigned": "Cal assignar com a mínim una persona al repte.",
       "invalid_achievement_count": "Recompte d'assoliments no vàlid",
       "invalid_achievement_name": "Nom d'assoliment no vàlid",
+      "invalid_achievement_reward_points": "Els punts de recompensa per assoliments han de ser zero o superiors amb un màxim de 2 decimals.",
       "invalid_badge": "Insígnia no vàlida",
       "invalid_badge_count": "Recompte de distintius no vàlid",
       "invalid_badge_name": "Nom de la insígnia no vàlid",
@@ -461,6 +462,10 @@
       "invalid_chore_count": "Recompte de tasques no vàlid",
       "rotation_min_assignees": "Les tasques de rotació requereixen almenys 2 persones assignades",
       "invalid_chore_name": "Nom de tasca no vàlid",
+      "custom_interval_required": "Cal un interval personalitzat per a les freqüències personalitzades",
+      "custom_interval_invalid": "L'interval personalitzat ha de ser un nombre enter superior a zero.",
+      "custom_interval_unit_required": "Cal una unitat d'interval personalitzada per a les freqüències personalitzades",
+      "custom_interval_unit_invalid": "La unitat d'interval personalitzada ha de ser hores, dies, setmanes o mesos",
       "invalid_points": "Els punts han de ser zero o superiors",
       "invalid_overdue_reset_combination": "La gestió de venciments \"A la data de venciment, després es reinicia\" només funciona amb els tipus de restabliment a mitjanit. Seleccioneu \"A mitjanit (una vegada)\" o \"A mitjanit (repetint)\" per al tipus de restabliment d'aprovació.",
       "invalid_due_date": "Data de venciment no vàlida",
@@ -477,7 +482,7 @@
       "invalid_reward": "Recompensa no vàlida",
       "invalid_reward_count": "Recompte de recompenses no vàlid",
       "invalid_reward_name": "Nom de recompensa no vàlid",
-      "invalid_reward_cost": "El cost de la recompensa ha de ser zero o superior",
+      "invalid_reward_cost": "El cost de la recompensa ha de ser zero o superior amb un màxim de 2 decimals",
       "invalid_bonus": "Bonificació no vàlida",
       "invalid_bonus_count": "Recompte de bonificacions no vàlid",
       "invalid_bonus_name": "Nom de bonificació no vàlid",
@@ -499,7 +504,7 @@
       "chore_options_require_assignment": "El flux de treball de les tasques i les opcions de gamificació requereixen que primer estigui activada l'opció \"Permet que se m'assignin tasques\".",
       "invalid_update_interval": "Interval d'actualització no vàlid. Ha de ser un enter positiu.",
       "invalid_calendar_show_period": "Període de visualització del calendari no vàlid. Ha de ser un nombre enter positiu.",
-      "invalid_default_chore_points": "Punts de tasca predeterminats no vàlids. Ha de ser un nombre enter positiu.",
+      "invalid_default_chore_points": "Punts de tasca predeterminats no vàlids. Ha de ser un nombre positiu superior a 0 amb un màxim de 2 decimals.",
       "invalid_retention_period": "Període de retenció no vàlid. Ha de ser un nombre enter positiu.",
       "invalid_points_adjust_values": "Valors d'ajust de punts no vàlids. Ha de ser una llista."
     },
@@ -550,7 +555,7 @@
           "default_chore_points": "Punts per defecte per tasca"
         },
         "data_description": {
-          "default_chore_points": "Valor de punts per defecte utilitzat per a les tasques noves quan no s'especifiquen punts personalitzats. Ha de ser un nombre enter superior a 0."
+          "default_chore_points": "Valor de punts predeterminat que s'utilitza per a les tasques noves quan no s'especifiquen punts personalitzats. Ha de ser un nombre positiu superior a 0 amb un màxim de 2 decimals."
         }
       },
       "add_user": {
@@ -1639,6 +1644,7 @@
           "retention_yearly": "Retenció anual de dades (anys)",
           "show_legacy_entities": "Mostra entitats addicionals",
           "kiosk_mode": "Activa el mode de quiosc per a les reclamacions de l'assignat",
+          "admin_approval_bypass": "Permet que els comptes d'administrador de l'Assistent a casa s'aprovin",
           "backups_max_retained": "Còpies de seguretat màximes per conservar",
           "backup_action_selection": "Accions de còpia de seguretat"
         },
@@ -1654,6 +1660,7 @@
           "retention_yearly": "Nombre d'anys de dades històriques anuals que cal conservar abans de la neteja. Mínim 1, màxim 10.",
           "show_legacy_entities": "Mostra entitats addicionals com ara sensor i seleccions que ara estan consolidades al sensor auxiliar del tauler de control. Aquestes entitats són opcionals per a la compatibilitat amb versions anteriors de les automatitzacions existents.",
           "kiosk_mode": "Permet que els botons de reclamació de tasques/recompenses de l'assignat funcionin en tauletes de paret compartides sense que l'usuari del tauler de control hagi de coincidir amb l'enllaç d'usuari de l'assignat de l'assignat. Avís de seguretat: qualsevol persona amb accés a aquest dispositiu pot enviar reclamacions d'assignats.",
+          "admin_approval_bypass": "Quan estan activats, els comptes d'administrador de Home Assistant poden utilitzar accions d'aprovació de tasques i recompenses a tota la integració. Quan estan desactivats, els comptes d'administrador no poden aprovar tasques ni recompenses només perquè són administradors de Home Assistant.",
           "backups_max_retained": "Nombre màxim de fitxers de còpia de seguretat per conservar per etiqueta (per exemple, 5 còpies de seguretat manuals, 5 còpies de seguretat de data_reset). Les còpies de seguretat més antigues s'eliminen automàticament després de crear cada còpia de seguretat nova. Establiu-ho a 0 per desactivar completament les còpies de seguretat automàtiques.",
           "backup_action_selection": "Trieu una acció de gestió de còpies de seguretat: creeu una còpia de seguretat manual, suprimiu una còpia de seguretat o restaureu des d'una còpia de seguretat."
         }
@@ -3042,6 +3049,53 @@
           "name": "ID d'usuari",
           "description": "L'ID intern de l'usuari. Només per a usuaris avançats: feu servir nom_usuari.",
           "example": "abc123-def456"
+        }
+      }
+    },
+    "reschedule_chores_after": {
+      "name": "Reprogramar tasques després de",
+      "description": "Reprograma una o més tasques perquè la seva propera data de venciment sigui després de la data i hora especificades. Les tasques recurrents avancen a la següent ocurrència programada després del límit. Les tasques no recurrents que vencen en o abans del límit es mouen al límit tret que skip_non_recurring estigui habilitat. Les tasques compartides s'ometen tret que reschedule_shared estigui habilitat.",
+      "fields": {
+        "config_entry_id": {
+          "name": "ID d'entrada de configuració (opcional)",
+          "description": "Feu servir això si teniu més d'una configuració de ChoreOps. Està dirigit a una configuració específica.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Nom de l'entrada de configuració (opcional)",
+          "description": "Feu servir això si teniu més d'una configuració ChoreOps i cadascuna té noms únics. Si els noms es repeteixen, feu servir l'ID d'entrada de configuració.",
+          "example": "Tasques familiars"
+        },
+        "after": {
+          "name": "Després",
+          "description": "Data i hora límit. Les tasques que vencen en aquest valor o abans es tenen en compte per a la reprogramació.",
+          "example": "2026-07-14T18:00:00Z"
+        },
+        "chore_ids": {
+          "name": "Identificadors de tasques",
+          "description": "Llista opcional d'ID de tasques a les quals s'ha de destinar. Si es proporcionen, aquests ID tenen prioritat sobre els noms_de_tasques."
+        },
+        "chore_names": {
+          "name": "Noms de les tasques",
+          "description": "Llista opcional de noms de tasques a tenir com a objectiu quan no es proporcionen els chore_ids."
+        },
+        "user_ids": {
+          "name": "ID d'usuari",
+          "description": "Llista opcional d'ID d'assignats per limitar les actualitzacions independents de les tasques. Si es proporcionen, aquests ID tenen prioritat sobre els noms d'usuari."
+        },
+        "user_names": {
+          "name": "Noms d'usuari",
+          "description": "Llista opcional de noms d'assignats per limitar les actualitzacions independents de les tasques quan no es proporcionen els user_ids."
+        },
+        "reschedule_shared": {
+          "name": "Reprogramar tasques compartides",
+          "description": "Activa això per permetre que les tasques compartides i de rotació es reprogramin. Això afecta tots els assignats a aquestes tasques.",
+          "example": "fals"
+        },
+        "skip_non_recurring": {
+          "name": "Omet les tasques no recurrents",
+          "description": "Activeu això per deixar les tasques no recurrents sense canvis en comptes de moure la seva data de venciment al límit.",
+          "example": "fals"
         }
       }
     },

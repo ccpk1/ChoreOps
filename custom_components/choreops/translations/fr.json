@@ -92,7 +92,7 @@
           },
           "section_system_usage": {
             "name": "Utilisation du système",
-            "description": "Commandes pour une utilisation normale dans les tâches ménagères et la gamification.",
+            "description": "Commandes pour une utilisation normale dans les tâches ménagères et la ludification.",
             "data": {
               "can_be_assigned": "Peut être attribué",
               "enable_chore_workflow": "Flux de travail activé",
@@ -146,9 +146,9 @@
               "name": "Nom unique affiché dans tout le système.",
               "chore_description": "Instructions ou détails facultatifs sur la manière d'effectuer cette tâche.",
               "icon": "Icône Material Design (ex. : mdi:balai, mdi:lave-vaisselle).",
-              "default_points": "Points obtenus une fois le projet terminé.",
-              "assigned_user_ids": "Personnes désignées qui peuvent voir et revendiquer cette tâche.",
-              "completion_criteria": "Contrôle la manière dont la tâche est effectuée lorsque plusieurs personnes sont assignées : suivi individuel, exécution partagée ou rotation à tour de rôle."
+              "default_points": "Points obtenus une fois la tâche achevée.",
+              "assigned_user_ids": "Utilisateurs désignés qui peuvent voir et revendiquer cette tâche.",
+              "completion_criteria": "Contrôle la manière dont la tâche est effectuée lorsque plusieurs utilisateurs sont assignées : suivi individuel, exécution partagée ou rotation à tour de rôle."
             }
           },
           "section_schedule": {
@@ -170,7 +170,7 @@
               "clear_due_date": "Cochez cette case pour supprimer la date d'échéance de cette tâche.",
               "applicable_days": "Laissez vide pour tous les jours. Sélectionnez UNIQUEMENT les jours à exclure.",
               "chore_due_window_offset": "Lorsque l'état de la tâche passe de « En attente » à « À faire ». Format : « 1j 6h 30m » ou simplement « 30 » pour les minutes. Saisissez « 0 » pour désactiver. Exemple : « 1j » signifie que la tâche apparaît comme « À faire » un jour avant l'échéance.",
-              "chore_claim_lock_until_window": "Lorsque cette option est activée, les personnes assignées ne peuvent pas prendre en charge cette tâche avant le début de la période d'échéance.",
+              "chore_claim_lock_until_window": "Lorsque cette option est activée, les utilisateurs assignés ne peuvent pas prendre en charge cette tâche avant le début de la période d'échéance.",
               "custom_interval": "Nombre d'unités de temps entre les répétitions (ex. : 3 pour « toutes les 3 semaines »). Utilisé uniquement avec la fréquence personnalisée.",
               "custom_interval_unit": "Unité de temps pour l'intervalle personnalisé (jours, semaines, mois). Utilisée uniquement avec la fréquence personnalisée."
             }
@@ -214,7 +214,7 @@
           "chore_claim_lock_until_window": "🔒 Verrouiller la réclamation jusqu'à l'ouverture de la période d'échéance ?",
           "auto_approve": "✅ Approbation automatique des demandes ?",
           "recurring_frequency": "🔄 Programmation : Fréquence",
-          "custom_interval": "🔄 Programmation : Intervalle personnalisé (pour une fréquence personnalisée)",
+          "custom_interval": "🔄 Planification : Intervalle personnalisé (pour une fréquence personnalisée)",
           "custom_interval_unit": "🔄 Programmation : Unité d’intervalle personnalisée",
           "applicable_days": "📅 Programmation : Jours concernés (facultatif)",
           "due_date": "📅 Programmation : Date d’échéance (facultatif)",
@@ -228,13 +228,13 @@
           "chore_description": "Instructions ou détails facultatifs sur la manière d'accomplir cette tâche.",
           "icon": "Icône Material Design (ex. : mdi:balai, mdi:lave-vaisselle).",
           "chore_labels": "Étiquettes pour organiser les tâches ménagères (ex. : « cuisine », « extérieur »). Laisser vide si non nécessaire.",
-          "default_points": "Points obtenus une fois le projet terminé.",
-          "assigned_user_ids": "Personnes désignées qui peuvent voir et revendiquer cette tâche.",
-          "completion_criteria": "Contrôle la manière dont la tâche est effectuée lorsque plusieurs personnes sont désignées : suivi individuel, exécution partagée ou rotation à tour de rôle.",
+          "default_points": "Points obtenus une fois la tâche terminée.",
+          "assigned_user_ids": "Utilisateurs désignés qui peuvent voir et revendiquer cette tâche.",
+          "completion_criteria": "Contrôle la manière dont la tâche est effectuée lorsque plusieurs utilisateurs sont désignées : suivi individuel, exécution partagée ou rotation à tour de rôle.",
           "approval_reset_type": "Contrôle le déclenchement du cycle d'approbation de la tâche (minuit, date d'échéance, à l'achèvement ou déclenchement manuel).",
           "approval_reset_pending_claim_action": "Voici ce qui arrive aux réclamations toujours en attente d'approbation lors de la réinitialisation du processus d'approbation.",
           "overdue_handling_type": "Actions à entreprendre après la date d'échéance : Masquer le statut de retard, maintenir le statut de retard jusqu'à ce que la demande soit réclamée, ou réinitialiser le statut à « en attente » lors du prochain cycle d'approbation.",
-          "chore_claim_lock_until_window": "Lorsque cette option est activée, les personnes assignées ne peuvent pas prendre en charge cette tâche avant le début de la période d'échéance.",
+          "chore_claim_lock_until_window": "Lorsque cette option est activée, les utilisateurs assignés ne peuvent pas prendre en charge cette tâche avant le début de la période d'échéance.",
           "auto_approve": "Lorsqu'elle est activée, cette option permet d'approuver instantanément les demandes sans examen par un approbateur.",
           "recurring_frequency": "Fréquence de répétition de la tâche : Quotidienne, Hebdomadaire, Mensuelle, Annuelle, Personnalisée ou Aucune.",
           "custom_interval": "Nombre d'unités de temps entre les répétitions (ex. : 3 pour « toutes les 3 semaines »). Utilisé uniquement avec la fréquence personnalisée.",
@@ -290,7 +290,7 @@
           "occasion_type": "Choisissez le type d'occasion pour ce badge (par exemple, vacances, anniversaire).",
           "associated_achievement": "Associez ce badge à une réussite pour en assurer le suivi.",
           "selected_chores": "Sélectionnez les tâches qui permettent d'obtenir des points pour ce badge. Laissez ce champ vide si vous souhaitez suivre toutes les tâches assignées (facultatif).",
-          "assigned_user_ids": "Attribuez ce badge à des personnes spécifiques à des fins de suivi.",
+          "assigned_user_ids": "Attribuez ce badge à des utilisateurs spécifiques à des fins de suivi.",
           "award_items": "Choisissez un ou plusieurs éléments parmi les points, les récompenses, les bonus ou un multiplicateur de points. Tous les éléments sélectionnés seront attribués ou appliqués lors de l'obtention du badge. (facultatif)",
           "award_points": "Si les points constituent une récompense sélectionnée, veuillez préciser le nombre de points à appliquer lors de l'obtention de ce badge. (facultatif).",
           "points_multiplier": "Si le multiplicateur est une récompense sélectionnée, définissez un multiplicateur pour les points gagnés pendant que ce badge est actif (par exemple, 1,5x).",
@@ -299,7 +299,7 @@
           "custom_interval_unit": "Sélectionnez l'unité de l'intervalle personnalisé (par exemple, jours, semaines). S'applique uniquement à la fréquence personnalisée.",
           "start_date": "Sélectionnez la date de début (facultatif).",
           "end_date": "Sélectionnez la date de fin du cycle de maintenance. (facultatif).",
-          "grace_period_days": "Indiquez le nombre de jours supplémentaires après la fin du cycle pour que les personnes affectées puissent accumuler les points requis avant une rétrogradation. (facultatif)."
+          "grace_period_days": "Indiquez le nombre de jours supplémentaires après la fin du cycle pour que les utilisateurs affectés puissent accumuler les points requis avant une rétrogradation. (facultatif)."
         }
       },
       "reward_count": {
@@ -361,7 +361,7 @@
       },
       "achievement_count": {
         "title": "Nombre de succès",
-        "description": "Combien de réalisations souhaitez-vous définir ?",
+        "description": "Combien de succès souhaitez-vous définir ?",
         "data": {
           "achievement_count": "Nombre de succès"
         }
@@ -434,7 +434,7 @@
       "duplicate_chore": "Il existe déjà une tâche portant ce nom",
       "duplicate_assignee": "Une personne portant ce nom existe déjà.",
       "duplicate_approver": "Un utilisateur portant ce nom existe déjà.",
-      "duplicate_penalty": "Une sanction portant ce nom existe déjà.",
+      "duplicate_penalty": "Une pénalité portant ce nom existe déjà.",
       "duplicate_reward": "Une récompense portant ce nom existe déjà.",
       "duplicate_bonus": "Un bonus portant ce nom existe déjà.",
       "due_date_in_past": "La date d'échéance doit être future.",
@@ -452,6 +452,7 @@
       "challenge_no_assignees_assigned": "Au moins un responsable doit être désigné pour relever le défi.",
       "invalid_achievement_count": "Nombre de succès invalide",
       "invalid_achievement_name": "Nom de succès invalide",
+      "invalid_achievement_reward_points": "Les points de récompense pour réussite doivent être égaux ou égaux à zéro, avec jusqu'à deux décimales.",
       "invalid_badge": "Badge invalide",
       "invalid_badge_count": "Nombre de badges invalide",
       "invalid_badge_name": "Nom de badge invalide",
@@ -461,6 +462,10 @@
       "invalid_chore_count": "Nombre de tâches invalide",
       "rotation_min_assignees": "Les tâches de rotation nécessitent au moins 2 personnes désignées.",
       "invalid_chore_name": "Nom de tâche invalide",
+      "custom_interval_required": "Un intervalle personnalisé est requis pour les fréquences personnalisées.",
+      "custom_interval_invalid": "L'intervalle personnalisé doit être un nombre entier supérieur à zéro.",
+      "custom_interval_unit_required": "Une unité d'intervalle personnalisée est requise pour les fréquences personnalisées.",
+      "custom_interval_unit_invalid": "L'unité d'intervalle personnalisée doit être exprimée en heures, jours, semaines ou mois.",
       "invalid_points": "Les points doivent être égaux ou supérieurs à zéro.",
       "invalid_overdue_reset_combination": "La gestion des retards « À l'échéance, puis réinitialisation » ne fonctionne qu'avec les réinitialisations à minuit. Veuillez sélectionner « À minuit (une seule fois) » ou « À minuit (de façon répétée) » pour le type de réinitialisation de l'approbation.",
       "invalid_due_date": "Date d'échéance invalide",
@@ -477,7 +482,7 @@
       "invalid_reward": "Récompense invalide",
       "invalid_reward_count": "Nombre de récompenses invalide",
       "invalid_reward_name": "Nom de récompense invalide",
-      "invalid_reward_cost": "Le coût de la récompense doit être nul ou supérieur à",
+      "invalid_reward_cost": "Le coût de la récompense doit être égal ou supérieur à zéro, avec jusqu'à deux décimales.",
       "invalid_bonus": "Bonus invalide",
       "invalid_bonus_count": "Nombre de bonus invalide",
       "invalid_bonus_name": "Nom de bonus invalide",
@@ -499,7 +504,7 @@
       "chore_options_require_assignment": "Les options de gestion des tâches ménagères et de gamification nécessitent d'abord l'activation de l'option « Autoriser l'attribution de tâches ménagères ».",
       "invalid_update_interval": "Intervalle de mise à jour invalide. Doit être un entier positif.",
       "invalid_calendar_show_period": "Période d'affichage du calendrier invalide. Doit être un entier positif.",
-      "invalid_default_chore_points": "Points de tâches par défaut invalides. Doit être un entier positif.",
+      "invalid_default_chore_points": "Points de tâches par défaut invalides. Doit être un nombre positif supérieur à 0 avec au maximum 2 décimales.",
       "invalid_retention_period": "Période de conservation invalide. Doit être un entier positif.",
       "invalid_points_adjust_values": "Les points invalides ajustent les valeurs. Doit être une liste."
     },
@@ -550,7 +555,7 @@
           "default_chore_points": "Points par défaut par tâche"
         },
         "data_description": {
-          "default_chore_points": "Valeur de points par défaut utilisée pour les nouvelles tâches lorsque les points personnalisés ne sont pas spécifiés. Doit être un nombre entier supérieur à 0."
+          "default_chore_points": "Valeur de points par défaut utilisée pour les nouvelles tâches lorsque les points personnalisés ne sont pas spécifiés. Doit être un nombre positif supérieur à 0 avec au maximum 2 décimales."
         }
       },
       "add_user": {
@@ -1639,6 +1644,7 @@
           "retention_yearly": "Durée annuelle de conservation des données (années)",
           "show_legacy_entities": "Afficher les entités supplémentaires",
           "kiosk_mode": "Activer le mode kiosque pour les réclamations des cessionnaires",
+          "admin_approval_bypass": "Autoriser les comptes d'administrateur de Home Assistant à approuver",
           "backups_max_retained": "Nombre maximal de sauvegardes à conserver",
           "backup_action_selection": "Actions de sauvegarde"
         },
@@ -1654,6 +1660,7 @@
           "retention_yearly": "Nombre d'années de données historiques annuelles à conserver avant le nettoyage. Minimum 1, maximum 10.",
           "show_legacy_entities": "Afficher les entités supplémentaires telles que les capteurs et les listes déroulantes, désormais intégrées au capteur d'assistance du tableau de bord. Ces entités sont facultatives pour assurer la compatibilité avec les automatisations existantes.",
           "kiosk_mode": "Permet aux boutons de réclamation de tâches/récompenses des personnes assignées de fonctionner sur les tablettes murales partagées sans que l'utilisateur du tableau de bord n'ait besoin d'associer le lien utilisateur Home Assistant de la personne assignée. Avertissement de sécurité : toute personne ayant accès à cet appareil peut soumettre des réclamations pour le compte de la personne assignée.",
+          "admin_approval_bypass": "Lorsque cette option est activée, les comptes d'administrateur Home Assistant peuvent utiliser les actions d'approbation des tâches et des récompenses au sein de l'intégration. Lorsqu'elle est désactivée, les comptes d'administrateur ne peuvent pas approuver les tâches ou les récompenses du seul fait de leur statut d'administrateur Home Assistant.",
           "backups_max_retained": "Nombre maximal de fichiers de sauvegarde à conserver par étiquette (ex. : 5 sauvegardes manuelles, 5 sauvegardes de réinitialisation des données). Les sauvegardes les plus anciennes sont automatiquement supprimées après la création de chaque nouvelle sauvegarde. Indiquez 0 pour désactiver complètement les sauvegardes automatiques.",
           "backup_action_selection": "Choisissez une action de gestion des sauvegardes : créer une sauvegarde manuelle, supprimer une sauvegarde ou restaurer une sauvegarde."
         }
@@ -3042,6 +3049,53 @@
           "name": "ID de l'utilisateur",
           "description": "L'identifiant interne de l'utilisateur. Réservé aux utilisateurs avancés : utilisez plutôt le nom d'utilisateur.",
           "example": "abc123-def456"
+        }
+      }
+    },
+    "reschedule_chores_after": {
+      "name": "Reprogrammer les tâches ménagères après",
+      "description": "Reportez une ou plusieurs tâches afin que leur prochaine échéance soit postérieure à la date et à l'heure spécifiées. Les tâches récurrentes sont reportées à la prochaine occurrence planifiée après la date et l'heure limites. Les tâches non récurrentes dont l'échéance est antérieure ou égale à la date et l'heure limites sont reportées à cette date et heure limites, sauf si l'option « skip_non_recurring » est activée. Les tâches partagées sont ignorées, sauf si l'option « reschedule_shared » est activée.",
+      "fields": {
+        "config_entry_id": {
+          "name": "ID de l'entrée de configuration (facultatif)",
+          "description": "Utilisez cette option si vous avez plusieurs configurations ChoreOps. Elle cible une configuration spécifique.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Nom de l'entrée de configuration (facultatif)",
+          "description": "Utilisez cette option si vous avez plusieurs configurations ChoreOps et que chacune possède un nom unique. Si des noms se répètent, utilisez l'ID d'entrée de configuration.",
+          "example": "Tâches familiales"
+        },
+        "after": {
+          "name": "Après",
+          "description": "Date et heure limites. Les tâches ménagères dues à cette date ou avant peuvent être reportées.",
+          "example": "2026-07-14T18:00:00Z"
+        },
+        "chore_ids": {
+          "name": "Identifiants des tâches",
+          "description": "Liste facultative d'identifiants de tâches à cibler. Si elle est fournie, cette liste est prioritaire sur les noms des tâches."
+        },
+        "chore_names": {
+          "name": "Noms des tâches ménagères",
+          "description": "Liste facultative des noms de tâches à cibler lorsque les identifiants de tâches ne sont pas fournis."
+        },
+        "user_ids": {
+          "name": "Identifiants utilisateur",
+          "description": "Liste facultative d'identifiants des personnes assignées afin de limiter les mises à jour indépendantes des tâches. Si ces identifiants sont fournis, ils prévalent sur les noms d'utilisateur."
+        },
+        "user_names": {
+          "name": "Noms d'utilisateur",
+          "description": "Liste facultative des noms des personnes assignées afin de limiter les mises à jour indépendantes des tâches lorsque les identifiants utilisateur ne sont pas fournis."
+        },
+        "reschedule_shared": {
+          "name": "Reprogrammer les tâches partagées",
+          "description": "Activez cette option pour permettre la reprogrammation des tâches partagées et des tâches à rotation. Cela affectera tous les utilisateurs affectés à ces tâches.",
+          "example": "Faux"
+        },
+        "skip_non_recurring": {
+          "name": "Évitez les tâches non récurrentes",
+          "description": "Activez cette option pour que les tâches non récurrentes restent inchangées au lieu de déplacer leur date d'échéance à la limite.",
+          "example": "Faux"
         }
       }
     },

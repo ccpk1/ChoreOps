@@ -452,6 +452,7 @@
       "challenge_no_assignees_assigned": "Haasteelle on oltava määritettynä vähintään yksi vastuuhenkilö.",
       "invalid_achievement_count": "Virheellinen saavutusten määrä",
       "invalid_achievement_name": "Virheellinen saavutuksen nimi",
+      "invalid_achievement_reward_points": "Saavutuspalkintopisteiden on oltava nolla tai suurempi, enintään kahden desimaalin tarkkuudella.",
       "invalid_badge": "Virheellinen merkki",
       "invalid_badge_count": "Virheellinen merkkien määrä",
       "invalid_badge_name": "Virheellinen merkin nimi",
@@ -461,6 +462,10 @@
       "invalid_chore_count": "Virheellinen tehtävien määrä",
       "rotation_min_assignees": "Rotaatiotehtävät vaativat vähintään kaksi määrättyä vastuuhenkilöä",
       "invalid_chore_name": "Virheellinen työn nimi",
+      "custom_interval_required": "Mukautettuja frekvenssejä varten vaaditaan mukautettu aikaväli",
+      "custom_interval_invalid": "Mukautetun aikavälin on oltava kokonaisluku, joka on suurempi kuin nolla",
+      "custom_interval_unit_required": "Mukautettuja taajuuksia varten vaaditaan mukautettu aikavälin yksikkö",
+      "custom_interval_unit_invalid": "Mukautetun aikavälin yksikön on oltava tunteja, päiviä, viikkoja tai kuukausia",
       "invalid_points": "Pisteiden on oltava nolla tai suurempi",
       "invalid_overdue_reset_combination": "”Eräpäivänä nollaa sitten” -myöhästymiskäsittely toimii vain keskiyön nollaustyyppien kanssa. Valitse hyväksynnän nollaustyypiksi ”Keskiyöllä (kerran)” tai ”Keskiyöllä (toistuvasti)”.",
       "invalid_due_date": "Virheellinen eräpäivä",
@@ -477,7 +482,7 @@
       "invalid_reward": "Virheellinen palkinto",
       "invalid_reward_count": "Virheellinen palkintojen määrä",
       "invalid_reward_name": "Virheellinen palkinnon nimi",
-      "invalid_reward_cost": "Palkkion hinnan on oltava nolla tai suurempi",
+      "invalid_reward_cost": "Palkkion hinnan on oltava nolla tai suurempi, enintään kahden desimaalin tarkkuudella.",
       "invalid_bonus": "Virheellinen bonus",
       "invalid_bonus_count": "Virheellinen bonusten määrä",
       "invalid_bonus_name": "Virheellinen bonuksen nimi",
@@ -499,7 +504,7 @@
       "chore_options_require_assignment": "Tehtävien työnkulku ja pelillistämisasetukset edellyttävät, että 'Salli tehtävien osoittaminen minulle' on ensin otettu käyttöön.",
       "invalid_update_interval": "Virheellinen päivitysväli. Arvon on oltava positiivinen kokonaisluku.",
       "invalid_calendar_show_period": "Virheellinen kalenterin näyttöjakso. Arvon on oltava positiivinen kokonaisluku.",
-      "invalid_default_chore_points": "Virheelliset oletusarvoiset työpisteet. Arvon on oltava positiivinen kokonaisluku.",
+      "invalid_default_chore_points": "Virheelliset oletusarvoiset työpisteet. Arvon on oltava positiivinen luku, joka on suurempi kuin 0 ja jossa on enintään kaksi desimaalia.",
       "invalid_retention_period": "Virheellinen säilytysaika. Arvon on oltava positiivinen kokonaisluku.",
       "invalid_points_adjust_values": "Virheelliset pisteet säätävät arvoja. Arvon on oltava luettelo."
     },
@@ -550,7 +555,7 @@
           "default_chore_points": "Oletuspisteet per työtehtävä"
         },
         "data_description": {
-          "default_chore_points": "Uusille töille käytetään oletuspistearvoa, kun mukautettuja pisteitä ei ole määritetty. Arvon on oltava kokonaisluku, joka on suurempi kuin 0."
+          "default_chore_points": "Uusille töille käytetään oletuspistearvoa, kun mukautettuja pisteitä ei ole määritetty. Sen on oltava positiivinen luku, joka on suurempi kuin 0 ja jossa on enintään kaksi desimaalia."
         }
       },
       "add_user": {
@@ -1639,6 +1644,7 @@
           "retention_yearly": "Vuosittainen tietojen säilytysaika (vuotta)",
           "show_legacy_entities": "Näytä ylimääräiset entiteetit",
           "kiosk_mode": "Ota kioskitila käyttöön vastuuhenkilöiden vaatimuksille",
+          "admin_approval_bypass": "Salli Home Assistant -järjestelmänvalvojan tilien hyväksyntä",
           "backups_max_retained": "Säilytettävien varmuuskopioiden enimmäismäärä",
           "backup_action_selection": "Varmuuskopiointitoiminnot"
         },
@@ -1654,6 +1660,7 @@
           "retention_yearly": "Säilytettävien vuosittaisten historiatietojen määrä ennen puhdistusta. Vähintään 1, enintään 10.",
           "show_legacy_entities": "Näytä lisäentiteettejä, kuten anturi ja valinnat, jotka on nyt yhdistetty kojelaudan apuanturiin. Nämä entiteetit ovat valinnaisia taaksepäin yhteensopivuuden takaamiseksi olemassa olevien automaatioiden kanssa.",
           "kiosk_mode": "Sallii vastuuhenkilön tehtävä-/palkinto-painikkeiden toiminnan jaetuilla seinätableteilla ilman, että kojelaudan käyttäjän on vastattava vastuuhenkilön Home Assistant -käyttäjälinkkiä. Tietoturvavaroitus: kuka tahansa, jolla on pääsy kyseiseen laitteeseen, voi lähettää vastuuhenkilöille vaatimuksia.",
+          "admin_approval_bypass": "Kun tämä on käytössä, Home Assistant -järjestelmänvalvojan tilit voivat käyttää tehtävien ja palkintojen hyväksymistoimintoja koko integraatiossa. Kun tämä on poistettu käytöstä, järjestelmänvalvojan tilit eivät voi hyväksyä tehtäviä tai palkintoja vain siksi, että he ovat Home Assistant -järjestelmänvalvojia.",
           "backups_max_retained": "Varmuuskopiotiedostojen enimmäismäärä, joka säilytetään tunnistetta kohden (esim. 5 manuaalista varmuuskopiota, 5 data_reset-varmuuskopiota). Vanhemmat varmuuskopiot poistetaan automaattisesti jokaisen uuden varmuuskopion luomisen jälkeen. Aseta arvoksi 0, jos haluat poistaa automaattiset varmuuskopiot kokonaan käytöstä.",
           "backup_action_selection": "Valitse varmuuskopioinnin hallintatoiminto: luo manuaalinen varmuuskopio, poista varmuuskopio tai palauta varmuuskopiosta."
         }
@@ -3042,6 +3049,53 @@
           "name": "Käyttäjätunnus",
           "description": "Käyttäjän sisäinen tunnus. Vain kokeneille käyttäjille - käytä käyttäjänimeä.",
           "example": "abc123-def456"
+        }
+      }
+    },
+    "reschedule_chores_after": {
+      "name": "Aikatauluta kotitöitä uudelleen sen jälkeen",
+      "description": "Aikatauluta yksi tai useampi työ uudelleen siten, että niiden seuraava eräpäivä on määritetyn päivämäärän ja kellonajan jälkeen. Toistuvat työt siirtyvät seuraavaan ajoitettuun tapahtumaan rajan jälkeen. Rajaan mennessä tai sitä ennen erääntyvät ei-toistuvat työt siirtyvät rajalle, ellei skip_non_recurring ole käytössä. Jaetut työt ohitetaan, ellei reschedule_shared ole käytössä.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Konfiguraatiomerkinnän tunnus (valinnainen)",
+          "description": "Käytä tätä, jos sinulla on useampi kuin yksi ChoreOps-kokoonpano. Se kohdistuu yhteen tiettyyn kokoonpanoon.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Konfiguraatiomerkinnän nimi (valinnainen)",
+          "description": "Käytä tätä, jos sinulla on useampi kuin yksi ChoreOps-asetus ja niillä jokaisella on yksilölliset nimet. Jos nimet toistuvat, käytä määritysmerkinnän tunnusta.",
+          "example": "Perheen askareita"
+        },
+        "after": {
+          "name": "Jälkeen",
+          "description": "Rajapäivämäärä ja -aika. Tätä arvoa ennen määräaikaa olevat työt otetaan huomioon uudelleenajoitusta varten.",
+          "example": "2026-07-14T18:00:00Z"
+        },
+        "chore_ids": {
+          "name": "Työtehtävien tunnukset",
+          "description": "Valinnainen luettelo kohdistettavista työtehtävien ID-tunnuksista. Jos ne annetaan, nämä ID-tunnukset ovat etusijalla chore_names-tunnuksiin nähden."
+        },
+        "chore_names": {
+          "name": "Askareiden nimet",
+          "description": "Valinnainen luettelo töiden nimistä, joita käytetään, kun chore_id-arvoja ei anneta."
+        },
+        "user_ids": {
+          "name": "Käyttäjätunnukset",
+          "description": "Valinnainen luettelo vastuuhenkilöiden tunnuksista itsenäisten työpäivitysten rajoittamiseksi. Jos tunnukset annetaan, ne ovat etusijalla käyttäjätunnuksiin nähden."
+        },
+        "user_names": {
+          "name": "Käyttäjänimet",
+          "description": "Valinnainen luettelo vastuuhenkilöiden nimistä, jolla rajoitetaan itsenäisiä työpäivityksiä, kun käyttäjätunnuksia ei anneta."
+        },
+        "reschedule_shared": {
+          "name": "Ajoita jaetut askareet uudelleen",
+          "description": "Ota tämä käyttöön, jos haluat sallia jaettujen ja rotaatiotehtävien uudelleenajoituksen. Tämä vaikuttaa kaikkiin kyseisiin tehtäviin määrättyihin henkilöihin.",
+          "example": "väärä"
+        },
+        "skip_non_recurring": {
+          "name": "Ohita kertaluonteiset askareet",
+          "description": "Ota tämä käyttöön, jos haluat jättää ei-toistuvat tehtävät ennalleen sen sijaan, että niiden määräpäivä siirrettäisiin rajaan.",
+          "example": "väärä"
         }
       }
     },
