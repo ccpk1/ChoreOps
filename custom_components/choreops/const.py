@@ -2717,6 +2717,7 @@ SERVICE_RESET_CHORES_TO_PENDING_STATE: Final = (
 # Superseded by SERVICE_RESET_TRANSACTIONAL_DATA with scope="assignee" or "global" and item_type filter
 SERVICE_RESET_OVERDUE_CHORES: Final = "reset_overdue_chores"
 SERVICE_RESET_TRANSACTIONAL_DATA: Final = "reset_transactional_data"
+SERVICE_RESCHEDULE_CHORES_AFTER: Final = "reschedule_chores_after"
 SERVICE_SET_CHORE_DUE_DATE: Final = "set_chore_due_date"
 SERVICE_SKIP_CHORE_DUE_DATE: Final = "skip_chore_due_date"
 # Rotation management services
@@ -2772,6 +2773,8 @@ SERVICE_FIELD_CONFIG_ENTRY_ID: Final = "config_entry_id"
 SERVICE_FIELD_CONFIG_ENTRY_TITLE: Final = "config_entry_title"
 SERVICE_FIELD_USER_NAME: Final = "user_name"
 SERVICE_FIELD_USER_ID: Final = "user_id"
+SERVICE_FIELD_USER_NAMES: Final = "user_names"
+SERVICE_FIELD_USER_IDS: Final = "user_ids"
 SERVICE_FIELD_UI_CONTROL_TARGET: Final = "ui_control_target"
 UI_CONTROL_KEY_PATH_DELIMITER: Final = "/"
 SERVICE_FIELD_UI_CONTROL_ACTION: Final = "ui_control_action"
@@ -2799,6 +2802,11 @@ UI_CONTROL_TARGETS: Final = (
 # Chore service fields (workflow)
 SERVICE_FIELD_CHORE_NAME: Final = "chore_name"
 SERVICE_FIELD_CHORE_ID: Final = "chore_id"
+SERVICE_FIELD_CHORE_NAMES: Final = "chore_names"
+SERVICE_FIELD_CHORE_IDS: Final = "chore_ids"
+SERVICE_FIELD_AFTER: Final = "after"
+SERVICE_FIELD_RESCHEDULE_SHARED: Final = "reschedule_shared"
+SERVICE_FIELD_SKIP_NON_RECURRING: Final = "skip_non_recurring"
 SERVICE_FIELD_MARK_AS_MISSED: Final = "mark_as_missed"
 
 # Chore service fields (CRUD) - user-friendly names for service calls

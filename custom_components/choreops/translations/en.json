@@ -3052,6 +3052,53 @@
         }
       }
     },
+    "reschedule_chores_after": {
+      "name": "Reschedule Chores After",
+      "description": "Reschedule one or more chores so their next due date falls after the specified date and time. Recurring chores advance to the next scheduled occurrence after the boundary. Non-recurring chores due on or before the boundary move to the boundary unless skip_non_recurring is enabled. Shared chores are skipped unless reschedule_shared is enabled.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Config Entry ID (Optional)",
+          "description": "Use this if you have more than one ChoreOps setup. It targets one specific setup.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Config Entry Name (Optional)",
+          "description": "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID.",
+          "example": "Family Chores"
+        },
+        "after": {
+          "name": "After",
+          "description": "Boundary date and time. Chores due on or before this value are considered for rescheduling.",
+          "example": "2026-07-14T18:00:00Z"
+        },
+        "chore_ids": {
+          "name": "Chore IDs",
+          "description": "Optional list of chore IDs to target. If provided, these IDs take precedence over chore_names."
+        },
+        "chore_names": {
+          "name": "Chore Names",
+          "description": "Optional list of chore names to target when chore_ids are not provided."
+        },
+        "user_ids": {
+          "name": "User IDs",
+          "description": "Optional list of assignee IDs to limit independent chore updates. If provided, these IDs take precedence over user_names."
+        },
+        "user_names": {
+          "name": "User Names",
+          "description": "Optional list of assignee names to limit independent chore updates when user_ids are not provided."
+        },
+        "reschedule_shared": {
+          "name": "Reschedule Shared Chores",
+          "description": "Enable this to allow shared and rotation chores to be rescheduled. This affects all assignees on those chores.",
+          "example": "false"
+        },
+        "skip_non_recurring": {
+          "name": "Skip Non-Recurring Chores",
+          "description": "Enable this to leave non-recurring chores unchanged instead of moving their due date to the boundary.",
+          "example": "false"
+        }
+      }
+    },
     "skip_chore_due_date": {
       "name": "Skip Chore Due Date",
       "description": "Skip the current due date of a recurring chore. This service immediately reschedules the chore's due date based on its recurring frequency and resets its state to pending. Any pending claims or approvals will be removed. For independent chores, optionally provide a user_name to skip only for that user.",

@@ -231,6 +231,102 @@ def _normalize_service_due_date_input(due_date_input: Any) -> str | None:
     return parsed_due_date.isoformat()
 
 
+def _normalize_service_datetime_input(value: Any) -> datetime | None:
+    """Normalize a service datetime payload to a UTC datetime."""
+    parsed_datetime = dt_parse(
+        value,
+        default_tzinfo=const.DEFAULT_TIME_ZONE,
+        return_type=const.HELPER_RETURN_DATETIME_UTC,
+    )
+    if not parsed_datetime or not isinstance(parsed_datetime, datetime):
+        return None
+    return parsed_datetime
+
+
+def _dedupe_service_string_list(values: list[str] | None) -> list[str]:
+    """Return de-duplicated string values while preserving order."""
+    deduped_values: list[str] = []
+    seen_values: set[str] = set()
+
+    for value in values or []:
+        normalized_value = str(value)
+        if normalized_value in seen_values:
+            continue
+        seen_values.add(normalized_value)
+        deduped_values.append(normalized_value)
+
+    return deduped_values
+
+
+def _resolve_service_chore_ids(
+    coordinator: "ChoreOpsDataCoordinator",
+    call_data: dict[str, Any],
+) -> list[str]:
+    """Resolve optional chore filters from IDs first, then names."""
+    chore_ids = _dedupe_service_string_list(
+        cast("list[str] | None", call_data.get(const.SERVICE_FIELD_CHORE_IDS))
+    )
+    if chore_ids:
+        for chore_id in chore_ids:
+            if chore_id not in coordinator.chores_data:
+                raise HomeAssistantError(
+                    translation_domain=const.DOMAIN,
+                    translation_key=const.TRANS_KEY_ERROR_NOT_FOUND,
+                    translation_placeholders={
+                        "entity_type": const.LABEL_CHORE,
+                        "name": chore_id,
+                    },
+                )
+        return chore_ids
+
+    chore_names = _dedupe_service_string_list(
+        cast("list[str] | None", call_data.get(const.SERVICE_FIELD_CHORE_NAMES))
+    )
+    resolved_chore_ids: list[str] = []
+    for chore_name in chore_names:
+        resolved_chore_ids.append(
+            get_item_id_or_raise(coordinator, const.ITEM_TYPE_CHORE, chore_name)
+        )
+    return resolved_chore_ids
+
+
+def _resolve_service_user_ids(
+    coordinator: "ChoreOpsDataCoordinator",
+    call_data: dict[str, Any],
+) -> list[str]:
+    """Resolve optional assignee filters from IDs first, then names."""
+    user_ids = _dedupe_service_string_list(
+        cast("list[str] | None", call_data.get(const.SERVICE_FIELD_USER_IDS))
+    )
+    if user_ids:
+        for user_id in user_ids:
+            if user_id not in coordinator.assignees_data:
+                raise HomeAssistantError(
+                    translation_domain=const.DOMAIN,
+                    translation_key=const.TRANS_KEY_ERROR_NOT_FOUND,
+                    translation_placeholders={
+                        "entity_type": const.LABEL_ASSIGNEE,
+                        "name": user_id,
+                    },
+                )
+        return user_ids
+
+    user_names = _dedupe_service_string_list(
+        cast("list[str] | None", call_data.get(const.SERVICE_FIELD_USER_NAMES))
+    )
+    resolved_user_ids: list[str] = []
+    for user_name in user_names:
+        resolved_user_ids.append(
+            get_item_id_or_raise(
+                coordinator,
+                const.ITEM_TYPE_USER,
+                user_name,
+                role=const.ROLE_ASSIGNEE,
+            )
+        )
+    return resolved_user_ids
+
+
 def _build_service_chore_validation_data(
     data_input: dict[str, Any],
     assigned_assignee_ids: list[str],
@@ -477,6 +573,34 @@ SKIP_CHORE_DUE_DATE_SCHEMA = vol.Schema(
             vol.Optional(const.SERVICE_FIELD_USER_NAME): cv.string,
             vol.Optional(const.SERVICE_FIELD_USER_ID): cv.string,
             vol.Optional(const.SERVICE_FIELD_MARK_AS_MISSED, default=False): cv.boolean,
+        }
+    )
+)
+
+RESCHEDULE_CHORES_AFTER_SCHEMA = vol.Schema(
+    _with_service_target_fields(
+        {
+            vol.Required(const.SERVICE_FIELD_AFTER): cv.datetime,
+            vol.Optional(const.SERVICE_FIELD_CHORE_IDS): vol.All(
+                cv.ensure_list, [cv.string]
+            ),
+            vol.Optional(const.SERVICE_FIELD_CHORE_NAMES): vol.All(
+                cv.ensure_list, [cv.string]
+            ),
+            vol.Optional(const.SERVICE_FIELD_USER_IDS): vol.All(
+                cv.ensure_list, [cv.string]
+            ),
+            vol.Optional(const.SERVICE_FIELD_USER_NAMES): vol.All(
+                cv.ensure_list, [cv.string]
+            ),
+            vol.Optional(
+                const.SERVICE_FIELD_RESCHEDULE_SHARED,
+                default=False,
+            ): cv.boolean,
+            vol.Optional(
+                const.SERVICE_FIELD_SKIP_NON_RECURRING,
+                default=False,
+            ): cv.boolean,
         }
     )
 )
@@ -1800,6 +1924,61 @@ def async_setup_services(hass: HomeAssistant):
         const.SERVICE_SKIP_CHORE_DUE_DATE,
         handle_skip_chore_due_date,
         schema=SKIP_CHORE_DUE_DATE_SCHEMA,
+    )
+
+    async def handle_reschedule_chores_after(call: ServiceCall) -> dict[str, Any]:
+        """Handle rescheduling multiple chores to occur after a boundary datetime."""
+        entry_id = _resolve_target_entry_id(hass, dict(call.data))
+        if not entry_id:
+            raise HomeAssistantError(
+                translation_domain=const.DOMAIN,
+                translation_key=const.TRANS_KEY_ERROR_MSG_NO_ENTRY_FOUND,
+            )
+
+        coordinator = _get_coordinator_by_entry_id(hass, entry_id)
+        after_dt = _normalize_service_datetime_input(
+            call.data[const.SERVICE_FIELD_AFTER]
+        )
+        if after_dt is None:
+            raise HomeAssistantError(
+                translation_domain=const.DOMAIN,
+                translation_key=const.TRANS_KEY_ERROR_INVALID_DATE_FORMAT,
+            )
+        if after_dt < dt_util.utcnow():
+            raise HomeAssistantError(
+                translation_domain=const.DOMAIN,
+                translation_key=const.TRANS_KEY_ERROR_DATE_IN_PAST,
+            )
+
+        chore_ids = _resolve_service_chore_ids(coordinator, dict(call.data))
+        user_ids = _resolve_service_user_ids(coordinator, dict(call.data))
+        response_payload = await coordinator.chore_manager.reschedule_chores_after(
+            after_dt,
+            chore_ids=chore_ids,
+            assignee_ids=user_ids,
+            reschedule_shared=bool(
+                call.data.get(const.SERVICE_FIELD_RESCHEDULE_SHARED, False)
+            ),
+            skip_non_recurring=bool(
+                call.data.get(const.SERVICE_FIELD_SKIP_NON_RECURRING, False)
+            ),
+        )
+
+        const.LOGGER.info(
+            "Rescheduled chores after %s (updated=%s skipped=%s)",
+            after_dt.isoformat(),
+            response_payload["updated_count"],
+            response_payload["skipped_count"],
+        )
+        await coordinator.async_request_refresh()
+        return response_payload
+
+    hass.services.async_register(
+        const.DOMAIN,
+        const.SERVICE_RESCHEDULE_CHORES_AFTER,
+        handle_reschedule_chores_after,
+        schema=RESCHEDULE_CHORES_AFTER_SCHEMA,
+        supports_response=SupportsResponse.OPTIONAL,
     )
 
     # ==========================================================================

@@ -5724,46 +5724,10 @@ class ChoreManager(BaseManager):
         use_current_due_as_reference: bool = False,
     ) -> None:
         """Reschedule chore's next due date (chore-level for SHARED chores)."""
-        due_date_str = chore_info.get(const.DATA_CHORE_DUE_DATE)
-        if not due_date_str:
-            const.LOGGER.debug(
-                "Chore Due Date - Reschedule: Skipping (no due date for %s)",
-                chore_info.get(const.DATA_CHORE_NAME),
-            )
-            return
-
-        # Parse current due date
-        original_due_utc = dt_to_utc(due_date_str)
-        if not original_due_utc:
-            const.LOGGER.debug(
-                "Chore Due Date - Reschedule: Unable to parse due date for %s",
-                chore_info.get(const.DATA_CHORE_NAME),
-            )
-            return
-
-        # Extract completion timestamp for CUSTOM_FROM_COMPLETE
-        completion_utc = None
-        last_completed_str = chore_info.get(const.DATA_CHORE_LAST_COMPLETED)
-        if last_completed_str:
-            completion_utc = dt_to_utc(last_completed_str)
-
-        reference_time = dt_util.utcnow()
-        if (
-            use_current_due_as_reference
-            and chore_info.get(
-                const.DATA_CHORE_RECURRING_FREQUENCY,
-                const.FREQUENCY_NONE,
-            )
-            == const.FREQUENCY_DAILY_MULTI
-        ):
-            reference_time = original_due_utc
-
-        # Use schedule engine for calculation
-        next_due_utc = calculate_next_due_date_from_chore_info(
-            original_due_utc,
+        original_due_utc = dt_to_utc(chore_info.get(const.DATA_CHORE_DUE_DATE))
+        next_due_utc = self._calculate_next_due_date_for_chore(
             chore_info,
-            completion_timestamp=completion_utc,
-            reference_time=reference_time,
+            use_current_due_as_reference=use_current_due_as_reference,
         )
         if not next_due_utc:
             const.LOGGER.warning(
@@ -5790,8 +5754,57 @@ class ChoreManager(BaseManager):
         const.LOGGER.info(
             "Chore Due Date - Rescheduled (SHARED): %s, from %s to %s",
             chore_info.get(const.DATA_CHORE_NAME),
-            dt_util.as_local(original_due_utc).isoformat(),
+            dt_util.as_local(original_due_utc).isoformat()
+            if original_due_utc is not None
+            else "unknown",
             dt_util.as_local(next_due_utc).isoformat(),
+        )
+
+    def _calculate_next_due_date_for_chore(
+        self,
+        chore_info: ChoreData,
+        *,
+        reference_time: datetime | None = None,
+        use_current_due_as_reference: bool = False,
+    ) -> datetime | None:
+        """Calculate the next chore-level due date without mutating storage."""
+        due_date_str = chore_info.get(const.DATA_CHORE_DUE_DATE)
+        if not due_date_str:
+            const.LOGGER.debug(
+                "Chore Due Date - Reschedule: Skipping (no due date for %s)",
+                chore_info.get(const.DATA_CHORE_NAME),
+            )
+            return None
+
+        original_due_utc = dt_to_utc(due_date_str)
+        if not original_due_utc:
+            const.LOGGER.debug(
+                "Chore Due Date - Reschedule: Unable to parse due date for %s",
+                chore_info.get(const.DATA_CHORE_NAME),
+            )
+            return None
+
+        completion_utc = None
+        last_completed_str = chore_info.get(const.DATA_CHORE_LAST_COMPLETED)
+        if last_completed_str:
+            completion_utc = dt_to_utc(last_completed_str)
+
+        effective_reference_time = reference_time or dt_util.utcnow()
+        if (
+            use_current_due_as_reference
+            and chore_info.get(
+                const.DATA_CHORE_RECURRING_FREQUENCY,
+                const.FREQUENCY_NONE,
+            )
+            == const.FREQUENCY_DAILY_MULTI
+        ):
+            effective_reference_time = original_due_utc
+
+        return calculate_next_due_date_from_chore_info(
+            original_due_utc,
+            chore_info,
+            completion_timestamp=completion_utc,
+            reference_time=effective_reference_time,
         )
 
     def _reschedule_chore_next_due_date_for_assignee(
@@ -5810,91 +5823,14 @@ class ChoreManager(BaseManager):
         assignee_info: UserData | dict[str, Any] = self._coordinator.assignees_data.get(
             assignee_id, {}
         )
-
-        # Get per-assignee current due date
         per_assignee_due_dates = chore_info.get(
             const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {}
         )
-        current_due_str = per_assignee_due_dates.get(assignee_id)
-
-        if not current_due_str:
-            const.LOGGER.debug(
-                "Chore Due Date - No due date for chore %s, assignee %s; preserving None",
-                chore_info.get(const.DATA_CHORE_NAME),
-                assignee_id,
-            )
-            if assignee_id in per_assignee_due_dates:
-                del per_assignee_due_dates[assignee_id]
-            chore_info[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] = per_assignee_due_dates
-            return
-
-        # Parse current due date
-        try:
-            original_due_utc = dt_to_utc(current_due_str)
-        except (ValueError, TypeError, AttributeError):
-            const.LOGGER.debug(
-                "Chore Due Date - Reschedule: Unable to parse due date for %s, assignee %s",
-                chore_info.get(const.DATA_CHORE_NAME),
-                assignee_id,
-            )
-            if assignee_id in per_assignee_due_dates:
-                del per_assignee_due_dates[assignee_id]
-            chore_info[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] = per_assignee_due_dates
-            return
-
-        # Extract per-assignee completion timestamp (Phase 5: use last_claimed for work date)
-        # Fallback hierarchy: last_claimed → last_approved (backward compat)
-        completion_utc = None
-        assignee_chore_data = assignee_info.get(const.DATA_USER_CHORE_DATA, {}).get(
-            chore_id, {}
-        )
-        last_claimed_str = assignee_chore_data.get(
-            const.DATA_USER_CHORE_DATA_LAST_CLAIMED
-        )
-        if last_claimed_str:
-            completion_utc = dt_to_utc(last_claimed_str)
-        else:
-            # Backward compat: fall back to last_approved for legacy data
-            last_approved_str = assignee_chore_data.get(
-                const.DATA_USER_CHORE_DATA_LAST_APPROVED
-            )
-            if last_approved_str:
-                completion_utc = dt_to_utc(last_approved_str)
-
-        # Build chore info for calculation with per-assignee overrides
-        chore_info_for_calc = dict(chore_info)
-        per_assignee_applicable_days = chore_info.get(
-            const.DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS, {}
-        )
-        if assignee_id in per_assignee_applicable_days:
-            chore_info_for_calc[const.DATA_CHORE_APPLICABLE_DAYS] = (
-                per_assignee_applicable_days[assignee_id]
-            )
-        per_assignee_times = chore_info.get(
-            const.DATA_CHORE_PER_ASSIGNEE_DAILY_MULTI_TIMES, {}
-        )
-        if assignee_id in per_assignee_times:
-            chore_info_for_calc[const.DATA_CHORE_DAILY_MULTI_TIMES] = (
-                per_assignee_times[assignee_id]
-            )
-
-        reference_time = dt_util.utcnow()
-        if (
-            use_current_due_as_reference
-            and chore_info_for_calc.get(
-                const.DATA_CHORE_RECURRING_FREQUENCY,
-                const.FREQUENCY_NONE,
-            )
-            == const.FREQUENCY_DAILY_MULTI
-        ):
-            reference_time = original_due_utc
-
-        # Use schedule engine
-        next_due_utc = calculate_next_due_date_from_chore_info(
-            original_due_utc,
-            cast("ChoreData", chore_info_for_calc),
-            completion_timestamp=completion_utc,
-            reference_time=reference_time,
+        next_due_utc = self._calculate_next_due_date_for_assignee(
+            chore_info,
+            chore_id,
+            assignee_id,
+            use_current_due_as_reference=use_current_due_as_reference,
         )
         if not next_due_utc:
             const.LOGGER.warning(
@@ -5918,6 +5854,382 @@ class ChoreManager(BaseManager):
             assignee_info.get(const.DATA_USER_NAME),
             dt_util.as_local(next_due_utc).isoformat() if next_due_utc else "None",
         )
+
+    def _calculate_next_due_date_for_assignee(
+        self,
+        chore_info: ChoreData,
+        chore_id: str,
+        assignee_id: str,
+        *,
+        reference_time: datetime | None = None,
+        use_current_due_as_reference: bool = False,
+    ) -> datetime | None:
+        """Calculate the next per-assignee due date without mutating storage."""
+        assignee_info: UserData | dict[str, Any] = self._coordinator.assignees_data.get(
+            assignee_id, {}
+        )
+        per_assignee_due_dates = chore_info.get(
+            const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {}
+        )
+        current_due_str = per_assignee_due_dates.get(assignee_id)
+
+        if not current_due_str:
+            const.LOGGER.debug(
+                "Chore Due Date - No due date for chore %s, assignee %s; preserving None",
+                chore_info.get(const.DATA_CHORE_NAME),
+                assignee_id,
+            )
+            return None
+
+        original_due_utc = dt_to_utc(current_due_str)
+        if not original_due_utc:
+            const.LOGGER.debug(
+                "Chore Due Date - Reschedule: Unable to parse due date for %s, assignee %s",
+                chore_info.get(const.DATA_CHORE_NAME),
+                assignee_id,
+            )
+            return None
+
+        completion_utc = None
+        assignee_chore_data = assignee_info.get(const.DATA_USER_CHORE_DATA, {}).get(
+            chore_id, {}
+        )
+        last_claimed_str = assignee_chore_data.get(
+            const.DATA_USER_CHORE_DATA_LAST_CLAIMED
+        )
+        if last_claimed_str:
+            completion_utc = dt_to_utc(last_claimed_str)
+        else:
+            last_approved_str = assignee_chore_data.get(
+                const.DATA_USER_CHORE_DATA_LAST_APPROVED
+            )
+            if last_approved_str:
+                completion_utc = dt_to_utc(last_approved_str)
+
+        chore_info_for_calc = dict(chore_info)
+        per_assignee_applicable_days = chore_info.get(
+            const.DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS, {}
+        )
+        if assignee_id in per_assignee_applicable_days:
+            chore_info_for_calc[const.DATA_CHORE_APPLICABLE_DAYS] = (
+                per_assignee_applicable_days[assignee_id]
+            )
+        per_assignee_times = chore_info.get(
+            const.DATA_CHORE_PER_ASSIGNEE_DAILY_MULTI_TIMES, {}
+        )
+        if assignee_id in per_assignee_times:
+            chore_info_for_calc[const.DATA_CHORE_DAILY_MULTI_TIMES] = (
+                per_assignee_times[assignee_id]
+            )
+
+        effective_reference_time = reference_time or dt_util.utcnow()
+        if (
+            use_current_due_as_reference
+            and chore_info_for_calc.get(
+                const.DATA_CHORE_RECURRING_FREQUENCY,
+                const.FREQUENCY_NONE,
+            )
+            == const.FREQUENCY_DAILY_MULTI
+        ):
+            effective_reference_time = original_due_utc
+
+        return calculate_next_due_date_from_chore_info(
+            original_due_utc,
+            cast("ChoreData", chore_info_for_calc),
+            completion_timestamp=completion_utc,
+            reference_time=effective_reference_time,
+        )
+
+    async def reschedule_chores_after(
+        self,
+        after_dt: datetime,
+        *,
+        chore_ids: list[str] | None = None,
+        assignee_ids: list[str] | None = None,
+        reschedule_shared: bool = False,
+        skip_non_recurring: bool = False,
+    ) -> dict[str, Any]:
+        """Reschedule chore due dates so they fall after the supplied datetime."""
+        after_utc = dt_util.as_utc(after_dt)
+        chore_filter = set(chore_ids or [])
+        assignee_filter = set(assignee_ids or [])
+        updated: list[dict[str, Any]] = []
+        skipped: list[dict[str, Any]] = []
+        reset_events: set[tuple[str, str, str]] = set()
+
+        for chore_id, chore_info_raw in self._coordinator.chores_data.items():
+            if chore_filter and chore_id not in chore_filter:
+                continue
+
+            chore_info = chore_info_raw
+            chore_name = str(chore_info.get(const.DATA_CHORE_NAME, chore_id))
+            assigned_assignee_ids = [
+                assignee_id
+                for assignee_id in chore_info.get(
+                    const.DATA_CHORE_ASSIGNED_USER_IDS, []
+                )
+                if assignee_id in self._coordinator.assignees_data
+            ]
+            if not assigned_assignee_ids:
+                continue
+
+            frequency = chore_info.get(
+                const.DATA_CHORE_RECURRING_FREQUENCY,
+                const.FREQUENCY_NONE,
+            )
+
+            if ChoreEngine.uses_chore_level_due_date(chore_info):
+                if assignee_filter and not any(
+                    assignee_id in assigned_assignee_ids
+                    for assignee_id in assignee_filter
+                ):
+                    continue
+
+                if not reschedule_shared:
+                    skipped.append(
+                        {
+                            "chore_id": chore_id,
+                            "chore_name": chore_name,
+                            "reason": "shared_not_enabled",
+                        }
+                    )
+                    continue
+
+                due_dt = self.get_due_date(chore_id)
+                if due_dt is None:
+                    skipped.append(
+                        {
+                            "chore_id": chore_id,
+                            "chore_name": chore_name,
+                            "reason": "no_due_date",
+                        }
+                    )
+                    continue
+
+                if due_dt > after_utc:
+                    skipped.append(
+                        {
+                            "chore_id": chore_id,
+                            "chore_name": chore_name,
+                            "old_due_date": due_dt.isoformat(),
+                            "reason": "already_after_boundary",
+                        }
+                    )
+                    continue
+
+                global_state = self.get_global_chore_state_context(chore_id)[
+                    "persisted_state"
+                ]
+                if global_state in (
+                    const.CHORE_STATE_CLAIMED,
+                    const.CHORE_STATE_APPROVED,
+                    const.CHORE_STATE_APPROVED_IN_PART,
+                ):
+                    skipped.append(
+                        {
+                            "chore_id": chore_id,
+                            "chore_name": chore_name,
+                            "old_due_date": due_dt.isoformat(),
+                            "reason": "in_flight_state",
+                            "state": global_state,
+                        }
+                    )
+                    continue
+
+                if frequency == const.FREQUENCY_NONE:
+                    if skip_non_recurring:
+                        skipped.append(
+                            {
+                                "chore_id": chore_id,
+                                "chore_name": chore_name,
+                                "old_due_date": due_dt.isoformat(),
+                                "reason": "non_recurring_skipped",
+                            }
+                        )
+                        continue
+                    next_due_dt = after_utc
+                else:
+                    next_due_dt = self._calculate_next_due_date_for_chore(
+                        chore_info,
+                        reference_time=after_utc,
+                    )
+                    if next_due_dt is None or next_due_dt <= after_utc:
+                        skipped.append(
+                            {
+                                "chore_id": chore_id,
+                                "chore_name": chore_name,
+                                "old_due_date": due_dt.isoformat(),
+                                "reason": "schedule_calculation_failed",
+                            }
+                        )
+                        continue
+
+                chore_info[const.DATA_CHORE_DUE_DATE] = next_due_dt.isoformat()
+                for assigned_assignee_id in assigned_assignee_ids:
+                    self._transition_chore_state(
+                        assigned_assignee_id,
+                        chore_id,
+                        const.CHORE_STATE_PENDING,
+                        reset_approval_period=True,
+                        clear_ownership=True,
+                        persist=False,
+                    )
+                    reset_events.add((assigned_assignee_id, chore_id, chore_name))
+
+                updated.append(
+                    {
+                        "chore_id": chore_id,
+                        "chore_name": chore_name,
+                        "old_due_date": due_dt.isoformat(),
+                        "new_due_date": next_due_dt.isoformat(),
+                        "affected_user_ids": assigned_assignee_ids,
+                        "shared": True,
+                    }
+                )
+                continue
+
+            target_assignee_ids = assigned_assignee_ids
+            if assignee_filter:
+                target_assignee_ids = [
+                    assignee_id
+                    for assignee_id in assigned_assignee_ids
+                    if assignee_id in assignee_filter
+                ]
+                for filtered_assignee_id in assignee_filter:
+                    if filtered_assignee_id not in assigned_assignee_ids:
+                        skipped.append(
+                            {
+                                "chore_id": chore_id,
+                                "chore_name": chore_name,
+                                "user_id": filtered_assignee_id,
+                                "reason": "user_not_assigned",
+                            }
+                        )
+
+            for assignee_id in target_assignee_ids:
+                due_dt = self.get_due_date(chore_id, assignee_id)
+                if due_dt is None:
+                    skipped.append(
+                        {
+                            "chore_id": chore_id,
+                            "chore_name": chore_name,
+                            "user_id": assignee_id,
+                            "reason": "no_due_date",
+                        }
+                    )
+                    continue
+
+                if due_dt > after_utc:
+                    skipped.append(
+                        {
+                            "chore_id": chore_id,
+                            "chore_name": chore_name,
+                            "user_id": assignee_id,
+                            "old_due_date": due_dt.isoformat(),
+                            "reason": "already_after_boundary",
+                        }
+                    )
+                    continue
+
+                assignee_chore_data = self._get_assignee_chore_data(
+                    assignee_id, chore_id
+                )
+                assignee_state = cast(
+                    "str",
+                    assignee_chore_data.get(
+                        const.DATA_USER_CHORE_DATA_STATE,
+                        const.CHORE_STATE_PENDING,
+                    ),
+                )
+                if assignee_chore_data.get(
+                    const.DATA_USER_CHORE_DATA_PENDING_CLAIM_COUNT,
+                    const.DEFAULT_ZERO,
+                ) or assignee_state in (
+                    const.CHORE_STATE_CLAIMED,
+                    const.CHORE_STATE_APPROVED,
+                    const.CHORE_STATE_APPROVED_IN_PART,
+                ):
+                    skipped.append(
+                        {
+                            "chore_id": chore_id,
+                            "chore_name": chore_name,
+                            "user_id": assignee_id,
+                            "old_due_date": due_dt.isoformat(),
+                            "reason": "in_flight_state",
+                            "state": assignee_state,
+                        }
+                    )
+                    continue
+
+                if frequency == const.FREQUENCY_NONE:
+                    if skip_non_recurring:
+                        skipped.append(
+                            {
+                                "chore_id": chore_id,
+                                "chore_name": chore_name,
+                                "user_id": assignee_id,
+                                "old_due_date": due_dt.isoformat(),
+                                "reason": "non_recurring_skipped",
+                            }
+                        )
+                        continue
+                    next_due_dt = after_utc
+                else:
+                    next_due_dt = self._calculate_next_due_date_for_assignee(
+                        chore_info,
+                        chore_id,
+                        assignee_id,
+                        reference_time=after_utc,
+                    )
+                    if next_due_dt is None or next_due_dt <= after_utc:
+                        skipped.append(
+                            {
+                                "chore_id": chore_id,
+                                "chore_name": chore_name,
+                                "user_id": assignee_id,
+                                "old_due_date": due_dt.isoformat(),
+                                "reason": "schedule_calculation_failed",
+                            }
+                        )
+                        continue
+
+                per_assignee_due_dates = chore_info.setdefault(
+                    const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES,
+                    {},
+                )
+                per_assignee_due_dates[assignee_id] = next_due_dt.isoformat()
+                self._transition_chore_state(
+                    assignee_id,
+                    chore_id,
+                    const.CHORE_STATE_PENDING,
+                    reset_approval_period=True,
+                    clear_ownership=True,
+                    persist=False,
+                )
+                reset_events.add((assignee_id, chore_id, chore_name))
+                updated.append(
+                    {
+                        "chore_id": chore_id,
+                        "chore_name": chore_name,
+                        "user_id": assignee_id,
+                        "old_due_date": due_dt.isoformat(),
+                        "new_due_date": next_due_dt.isoformat(),
+                        "shared": False,
+                    }
+                )
+
+        if reset_events:
+            self._coordinator._persist()
+            self._emit_reset_events(reset_events)
+            self._coordinator.async_set_updated_data(self._coordinator._data)
+
+        return {
+            "after": after_utc.isoformat(),
+            "updated_count": len(updated),
+            "skipped_count": len(skipped),
+            "updated": updated,
+            "skipped": skipped,
+        }
 
     # =========================================================================
     # DATA RESET - Transactional Data Reset for Chores Domain
