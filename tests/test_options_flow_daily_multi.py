@@ -197,6 +197,65 @@ class TestDailyMultiOptionsFlow:
         assert chore.get(DATA_CHORE_DAILY_MULTI_TIMES) == "08:00|17:00"
 
     @pytest.mark.asyncio
+    async def test_of_03_helper_completion_does_not_mark_deferred_reload(
+        self,
+        hass: HomeAssistant,
+        scenario_minimal: SetupResult,
+    ) -> None:
+        """Completing the DAILY_MULTI helper should not mark chore deferred reload."""
+        config_entry = scenario_minimal.config_entry
+        coordinator = scenario_minimal.coordinator
+        assignee_names = [k["name"] for k in coordinator.assignees_data.values()]
+
+        result = await hass.config_entries.options.async_init(config_entry.entry_id)
+        flow_id = result.get("flow_id")
+        result = await hass.config_entries.options.async_configure(
+            flow_id,  # type: ignore[arg-type]
+            user_input={OPTIONS_FLOW_INPUT_MENU_SELECTION: OPTIONS_FLOW_CHORES},
+        )
+        result = await hass.config_entries.options.async_configure(
+            flow_id,  # type: ignore[arg-type]
+            user_input={OPTIONS_FLOW_INPUT_MANAGE_ACTION: OPTIONS_FLOW_ACTIONS_ADD},
+        )
+
+        due_date = datetime.now(UTC) + timedelta(hours=1)
+        with (
+            patch.object(
+                coordinator.notification_manager, "notify_assignee", new=AsyncMock()
+            ),
+            patch(
+                "custom_components.choreops.options_flow.ChoreOpsOptionsFlowHandler._mark_reload_needed"
+            ) as reload_needed,
+            patch.object(
+                hass.config_entries, "async_reload", new=AsyncMock()
+            ) as reload_entry,
+        ):
+            result = await hass.config_entries.options.async_configure(
+                flow_id,  # type: ignore[arg-type]
+                user_input={
+                    CFOF_CHORES_INPUT_NAME: "Daily Multi No Deferred Reload",
+                    CFOF_CHORES_INPUT_DEFAULT_POINTS: 10,
+                    CFOF_CHORES_INPUT_ICON: "mdi:check",
+                    CFOF_CHORES_INPUT_DESCRIPTION: "",
+                    CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: assignee_names[:1],
+                    CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY_MULTI,
+                    CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_SHARED,
+                    CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: APPROVAL_RESET_UPON_COMPLETION,
+                    CFOF_CHORES_INPUT_DUE_DATE: due_date,
+                },
+            )
+            assert result.get("step_id") == OPTIONS_FLOW_STEP_CHORES_DAILY_MULTI
+
+            result = await hass.config_entries.options.async_configure(
+                flow_id,  # type: ignore[arg-type]
+                user_input={CFOF_CHORES_INPUT_DAILY_MULTI_TIMES: "08:00|17:00"},
+            )
+
+        assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
+        reload_needed.assert_not_called()
+        reload_entry.assert_not_awaited()
+
+    @pytest.mark.asyncio
     async def test_of_04_helper_form_validates_format(
         self,
         hass: HomeAssistant,

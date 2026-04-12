@@ -15,7 +15,7 @@ actually do: go through the UI flow.
 
 from datetime import UTC
 from typing import Any
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.core import HomeAssistant
@@ -171,6 +171,59 @@ async def navigate_to_edit_chore(
     assert result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE
 
     return result
+
+
+async def create_shared_chore_for_sparse_edit(
+    hass: HomeAssistant,
+    entry_id: str,
+    *,
+    assignee_name: str,
+    chore_name: str,
+    due_date: Any,
+    due_window_offset: str = "3h",
+    due_reminder_offset: str = "20m",
+    applicable_days: list[str] | None = None,
+    notifications: list[str] | None = None,
+) -> None:
+    """Create a shared chore with non-default optional values for sparse-edit tests."""
+    result = await navigate_to_add_chore(hass, entry_id)
+
+    user_input: dict[str, Any] = {
+        CFOF_CHORES_INPUT_NAME: chore_name,
+        CFOF_CHORES_INPUT_DEFAULT_POINTS: 12.0,
+        CFOF_CHORES_INPUT_ICON: "mdi:shield-lock",
+        CFOF_CHORES_INPUT_DESCRIPTION: "before",
+        CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: [assignee_name],
+        CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
+        CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_SHARED,
+        CFOF_CHORES_INPUT_DUE_DATE: due_date,
+        const.CFOF_CHORES_INPUT_DUE_WINDOW_OFFSET: due_window_offset,
+        const.CFOF_CHORES_INPUT_DUE_REMINDER_OFFSET: due_reminder_offset,
+        const.CFOF_CHORES_INPUT_CLAIM_LOCK_UNTIL_WINDOW: True,
+        const.CFOF_CHORES_INPUT_AUTO_APPROVE: True,
+    }
+
+    if applicable_days is not None:
+        user_input[CFOF_CHORES_INPUT_APPLICABLE_DAYS] = applicable_days
+    if notifications is not None:
+        user_input[const.CFOF_CHORES_INPUT_NOTIFICATIONS] = notifications
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input=user_input,
+    )
+    assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
+
+
+def get_stored_chore_by_name(
+    setup_result: SetupResult, chore_name: str
+) -> dict[str, Any]:
+    """Return a stored chore item by name from a setup result coordinator."""
+    return next(
+        chore
+        for chore in setup_result.coordinator.chores_data.values()
+        if chore.get("name") == chore_name
+    )
 
 
 # =========================================================================
@@ -336,6 +389,61 @@ class TestPerAssigneeHelperAdd:
         date_values = list(per_assignee_dates.values())
         assert len(date_values) == 2
         assert date_values[0] == date_values[1], "All assignees should have same date"
+
+    async def test_pkh02_helper_completion_does_not_mark_deferred_reload(
+        self,
+        hass: HomeAssistant,
+        scenario_shared: SetupResult,
+    ) -> None:
+        """Completing the per-assignee helper should not mark chore deferred reload."""
+        from datetime import datetime, timedelta
+
+        config_entry = scenario_shared.config_entry
+        coordinator = scenario_shared.coordinator
+        assignee_names = [k["name"] for k in coordinator.assignees_data.values()]
+        assigned_assignees = assignee_names[:2]
+        future_date = datetime.now(UTC) + timedelta(days=7)
+
+        with (
+            patch(
+                "custom_components.choreops.options_flow.ChoreOpsOptionsFlowHandler._mark_reload_needed"
+            ) as reload_needed,
+            patch.object(
+                hass.config_entries, "async_reload", new=AsyncMock()
+            ) as reload_entry,
+        ):
+            result = await navigate_to_add_chore(hass, config_entry.entry_id)
+            result = await hass.config_entries.options.async_configure(
+                result["flow_id"],
+                user_input={
+                    CFOF_CHORES_INPUT_NAME: "PKH02 No Reload Helper",
+                    CFOF_CHORES_INPUT_DEFAULT_POINTS: 20.0,
+                    CFOF_CHORES_INPUT_ICON: "mdi:calendar",
+                    CFOF_CHORES_INPUT_DESCRIPTION: "No deferred reload",
+                    CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: assigned_assignees,
+                    CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
+                    CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_INDEPENDENT,
+                    CFOF_CHORES_INPUT_DUE_DATE: future_date,
+                },
+            )
+            assert (
+                result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_USER_DETAILS
+            )
+
+            result = await hass.config_entries.options.async_configure(
+                result["flow_id"],
+                user_input={
+                    CFOF_CHORES_INPUT_APPLY_TEMPLATE_TO_ALL: True,
+                    **{
+                        f"applicable_days_{assignee_name}": ["mon", "tue"]
+                        for assignee_name in assigned_assignees
+                    },
+                },
+            )
+
+        assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
+        reload_needed.assert_not_called()
+        reload_entry.assert_not_awaited()
 
     async def test_pkh03_add_independent_2assignees_with_template_days(
         self,
@@ -1393,6 +1501,239 @@ class TestSchemaEdgeCases:
         assert edited.get(const.DATA_CHORE_AUTO_APPROVE) is True
         assert edited.get(const.DATA_CHORE_NOTIFY_ON_CLAIM) is True
         assert edited.get(const.DATA_CHORE_NOTIFY_ON_DUE_WINDOW) is True
+
+    async def test_esv06a_sparse_edit_preserves_schedule_collection_field(
+        self,
+        hass: HomeAssistant,
+        scenario_shared: SetupResult,
+    ) -> None:
+        """Sparse edit should preserve stored applicable_days when omitted."""
+        from datetime import datetime, timedelta
+
+        config_entry = scenario_shared.config_entry
+        assignee_name = next(
+            iter(k["name"] for k in scenario_shared.coordinator.assignees_data.values())
+        )
+        chore_name = "ESV06A Preserve Applicable Days"
+
+        await create_shared_chore_for_sparse_edit(
+            hass,
+            config_entry.entry_id,
+            assignee_name=assignee_name,
+            chore_name=chore_name,
+            due_date=datetime.now(UTC) + timedelta(days=3),
+            applicable_days=["mon", "wed", "fri"],
+            notifications=[
+                const.DATA_CHORE_NOTIFY_ON_CLAIM,
+                const.DATA_CHORE_NOTIFY_ON_DUE_WINDOW,
+            ],
+        )
+
+        result = await navigate_to_edit_chore(hass, config_entry.entry_id, chore_name)
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            user_input={
+                fh.CHORE_SECTION_ROOT_FORM: {
+                    CFOF_CHORES_INPUT_NAME: chore_name,
+                    CFOF_CHORES_INPUT_DEFAULT_POINTS: 12.0,
+                    CFOF_CHORES_INPUT_ICON: "mdi:shield-lock",
+                    CFOF_CHORES_INPUT_DESCRIPTION: "after",
+                    CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: [assignee_name],
+                    CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_SHARED,
+                },
+                fh.CHORE_SECTION_SCHEDULE: {
+                    CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
+                    const.CFOF_CHORES_INPUT_CLAIM_LOCK_UNTIL_WINDOW: True,
+                },
+                fh.CHORE_SECTION_ADVANCED_CONFIGURATIONS: {
+                    const.CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: const.DEFAULT_APPROVAL_RESET_TYPE,
+                    const.CFOF_CHORES_INPUT_OVERDUE_HANDLING_TYPE: const.DEFAULT_OVERDUE_HANDLING_TYPE,
+                    const.CFOF_CHORES_INPUT_AUTO_APPROVE: True,
+                    const.CFOF_CHORES_INPUT_SHOW_ON_CALENDAR: True,
+                },
+            },
+        )
+        assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
+
+        edited = get_stored_chore_by_name(scenario_shared, chore_name)
+        assert edited.get(const.DATA_CHORE_APPLICABLE_DAYS) == [0, 2, 4]
+
+    async def test_esv06b_sparse_edit_preserves_advanced_notification_fields(
+        self,
+        hass: HomeAssistant,
+        scenario_shared: SetupResult,
+    ) -> None:
+        """Sparse edit should preserve advanced notification fan-out when omitted."""
+        from datetime import datetime, timedelta
+
+        config_entry = scenario_shared.config_entry
+        assignee_name = next(
+            iter(k["name"] for k in scenario_shared.coordinator.assignees_data.values())
+        )
+        chore_name = "ESV06B Preserve Notifications"
+
+        await create_shared_chore_for_sparse_edit(
+            hass,
+            config_entry.entry_id,
+            assignee_name=assignee_name,
+            chore_name=chore_name,
+            due_date=datetime.now(UTC) + timedelta(days=3),
+            notifications=[
+                const.DATA_CHORE_NOTIFY_ON_CLAIM,
+                const.DATA_CHORE_NOTIFY_ON_DUE_WINDOW,
+            ],
+        )
+
+        result = await navigate_to_edit_chore(hass, config_entry.entry_id, chore_name)
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            user_input={
+                fh.CHORE_SECTION_ROOT_FORM: {
+                    CFOF_CHORES_INPUT_NAME: chore_name,
+                    CFOF_CHORES_INPUT_DEFAULT_POINTS: 12.0,
+                    CFOF_CHORES_INPUT_ICON: "mdi:shield-lock",
+                    CFOF_CHORES_INPUT_DESCRIPTION: "after",
+                    CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: [assignee_name],
+                    CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_SHARED,
+                },
+                fh.CHORE_SECTION_SCHEDULE: {
+                    CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
+                    const.CFOF_CHORES_INPUT_CLAIM_LOCK_UNTIL_WINDOW: True,
+                    const.CFOF_CHORES_INPUT_DUE_WINDOW_OFFSET: "3h",
+                },
+                fh.CHORE_SECTION_ADVANCED_CONFIGURATIONS: {
+                    const.CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: const.DEFAULT_APPROVAL_RESET_TYPE,
+                    const.CFOF_CHORES_INPUT_OVERDUE_HANDLING_TYPE: const.DEFAULT_OVERDUE_HANDLING_TYPE,
+                    const.CFOF_CHORES_INPUT_AUTO_APPROVE: True,
+                    const.CFOF_CHORES_INPUT_SHOW_ON_CALENDAR: True,
+                },
+            },
+        )
+        assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
+
+        edited = get_stored_chore_by_name(scenario_shared, chore_name)
+        assert edited.get(const.DATA_CHORE_DUE_REMINDER_OFFSET) == "20m"
+        assert edited.get(const.DATA_CHORE_NOTIFY_ON_CLAIM) is True
+        assert edited.get(const.DATA_CHORE_NOTIFY_ON_DUE_WINDOW) is True
+
+    async def test_esv06c_sparse_edit_explicit_overwrite_updates_stored_value(
+        self,
+        hass: HomeAssistant,
+        scenario_shared: SetupResult,
+    ) -> None:
+        """Sparse edit should still apply explicit non-default updates."""
+        from datetime import datetime, timedelta
+
+        config_entry = scenario_shared.config_entry
+        assignee_name = next(
+            iter(k["name"] for k in scenario_shared.coordinator.assignees_data.values())
+        )
+        chore_name = "ESV06C Explicit Overwrite"
+
+        await create_shared_chore_for_sparse_edit(
+            hass,
+            config_entry.entry_id,
+            assignee_name=assignee_name,
+            chore_name=chore_name,
+            due_date=datetime.now(UTC) + timedelta(days=3),
+            notifications=[
+                const.DATA_CHORE_NOTIFY_ON_CLAIM,
+                const.DATA_CHORE_NOTIFY_ON_DUE_WINDOW,
+            ],
+        )
+
+        result = await navigate_to_edit_chore(hass, config_entry.entry_id, chore_name)
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            user_input={
+                fh.CHORE_SECTION_ROOT_FORM: {
+                    CFOF_CHORES_INPUT_NAME: chore_name,
+                    CFOF_CHORES_INPUT_DEFAULT_POINTS: 12.0,
+                    CFOF_CHORES_INPUT_ICON: "mdi:shield-lock",
+                    CFOF_CHORES_INPUT_DESCRIPTION: "after",
+                    CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: [assignee_name],
+                    CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_SHARED,
+                },
+                fh.CHORE_SECTION_SCHEDULE: {
+                    CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
+                    const.CFOF_CHORES_INPUT_CLAIM_LOCK_UNTIL_WINDOW: True,
+                    const.CFOF_CHORES_INPUT_DUE_WINDOW_OFFSET: "6h",
+                },
+                fh.CHORE_SECTION_ADVANCED_CONFIGURATIONS: {
+                    const.CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: const.DEFAULT_APPROVAL_RESET_TYPE,
+                    const.CFOF_CHORES_INPUT_OVERDUE_HANDLING_TYPE: const.DEFAULT_OVERDUE_HANDLING_TYPE,
+                    const.CFOF_CHORES_INPUT_AUTO_APPROVE: True,
+                    const.CFOF_CHORES_INPUT_SHOW_ON_CALENDAR: True,
+                    const.CFOF_CHORES_INPUT_DUE_REMINDER_OFFSET: "45m",
+                    const.CFOF_CHORES_INPUT_NOTIFICATIONS: [
+                        const.DATA_CHORE_NOTIFY_ON_DUE_WINDOW,
+                    ],
+                },
+            },
+        )
+        assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
+
+        edited = get_stored_chore_by_name(scenario_shared, chore_name)
+        assert edited.get(const.DATA_CHORE_DUE_WINDOW_OFFSET) == "6h"
+        assert edited.get(const.DATA_CHORE_DUE_REMINDER_OFFSET) == "45m"
+        assert edited.get(const.DATA_CHORE_NOTIFY_ON_CLAIM) is False
+        assert edited.get(const.DATA_CHORE_NOTIFY_ON_DUE_WINDOW) is True
+
+    async def test_esv06d_explicit_clear_due_date_remains_distinct_from_omission(
+        self,
+        hass: HomeAssistant,
+        scenario_shared: SetupResult,
+    ) -> None:
+        """Explicit clear_due_date should clear stored due date in the full edit flow."""
+        from datetime import datetime, timedelta
+
+        config_entry = scenario_shared.config_entry
+        assignee_name = next(
+            iter(k["name"] for k in scenario_shared.coordinator.assignees_data.values())
+        )
+        chore_name = "ESV06D Clear Due Date"
+
+        await create_shared_chore_for_sparse_edit(
+            hass,
+            config_entry.entry_id,
+            assignee_name=assignee_name,
+            chore_name=chore_name,
+            due_date=datetime.now(UTC) + timedelta(days=3),
+            notifications=[
+                const.DATA_CHORE_NOTIFY_ON_CLAIM,
+                const.DATA_CHORE_NOTIFY_ON_DUE_WINDOW,
+            ],
+        )
+
+        result = await navigate_to_edit_chore(hass, config_entry.entry_id, chore_name)
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            user_input={
+                fh.CHORE_SECTION_ROOT_FORM: {
+                    CFOF_CHORES_INPUT_NAME: chore_name,
+                    CFOF_CHORES_INPUT_DEFAULT_POINTS: 12.0,
+                    CFOF_CHORES_INPUT_ICON: "mdi:shield-lock",
+                    CFOF_CHORES_INPUT_DESCRIPTION: "after",
+                    CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: [assignee_name],
+                    CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_SHARED,
+                },
+                fh.CHORE_SECTION_SCHEDULE: {
+                    CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
+                    const.CFOF_CHORES_INPUT_CLAIM_LOCK_UNTIL_WINDOW: True,
+                    const.CFOF_CHORES_INPUT_CLEAR_DUE_DATE: True,
+                },
+                fh.CHORE_SECTION_ADVANCED_CONFIGURATIONS: {
+                    const.CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: const.DEFAULT_APPROVAL_RESET_TYPE,
+                    const.CFOF_CHORES_INPUT_OVERDUE_HANDLING_TYPE: const.DEFAULT_OVERDUE_HANDLING_TYPE,
+                    const.CFOF_CHORES_INPUT_AUTO_APPROVE: True,
+                    const.CFOF_CHORES_INPUT_SHOW_ON_CALENDAR: True,
+                },
+            },
+        )
+        assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
+
+        edited = get_stored_chore_by_name(scenario_shared, chore_name)
+        assert edited.get(const.DATA_CHORE_DUE_DATE) is None
 
     async def test_esv07_transform_clear_due_date_explicitly_clears_due_date(
         self,

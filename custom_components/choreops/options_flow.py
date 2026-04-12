@@ -7,6 +7,7 @@ Ensures consistency and reloads the integration upon changes.
 
 import asyncio
 import contextlib
+from copy import deepcopy
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, cast
 import uuid
@@ -346,6 +347,24 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
 
         const.LOGGER.debug(log_message, *log_args)
         return await self.async_step_chores_daily_multi()
+
+    async def _async_sync_chore_entities(
+        self,
+        chore_id: str,
+        *,
+        mutation: str,
+        previous_chore: "ChoreData | None" = None,
+        current_chore: "ChoreData | None" = None,
+    ) -> None:
+        """Synchronize chore-linked runtime entities for options-flow CRUD."""
+        coordinator = self._get_coordinator()
+        sync_context = coordinator.chore_manager.build_entity_sync_context(
+            chore_id,
+            mutation=mutation,
+            previous_chore=previous_chore,
+            current_chore=current_chore,
+        )
+        await coordinator.async_sync_chore_entities(sync_context)
 
     def _build_dashboard_template_preferences_markdown_lines(
         self,
@@ -1183,6 +1202,11 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                         prebuilt=True,
                         immediate_persist=True,
                     )
+                    await self._async_sync_chore_entities(
+                        internal_id,
+                        mutation="created",
+                        current_chore=deepcopy(coordinator.chores_data[internal_id]),
+                    )
 
                     # CFE-2026-001 FIX: Single-assignee DAILY_MULTI without times
                     # needs to route to times helper (main form doesn't have times field)
@@ -1200,7 +1224,6 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                         chore_name,
                         internal_id,
                     )
-                    self._mark_reload_needed()
                     return await self.async_step_init()
 
                 # Multiple assignees: create chore, then show per-assignee details helper
@@ -1210,6 +1233,11 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                     internal_id=internal_id,
                     prebuilt=True,
                     immediate_persist=True,
+                )
+                await self._async_sync_chore_entities(
+                    internal_id,
+                    mutation="created",
+                    current_chore=deepcopy(coordinator.chores_data[internal_id]),
                 )
 
                 # Store chore data and template values for helper form
@@ -1235,6 +1263,11 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                     prebuilt=True,
                     immediate_persist=True,
                 )
+                await self._async_sync_chore_entities(
+                    internal_id,
+                    mutation="created",
+                    current_chore=deepcopy(coordinator.chores_data[internal_id]),
+                )
 
                 return await self._async_route_to_daily_multi_helper(
                     new_chore_data,
@@ -1251,6 +1284,11 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 prebuilt=True,
                 immediate_persist=True,
             )
+            await self._async_sync_chore_entities(
+                internal_id,
+                mutation="created",
+                current_chore=deepcopy(coordinator.chores_data[internal_id]),
+            )
 
             const.LOGGER.debug(
                 "Added Chore '%s' with ID: %s and Due Date %s",
@@ -1258,7 +1296,6 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 internal_id,
                 due_date_str,
             )
-            self._mark_reload_needed()
             return await self.async_step_init()
 
         # Use flow_helpers.build_chore_schema, passing current assignees
@@ -1296,6 +1333,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             return self.async_abort(reason=const.TRANS_KEY_CFOF_INVALID_CHORE)
 
         chore_data = chores_dict[internal_id]
+        original_chore = deepcopy(chore_data)
 
         if user_input is not None:
             user_input = fh.normalize_chore_form_input(user_input)
@@ -1332,7 +1370,10 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             if errors:
                 # Merge original chore data with user's attempted input
                 merged_defaults = {**chore_data, **user_input}
-                schema = fh.build_chore_schema(assignees_dict)
+                schema = fh.build_chore_schema(
+                    assignees_dict,
+                    preserve_optional_on_omit=True,
+                )
                 schema = self.add_suggested_values_to_schema(
                     schema,
                     fh.build_chore_section_suggested_values(merged_defaults),
@@ -1356,13 +1397,6 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 existing_chore=chore_data,
             )
 
-            # Check if assigned assignees changed (for reload decision)
-            old_assigned = set(chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, []))
-            new_assigned = set(
-                transformed_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
-            )
-            assignments_changed = old_assigned != new_assigned
-
             # Use Manager-owned CRUD (handles badge recalc and orphan cleanup)
             const.LOGGER.debug(
                 "CHORE UPDATE: About to update chore %s with completion_criteria=%s",
@@ -1382,11 +1416,12 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 chore_data.get(const.DATA_CHORE_NAME),
             )
             const.LOGGER.debug("Edited Chore '%s' with ID: %s", new_name, internal_id)
-
-            # Only reload if assignments changed (entities added/removed)
-            if assignments_changed:
-                const.LOGGER.debug("Chore assignments changed, marking reload needed")
-                self._mark_reload_needed()
+            await self._async_sync_chore_entities(
+                str(internal_id),
+                mutation="updated",
+                previous_chore=original_chore,
+                current_chore=deepcopy(coordinator.chores_data[str(internal_id)]),
+            )
 
             # For INDEPENDENT chores with assigned assignees, handle per-assignee date editing
             # Use merged_chore (post-update) for routing decisions
@@ -1515,7 +1550,6 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                             new_name,
                         )
 
-                    self._mark_reload_needed()
                     return await self.async_step_init()
 
                 # Multiple assignees: show unified per-assignee details step (PKAD-2026-001)
@@ -1815,7 +1849,10 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         suggested_values[const.CFOF_CHORES_INPUT_NOTIFICATIONS] = notifications_list
 
         # Build schema and apply suggested values
-        schema = fh.build_chore_schema(assignees_dict)
+        schema = fh.build_chore_schema(
+            assignees_dict,
+            preserve_optional_on_omit=True,
+        )
         schema = self.add_suggested_values_to_schema(
             schema,
             fh.build_chore_section_suggested_values(suggested_values),
@@ -1997,7 +2034,6 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 # Clear stored state
                 self._chore_being_edited = None
                 self._chore_template_date_raw = None
-                self._mark_reload_needed()
                 return await self.async_step_init()
 
         # Build dynamic schema with assignee names as field keys (for readable labels)
@@ -2321,7 +2357,6 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 self._chore_template_date_raw = None
                 self._chore_template_applicable_days = None
                 self._chore_template_daily_multi_times = None
-                self._mark_reload_needed()
                 return await self.async_step_init()
 
         # Build form schema
@@ -2505,7 +2540,6 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                     times_str,
                 )
 
-                self._mark_reload_needed()
                 # Clear temp state
                 self._chore_being_edited = None
                 return await self.async_step_init()
@@ -2551,6 +2585,10 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             # Use Manager-owned CRUD method
             coordinator.chore_manager.delete_chore(
                 str(internal_id), immediate_persist=True
+            )
+            await self._async_sync_chore_entities(
+                str(internal_id),
+                mutation="deleted",
             )
 
             const.LOGGER.debug(

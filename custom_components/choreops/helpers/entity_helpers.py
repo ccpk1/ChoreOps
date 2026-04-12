@@ -718,7 +718,7 @@ async def remove_orphaned_shared_chore_sensors(
         Count of removed entities.
     """
     prefix = f"{entry_id}_"
-    suffix = const.DATA_GLOBAL_STATE_SUFFIX
+    suffix = const.SENSOR_KC_UID_SUFFIX_SHARED_CHORE_GLOBAL_STATE_SENSOR
 
     def is_valid(unique_id: str) -> bool:
         chore_id = unique_id[len(prefix) : -len(suffix)]
@@ -726,7 +726,10 @@ async def remove_orphaned_shared_chore_sensors(
         return bool(
             chore_info
             and chore_info.get(const.DATA_CHORE_COMPLETION_CRITERIA)
-            == const.COMPLETION_CRITERIA_SHARED
+            in (
+                const.COMPLETION_CRITERIA_SHARED,
+                const.COMPLETION_CRITERIA_SHARED_FIRST,
+            )
         )
 
     return await remove_entities_by_validator(

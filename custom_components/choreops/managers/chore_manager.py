@@ -21,7 +21,7 @@ import asyncio
 from contextlib import AsyncExitStack
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.util import dt as dt_util
@@ -61,6 +61,7 @@ if TYPE_CHECKING:
     from ..type_defs import (
         AssigneeChoreDataEntry,
         ChoreData,
+        ChoreEntitySyncContext,
         GlobalChoreStateContext,
         ResetApplyContext,
         ResetBoundaryCategory,
@@ -3191,6 +3192,26 @@ class ChoreManager(BaseManager):
         )
 
         return chore_data
+
+    def build_entity_sync_context(
+        self,
+        chore_id: str,
+        *,
+        mutation: Literal["created", "updated", "deleted"],
+        previous_chore: ChoreData | None = None,
+        current_chore: ChoreData | None = None,
+    ) -> ChoreEntitySyncContext:
+        """Build the runtime entity-sync context for a chore mutation.
+
+        This keeps caller-side mutation classification rooted in the chore domain
+        while delegating final orchestration to the coordinator runtime sync layer.
+        """
+        return self._coordinator.build_chore_entity_sync_context(
+            chore_id,
+            mutation=mutation,
+            previous_chore=previous_chore,
+            current_chore=current_chore,
+        )
 
     def update_chore(
         self, chore_id: str, updates: dict[str, Any], *, immediate_persist: bool = False

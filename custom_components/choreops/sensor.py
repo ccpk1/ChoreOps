@@ -57,7 +57,6 @@ Legacy Sensors Imported from sensor_legacy.py (13):
     13. AssigneeBonusAppliedSensor - Bonus application count (data in dashboard helper)
 """
 
-from collections.abc import Callable
 from datetime import datetime, timedelta
 from typing import Any, cast
 
@@ -588,11 +587,11 @@ async def async_setup_entry(
 # Module-level callback storage for dynamic entity creation
 # ------------------------------------------------------------------------------------------
 
-_async_add_entities_callback: Callable | None = None
+_async_add_entities_callback: AddEntitiesCallback | None = None
 
 
 def register_chore_reward_callback(
-    async_add_entities: Callable,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Register async_add_entities callback for dynamic chore/reward sensor creation.
 
@@ -603,33 +602,67 @@ def register_chore_reward_callback(
     _async_add_entities_callback = async_add_entities
 
 
-def create_chore_entities(coordinator: ChoreOpsDataCoordinator, chore_id: str) -> None:
-    """Create chore status sensor entities for a newly created chore.
+def _sensor_entity_exists(
+    coordinator: ChoreOpsDataCoordinator,
+    unique_id: str,
+) -> bool:
+    """Return whether a sensor entity with the given unique ID already exists."""
+    entity_registry = async_get(coordinator.hass)
+    return (
+        entity_registry.async_get_entity_id("sensor", const.DOMAIN, unique_id)
+        is not None
+    )
 
-    Called by create_chore service after adding chore to storage.
-    Creates AssigneeChoreStatusSensor for each assigned assignee.
+
+def create_chore_entities(
+    coordinator: ChoreOpsDataCoordinator,
+    chore_id: str,
+    *,
+    assignee_ids: list[str] | None = None,
+    replace_existing: bool = False,
+) -> int:
+    """Create missing chore-linked sensor entities for a chore.
+
+    Args:
+        coordinator: Runtime coordinator.
+        chore_id: Internal ID of the chore.
+        assignee_ids: Optional subset of assignee IDs to create status sensors for.
+            When omitted, create sensors for all currently assigned assignees.
+        replace_existing: If True, do not filter existing registry entities. This is
+            intended for flows that have already removed the prior entity set.
+
+    Returns:
+        Count of entities handed to Home Assistant for creation.
     """
     if _async_add_entities_callback is None:
         const.LOGGER.warning("Cannot create chore entities: callback not registered")
-        return
+        return 0
 
     chore_info = coordinator.chores_data.get(chore_id)
     if not chore_info:
         const.LOGGER.warning(
             "Cannot create chore entities: chore %s not found", chore_id
         )
-        return
+        return 0
 
     chore_name = get_item_name_or_log_error(
         "chore", chore_id, chore_info, const.DATA_CHORE_NAME
     )
     if not chore_name:
-        return
+        return 0
 
     assigned_assignees_ids = chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
-    entities: list[AssigneeChoreStatusSensor] = []
+    target_assignee_ids = assigned_assignees_ids
+    if assignee_ids is not None:
+        target_assignee_ids = [
+            assignee_id
+            for assignee_id in assigned_assignees_ids
+            if assignee_id in assignee_ids
+        ]
 
-    for assignee_id in assigned_assignees_ids:
+    entities: list[SensorEntity] = []
+
+    for assignee_id in target_assignee_ids:
         assignee_data: AssigneeData = cast(
             "AssigneeData", coordinator.assignees_data.get(assignee_id) or {}
         )
@@ -637,6 +670,13 @@ def create_chore_entities(coordinator: ChoreOpsDataCoordinator, chore_id: str) -
             "assignee", assignee_id, assignee_data, const.DATA_USER_NAME
         )
         if not assignee_name:
+            continue
+
+        unique_id = (
+            f"{coordinator.config_entry.entry_id}_{assignee_id}_{chore_id}"
+            f"{const.SENSOR_KC_UID_SUFFIX_CHORE_STATUS_SENSOR}"
+        )
+        if not replace_existing and _sensor_entity_exists(coordinator, unique_id):
             continue
 
         entities.append(
@@ -650,11 +690,28 @@ def create_chore_entities(coordinator: ChoreOpsDataCoordinator, chore_id: str) -
             )
         )
 
+    if ChoreEngine.is_shared_chore(chore_info):
+        unique_id = (
+            f"{coordinator.config_entry.entry_id}_{chore_id}"
+            f"{const.SENSOR_KC_UID_SUFFIX_SHARED_CHORE_GLOBAL_STATE_SENSOR}"
+        )
+        if replace_existing or not _sensor_entity_exists(coordinator, unique_id):
+            entities.append(
+                SystemChoreSharedStateSensor(
+                    coordinator,
+                    coordinator.config_entry,
+                    chore_id,
+                    chore_name,
+                )
+            )
+
     if entities:
         _async_add_entities_callback(entities)
         const.LOGGER.debug(
-            "Created %d chore status sensors for chore: %s", len(entities), chore_name
+            "Created %d chore-linked sensors for chore: %s", len(entities), chore_name
         )
+
+    return len(entities)
 
 
 def create_reward_entities(

@@ -21,6 +21,7 @@ from homeassistant.components.button import ButtonEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity_registry import async_get
 
 from . import const
 from .coordinator import ChoreOpsConfigEntry, ChoreOpsDataCoordinator
@@ -48,6 +49,153 @@ if TYPE_CHECKING:
 PARALLEL_UPDATES = 1
 
 
+_async_add_entities_callback: AddEntitiesCallback | None = None
+
+
+def register_chore_button_callback(async_add_entities: AddEntitiesCallback) -> None:
+    """Register async_add_entities callback for dynamic chore button creation."""
+    global _async_add_entities_callback  # noqa: PLW0603
+    _async_add_entities_callback = async_add_entities
+
+
+def _button_entity_exists(
+    coordinator: ChoreOpsDataCoordinator,
+    unique_id: str,
+) -> bool:
+    """Return whether a button entity with the given unique ID already exists."""
+    entity_registry = async_get(coordinator.hass)
+    return (
+        entity_registry.async_get_entity_id("button", const.DOMAIN, unique_id)
+        is not None
+    )
+
+
+def create_chore_button_entities(
+    coordinator: ChoreOpsDataCoordinator,
+    chore_id: str,
+    *,
+    assignee_ids: list[str] | None = None,
+    replace_existing: bool = False,
+) -> int:
+    """Create missing chore-linked workflow buttons for a chore.
+
+    Args:
+        coordinator: Runtime coordinator.
+        chore_id: Internal ID of the chore.
+        assignee_ids: Optional subset of assignee IDs to create buttons for.
+            When omitted, create buttons for all currently assigned assignees.
+        replace_existing: If True, do not filter existing registry entities. This is
+            intended for flows that have already removed the prior entity set.
+
+    Returns:
+        Count of entities handed to Home Assistant for creation.
+    """
+    if _async_add_entities_callback is None:
+        const.LOGGER.warning("Cannot create chore buttons: callback not registered")
+        return 0
+
+    chore_info = coordinator.chores_data.get(chore_id)
+    if not chore_info:
+        const.LOGGER.warning(
+            "Cannot create chore buttons: chore %s not found", chore_id
+        )
+        return 0
+
+    chore_name = str(
+        chore_info.get(
+            const.DATA_CHORE_NAME, f"{const.TRANS_KEY_LABEL_CHORE} {chore_id}"
+        )
+    )
+    assigned_assignees_ids = chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
+    target_assignee_ids = assigned_assignees_ids
+    if assignee_ids is not None:
+        target_assignee_ids = [
+            assignee_id
+            for assignee_id in assigned_assignees_ids
+            if assignee_id in assignee_ids
+        ]
+
+    chore_claim_icon = chore_info.get(const.DATA_CHORE_ICON, const.SENTINEL_EMPTY)
+    chore_approve_icon = chore_info.get(const.DATA_CHORE_ICON, const.SENTINEL_EMPTY)
+    entry = coordinator.config_entry
+    entities: list[ButtonEntity] = []
+
+    for assignee_id in target_assignee_ids:
+        assignee_name = (
+            get_assignee_name_by_id(coordinator, assignee_id)
+            or f"{const.TRANS_KEY_LABEL_ASSIGNEE} {assignee_id}"
+        )
+
+        claim_unique_id = f"{entry.entry_id}_{assignee_id}_{chore_id}{const.BUTTON_KC_UID_SUFFIX_CLAIM}"
+        if should_create_entity_for_user_assignee(
+            const.BUTTON_KC_UID_SUFFIX_CLAIM,
+            coordinator,
+            assignee_id,
+        ) and (
+            replace_existing or not _button_entity_exists(coordinator, claim_unique_id)
+        ):
+            entities.append(
+                AssigneeChoreClaimButton(
+                    coordinator=coordinator,
+                    entry=entry,
+                    assignee_id=assignee_id,
+                    assignee_name=assignee_name,
+                    chore_id=chore_id,
+                    chore_name=chore_name,
+                    icon=chore_claim_icon,
+                )
+            )
+
+        approve_unique_id = f"{entry.entry_id}_{assignee_id}_{chore_id}{const.BUTTON_KC_UID_SUFFIX_APPROVE}"
+        if should_create_entity_for_user_assignee(
+            const.BUTTON_KC_UID_SUFFIX_APPROVE,
+            coordinator,
+            assignee_id,
+        ) and (
+            replace_existing
+            or not _button_entity_exists(coordinator, approve_unique_id)
+        ):
+            entities.append(
+                ApproverChoreApproveButton(
+                    coordinator=coordinator,
+                    entry=entry,
+                    assignee_id=assignee_id,
+                    assignee_name=assignee_name,
+                    chore_id=chore_id,
+                    chore_name=chore_name,
+                    icon=chore_approve_icon,
+                )
+            )
+
+        disapprove_unique_id = f"{entry.entry_id}_{assignee_id}_{chore_id}{const.BUTTON_KC_UID_SUFFIX_DISAPPROVE}"
+        if should_create_entity_for_user_assignee(
+            const.BUTTON_KC_UID_SUFFIX_DISAPPROVE,
+            coordinator,
+            assignee_id,
+        ) and (
+            replace_existing
+            or not _button_entity_exists(coordinator, disapprove_unique_id)
+        ):
+            entities.append(
+                ApproverChoreDisapproveButton(
+                    coordinator=coordinator,
+                    entry=entry,
+                    assignee_id=assignee_id,
+                    assignee_name=assignee_name,
+                    chore_id=chore_id,
+                    chore_name=chore_name,
+                )
+            )
+
+    if entities:
+        _async_add_entities_callback(entities)
+        const.LOGGER.debug(
+            "Created %d chore-linked buttons for chore: %s", len(entities), chore_name
+        )
+
+    return len(entities)
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ChoreOpsConfigEntry,
@@ -55,6 +203,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up dynamic buttons."""
     coordinator = entry.runtime_data
+    register_chore_button_callback(async_add_entities)
 
     points_label = entry.options.get(
         const.CONF_POINTS_LABEL, const.DEFAULT_POINTS_LABEL
