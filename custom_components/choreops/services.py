@@ -125,6 +125,25 @@ def _with_service_target_fields(
     }
 
 
+async def _ensure_user_can_manage(
+    hass: HomeAssistant,
+    call: ServiceCall,
+    action: str,
+) -> None:
+    """Raise when the calling user lacks management capability."""
+    user_id = call.context.user_id
+    if user_id and not await is_user_authorized_for_action(
+        hass,
+        user_id,
+        AUTH_ACTION_MANAGEMENT,
+    ):
+        raise HomeAssistantError(
+            translation_domain=const.DOMAIN,
+            translation_key=const.TRANS_KEY_ERROR_NOT_AUTHORIZED_ACTION,
+            translation_placeholders={"action": action},
+        )
+
+
 def _validate_manual_adjust_points_payload(value: dict[str, Any]) -> dict[str, Any]:
     """Validate manual points adjustment payload constraints.
 
@@ -1030,6 +1049,11 @@ def async_setup_services(hass: HomeAssistant):
             )
 
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
+        await _ensure_user_can_manage(
+            hass,
+            call,
+            const.ERROR_ACTION_CREATE_CHORES,
+        )
 
         # Resolve assignee names to UUIDs.
         # Exception by design: during contract migration we accept legacy payloads
@@ -1175,6 +1199,11 @@ def async_setup_services(hass: HomeAssistant):
             )
 
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
+        await _ensure_user_can_manage(
+            hass,
+            call,
+            const.ERROR_ACTION_UPDATE_CHORES,
+        )
 
         # Resolve chore: either chore_id or name must be provided
         chore_id = call.data.get(const.SERVICE_FIELD_CHORE_CRUD_ID)
@@ -1352,6 +1381,11 @@ def async_setup_services(hass: HomeAssistant):
             )
 
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
+        await _ensure_user_can_manage(
+            hass,
+            call,
+            const.ERROR_ACTION_DELETE_CHORES,
+        )
 
         # Resolve chore: either chore_id or name must be provided
         chore_id = call.data.get(const.SERVICE_FIELD_CHORE_CRUD_ID)
@@ -3251,6 +3285,11 @@ def async_setup_services(hass: HomeAssistant):
             )
 
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
+        await _ensure_user_can_manage(
+            hass,
+            call,
+            const.ERROR_ACTION_MANAGE_UI_CONTROL,
+        )
         return await coordinator.user_manager.async_manage_ui_control(call_data)
 
     hass.services.async_register(

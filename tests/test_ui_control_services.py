@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from homeassistant.core import Context
 from homeassistant.exceptions import HomeAssistantError
 import pytest
 
@@ -49,6 +50,24 @@ def _get_shared_admin_ui_control(scenario_full: SetupResult) -> dict[str, Any]:
     ]
     assert isinstance(shared_admin_ui_control, dict)
     return shared_admin_ui_control
+
+
+def _set_user_manage_capability(
+    coordinator: Any,
+    *,
+    ha_user_id: str,
+    can_manage: bool,
+) -> None:
+    """Set manage capability for the linked user record."""
+    users = coordinator._data.get(const.DATA_USERS, {})
+    for user_data in users.values():
+        if not isinstance(user_data, dict):
+            continue
+        if user_data.get(const.DATA_USER_HA_USER_ID) == ha_user_id:
+            user_data[const.DATA_USER_CAN_MANAGE] = can_manage
+            return
+
+    raise AssertionError(f"No user mapped to HA user_id={ha_user_id}")
 
 
 class TestManageUiControlService:
@@ -193,6 +212,37 @@ class TestManageUiControlService:
             ]
             is True
         )
+
+    @pytest.mark.asyncio
+    async def test_manage_ui_control_requires_manage_capability(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+        mock_hass_users: dict[str, Any],
+    ) -> None:
+        """Service is denied when the linked user lacks manage permission."""
+        actor_user_id = mock_hass_users["assignee1"].id
+        _set_user_manage_capability(
+            scenario_full.coordinator,
+            ha_user_id=actor_user_id,
+            can_manage=False,
+        )
+
+        with pytest.raises(HomeAssistantError):
+            await hass.services.async_call(
+                const.DOMAIN,
+                const.SERVICE_MANAGE_UI_CONTROL,
+                {
+                    const.SERVICE_FIELD_CONFIG_ENTRY_ID: scenario_full.config_entry.entry_id,
+                    const.SERVICE_FIELD_USER_NAME: "Zoë",
+                    const.SERVICE_FIELD_UI_CONTROL_ACTION: const.UI_CONTROL_ACTION_CREATE,
+                    const.SERVICE_FIELD_UI_CONTROL_KEY: REWARDS_HEADER_COLLAPSE_KEY,
+                    const.SERVICE_FIELD_UI_CONTROL_VALUE: True,
+                },
+                blocking=True,
+                return_response=True,
+                context=Context(user_id=actor_user_id),
+            )
 
     @pytest.mark.asyncio
     async def test_remove_empty_key_clears_all_preferences(

@@ -2360,6 +2360,7 @@ ATTR_CHORE_LAST_LONGEST_STREAK_DATE: Final = "chore_last_longest_streak_date"
 ATTR_CHORE_APPROVE_BUTTON_ENTITY_ID: Final = "approve_button_eid"
 ATTR_CHORE_CLAIM_BUTTON_ENTITY_ID: Final = "claim_button_eid"
 ATTR_CHORE_DISAPPROVE_BUTTON_ENTITY_ID: Final = "disapprove_button_eid"
+ATTR_CHORE_ID: Final = "chore_id"
 ATTR_CHORE_NAME: Final = "chore_name"
 ATTR_CLAIMED_ON: Final = "Claimed on"
 ATTR_COST: Final = "cost"
@@ -3170,6 +3171,10 @@ TRANS_KEY_ERROR_CALENDAR_UPDATE_NOT_SUPPORTED: Final = "calendar_update_not_supp
 
 # Action identifiers for use with TRANS_KEY_ERROR_NOT_AUTHORIZED_ACTION template
 # These values are passed directly as {action} placeholder in exception messages
+ERROR_ACTION_CREATE_CHORES: Final = "create_chores"
+ERROR_ACTION_UPDATE_CHORES: Final = "update_chores"
+ERROR_ACTION_DELETE_CHORES: Final = "delete_chores"
+ERROR_ACTION_MANAGE_UI_CONTROL: Final = "manage_ui_control"
 ERROR_ACTION_CLAIM_CHORES: Final = "claim_chores"
 ERROR_ACTION_APPROVE_CHORES: Final = "approve_chores"
 ERROR_ACTION_DISAPPROVE_CHORES: Final = "disapprove_chores"

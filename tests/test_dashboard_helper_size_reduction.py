@@ -413,10 +413,11 @@ class TestAssigneeChoresSensorAttributes:
 
 
 class TestMinimalChoreAttributes:
-    """CHORE-* tests: Validate minimal 6-field chore structure."""
+    """CHORE-* tests: Validate minimal chore helper structure."""
 
-    # The 6 minimal fields expected for dashboard helper rendering.
+    # The minimal fields expected for dashboard helper rendering.
     EXPECTED_CHORE_FIELDS = {
+        "chore_id",
         "eid",
         "name",
         "state",
@@ -446,7 +447,7 @@ class TestMinimalChoreAttributes:
         hass: HomeAssistant,
         scenario_minimal: SetupResult,
     ) -> None:
-        """CHORE-01: Each chore in list has exactly 6 minimal fields."""
+        """CHORE-01: Each chore in list has the expected minimal fields."""
         helper_eid = construct_entity_id(
             "sensor", "Zoë", SENSOR_KC_EID_SUFFIX_UI_DASHBOARD_HELPER
         )
@@ -468,7 +469,7 @@ class TestMinimalChoreAttributes:
         hass: HomeAssistant,
         scenario_minimal: SetupResult,
     ) -> None:
-        """CHORE-02: All 6 expected fields are present with valid values."""
+        """CHORE-02: All expected fields are present with valid values."""
         helper_eid = construct_entity_id(
             "sensor", "Zoë", SENSOR_KC_EID_SUFFIX_UI_DASHBOARD_HELPER
         )
@@ -477,6 +478,9 @@ class TestMinimalChoreAttributes:
 
         chores = helper_state.attributes.get(ATTR_DASHBOARD_CHORES, [])
         for chore in chores:
+            # chore_id should be a non-empty identifier string
+            assert isinstance(chore["chore_id"], str) and len(chore["chore_id"]) > 0
+
             # eid should be a sensor entity ID with correct format
             # Format: sensor.{assignee_slug}_choreops_chore_status_{chore_name}
             assert chore["eid"].startswith("sensor."), f"Invalid eid: {chore['eid']}"

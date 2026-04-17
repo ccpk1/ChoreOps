@@ -18,6 +18,8 @@ from tests.helpers import SetupResult, setup_from_yaml
 
 DOMAIN = const.DOMAIN
 SERVICE_CREATE_CHORE = const.SERVICE_CREATE_CHORE
+SERVICE_UPDATE_CHORE = const.SERVICE_UPDATE_CHORE
+SERVICE_DELETE_CHORE = const.SERVICE_DELETE_CHORE
 
 
 def _get_user_id_by_name(coordinator: ChoreOpsDataCoordinator, user_name: str) -> str:
@@ -307,3 +309,109 @@ async def test_runtime_sync_shared_transition_adds_and_removes_shared_sensor(
         _shared_sensor_unique_id(config_entry.entry_id, chore_id),
     )
     assert shared_sensor_entity_id is None
+
+
+async def test_runtime_sync_service_update_rename_replaces_cached_chore_entities(
+    hass: HomeAssistant,
+    entity_registry: er.EntityRegistry,
+    scenario_full: SetupResult,
+) -> None:
+    """Service update should preserve live chore entities while replacing rename data."""
+    coordinator = scenario_full.coordinator
+    config_entry = scenario_full.config_entry
+    chore_id = _get_single_assignee_chore_id(
+        coordinator,
+        completion_criteria=const.COMPLETION_CRITERIA_INDEPENDENT,
+    )
+    assignee_id = coordinator.chores_data[chore_id][const.DATA_CHORE_ASSIGNED_USER_IDS][
+        0
+    ]
+    new_name = "Runtime Sync Service Renamed Chore"
+
+    response = await hass.services.async_call(
+        DOMAIN,
+        SERVICE_UPDATE_CHORE,
+        {
+            const.SERVICE_FIELD_CHORE_CRUD_ID: chore_id,
+            const.SERVICE_FIELD_CHORE_CRUD_NAME: new_name,
+        },
+        blocking=True,
+        return_response=True,
+    )
+
+    assert response is not None
+    assert response[const.SERVICE_FIELD_CHORE_CRUD_ID] == chore_id
+    await hass.async_block_till_done()
+
+    sensor_entity_id = entity_registry.async_get_entity_id(
+        "sensor",
+        DOMAIN,
+        _sensor_unique_id(config_entry.entry_id, assignee_id, chore_id),
+    )
+    assert sensor_entity_id is not None
+
+    sensor_state = hass.states.get(sensor_entity_id)
+    assert sensor_state is not None
+    assert sensor_state.attributes[const.ATTR_CHORE_NAME] == new_name
+
+
+async def test_runtime_sync_service_delete_removes_live_chore_entities(
+    hass: HomeAssistant,
+    entity_registry: er.EntityRegistry,
+    scenario_full: SetupResult,
+) -> None:
+    """Service delete should remove live chore entities without reload fallback."""
+    coordinator = scenario_full.coordinator
+    config_entry = scenario_full.config_entry
+    chore_id = _get_single_assignee_chore_id(
+        coordinator,
+        completion_criteria=const.COMPLETION_CRITERIA_INDEPENDENT,
+    )
+    assignee_id = coordinator.chores_data[chore_id][const.DATA_CHORE_ASSIGNED_USER_IDS][
+        0
+    ]
+
+    sensor_unique_id = _sensor_unique_id(config_entry.entry_id, assignee_id, chore_id)
+    approve_button_unique_id = _button_unique_id(
+        config_entry.entry_id,
+        assignee_id,
+        chore_id,
+        const.BUTTON_KC_UID_SUFFIX_APPROVE,
+    )
+
+    assert (
+        entity_registry.async_get_entity_id("sensor", DOMAIN, sensor_unique_id)
+        is not None
+    )
+    assert (
+        entity_registry.async_get_entity_id(
+            "button",
+            DOMAIN,
+            approve_button_unique_id,
+        )
+        is not None
+    )
+
+    response = await hass.services.async_call(
+        DOMAIN,
+        SERVICE_DELETE_CHORE,
+        {const.SERVICE_FIELD_CHORE_CRUD_ID: chore_id},
+        blocking=True,
+        return_response=True,
+    )
+
+    assert response is not None
+    await hass.async_block_till_done()
+
+    assert chore_id not in coordinator.chores_data
+    assert (
+        entity_registry.async_get_entity_id("sensor", DOMAIN, sensor_unique_id) is None
+    )
+    assert (
+        entity_registry.async_get_entity_id(
+            "button",
+            DOMAIN,
+            approve_button_unique_id,
+        )
+        is None
+    )

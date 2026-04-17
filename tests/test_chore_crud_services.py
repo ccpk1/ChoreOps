@@ -23,6 +23,7 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
+from homeassistant.core import Context
 from homeassistant.exceptions import HomeAssistantError
 import pytest
 import voluptuous as vol
@@ -134,6 +135,24 @@ def get_button_entity_id(
     return entity_registry.async_get_entity_id("button", DOMAIN, unique_id)
 
 
+def _set_user_manage_capability(
+    coordinator: Any,
+    *,
+    ha_user_id: str,
+    can_manage: bool,
+) -> None:
+    """Set manage capability for the linked user record."""
+    users = coordinator._data.get(const.DATA_USERS, {})
+    for user_data in users.values():
+        if not isinstance(user_data, dict):
+            continue
+        if user_data.get(const.DATA_USER_HA_USER_ID) == ha_user_id:
+            user_data[const.DATA_USER_CAN_MANAGE] = can_manage
+            return
+
+    raise AssertionError(f"No user mapped to HA user_id={ha_user_id}")
+
+
 # ============================================================================
 # CREATE CHORE - SCHEMA VALIDATION TESTS
 # ============================================================================
@@ -196,6 +215,94 @@ class TestCreateChoreSchemaValidation:
                     "points": 10,
                 },
                 blocking=True,
+            )
+
+
+class TestChoreCrudAuthorization:
+    """Test management authorization gates on chore CRUD services."""
+
+    @pytest.mark.asyncio
+    async def test_create_chore_requires_manage_capability(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+        mock_hass_users: dict[str, Any],
+    ) -> None:
+        """Create is denied when the linked user lacks manage permission."""
+        actor_user_id = mock_hass_users["assignee1"].id
+        _set_user_manage_capability(
+            scenario_full.coordinator,
+            ha_user_id=actor_user_id,
+            can_manage=False,
+        )
+
+        with pytest.raises(HomeAssistantError):
+            await hass.services.async_call(
+                DOMAIN,
+                SERVICE_CREATE_CHORE,
+                {
+                    "name": "Unauthorized Create",
+                    "assigned_user_names": ["Zoë"],
+                    "points": 5,
+                    const.SERVICE_FIELD_CONFIG_ENTRY_ID: scenario_full.config_entry.entry_id,
+                },
+                blocking=True,
+                context=Context(user_id=actor_user_id),
+            )
+
+    @pytest.mark.asyncio
+    async def test_update_chore_requires_manage_capability(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+        mock_hass_users: dict[str, Any],
+    ) -> None:
+        """Update is denied when the linked user lacks manage permission."""
+        actor_user_id = mock_hass_users["assignee1"].id
+        _set_user_manage_capability(
+            scenario_full.coordinator,
+            ha_user_id=actor_user_id,
+            can_manage=False,
+        )
+
+        with pytest.raises(HomeAssistantError):
+            await hass.services.async_call(
+                DOMAIN,
+                SERVICE_UPDATE_CHORE,
+                {
+                    "name": "Make bed",
+                    "points": 99,
+                    const.SERVICE_FIELD_CONFIG_ENTRY_ID: scenario_full.config_entry.entry_id,
+                },
+                blocking=True,
+                context=Context(user_id=actor_user_id),
+            )
+
+    @pytest.mark.asyncio
+    async def test_delete_chore_requires_manage_capability(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+        mock_hass_users: dict[str, Any],
+    ) -> None:
+        """Delete is denied when the linked user lacks manage permission."""
+        actor_user_id = mock_hass_users["assignee1"].id
+        _set_user_manage_capability(
+            scenario_full.coordinator,
+            ha_user_id=actor_user_id,
+            can_manage=False,
+        )
+
+        with pytest.raises(HomeAssistantError):
+            await hass.services.async_call(
+                DOMAIN,
+                SERVICE_DELETE_CHORE,
+                {
+                    "name": "Make bed",
+                    const.SERVICE_FIELD_CONFIG_ENTRY_ID: scenario_full.config_entry.entry_id,
+                },
+                blocking=True,
+                context=Context(user_id=actor_user_id),
             )
 
         # Missing assigned_user_names

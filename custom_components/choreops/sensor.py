@@ -4252,7 +4252,8 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         can_claim, can_approve, timestamps, etc.) should be fetched from the
         chore status sensor via state_attr(chore.eid, 'attribute_name').
 
-        Minimal fields (6 total):
+        Minimal fields (7 total):
+        - chore_id: stable chore UUID (for safe update targeting)
         - eid: entity_id (for fetching additional attributes from chore sensor)
         - name: chore name (for display)
         - state: pending/claimed/completed/overdue (for status coloring)
@@ -4320,6 +4321,7 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
 
         # Return the minimal fields needed for dashboard rendering
         return {
+            const.ATTR_CHORE_ID: chore_id,
             const.ATTR_EID: chore_eid,
             const.ATTR_NAME: chore_name,
             const.ATTR_STATE: state,
