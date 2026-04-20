@@ -55,10 +55,11 @@ python -m pytest tests/ -x
 
 ```bash
 # Default (uses scenario_stress.yaml - 19 assignees, 510 entities)
-python -m pytest tests/test_performance_comprehensive.py -s --tb=short
+# Note: pytest.ini excludes performance tests by default, so include -m performance.
+python -m pytest tests/test_performance_comprehensive.py -s --tb=short -m performance
 
 # Custom scenario via environment variable
-PERF_SCENARIO=scenario_full.yaml python -m pytest tests/test_performance_comprehensive.py -s
+PERF_SCENARIO=scenario_full.yaml python -m pytest tests/test_performance_comprehensive.py -s -m performance
 ```
 
 ### What the Performance Test Measures

@@ -7,10 +7,10 @@ Measures actual expensive operations:
 - Entity creation and registration
 
 **Run with default scenario (scenario_stress.yaml)**:
-    pytest tests/test_performance_comprehensive.py -s --tb=short
+    pytest tests/test_performance_comprehensive.py -s --tb=short -m performance
 
 **Run with custom scenario**:
-    PERF_SCENARIO=scenario_full.yaml pytest tests/test_performance_comprehensive.py -s
+    PERF_SCENARIO=scenario_full.yaml pytest tests/test_performance_comprehensive.py -s -m performance
 """
 
 from datetime import datetime
@@ -90,9 +90,8 @@ async def run_performance_test(
 
     # Test badge checking for all assignees (via GamificationManager)
     badge_start = time.perf_counter()
-    for assignee_id in coordinator.assignees_data:
-        coordinator.gamification_manager._mark_dirty(assignee_id)
-    coordinator.gamification_manager._evaluate_pending_assignees()
+    coordinator.gamification_manager.recalculate_all_badges()
+    await coordinator.gamification_manager._drain_pending_evaluations_now()
     badge_duration_ms = (time.perf_counter() - badge_start) * 1000
 
     # Test overdue checking
