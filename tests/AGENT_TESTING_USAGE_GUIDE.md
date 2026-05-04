@@ -59,6 +59,14 @@ python -m pytest tests/test_performance_comprehensive.py -s --tb=short
 
 # Custom scenario via environment variable
 PERF_SCENARIO=scenario_full.yaml python -m pytest tests/test_performance_comprehensive.py -s
+
+# Dense per-user scenarios (same files used for manual live-load testing)
+PERF_SCENARIO=scenario_density_starblum_40.yaml python -m pytest tests/test_performance_comprehensive.py -s
+PERF_SCENARIO=scenario_density_starblum_50.yaml python -m pytest tests/test_performance_comprehensive.py -s
+PERF_SCENARIO=scenario_density_starblum_100.yaml python -m pytest tests/test_performance_comprehensive.py -s
+
+# Opt-in dashboard helper density stress tests
+CHOREOPS_RUN_STRESS=1 python -m pytest tests/test_dashboard_helper_density_stress.py -s --tb=short
 ```
 
 ### What the Performance Test Measures
@@ -74,7 +82,31 @@ PERF_SCENARIO=scenario_full.yaml python -m pytest tests/test_performance_compreh
 | -------------------------------- | -------------------------------------------- | ----------------------- |
 | `scenario_stress.yaml` (default) | 19 assignees, 19 chores, 5 badges (~510 entities) | Standard stress test    |
 | `scenario_full.yaml`             | 3 assignees, 18 chores, 2 badges (~236 entities)  | Quick integration check |
+| `scenario_density_starblum_40.yaml` | 3 assignees, 40 chores each (120 chores total) | First lower-density threshold check |
+| `scenario_density_starblum_50.yaml` | 3 assignees, 50 chores each (150 chores total) | Lower-density threshold check |
+| `scenario_density_starblum_60.yaml` | 3 assignees, 60 chores each (180 chores total) | Lower-density threshold check |
+| `scenario_density_starblum_70.yaml` | 3 assignees, 70 chores each (210 chores total) | Per-user density validation |
+| `scenario_density_starblum_80.yaml` | 3 assignees, 80 chores each (240 chores total) | Per-user density validation |
+| `scenario_density_starblum_90.yaml` | 3 assignees, 90 chores each (270 chores total) | Per-user density validation |
+| `scenario_density_starblum_100.yaml` | 3 assignees, 100 chores each (300 chores total) | Highest-density helper/manual test |
 | `scenario_minimal.yaml`          | 1 assignee, 1 chore                               | Fastest sanity check    |
+
+### Manual live-load workflow
+
+The dense `scenario_density_starblum_*.yaml` files are committed fixtures and can
+be loaded directly into a dev Home Assistant instance with the existing loader:
+
+```bash
+python utils/load_test_scenario_to_live_ha.py \
+	--scenario tests/scenarios/scenario_density_starblum_50.yaml \
+	--reset
+```
+
+To regenerate the dense scenario YAMLs after updating the template utility:
+
+```bash
+python utils/generate_dense_test_scenarios.py
+```
 
 ### Performance Thresholds
 
