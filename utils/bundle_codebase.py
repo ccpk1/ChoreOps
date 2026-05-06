@@ -17,6 +17,12 @@ BACKEND_TRANSLATION_DIRS = (
     Path("choreops/custom_components/choreops/translations_custom"),
 )
 
+BACKEND_MANAGER_DIR = Path("choreops/custom_components/choreops/managers")
+
+BACKEND_VENDORED_DASHBOARD_DIR = Path("choreops/custom_components/choreops/dashboards")
+
+BACKEND_TEST_DIR = Path("choreops/tests")
+
 BACKEND_TRANSLATION_SOURCE_DIRS = (
     CHOREOPS_REPO_ROOT / "custom_components/choreops/translations",
     CHOREOPS_REPO_ROOT / "custom_components/choreops/translations_custom",
@@ -115,6 +121,11 @@ def parse_args() -> argparse.Namespace:
             "language, or a specific two-letter code such as 'fr' or 'de'."
         ),
     )
+    parser.add_argument(
+        "--include-tests",
+        action="store_true",
+        help="Also create a separate backend tests export. Tests are excluded by default.",
+    )
     return parser.parse_args()
 
 
@@ -182,16 +193,36 @@ if __name__ == "__main__":
 
     print(f"🚀 Starting Knowledge Base Bundler in Workspace: {WORKSPACE_ROOT}\n")  # noqa: T201
 
-    # 1. Bundle the Core Integration
+    # 1. Bundle the default backend integration surface
     bundle_for_gem(
-        source_folder_name="choreops",
+        source_folder_name="choreops/custom_components/choreops",
         output_filename="gem_choreops_backend.txt",
         allowed_extensions=(".py", ".yaml", ".json"),
-        excluded_dirs=BACKEND_TRANSLATION_DIRS,
+        excluded_dirs=(
+            BACKEND_MANAGER_DIR,
+            BACKEND_VENDORED_DASHBOARD_DIR,
+            *BACKEND_TRANSLATION_DIRS,
+        ),
+    )
+
+    # 1a. Bundle backend managers separately
+    bundle_for_gem(
+        source_folder_name="choreops/custom_components/choreops/managers",
+        output_filename="gem_choreops_backend_managers.txt",
+        allowed_extensions=(".py", ".yaml", ".json"),
     )
 
     # 1b. Bundle backend translations separately
     bundle_backend_translations(backend_translation_selector)
+
+    # 1c. Bundle backend tests separately when requested
+    if args.include_tests:
+        bundle_for_gem(
+            source_folder_name="choreops/tests",
+            output_filename="gem_choreops_backend_tests.txt",
+            allowed_extensions=(".py", ".yaml", ".json"),
+            excluded_dirs=(BACKEND_TEST_DIR / "__pycache__",),
+        )
 
     # 2. Bundle the Dashboards
     bundle_for_gem(
