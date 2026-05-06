@@ -1312,6 +1312,14 @@ def test_shared_chore_engine_fragment_contains_ui_control_contract() -> None:
     assert "chores_by_label" not in template_str
 
 
+def test_shared_chore_engine_group_render_uses_translation_sensor_reference() -> None:
+    """Shared group render should avoid duplicating the full UI label map per row."""
+    template_str = _read_template("shared/chore_engine/group_render_v1.yaml")
+
+    assert "'translation_sensor_eid': translation_sensor" in template_str
+    assert "'ui_labels': ui_labels" not in template_str
+
+
 def test_shared_chore_engine_prepare_groups_rebuilds_labels_from_rows() -> None:
     """Shared grouping fragment should rebuild labels from merged chore rows."""
     template_str = _read_template("shared/chore_engine/prepare_groups_v1.yaml")

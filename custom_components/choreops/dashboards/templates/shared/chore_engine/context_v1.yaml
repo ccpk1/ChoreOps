@@ -134,6 +134,7 @@
     {%- set chore_helper_eids = chore_helper_eids | list -%}
   {%- endif -%}
   {%- set ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor else {} -%}
+  {%- set ui_labels = ui if ui is mapping else {} -%}
   {%- set points_label = (state_attr(points_sensor, 'unit_of_measurement') if points_sensor else None) or 'Points' -%}
   {%- set points_icon = (state_attr(points_sensor, 'icon') if points_sensor else None) or 'mdi:star-circle' -%}
   {%- set ui_control = state_attr(dashboard_helper, 'ui_control') | default({}, true) -%}

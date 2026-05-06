@@ -3,7 +3,7 @@
 - **Name / Code**: Dashboard helper hybrid sharding / `DASHBOARD_HELPER_HYBRID_SHARDING`
 - **Target release / milestone**: TBD after prototype and dashboard complexity review; candidate for next dashboard-focused feature release
 - **Owner / driver(s)**: TBD
-- **Status**: Phase 4 in progress
+- **Status**: Phase 4 in progress; backend shard lifecycle is ready for dev smoke validation
 
 ## Summary & immediate steps
 
@@ -12,7 +12,7 @@
 | Phase 1 – Contract review and prototype shape | Define the helper-pointer contract and decide what stays inline vs moves to companion helpers | 100% | Contract, lifecycle, compatibility matrix, and guide updates are documented |
 | Phase 2 – Backend helper sharding | Add runtime-owned companion helper surfaces for large chore payloads and auxiliary data | 100% | Runtime shard plans, companion helper sensors, and targeted validation are complete |
 | Phase 3 – Shared dashboard snippet migration | Update shared snippets to resolve, merge, and cache chore shards in memory once per card | 100% | Canonical branch `ccpk1/issue124` created; shared chore-engine snippets now merge shard helpers and rebuild labels from merged rows |
-| Phase 4 – Testing, thresholds, and rollout | Validate size gains, template responsiveness, and backward compatibility | 75% | Added 120-density acceptance coverage, shard lifecycle/reload/orphan diagnostics tests, a strict one-edit cross-user flip case, a passing full opted-in stress matrix, and a verified dev-runtime startup fix; closeout is currently blocked by reload and small-edit helper-pointer regressions and live manual validation remains open |
+| Phase 4 – Testing, thresholds, and rollout | Validate size gains, template responsiveness, and backward compatibility | 85% | Added 120-density acceptance coverage, shard lifecycle/reload/orphan diagnostics tests, a strict one-edit cross-user flip case, a passing full opted-in stress matrix, a verified dev-runtime startup fix, fallback-free shard pointer publication, and direct end-to-end `chore_list_1` proof; live manual validation and broader template/mixed-load coverage remain open |
 
 1. **Key objective** – Preserve the current dashboard authoring model of “resolve helper once per card, work from local in-memory data” while allowing the main helper to point at an ordered list of additional chore UI helpers under `dashboard_helpers.chore_helper_eids` when the inline `chores` payload becomes too large, so the same contract scales naturally from one shard to many.
 2. **Summary of recent work** –
@@ -26,15 +26,16 @@
   - Phase 4 now includes targeted lifecycle validation for shard mode, reload reconstruction, orphan cleanup, runtime diagnostics, and an above-100 acceptance scenario at 120 chores per assignee.
   - The opt-in dense stress module now understands shard-backed helpers and the full opted-in stress matrix passes across 40-120 chores per assignee.
   - The local dev Home Assistant instance now loads the integration again after correcting the `core/custom_components` symlink and fixing pre-attach shard planning to tolerate an unset entity `hass` reference.
-  - Live manual validation is no longer blocked by the startup failure, but dashboard responsiveness and authenticated dense-scenario load checks are still pending.
-  - The remaining technical blocker is shard-helper pointer publication on the main helper after reload and some ordinary edit paths: companion helper entities register with the expected `ui_dashboard_chore_list` naming contract, but the main helper can still publish `dashboard_helpers.chore_helper_eids = []` in those flows.
+  - Live manual validation is no longer blocked by startup or shard-helper publication issues; dashboard responsiveness and authenticated dense-scenario load checks are now the main remaining validation slices.
+  - The deterministic fallback helper-ID publication path has been removed from `ui_manager`; main-helper shard pointers now resolve only from real registry-backed shard helpers.
+  - The focused shard suite is green again after adding direct end-to-end coverage for `sensor.zoe_choreops_ui_dashboard_chore_list_1` and aligning lifecycle assertions with fallback-free runtime behavior.
   - Preserve the closed Phase 1 and Phase 2 contracts as the implementation source of truth; do not reopen approved naming, threshold, or runtime-plan decisions without new evidence.
 4. **Risks / blockers** –
    - Jinja can merge lists dynamically, but repeated `state_attr()` calls inside loops will hurt dashboard responsiveness if the contract is not designed to resolve shard payloads once per card.
    - A multi-helper merge contract is feasible in shared snippets, but debugging broken pointers or partial helper availability will be more complex than the current single-helper model.
    - Backward compatibility matters because existing power-user dashboards may read helper attributes directly instead of going through shared snippets.
   - If shard discovery becomes too dynamic, template readability and support burden may grow faster than the size benefit.
-  - Current lifecycle behavior is not yet fully stable: focused shard tests still show reload and small-edit flows where the main helper loses the resolved shard pointer list even though companion helper entities are registered.
+  - Focused backend shard lifecycle coverage is green, but manual dashboard render responsiveness and shared-template regression coverage are still incomplete.
    - Dashboard authoring source-of-truth rules matter here: canonical template edits belong in `ccpk1/ChoreOps-Dashboards`, then must be synced into the integration repo via `python utils/sync_dashboard_assets.py` and parity-checked before validation.
 5. **References** –
    - [docs/ARCHITECTURE.md](../ARCHITECTURE.md)
@@ -205,7 +206,10 @@
   - Ran the full opted-in dense stress suite with the default pytest stress exclusion overridden and confirmed all 16 stress cases pass across 40-120 chores per assignee.
   - Resolved the local dev-runtime startup regression by fixing the missing top-level `core/custom_components/choreops` link and making helper payload assembly tolerate pre-attach shard planning before `entity.hass` is populated.
   - Re-ran the full opted-in dense stress suite after the startup fix and confirmed it still passes at `16 passed` across 40-120 chores per assignee.
-  - Latest focused shard reruns still fail in two lifecycle cases: reload reconstruction and small-edit shard retention can leave the main helper publishing an empty `dashboard_helpers.chore_helper_eids` list even while the expected shard helper entities are present in the registry and state machine.
+  - Added a direct end-to-end regression that looks up `sensor.zoe_choreops_ui_dashboard_chore_list_1` and proves its live shard attributes exist before and after reload.
+  - Fixed the real startup root cause by marking chore shard helpers as always-required in the central entity registry and keeping startup shard creation in the initial sensor entity add path.
+  - Removed the deterministic `ui_manager` fallback that synthesized shard helper IDs and kept only registry-backed shard pointer publication.
+  - Re-ran the focused shard suite after the fallback removal and confirmed it passes at `10 passed` with the fallback-free runtime behavior.
 - **Key issues**
   - The current stress suite measures attribute size, not dashboard render latency; manual validation will still matter.
   - Backward compatibility needs explicit tests because many dashboards may still assume one helper contains all chore rows inline.
@@ -235,8 +239,9 @@
   - `./utils/quick_lint.sh --fix` ✅ (Phase 4 targeted validation rerun; includes mypy and boundary checks)
   - `python -m pytest tests/test_dashboard_helper_sharding.py -q` ✅ (`7 passed`) after the pre-attach `hass` fallback fix
   - `CHOREOPS_RUN_STRESS=1 python -m pytest -o addopts='' -m stress tests/test_dashboard_helper_density_stress.py -v --tb=line` ✅ (`16 passed`) after the startup fix
-  - `python -m pytest tests/test_dashboard_helper_sharding.py -q` ❌ (`6 passed, 2 failed`) after the latest lifecycle and naming changes; failures are reload reconstruction and small-edit shard retention due to empty `dashboard_helpers.chore_helper_eids` publication on the main helper
-- Outstanding tests: Manual live-load validation, mixed-load acceptance validation, template-side shard-pointer absence/partial-availability regression coverage, and a fix for the current reload/small-edit shard-pointer publication regression remain pending.
+  - `python -m pytest tests/test_dashboard_helper_sharding.py::TestDashboardHelperSharding::test_end_to_end_setup_and_reload_expose_chore_list_1_attributes -q` ✅ (`1 passed`) after removing the deterministic fallback path
+  - `python -m pytest tests/test_dashboard_helper_sharding.py -q` ✅ (`10 passed`) after removing the deterministic fallback path and keeping lifecycle assertions aligned to real registry-backed shard publication
+- Outstanding tests: Manual live-load validation, mixed-load acceptance validation, and template-side shard-pointer absence/partial-availability regression coverage remain pending.
 
 ## Phase 4 validation notes
 
@@ -251,7 +256,7 @@
 - **Still required for signoff**:
   - Manual dashboard responsiveness checks in a live Home Assistant environment.
   - Authenticated live-load execution of the dense acceptance scenario in the dev Home Assistant instance.
-  - A fix for the remaining reload and ordinary-edit shard-pointer publication regression so the main helper consistently republishes resolved `dashboard_helpers.chore_helper_eids` after shard helpers are registered.
+  - Template-side regression coverage for shard-pointer absent/present/partial-availability cases and a mixed-load validation slice.
 
 ## Notes & follow-up
 

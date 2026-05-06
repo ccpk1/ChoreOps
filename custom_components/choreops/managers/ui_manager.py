@@ -279,6 +279,7 @@ class UIManager(BaseManager):
             self.set_helper_shard_plan(user_id, const.HELPER_SHARD_FAMILY_CHORES, plan)
 
             existing_entries = self._get_existing_chore_shard_entries(user_id)
+            live_shard_indexes = self._get_live_chore_shard_indexes(existing_entries)
             expected_indexes = set(range(1, plan.expected_shard_count + 1))
 
             removed_count = 0
@@ -291,7 +292,7 @@ class UIManager(BaseManager):
             created_count = 0
             if not registry_only and self._sensor_add_entities_callback is not None:
                 for shard_index in sorted(expected_indexes):
-                    if shard_index in existing_entries:
+                    if shard_index in live_shard_indexes:
                         continue
                     created_sensors.append(
                         AssigneeDashboardChoreShardSensor(
@@ -369,11 +370,14 @@ class UIManager(BaseManager):
         if plan is None or plan.expected_shard_count == 0:
             return []
 
-        existing_entries = self._get_existing_chore_shard_entries(user_id)
         return [
-            existing_entries[shard_index].entity_id
+            entity_entry.entity_id
             for shard_index in range(1, plan.expected_shard_count + 1)
-            if shard_index in existing_entries
+            if (
+                entity_entry := self._get_existing_chore_shard_entries(user_id).get(
+                    shard_index
+                )
+            )
         ]
 
     def get_chore_shard_unique_id(self, user_id: str, shard_index: int) -> str:
@@ -404,6 +408,16 @@ class UIManager(BaseManager):
             shard_entries[int(shard_index)] = entry
 
         return shard_entries
+
+    def _get_live_chore_shard_indexes(
+        self, existing_entries: dict[int, er.RegistryEntry]
+    ) -> set[int]:
+        """Return shard indexes that currently have live states in Home Assistant."""
+        return {
+            shard_index
+            for shard_index, entity_entry in existing_entries.items()
+            if self.hass.states.get(entity_entry.entity_id) is not None
+        }
 
     def _remove_chore_shard_entities_for_user(self, user_id: str) -> None:
         """Remove all chore shard helper entities for one user."""

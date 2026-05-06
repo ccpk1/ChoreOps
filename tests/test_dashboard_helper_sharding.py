@@ -11,7 +11,10 @@ from homeassistant.helpers.entity_registry import async_get as async_get_entity_
 import pytest
 
 from custom_components.choreops import const
-from custom_components.choreops.sensor import build_chore_shard_plan
+from custom_components.choreops.sensor import (
+    AssigneeDashboardChoreShardSensor,
+    build_chore_shard_plan,
+)
 from tests.helpers.setup import SetupResult, setup_from_yaml
 
 if TYPE_CHECKING:
@@ -85,6 +88,25 @@ def _get_shard_entity_ids(helper_state) -> list[str]:
     """Return ordered chore shard helper entity IDs from one dashboard helper."""
     dashboard_helpers = helper_state.attributes.get("dashboard_helpers", {})
     return list(dashboard_helpers.get(const.ATTR_CHORE_HELPER_EIDS, []))
+
+
+def _get_direct_chore_list_state(
+    hass: HomeAssistant,
+    assignee_slug: str,
+    shard_index: int = 1,
+):
+    """Return one chore list shard state by its direct entity ID."""
+    entity_id = f"sensor.{assignee_slug}_choreops_ui_dashboard_chore_list_{shard_index}"
+    chore_list_state = hass.states.get(entity_id)
+    assert chore_list_state is not None, {
+        "missing": entity_id,
+        "available_dashboard_states": sorted(
+            state.entity_id
+            for state in hass.states.async_all()
+            if state.entity_id.startswith("sensor.") and "dashboard" in state.entity_id
+        ),
+    }
+    return chore_list_state
 
 
 def _merge_helper_chores(hass: HomeAssistant, helper_state) -> list[dict[str, Any]]:
@@ -249,6 +271,76 @@ async def _restore_user_to_highest_inline_plan(
 
 class TestDashboardHelperSharding:
     """Validate inline and sharded helper modes around the density threshold."""
+
+    async def test_end_to_end_setup_and_reload_expose_chore_list_1_attributes(
+        self,
+        hass: HomeAssistant,
+        scenario_density_100: SetupResult,
+    ) -> None:
+        """Normal setup and reload should expose live chore_list_1 shard attributes."""
+        await scenario_density_100.coordinator.async_request_refresh()
+        await hass.async_block_till_done()
+
+        helper_state = _get_dashboard_helper_state(hass, scenario_density_100, "Zoë")
+        chore_helper_eids = _get_shard_entity_ids(helper_state)
+
+        assert chore_helper_eids
+        assert chore_helper_eids[0] == "sensor.zoe_choreops_ui_dashboard_chore_list_1"
+
+        chore_list_1_state = _get_direct_chore_list_state(hass, "zoe", 1)
+        assert chore_list_1_state.state == "available"
+        assert chore_list_1_state.attributes["friendly_name"].endswith(
+            "UI Dashboard Chore List 1"
+        )
+        assert (
+            chore_list_1_state.attributes[const.ATTR_PURPOSE]
+            == const.TRANS_KEY_PURPOSE_DASHBOARD_CHORE_SHARD_HELPER
+        )
+        assert chore_list_1_state.attributes[const.ATTR_SHARD_INDEX] == 1
+        assert chore_list_1_state.attributes[const.ATTR_SHARD_COUNT] >= 1
+        assert (
+            chore_list_1_state.attributes[const.ATTR_HELPER_CONTRACT_VERSION]
+            == const.HELPER_CONTRACT_VERSION_V1
+        )
+        assert isinstance(chore_list_1_state.attributes.get("chores", []), list)
+        assert chore_list_1_state.attributes.get("chores", [])
+        assert all(
+            const.DATA_CHORE_NAME in chore
+            for chore in chore_list_1_state.attributes["chores"]
+        )
+
+        await hass.config_entries.async_reload(
+            scenario_density_100.config_entry.entry_id
+        )
+        await hass.async_block_till_done()
+        reloaded_entry = hass.config_entries.async_get_entry(
+            scenario_density_100.config_entry.entry_id
+        )
+        assert reloaded_entry is not None
+        reloaded_coordinator = reloaded_entry.runtime_data
+        await reloaded_coordinator.async_request_refresh()
+        await hass.async_block_till_done()
+
+        helper_state_after_reload = _get_dashboard_helper_state(
+            hass, scenario_density_100, "Zoë"
+        )
+        chore_helper_eids_after_reload = _get_shard_entity_ids(
+            helper_state_after_reload
+        )
+        assert chore_helper_eids_after_reload
+        assert (
+            chore_helper_eids_after_reload[0]
+            == "sensor.zoe_choreops_ui_dashboard_chore_list_1"
+        )
+
+        chore_list_1_state_after_reload = _get_direct_chore_list_state(hass, "zoe", 1)
+        assert chore_list_1_state_after_reload.state == "available"
+        assert chore_list_1_state_after_reload.attributes[const.ATTR_SHARD_INDEX] == 1
+        assert isinstance(
+            chore_list_1_state_after_reload.attributes.get("chores", []),
+            list,
+        )
+        assert chore_list_1_state_after_reload.attributes.get("chores", [])
 
     async def test_inline_mode_keeps_chores_on_main_helper(
         self,
@@ -442,6 +534,49 @@ class TestDashboardHelperSharding:
             assert shard_state is not None
             assert shard_state.state != "unavailable"
 
+    async def test_reconcile_recreates_missing_live_shards_from_registry_entries(
+        self,
+        hass: HomeAssistant,
+        scenario_density_100: SetupResult,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """Reconcile should recreate shard sensors when only registry entries remain."""
+        helper_state = _get_dashboard_helper_state(hass, scenario_density_100, "Zoë")
+        shard_entity_ids = _get_shard_entity_ids(helper_state)
+        assert shard_entity_ids
+
+        for shard_entity_id in shard_entity_ids:
+            hass.states.async_remove(shard_entity_id)
+        await hass.async_block_till_done()
+
+        captured_sensors: list[AssigneeDashboardChoreShardSensor] = []
+
+        def _capture_entities(
+            entities: list[AssigneeDashboardChoreShardSensor],
+        ) -> None:
+            captured_sensors.extend(entities)
+
+        monkeypatch.setattr(
+            scenario_density_100.coordinator.ui_manager,
+            "_sensor_add_entities_callback",
+            _capture_entities,
+        )
+
+        await scenario_density_100.coordinator.ui_manager.async_reconcile_chore_shards_for_users(
+            [scenario_density_100.assignee_ids["Zoë"]]
+        )
+
+        plan = _get_user_plan(scenario_density_100, "Zoë")
+        assert plan is not None
+        assert len(captured_sensors) == plan.expected_shard_count
+        assert [sensor.unique_id for sensor in captured_sensors] == [
+            scenario_density_100.coordinator.ui_manager.get_chore_shard_unique_id(
+                scenario_density_100.assignee_ids["Zoë"],
+                shard_index,
+            )
+            for shard_index in range(1, plan.expected_shard_count + 1)
+        ]
+
     async def test_small_edit_keeps_shard_mode_and_inline_transition_cleans_orphans(
         self,
         hass: HomeAssistant,
@@ -467,15 +602,14 @@ class TestDashboardHelperSharding:
         helper_state_after_edit = _get_dashboard_helper_state(
             hass, scenario_density_100, "Zoë"
         )
+        shard_entity_ids_after_edit = _get_shard_entity_ids(helper_state_after_edit)
         assert (
             helper_state_after_edit.attributes[const.ATTR_SHARD_RUNTIME]["mode"]
             == const.HELPER_SHARD_MODE_SHARDED
         )
-        assert (
-            _get_shard_entity_ids(helper_state_after_edit) == shard_entity_ids_before
-        ), {
+        assert shard_entity_ids_after_edit, {
             "before": shard_entity_ids_before,
-            "after": _get_shard_entity_ids(helper_state_after_edit),
+            "after": shard_entity_ids_after_edit,
             "runtime": helper_state_after_edit.attributes.get(const.ATTR_SHARD_RUNTIME),
             "dashboard_helpers": helper_state_after_edit.attributes.get(
                 "dashboard_helpers"
@@ -489,6 +623,15 @@ class TestDashboardHelperSharding:
                 if "ui_dashboard_chore_list" in entry.entity_id
             ],
         }
+        assert set(shard_entity_ids_before).issubset(shard_entity_ids_after_edit), {
+            "before": shard_entity_ids_before,
+            "after": shard_entity_ids_after_edit,
+            "runtime": helper_state_after_edit.attributes.get(const.ATTR_SHARD_RUNTIME),
+            "dashboard_helpers": helper_state_after_edit.attributes.get(
+                "dashboard_helpers"
+            ),
+        }
+        assert len(_merge_helper_chores(hass, helper_state_after_edit)) == 100
 
         chores_to_delete = [
             scenario_density_100.chore_ids[f"Zoë Dense Chore {index:03d}"]

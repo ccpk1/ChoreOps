@@ -569,6 +569,34 @@ async def async_setup_entry(
 
     entities.append(SystemDashboardHelperSensor(coordinator, entry))
 
+    # Startup/reload shard helpers must be part of the platform's initial entity
+    # add so their states exist end to end before the main helper republishes
+    # deterministic chore_helper_eids.
+    for assignee_id, assignee_data in coordinator.assignees_data.items():
+        assignee_name = get_item_name_or_log_error(
+            "assignee", assignee_id, assignee_data, const.DATA_USER_NAME
+        )
+        if not assignee_name:
+            continue
+
+        plan = coordinator.ui_manager.get_helper_shard_plan(
+            assignee_id,
+            const.HELPER_SHARD_FAMILY_CHORES,
+        )
+        if plan is None or plan.mode != const.HELPER_SHARD_MODE_SHARDED:
+            continue
+
+        for shard_index in range(1, plan.expected_shard_count + 1):
+            entities.append(
+                AssigneeDashboardChoreShardSensor(
+                    coordinator,
+                    entry,
+                    assignee_id,
+                    assignee_name,
+                    shard_index,
+                )
+            )
+
     # Dashboard helper sensors: Created last to ensure all referenced entities exist
     # This prevents entity ID lookup failures during initial setup
     for assignee_id, assignee_data in coordinator.assignees_data.items():
@@ -591,7 +619,7 @@ async def async_setup_entry(
     coordinator.hass.async_create_task(
         coordinator.ui_manager.async_finalize_chore_shards_for_users(
             list(coordinator.assignees_data),
-            registry_only=False,
+            registry_only=True,
         )
     )
     coordinator.async_update_listeners()
