@@ -2274,6 +2274,9 @@ TRANS_KEY_PURPOSE_CHALLENGE: Final = "purpose_challenge"
 TRANS_KEY_PURPOSE_ACHIEVEMENT_PROGRESS: Final = "purpose_achievement_progress"
 TRANS_KEY_PURPOSE_CHALLENGE_PROGRESS: Final = "purpose_challenge_progress"
 TRANS_KEY_PURPOSE_DASHBOARD_HELPER: Final = "purpose_dashboard_helper"
+TRANS_KEY_PURPOSE_DASHBOARD_CHORE_SHARD_HELPER: Final = (
+    "purpose_dashboard_chore_shard_helper"
+)
 TRANS_KEY_PURPOSE_DASHBOARD_TRANSLATION: Final = "purpose_dashboard_translation"
 TRANS_KEY_PURPOSE_SYSTEM_DASHBOARD_HELPER: Final = "purpose_system_dashboard_helper"
 # Legacy sensor purposes (sensor_legacy.py)
@@ -2517,12 +2520,17 @@ ATTR_TYPE: Final = "type"
 
 # Dashboard Helper Sensor Attributes
 ATTR_CHORES_BY_LABEL: Final = "chores_by_label"
+ATTR_CHORE_HELPER_EIDS: Final = "chore_helper_eids"
 ATTR_CHORE_CLAIMED_BY: Final = "claimed_by"
 ATTR_CHORE_COMPLETED_BY: Final = "completed_by"
 ATTR_CHORE_DUE_DATE: Final = "due_date"
+ATTR_HELPER_CONTRACT_VERSION: Final = "helper_contract_version"
 ATTR_CHORE_IS_TODAY_AM: Final = "is_today_am"
 ATTR_CHORE_LABELS: Final = "labels"
 ATTR_CHORE_PRIMARY_GROUP: Final = "primary_group"
+ATTR_SHARD_COUNT: Final = "shard_count"
+ATTR_SHARD_INDEX: Final = "shard_index"
+ATTR_SHARD_RUNTIME: Final = "shard_runtime"
 ATTR_UI_CONTROL: Final = "ui_control"
 ATTR_UI_ROOT: Final = "ui_root"
 ATTR_UI_ROOT_SHARED_ADMIN: Final = "shared_admin"
@@ -2551,6 +2559,13 @@ ATTR_EARNED_COUNT: Final = "earned_count"
 PRIMARY_GROUP_TODAY = "today"
 PRIMARY_GROUP_THIS_WEEK = "this_week"
 PRIMARY_GROUP_OTHER = "other"
+
+HELPER_CONTRACT_VERSION_V1: Final = 1
+HELPER_SHARD_FAMILY_CHORES: Final = "chores"
+HELPER_SHARD_MODE_INLINE: Final = "inline"
+HELPER_SHARD_MODE_SHARDED: Final = "sharded"
+HELPER_SHARD_ENTER_BYTES: Final = 14 * 1024
+HELPER_SHARD_EXIT_BYTES: Final = 12 * 1024
 
 
 # ================================================================================================
@@ -2595,6 +2610,9 @@ SENSOR_KC_UID_SUFFIX_SHARED_CHORE_GLOBAL_STATE_SENSOR: Final = "_chore_global_st
 
 # Sensor Entity ID constants still in active use (runtime)
 SENSOR_KC_UID_SUFFIX_UI_DASHBOARD_HELPER: Final = "_dashboard_helper"
+SENSOR_KC_UID_SUFFIX_UI_DASHBOARD_CHORE_SHARD_HELPER: Final = (
+    "_dashboard_chore_shard_helper"
+)
 SENSOR_KC_UID_SUFFIX_SYSTEM_DASHBOARD_HELPER: Final = "_system_dashboard_helper"
 
 # System-level dashboard translation sensor (one per language in use)
@@ -3635,6 +3653,9 @@ TRANS_KEY_SENSOR_SHARED_CHORE_GLOBAL_STATUS_SENSOR: Final = (
 TRANS_KEY_SENSOR_DASHBOARD_TRANSLATION: Final = "system_dashboard_translation_sensor"
 TRANS_KEY_SENSOR_SYSTEM_DASHBOARD_HELPER: Final = "system_dashboard_helper_sensor"
 TRANS_KEY_SENSOR_DASHBOARD_HELPER: Final = "assignee_dashboard_helper_sensor"
+TRANS_KEY_SENSOR_DASHBOARD_CHORE_LIST_HELPER: Final = (
+    "assignee_dashboard_chore_list_helper_sensor"
+)
 
 
 # Sensor Attributes Translation Keys

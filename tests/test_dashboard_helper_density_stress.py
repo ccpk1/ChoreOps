@@ -13,15 +13,19 @@ from __future__ import annotations
 
 import json
 import os
+from typing import TYPE_CHECKING
 
-from homeassistant.core import HomeAssistant
 import pytest
 
+from custom_components.choreops import const
 from tests.helpers.setup import setup_from_yaml
+
+if TYPE_CHECKING:
+    from homeassistant.core import HomeAssistant
 
 RUN_STRESS = os.environ.get("CHOREOPS_RUN_STRESS") == "1"
 RECORDER_LIMIT_BYTES = 16 * 1024
-SCENARIO_COUNTS = (40, 50, 60, 70, 80, 90, 100)
+SCENARIO_COUNTS = (40, 50, 60, 70, 80, 90, 100, 120)
 ASSIGNEE_SLUGS = ("zoe", "max", "lila")
 
 pytestmark = [
@@ -40,6 +44,28 @@ def _get_helper_size(hass: HomeAssistant, assignee_slug: str) -> int:
     helper_state = hass.states.get(entity_id)
     assert helper_state is not None, f"Dashboard helper not found: {entity_id}"
     return len(json.dumps(helper_state.attributes).encode("utf-8"))
+
+
+def _get_helper_chores(
+    hass: HomeAssistant, assignee_slug: str
+) -> list[dict[str, object]]:
+    """Return merged chores from the main helper and any chore shard helpers."""
+    helper_entity_id = f"sensor.{assignee_slug}_choreops_ui_dashboard_helper"
+    helper_state = hass.states.get(helper_entity_id)
+    assert helper_state is not None, f"Dashboard helper not found: {helper_entity_id}"
+
+    merged_chores = list(helper_state.attributes.get("chores", []))
+    dashboard_helpers = helper_state.attributes.get("dashboard_helpers", {})
+    chore_helper_eids = dashboard_helpers.get(const.ATTR_CHORE_HELPER_EIDS, [])
+
+    for shard_entity_id in chore_helper_eids:
+        shard_state = hass.states.get(shard_entity_id)
+        assert shard_state is not None, (
+            f"Chore shard helper not found: {shard_entity_id}"
+        )
+        merged_chores.extend(shard_state.attributes.get("chores", []))
+
+    return merged_chores
 
 
 @pytest.mark.parametrize("chores_per_assignee", SCENARIO_COUNTS)
@@ -89,12 +115,15 @@ async def test_dense_scenario_claim_chore_stays_operational(
     zoe_id = setup_result.assignee_ids["Zoë"]
     first_chore_id = setup_result.chore_ids["Zoë Dense Chore 001"]
 
-    await coordinator.chore_manager.claim_chore(zoe_id, first_chore_id, "Zoë")
+    await coordinator.ui_manager.async_reconcile_chore_shards_for_users([zoe_id])
+    await coordinator.async_request_refresh()
     await hass.async_block_till_done()
 
-    helper_state = hass.states.get("sensor.zoe_choreops_ui_dashboard_helper")
-    assert helper_state is not None
-    chores = helper_state.attributes.get("chores", [])
+    await coordinator.chore_manager.claim_chore(zoe_id, first_chore_id, "Zoë")
+    await coordinator.async_request_refresh()
+    await hass.async_block_till_done()
+
+    chores = _get_helper_chores(hass, "zoe")
     claimed_chore = next(
         chore for chore in chores if chore.get("name") == "Zoë Dense Chore 001"
     )

@@ -781,6 +781,48 @@ Authoring rule:
 
 The dashboard helper resolved via `dashboard_lookup_key = <integration.entry_id>:<user.user_id>` provides enriched chore data with these attributes:
 
+#### Current helper field classes (v1 contract baseline)
+
+Treat the current dashboard-helper surface as four field classes when evaluating
+sharding behavior:
+
+| Class | Current fields | Notes |
+| ----- | -------------- | ----- |
+| `row data` | `chores`, `rewards`, `badges`, `bonuses`, `penalties`, `achievements`, `challenges`, `points_buttons` | Lists consumed directly by dashboard cards |
+| `derived indexes` | `chores_by_label` | Transitional backend convenience index scheduled for removal from transport |
+| `auxiliary catalogs` | `pending_approvals`, `core_sensors`, `ui_control` | Supporting payloads that stay on the main helper in the first shard release |
+| `plumbing/meta` | `dashboard_helpers`, `user_name`, `user_id`, `integration_entry_id`, `dashboard_lookup_key`, `language`, `gamification_enabled` | Lookup, identity, and helper-pointer fields |
+
+Authoring rule:
+
+- Treat `chores` as the canonical chore transport surface.
+- Do not build new template dependencies on `chores_by_label`; it is being removed
+  from backend transport for the shard contract.
+
+#### Shared snippet lookup and caching contract
+
+Maintained chore dashboards are expected to follow this sequence once per card:
+
+1. Resolve `dashboard_helper` from `dashboard_lookup_key`.
+2. Resolve `dashboard_helpers` from the main helper.
+3. Read `dashboard_helpers.chore_helper_eids` once and default it to `[]`.
+4. Read all referenced shard helpers once and merge their `chores` rows into one
+   in-memory `chore_list`.
+5. Perform grouping, filtering, sorting, and label reconstruction from the merged
+   in-memory list instead of calling `state_attr()` repeatedly inside loops.
+
+Authoring rules:
+
+- `dashboard_helpers.chore_helper_eids` is always present and always a list.
+- Below the shard threshold, use the inline `chores` list from the main helper and
+  expect `dashboard_helpers.chore_helper_eids == []`.
+- Above the shard threshold, expect shard-backed `chores` transport and do not rely
+  on a parallel inline compatibility slice.
+- Resolve shard helper payloads once per card and cache the merged result in local
+  Jinja namespace variables.
+- Do not impose a template-side cap on resolved shard helpers in v1; consume the
+  full ordered pointer list exactly once per card.
+
 #### Core Chore Fields (v0.4.x)
 
 | Field      | Type   | Description                            | Example                   |
@@ -813,6 +855,119 @@ Note: Some runtime payload keys still use legacy names for backward compatibilit
 | `lock_reason`    | string\|null | Why chore is locked (null = not locked)                    | `"waiting"`, `"not_my_turn"`, `"missed"` |
 | `turn_user_name` | string\|null | Current turn holder user name                              | `"Bob"`, `null`                          |
 | `available_at`   | string\|null | ISO timestamp when chore becomes available (waiting state) | `"2026-02-10T17:30:00Z"`, `null`         |
+
+#### Shard helper contract (v1)
+
+When shard mode activates, the main helper remains the canonical dashboard entry
+point and exposes shard pointers at `dashboard_helpers.chore_helper_eids`.
+
+Main-helper contract additions:
+
+| Field | Type | Meaning |
+| ----- | ---- | ------- |
+| `dashboard_helpers.chore_helper_eids` | list[string] | Ordered shard helper entity IDs; always present, `[]` when no shards exist |
+
+Shard-helper payload contract:
+
+| Field | Type | Meaning |
+| ----- | ---- | ------- |
+| `purpose` | string | Typed purpose marker for chore shard helpers |
+| `chores` | list[dict] | Chore rows for this shard only |
+| `shard_index` | int | 1-based shard position |
+| `shard_count` | int | Total shard count for the user |
+| `helper_contract_version` | int | Shard contract version for template compatibility |
+
+Lifecycle and mode contract:
+
+- Shard mode is runtime-owned by `ui_manager`.
+- The transport mode is mutually exclusive: either inline `chores` on the main
+  helper or shard-backed `chores`, not both in parallel for the same user state.
+- Shard mode enters at or above 14 KB of accepted serialized helper size and exits
+  only at or below 12 KB.
+- Dashboards consume shard helpers only through
+  `dashboard_helpers.chore_helper_eids`.
+
+Naming contract:
+
+- Backend unique IDs are deterministic, typed chore-shard identifiers with an
+  explicit shard index.
+- Human-facing names follow the equivalent of `Chore List 1`, `Chore List 2`, and
+  so on.
+
+Diagnostics contract:
+
+- Keep shard-helper diagnostics minimal: `purpose`, `shard_index`, `shard_count`,
+  and `helper_contract_version`.
+- Keep current mode, resolved shard helper entity IDs, last accepted serialized
+  size, and last reconciliation outcome on the main helper runtime diagnostic
+  surface.
+
+#### Label reconstruction contract
+
+`chores_by_label` is removed from backend transport in the shard contract.
+Templates must rebuild label groups from the merged in-memory `chore_list`.
+
+Authoring rules:
+
+- Reconstruct label groups after the full merged `chore_list` is available.
+- Apply label ordering and exclusions to reconstructed groups, not to backend index
+  data.
+- Treat label reconstruction as a shared-snippet responsibility for maintained
+  chore dashboards.
+
+#### Legacy and partial-failure handling
+
+Maintained shard-aware snippets should treat missing or unavailable chore shard
+helpers as contributing zero rows to the merged `chore_list` and continue
+rendering the data that is available.
+
+Authoring rules:
+
+- Inspect `shard_runtime` on the main helper for diagnostics only; do not require
+  per-shard recovery logic in dashboard cards.
+- Legacy dashboards that read only `state_attr(dashboard_helper, 'chores')`
+  continue to work for inline mode, but they do not automatically merge shard
+  helpers after threshold-triggered sharding activates.
+- Maintained shared snippets are the only supported automatic merge path for
+  shard-backed chore transport.
+
+#### Compatibility matrix
+
+| Template/profile | Shard-aware shared snippet path required | Extended-scale target |
+| ---------------- | ---------------------------------------- | --------------------- |
+| `user-gamification-premier-v1` | Yes | Yes |
+| `user-chores-standard-v1` | Yes | Yes |
+| `user-chores-essential-v1` | Yes, for compatibility with `chores_by_label` removal | No |
+
+Compatibility rules:
+
+- `user-gamification-premier-v1` and `user-chores-standard-v1` are maintained
+  scale targets and must support the shard contract.
+- `user-chores-essential-v1` must remain functionally compatible with the removal
+  of `chores_by_label`, but it is not an extended-scale acceptance target.
+- Legacy dashboards that read `state_attr(dashboard_helper, 'chores')` directly do
+  not receive automatic shard merging and should be treated as fallback/legacy
+  consumers.
+
+#### Worked examples
+
+Small household example:
+
+- User with 20 chores: main helper carries inline `chores`; `dashboard_helpers`
+  includes `chore_helper_eids: []`.
+
+Large household example:
+
+- User with 120 chores: main helper remains the canonical lookup surface;
+  `dashboard_helpers.chore_helper_eids` contains ordered chore shard helper entity
+  IDs and maintained templates merge shard `chores` rows into one local
+  `chore_list` before rendering.
+
+#### Future typed-family example
+
+The reusable shard pattern is documented for chores now and rewards next.
+Future payload families should reuse the same lifecycle and pointer pattern while
+keeping public helper surfaces typed by family.
 
 ### Dashboard helper UI control fields
 

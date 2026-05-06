@@ -58,6 +58,7 @@ Legacy Sensors Imported from sensor_legacy.py (13):
 """
 
 from datetime import datetime, timedelta
+import json
 from typing import Any, cast
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
@@ -85,6 +86,7 @@ from .helpers.entity_helpers import (
     should_create_workflow_buttons,
 )
 from .helpers.translation_helpers import load_dashboard_translation
+from .managers.ui_manager import HelperShardRuntimePlan
 from .sensor_legacy import (
     AssigneeBonusAppliedSensor,
     AssigneeChoreCompletionDailySensor,
@@ -551,6 +553,11 @@ async def async_setup_entry(
     # This enables creating new translation sensors when a assignee changes to a new language
     coordinator.ui_manager.register_translation_sensor_callback(async_add_entities)
 
+    await coordinator.ui_manager.async_reconcile_chore_shards_for_users(
+        list(coordinator.assignees_data),
+        registry_only=True,
+    )
+
     # Register callback for dynamic chore/reward sensor creation (services)
     register_chore_reward_callback(async_add_entities)
 
@@ -581,6 +588,13 @@ async def async_setup_entry(
         )
 
     async_add_entities(entities)
+    coordinator.hass.async_create_task(
+        coordinator.ui_manager.async_finalize_chore_shards_for_users(
+            list(coordinator.assignees_data),
+            registry_only=False,
+        )
+    )
+    coordinator.async_update_listeners()
 
 
 # ------------------------------------------------------------------------------------------
@@ -4015,6 +4029,241 @@ class SystemDashboardTranslationSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         return None
 
 
+def _serialized_payload_size(payload: dict[str, Any]) -> int:
+    """Return the exact serialized payload size in bytes."""
+    return len(
+        json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    )
+
+
+def _build_chore_shard_payload(
+    chores_attr: list[dict[str, Any]],
+    shard_index: int,
+    shard_count: int,
+) -> dict[str, Any]:
+    """Build the public payload for one chore shard helper."""
+    return {
+        const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_DASHBOARD_CHORE_SHARD_HELPER,
+        const.ATTR_SHARD_INDEX: shard_index,
+        const.ATTR_SHARD_COUNT: shard_count,
+        const.ATTR_HELPER_CONTRACT_VERSION: const.HELPER_CONTRACT_VERSION_V1,
+        "chores": AssigneeDashboardHelperSensor._sanitize_dashboard_chore_rows(
+            chores_attr
+        ),
+    }
+
+
+def build_chore_shard_plan(
+    hass: HomeAssistant,
+    coordinator: ChoreOpsDataCoordinator,
+    entry: ChoreOpsConfigEntry,
+    assignee_id: str,
+    assignee_name: str,
+    *,
+    previous_plan: HelperShardRuntimePlan | None,
+) -> HelperShardRuntimePlan:
+    """Build the current chore shard plan for one assignee."""
+    from .managers.ui_manager import HelperShardRuntimePlan
+
+    helper = AssigneeDashboardHelperSensor(
+        coordinator,
+        entry,
+        assignee_id,
+        assignee_name,
+        "",
+    )
+    entity_registry = async_get(hass)
+    chores_attr = helper._build_chore_rows(entity_registry)
+    assignee_data = cast(
+        "dict[str, Any]", coordinator.assignees_data.get(assignee_id) or {}
+    )
+    assignee_language = cast(
+        "str",
+        assignee_data.get(
+            const.DATA_USER_DASHBOARD_LANGUAGE,
+            const.DEFAULT_DASHBOARD_LANGUAGE,
+        ),
+    )
+    translation_sensor_eid = coordinator.ui_manager.get_translation_sensor_eid(
+        assignee_language
+    )
+    current_mode = (
+        previous_plan.mode
+        if previous_plan is not None
+        else const.HELPER_SHARD_MODE_INLINE
+    )
+
+    inline_payload = helper._build_payload(
+        entity_registry,
+        chores_attr,
+        translation_sensor_eid=translation_sensor_eid,
+        chore_helper_eids=[],
+        shard_runtime={
+            "family": const.HELPER_SHARD_FAMILY_CHORES,
+            "mode": const.HELPER_SHARD_MODE_INLINE,
+            "expected_shard_count": 0,
+            "last_accepted_serialized_size": 0,
+            "last_reconciliation_outcome": "planning",
+        },
+    )
+    inline_size = _serialized_payload_size(inline_payload)
+
+    if current_mode == const.HELPER_SHARD_MODE_SHARDED:
+        if inline_size <= const.HELPER_SHARD_EXIT_BYTES:
+            return HelperShardRuntimePlan(
+                family=const.HELPER_SHARD_FAMILY_CHORES,
+                mode=const.HELPER_SHARD_MODE_INLINE,
+                shard_item_ids=[],
+                expected_shard_count=0,
+                last_accepted_serialized_size=inline_size,
+                last_reconciliation_outcome="planned_mode=inline",
+            )
+    elif inline_size < const.HELPER_SHARD_ENTER_BYTES:
+        return HelperShardRuntimePlan(
+            family=const.HELPER_SHARD_FAMILY_CHORES,
+            mode=const.HELPER_SHARD_MODE_INLINE,
+            shard_item_ids=[],
+            expected_shard_count=0,
+            last_accepted_serialized_size=inline_size,
+            last_reconciliation_outcome="planned_mode=inline",
+        )
+
+    shard_groups: list[list[dict[str, Any]]] = []
+    current_group: list[dict[str, Any]] = []
+
+    for chore in chores_attr:
+        candidate_group = [*current_group, chore]
+        candidate_payload = _build_chore_shard_payload(
+            candidate_group,
+            len(shard_groups) + 1,
+            len(shard_groups) + 1,
+        )
+        if (
+            current_group
+            and _serialized_payload_size(candidate_payload)
+            >= const.HELPER_SHARD_ENTER_BYTES
+        ):
+            shard_groups.append(current_group)
+            current_group = [chore]
+        else:
+            current_group = candidate_group
+
+    if current_group:
+        shard_groups.append(current_group)
+
+    placeholder_eids = [
+        f"sensor.choreops_chore_shard_{index}"
+        for index in range(1, len(shard_groups) + 1)
+    ]
+    sharded_payload = helper._build_payload(
+        entity_registry,
+        [],
+        translation_sensor_eid=translation_sensor_eid,
+        chore_helper_eids=placeholder_eids,
+        shard_runtime={
+            "family": const.HELPER_SHARD_FAMILY_CHORES,
+            "mode": const.HELPER_SHARD_MODE_SHARDED,
+            "expected_shard_count": len(shard_groups),
+            "last_accepted_serialized_size": 0,
+            "last_reconciliation_outcome": "planning",
+        },
+    )
+
+    return HelperShardRuntimePlan(
+        family=const.HELPER_SHARD_FAMILY_CHORES,
+        mode=const.HELPER_SHARD_MODE_SHARDED,
+        shard_item_ids=[
+            [cast("str", chore["_chore_id"]) for chore in shard_group]
+            for shard_group in shard_groups
+        ],
+        expected_shard_count=len(shard_groups),
+        last_accepted_serialized_size=_serialized_payload_size(sharded_payload),
+        last_reconciliation_outcome=(
+            f"planned_mode=sharded shard_count={len(shard_groups)}"
+        ),
+    )
+
+
+class AssigneeDashboardChoreShardSensor(ChoreOpsCoordinatorEntity, SensorEntity):
+    """Dedicated chore-only dashboard helper shard for high-density households."""
+
+    _attr_has_entity_name = True
+    _attr_translation_key = const.TRANS_KEY_SENSOR_DASHBOARD_CHORE_LIST_HELPER
+
+    def __init__(
+        self,
+        coordinator: ChoreOpsDataCoordinator,
+        entry: ChoreOpsConfigEntry,
+        assignee_id: str,
+        assignee_name: str,
+        shard_index: int,
+    ) -> None:
+        """Initialize one chore shard helper sensor."""
+        super().__init__(coordinator)
+        self._entry = entry
+        self._assignee_id = assignee_id
+        self._assignee_name = assignee_name
+        self._shard_index = shard_index
+        self._attr_unique_id = coordinator.ui_manager.get_chore_shard_unique_id(
+            assignee_id, shard_index
+        )
+        self._attr_translation_placeholders = {
+            const.ATTR_SHARD_INDEX: str(shard_index),
+            const.TRANS_KEY_SENSOR_ATTR_ASSIGNEE_NAME: assignee_name,
+        }
+        self._attr_device_info = create_assignee_device_info_from_coordinator(
+            coordinator, assignee_id, assignee_name, entry
+        )
+
+    async def async_added_to_hass(self) -> None:
+        """Refresh main dashboard helpers after this chore list helper is registered."""
+        await super().async_added_to_hass()
+        self.coordinator.hass.async_create_task(
+            self.coordinator.ui_manager.async_finalize_chore_shards_for_users(
+                [self._assignee_id],
+                registry_only=True,
+            )
+        )
+
+    @property
+    def native_value(self) -> Any:
+        """Return a simple helper state for dashboard availability checks."""
+        return "available"
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return the minimal public chore shard payload."""
+        plan = self.coordinator.ui_manager.get_helper_shard_plan(
+            self._assignee_id,
+            const.HELPER_SHARD_FAMILY_CHORES,
+        )
+        if plan is None or self._shard_index > len(plan.shard_item_ids):
+            return _build_chore_shard_payload([], self._shard_index, 0)
+
+        helper = AssigneeDashboardHelperSensor(
+            self.coordinator,
+            self._entry,
+            self._assignee_id,
+            self._assignee_name,
+            "",
+        )
+        entity_registry = async_get(self.hass)
+        chores_attr = helper._build_chore_rows(
+            entity_registry,
+            set(plan.shard_item_ids[self._shard_index - 1]),
+        )
+        return _build_chore_shard_payload(
+            chores_attr,
+            self._shard_index,
+            plan.expected_shard_count,
+        )
+
+    @property
+    def icon(self) -> str | None:
+        """Return None for icons.json fallback."""
+        return None
+
+
 # ------------------------------------------------------------------------------------------
 class SystemDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
     """System-level helper sensor for shared admin dashboard state."""
@@ -4196,6 +4445,60 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         # Look up entity ID from registry
         return self.coordinator.ui_manager.get_translation_sensor_eid(lang_code)
 
+    @staticmethod
+    def _sanitize_dashboard_chore_rows(
+        chores_attr: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
+        """Strip internal-only metadata before exposing chore rows."""
+        return [
+            {key: value for key, value in chore.items() if key != "_chore_id"}
+            for chore in chores_attr
+        ]
+
+    def _build_chore_rows(
+        self,
+        entity_registry,
+        included_chore_ids: set[str] | None = None,
+    ) -> list[dict[str, Any]]:
+        """Build chore rows for this helper, optionally restricted to specific IDs."""
+        assignee_info: AssigneeData = cast(
+            "AssigneeData", self.coordinator.assignees_data.get(self._assignee_id, {})
+        )
+        chores_attr: list[dict[str, Any]] = []
+
+        for chore_id, chore_info in self.coordinator.chores_data.items():
+            if included_chore_ids is not None and chore_id not in included_chore_ids:
+                continue
+            if self._assignee_id not in chore_info.get(
+                const.DATA_CHORE_ASSIGNED_USER_IDS, []
+            ):
+                continue
+
+            chore_eid = None
+            if entity_registry:
+                unique_id = (
+                    f"{self._entry.entry_id}_{self._assignee_id}_{chore_id}"
+                    f"{const.SENSOR_KC_UID_SUFFIX_CHORE_STATUS_SENSOR}"
+                )
+                chore_eid = entity_registry.async_get_entity_id(
+                    "sensor", const.DOMAIN, unique_id
+                )
+
+            chore_attrs = self._calculate_chore_attributes(
+                chore_id, chore_info, assignee_info, chore_eid
+            )
+            if chore_attrs:
+                chores_attr.append(chore_attrs)
+
+        chores_attr.sort(
+            key=lambda chore: (
+                chore.get(const.ATTR_CHORE_DUE_DATE) is None,
+                chore.get(const.ATTR_CHORE_DUE_DATE) or "",
+                chore.get(const.ATTR_EID) or "",
+            )
+        )
+        return chores_attr
+
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator.
 
@@ -4320,6 +4623,7 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
 
         # Return the minimal fields needed for dashboard rendering
         return {
+            "_chore_id": chore_id,
             const.ATTR_EID: chore_eid,
             const.ATTR_NAME: chore_name,
             const.ATTR_STATE: state,
@@ -4427,7 +4731,13 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
 
         return core_sensors
 
-    def _build_dashboard_helpers(self, entity_registry) -> dict[str, str | None]:
+    def _build_dashboard_helpers(
+        self,
+        entity_registry,
+        *,
+        translation_sensor_eid: str | None,
+        chore_helper_eids: list[str],
+    ) -> dict[str, Any]:
         """Build dashboard helper entity IDs for dashboard use.
 
         Looks up entity IDs from the registry by unique ID to ensure correct
@@ -4449,7 +4759,9 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         # Select helper uses SUFFIX pattern: entry_id_assignee_id + SUFFIX
         select_unique_id = f"{self._entry.entry_id}_{self._assignee_id}{const.SELECT_KC_UID_SUFFIX_ASSIGNEE_DASHBOARD_HELPER_CHORES_SELECT}"
 
-        dashboard_helpers = {}
+        dashboard_helpers: dict[str, Any] = {
+            const.ATTR_CHORE_HELPER_EIDS: chore_helper_eids,
+        }
 
         # Look up datetime helper
         try:
@@ -4469,11 +4781,382 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         except (KeyError, ValueError, AttributeError):
             dashboard_helpers["chore_select_eid"] = None
 
-        dashboard_helpers[const.ATTR_TRANSLATION_SENSOR_EID] = (
-            self._get_translation_sensor_eid()
-        )
+        dashboard_helpers[const.ATTR_TRANSLATION_SENSOR_EID] = translation_sensor_eid
 
         return dashboard_helpers
+
+    def _build_payload(
+        self,
+        entity_registry,
+        chores_attr: list[dict[str, Any]],
+        *,
+        translation_sensor_eid: str | None,
+        chore_helper_eids: list[str],
+        shard_runtime: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Build the public dashboard helper payload from prepared inputs."""
+        assignee_info: AssigneeData = cast(
+            "AssigneeData", self.coordinator.assignees_data.get(self._assignee_id, {})
+        )
+        hass = self.hass or self.coordinator.hass
+
+        gamification_enabled = should_create_gamification_entities(
+            self.coordinator, self._assignee_id
+        )
+        chore_workflow_enabled = should_create_workflow_buttons(
+            self.coordinator, self._assignee_id
+        )
+
+        rewards_attr = []
+        if gamification_enabled:
+            for reward_id, reward_info in self.coordinator.rewards_data.items():
+                reward_name = get_item_name_or_log_error(
+                    "reward", reward_id, reward_info, const.DATA_REWARD_NAME
+                )
+                if not reward_name:
+                    continue
+
+                reward_eid = None
+                if entity_registry:
+                    unique_id = (
+                        f"{self._entry.entry_id}_{self._assignee_id}_{reward_id}"
+                        f"{const.SENSOR_KC_UID_SUFFIX_REWARD_STATUS_SENSOR}"
+                    )
+                    reward_eid = entity_registry.async_get_entity_id(
+                        "sensor", const.DOMAIN, unique_id
+                    )
+
+                reward_status = None
+                if reward_eid and hass is not None:
+                    state_obj = hass.states.get(reward_eid)
+                    if state_obj:
+                        reward_status = state_obj.state
+
+                reward_labels = reward_info.get(const.DATA_REWARD_LABELS, [])
+                if not isinstance(reward_labels, list):
+                    reward_labels = []
+
+                reward_data_entry = assignee_info.get(
+                    const.DATA_USER_REWARD_DATA, {}
+                ).get(reward_id, {})
+                periods = reward_data_entry.get(const.DATA_USER_REWARD_DATA_PERIODS, {})
+                period_key_mapping = {
+                    const.PERIOD_ALL_TIME: const.DATA_USER_REWARD_DATA_PERIODS_ALL_TIME
+                }
+                claims_count = self.coordinator.stats.get_period_total(
+                    periods,
+                    const.PERIOD_ALL_TIME,
+                    const.DATA_USER_REWARD_DATA_PERIOD_CLAIMED,
+                    period_key_mapping=period_key_mapping,
+                )
+                approvals_count = self.coordinator.stats.get_period_total(
+                    periods,
+                    const.PERIOD_ALL_TIME,
+                    const.DATA_USER_REWARD_DATA_PERIOD_APPROVED,
+                    period_key_mapping=period_key_mapping,
+                )
+
+                rewards_attr.append(
+                    {
+                        const.ATTR_EID: reward_eid,
+                        const.ATTR_NAME: reward_name,
+                        const.ATTR_STATUS: reward_status,
+                        const.ATTR_LABELS: reward_labels,
+                        const.ATTR_COST: reward_info.get(const.DATA_REWARD_COST, 0),
+                        const.ATTR_CLAIMS: claims_count,
+                        const.ATTR_APPROVALS: approvals_count,
+                    }
+                )
+
+            rewards_attr.sort(
+                key=lambda reward: str(reward.get(const.ATTR_NAME, "")).lower()
+            )
+
+        badges_attr = []
+        if gamification_enabled:
+            for badge_id, badge_info in self.coordinator.badges_data.items():
+                assigned_to = badge_info.get(const.DATA_BADGE_ASSIGNED_USER_IDS, [])
+                if assigned_to and self._assignee_id not in assigned_to:
+                    continue
+                badge_type = badge_info.get(const.DATA_BADGE_TYPE, const.SENTINEL_EMPTY)
+                badge_name = get_item_name_or_log_error(
+                    "badge", badge_id, badge_info, const.DATA_BADGE_NAME
+                )
+                if not badge_name:
+                    continue
+
+                badge_eid = None
+                if entity_registry:
+                    if badge_type == const.BADGE_TYPE_CUMULATIVE:
+                        unique_id = (
+                            f"{self._entry.entry_id}_{badge_id}"
+                            f"{const.SENSOR_KC_UID_SUFFIX_BADGE_SENSOR}"
+                        )
+                    else:
+                        unique_id = (
+                            f"{self._entry.entry_id}_{self._assignee_id}_{badge_id}"
+                            f"{const.SENSOR_KC_UID_SUFFIX_BADGE_PROGRESS_SENSOR}"
+                        )
+                    badge_eid = entity_registry.async_get_entity_id(
+                        "sensor", const.DOMAIN, unique_id
+                    )
+
+                badges_earned = assignee_info.get(const.DATA_USER_BADGES_EARNED, {})
+                is_earned = badge_id in badges_earned
+                badge_earned = (
+                    badges_earned.get(badge_id, {})
+                    if isinstance(badges_earned, dict)
+                    else {}
+                )
+                periods = badge_earned.get(const.DATA_USER_BADGES_EARNED_PERIODS, {})
+                period_key_mapping = {
+                    const.PERIOD_ALL_TIME: const.DATA_USER_BADGES_EARNED_PERIODS_ALL_TIME
+                }
+                earned_count = self.coordinator.stats.get_period_total(
+                    periods,
+                    const.PERIOD_ALL_TIME,
+                    const.DATA_USER_BADGES_EARNED_AWARD_COUNT,
+                    period_key_mapping=period_key_mapping,
+                )
+
+                badge_payload: dict[str, Any] = {
+                    const.ATTR_EID: badge_eid,
+                    const.ATTR_NAME: badge_name,
+                    const.ATTR_BADGE_TYPE: badge_type,
+                    const.ATTR_BADGE_EARNED: is_earned,
+                    const.ATTR_EARNED_COUNT: earned_count,
+                }
+                if badge_type != const.BADGE_TYPE_CUMULATIVE:
+                    badge_progress = assignee_info.get(
+                        const.DATA_USER_BADGE_PROGRESS, {}
+                    ).get(badge_id, {})
+                    badge_payload[const.ATTR_STATUS] = badge_progress.get(
+                        const.DATA_USER_BADGE_PROGRESS_STATUS,
+                        const.SENTINEL_NONE,
+                    )
+                badges_attr.append(badge_payload)
+
+            badges_attr.sort(
+                key=lambda badge: str(badge.get(const.ATTR_NAME, "")).lower()
+            )
+
+        bonuses_attr = []
+        if gamification_enabled:
+            for bonus_id, bonus_info in self.coordinator.bonuses_data.items():
+                bonus_name = get_item_name_or_log_error(
+                    "bonus", bonus_id, bonus_info, const.DATA_BONUS_NAME
+                )
+                if not bonus_name:
+                    continue
+
+                bonus_eid = None
+                if entity_registry:
+                    unique_id = (
+                        f"{self._entry.entry_id}_{self._assignee_id}_{bonus_id}"
+                        f"{const.BUTTON_KC_UID_SUFFIX_APPROVER_BONUS_APPLY}"
+                    )
+                    bonus_eid = entity_registry.async_get_entity_id(
+                        "button", const.DOMAIN, unique_id
+                    )
+
+                bonus_entry = assignee_info.get(const.DATA_USER_BONUS_APPLIES, {}).get(
+                    bonus_id
+                )
+                bonus_applied_count: int | float = 0
+                if bonus_entry:
+                    periods = bonus_entry.get(const.DATA_USER_BONUS_PERIODS, {})
+                    bonus_applied_count = self.coordinator.stats.get_period_total(
+                        periods,
+                        const.PERIOD_ALL_TIME,
+                        const.DATA_USER_BONUS_PERIOD_APPLIES,
+                    )
+
+                bonuses_attr.append(
+                    {
+                        const.ATTR_EID: bonus_eid,
+                        const.ATTR_NAME: bonus_name,
+                        const.ATTR_POINTS: bonus_info.get(const.DATA_BONUS_POINTS, 0),
+                        const.ATTR_APPLIED: bonus_applied_count,
+                    }
+                )
+
+            bonuses_attr.sort(
+                key=lambda bonus: str(bonus.get(const.ATTR_NAME, "")).lower()
+            )
+
+        penalties_attr = []
+        if gamification_enabled:
+            for penalty_id, penalty_info in self.coordinator.penalties_data.items():
+                penalty_name = get_item_name_or_log_error(
+                    "penalty", penalty_id, penalty_info, const.DATA_PENALTY_NAME
+                )
+                if not penalty_name:
+                    continue
+
+                penalty_eid = None
+                if entity_registry:
+                    unique_id = (
+                        f"{self._entry.entry_id}_{self._assignee_id}_{penalty_id}"
+                        f"{const.BUTTON_KC_UID_SUFFIX_APPROVER_PENALTY_APPLY}"
+                    )
+                    penalty_eid = entity_registry.async_get_entity_id(
+                        "button", const.DOMAIN, unique_id
+                    )
+
+                penalty_entry = assignee_info.get(
+                    const.DATA_USER_PENALTY_APPLIES, {}
+                ).get(penalty_id)
+                penalty_applied_count: int | float = 0
+                if penalty_entry:
+                    periods = penalty_entry.get(const.DATA_USER_PENALTY_PERIODS, {})
+                    penalty_applied_count = self.coordinator.stats.get_period_total(
+                        periods,
+                        const.PERIOD_ALL_TIME,
+                        const.DATA_USER_PENALTY_PERIOD_APPLIES,
+                    )
+
+                penalties_attr.append(
+                    {
+                        const.ATTR_EID: penalty_eid,
+                        const.ATTR_NAME: penalty_name,
+                        const.ATTR_POINTS: penalty_info.get(
+                            const.DATA_PENALTY_POINTS, 0
+                        ),
+                        const.ATTR_APPLIED: penalty_applied_count,
+                    }
+                )
+
+            penalties_attr.sort(
+                key=lambda penalty: str(penalty.get(const.ATTR_NAME, "")).lower()
+            )
+
+        achievements_attr = []
+        if gamification_enabled:
+            for (
+                achievement_id,
+                achievement_info,
+            ) in self.coordinator.achievements_data.items():
+                if self._assignee_id not in achievement_info.get(
+                    const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS, []
+                ):
+                    continue
+                achievement_name = get_item_name_or_log_error(
+                    "achievement",
+                    achievement_id,
+                    achievement_info,
+                    const.DATA_ACHIEVEMENT_NAME,
+                )
+                if not achievement_name:
+                    continue
+                achievement_eid = None
+                if entity_registry:
+                    unique_id = (
+                        f"{self._entry.entry_id}_{self._assignee_id}_{achievement_id}"
+                        f"{const.SENSOR_KC_UID_SUFFIX_ACHIEVEMENT_PROGRESS_SENSOR}"
+                    )
+                    achievement_eid = entity_registry.async_get_entity_id(
+                        "sensor", const.DOMAIN, unique_id
+                    )
+                achievements_attr.append(
+                    {
+                        const.ATTR_EID: achievement_eid,
+                        const.ATTR_NAME: achievement_name,
+                    }
+                )
+
+            achievements_attr.sort(
+                key=lambda achievement: str(
+                    achievement.get(const.ATTR_NAME, "")
+                ).lower()
+            )
+
+        challenges_attr = []
+        if gamification_enabled:
+            for (
+                challenge_id,
+                challenge_info,
+            ) in self.coordinator.challenges_data.items():
+                if self._assignee_id not in challenge_info.get(
+                    const.DATA_CHALLENGE_ASSIGNED_USER_IDS, []
+                ):
+                    continue
+                challenge_name = get_item_name_or_log_error(
+                    "challenge", challenge_id, challenge_info, const.DATA_CHALLENGE_NAME
+                )
+                if not challenge_name:
+                    continue
+                challenge_eid = None
+                if entity_registry:
+                    unique_id = (
+                        f"{self._entry.entry_id}_{self._assignee_id}_{challenge_id}"
+                        f"{const.SENSOR_KC_UID_SUFFIX_CHALLENGE_PROGRESS_SENSOR}"
+                    )
+                    challenge_eid = entity_registry.async_get_entity_id(
+                        "sensor", const.DOMAIN, unique_id
+                    )
+                challenges_attr.append(
+                    {
+                        const.ATTR_EID: challenge_eid,
+                        const.ATTR_NAME: challenge_name,
+                    }
+                )
+
+            challenges_attr.sort(
+                key=lambda challenge: str(challenge.get(const.ATTR_NAME, "")).lower()
+            )
+
+        points_buttons_attr = []
+        if gamification_enabled and entity_registry:
+            from .helpers.entity_helpers import get_points_adjustment_buttons
+
+            buttons = get_points_adjustment_buttons(
+                self.coordinator.hass, self._entry.entry_id, self._assignee_id
+            )
+            points_buttons_attr = [
+                {"eid": button["eid"], "name": button["name"]} for button in buttons
+            ]
+
+        dashboard_language = assignee_info.get(
+            const.DATA_USER_DASHBOARD_LANGUAGE, const.DEFAULT_DASHBOARD_LANGUAGE
+        )
+        pending_approvals = self._build_pending_approvals(entity_registry)
+        self.coordinator.ui_manager.reset_pending_change_flags()
+
+        core_sensors = self._build_core_sensors(entity_registry)
+        dashboard_helpers = self._build_dashboard_helpers(
+            entity_registry,
+            translation_sensor_eid=translation_sensor_eid,
+            chore_helper_eids=chore_helper_eids,
+        )
+        ui_control = self.coordinator.ui_manager.get_dashboard_ui_control(
+            self._assignee_id
+        )
+
+        return {
+            const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_DASHBOARD_HELPER,
+            "chores": self._sanitize_dashboard_chore_rows(chores_attr),
+            "rewards": rewards_attr,
+            const.ATTR_UI_CONTROL: ui_control,
+            "badges": badges_attr,
+            "bonuses": bonuses_attr,
+            "penalties": penalties_attr,
+            "achievements": achievements_attr,
+            "challenges": challenges_attr,
+            "points_buttons": points_buttons_attr,
+            "pending_approvals": pending_approvals,
+            "core_sensors": core_sensors,
+            "dashboard_helpers": dashboard_helpers,
+            const.ATTR_USER_NAME: self._assignee_name,
+            const.ATTR_USER_ID: self._assignee_id,
+            const.ATTR_INTEGRATION_ENTRY_ID: self._entry.entry_id,
+            const.ATTR_DASHBOARD_LOOKUP_KEY: (
+                f"{self._entry.entry_id}:{self._assignee_id}"
+            ),
+            "language": dashboard_language,
+            "gamification_enabled": gamification_enabled,
+            "chore_workflow_enabled": chore_workflow_enabled,
+            const.ATTR_SHARD_RUNTIME: shard_runtime,
+        }
 
     def _build_pending_approvals(self, entity_registry) -> dict:
         """Build pending approvals data with button entity IDs.
@@ -4615,469 +5298,57 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
           ],
         }
         """
-        assignee_info: AssigneeData = cast(
-            "AssigneeData", self.coordinator.assignees_data.get(self._assignee_id, {})
-        )
-
         try:
             entity_registry = async_get(self.hass)
         except (KeyError, ValueError, AttributeError):
             entity_registry = None
+        chores_attr = self._build_chore_rows(entity_registry)
 
-        gamification_enabled = should_create_gamification_entities(
-            self.coordinator, self._assignee_id
+        plan = self.coordinator.ui_manager.get_helper_shard_plan(
+            self._assignee_id,
+            const.HELPER_SHARD_FAMILY_CHORES,
         )
-        chore_workflow_enabled = should_create_workflow_buttons(
-            self.coordinator, self._assignee_id
-        )
-
-        chores_attr = []
-
-        for chore_id, chore_info in self.coordinator.chores_data.items():
-            if self._assignee_id not in chore_info.get(
-                const.DATA_CHORE_ASSIGNED_USER_IDS, []
-            ):
-                continue
-
-            # Get the ChoreStatusSensor entity_id
-            chore_eid = None
-            if entity_registry:
-                unique_id = f"{self._entry.entry_id}_{self._assignee_id}_{chore_id}{const.SENSOR_KC_UID_SUFFIX_CHORE_STATUS_SENSOR}"
-                chore_eid = entity_registry.async_get_entity_id(
-                    "sensor", const.DOMAIN, unique_id
-                )
-
-            # Use helper method to calculate all chore attributes
-            chore_attrs = self._calculate_chore_attributes(
-                chore_id, chore_info, assignee_info, chore_eid
+        if plan is None:
+            plan = build_chore_shard_plan(
+                self.hass,
+                self.coordinator,
+                self._entry,
+                self._assignee_id,
+                self._assignee_name,
+                previous_plan=None,
             )
-            if chore_attrs:  # Skip if name missing (data corruption)
-                chores_attr.append(chore_attrs)
-
-        # Sort chores by due date (ascending, earliest first)
-        # Chores without due dates are placed at the end, sorted by entity_id
-        chores_attr.sort(
-            key=lambda c: (
-                c.get(const.ATTR_CHORE_DUE_DATE) is None,  # None values go last
-                c.get(const.ATTR_CHORE_DUE_DATE)
-                or "",  # Sort by due_date (ISO format sorts correctly)
-                c.get(const.ATTR_EID)
-                or "",  # Then by entity_id for chores without due dates
+            self.coordinator.ui_manager.set_helper_shard_plan(
+                self._assignee_id,
+                const.HELPER_SHARD_FAMILY_CHORES,
+                plan,
             )
-        )
 
-        rewards_attr = []
-        if gamification_enabled:
-            for reward_id, reward_info in self.coordinator.rewards_data.items():
-                reward_name = get_item_name_or_log_error(
-                    "reward", reward_id, reward_info, const.DATA_REWARD_NAME
-                )
-                if not reward_name:
-                    continue
-
-                # Get the RewardStatusSensor entity_id
-                reward_eid = None
-                if entity_registry:
-                    unique_id = f"{self._entry.entry_id}_{self._assignee_id}_{reward_id}{const.SENSOR_KC_UID_SUFFIX_REWARD_STATUS_SENSOR}"
-                    reward_eid = entity_registry.async_get_entity_id(
-                        "sensor", const.DOMAIN, unique_id
-                    )
-
-                # Get reward status from the sensor state
-                reward_status = None
-                if reward_eid:
-                    state_obj = self.hass.states.get(reward_eid)
-                    if state_obj:
-                        reward_status = state_obj.state
-
-                # Get reward labels (always a list, even if empty)
-                reward_labels = reward_info.get(const.DATA_REWARD_LABELS, [])
-                if not isinstance(reward_labels, list):
-                    reward_labels = []
-
-                # Get reward cost
-                reward_cost = reward_info.get(const.DATA_REWARD_COST, 0)
-
-                # Get claims and approvals counts using get_period_total
-                reward_data_entry = assignee_info.get(
-                    const.DATA_USER_REWARD_DATA, {}
-                ).get(reward_id, {})
-                periods = reward_data_entry.get(const.DATA_USER_REWARD_DATA_PERIODS, {})
-                period_key_mapping = {
-                    const.PERIOD_ALL_TIME: const.DATA_USER_REWARD_DATA_PERIODS_ALL_TIME
-                }
-                claims_count = self.coordinator.stats.get_period_total(
-                    periods,
-                    const.PERIOD_ALL_TIME,
-                    const.DATA_USER_REWARD_DATA_PERIOD_CLAIMED,
-                    period_key_mapping=period_key_mapping,
-                )
-                approvals_count = self.coordinator.stats.get_period_total(
-                    periods,
-                    const.PERIOD_ALL_TIME,
-                    const.DATA_USER_REWARD_DATA_PERIOD_APPROVED,
-                    period_key_mapping=period_key_mapping,
-                )
-
-                rewards_attr.append(
-                    {
-                        const.ATTR_EID: reward_eid,
-                        const.ATTR_NAME: reward_name,
-                        const.ATTR_STATUS: reward_status,
-                        const.ATTR_LABELS: reward_labels,
-                        const.ATTR_COST: reward_cost,
-                        const.ATTR_CLAIMS: claims_count,
-                        const.ATTR_APPROVALS: approvals_count,
-                    }
-                )
-
-            # Sort rewards by name (alphabetically)
-            rewards_attr.sort(key=lambda r: str(r.get(const.ATTR_NAME, "")).lower())
-
-        # Badges assigned to this assignee - only build if gamification is enabled
-        # Badge applies if: no assignees assigned (applies to all) OR assignee is in assigned list
-        # Note: Cumulative badges return system-level badge sensor (no assignee-specific progress sensor)
-        # Other badge types return assignee-specific progress sensors
-        badges_attr = []
-        if gamification_enabled:
-            for badge_id, badge_info in self.coordinator.badges_data.items():
-                assigned_to = badge_info.get(const.DATA_BADGE_ASSIGNED_USER_IDS, [])
-                if assigned_to and self._assignee_id not in assigned_to:
-                    continue
-                badge_type = badge_info.get(const.DATA_BADGE_TYPE, const.SENTINEL_EMPTY)
-                badge_name = get_item_name_or_log_error(
-                    "badge", badge_id, badge_info, const.DATA_BADGE_NAME
-                )
-                if not badge_name:
-                    continue
-
-                # For cumulative badges, return the system-level badge sensor
-                # For other types, return the assignee-specific progress sensor
-                badge_eid = None
-                if entity_registry:
-                    if badge_type == const.BADGE_TYPE_CUMULATIVE:
-                        # System badge sensor (no assignee_id in unique_id)
-                        unique_id = f"{self._entry.entry_id}_{badge_id}{const.SENSOR_KC_UID_SUFFIX_BADGE_SENSOR}"
-                        badge_eid = entity_registry.async_get_entity_id(
-                            "sensor", const.DOMAIN, unique_id
-                        )
-                    else:
-                        # Assignee-specific progress sensor
-                        unique_id = f"{self._entry.entry_id}_{self._assignee_id}_{badge_id}{const.SENSOR_KC_UID_SUFFIX_BADGE_PROGRESS_SENSOR}"
-                        badge_eid = entity_registry.async_get_entity_id(
-                            "sensor", const.DOMAIN, unique_id
-                        )
-
-                # Check if badge is earned (in badges_earned dict)
-                badges_earned = assignee_info.get(const.DATA_USER_BADGES_EARNED, {})
-                is_earned = badge_id in badges_earned
-                badge_earned = (
-                    badges_earned.get(badge_id, {})
-                    if isinstance(badges_earned, dict)
-                    else {}
-                )
-                periods = badge_earned.get(const.DATA_USER_BADGES_EARNED_PERIODS, {})
-                period_key_mapping = {
-                    const.PERIOD_ALL_TIME: const.DATA_USER_BADGES_EARNED_PERIODS_ALL_TIME
-                }
-                earned_count = self.coordinator.stats.get_period_total(
-                    periods,
-                    const.PERIOD_ALL_TIME,
-                    const.DATA_USER_BADGES_EARNED_AWARD_COUNT,
-                    period_key_mapping=period_key_mapping,
-                )
-
-                # Get badge status from assignee's badge progress (only for non-cumulative)
-                badge_status = const.SENTINEL_NONE
-                if badge_type != const.BADGE_TYPE_CUMULATIVE:
-                    badge_progress = assignee_info.get(
-                        const.DATA_USER_BADGE_PROGRESS, {}
-                    ).get(badge_id, {})
-                    badge_status = badge_progress.get(
-                        const.DATA_USER_BADGE_PROGRESS_STATUS, const.SENTINEL_NONE
-                    )
-                    badges_attr.append(
-                        {
-                            const.ATTR_EID: badge_eid,
-                            const.ATTR_NAME: badge_name,
-                            const.ATTR_BADGE_TYPE: badge_type,
-                            const.ATTR_STATUS: badge_status,
-                            const.ATTR_BADGE_EARNED: is_earned,
-                            const.ATTR_EARNED_COUNT: earned_count,
-                        }
-                    )
-                else:
-                    # Cumulative badge - no status
-                    badges_attr.append(
-                        {
-                            const.ATTR_EID: badge_eid,
-                            const.ATTR_NAME: badge_name,
-                            const.ATTR_BADGE_TYPE: badge_type,
-                            const.ATTR_BADGE_EARNED: is_earned,
-                            const.ATTR_EARNED_COUNT: earned_count,
-                        }
-                    )
-
-            # Sort badges by name (alphabetically)
-            badges_attr.sort(key=lambda b: str(b.get(const.ATTR_NAME, "")).lower())
-
-        # Bonuses for this assignee - only build if gamification is enabled
-        bonuses_attr = []
-        if gamification_enabled:
-            for bonus_id, bonus_info in self.coordinator.bonuses_data.items():
-                bonus_name = get_item_name_or_log_error(
-                    "bonus", bonus_id, bonus_info, const.DATA_BONUS_NAME
-                )
-                if not bonus_name:
-                    continue
-                # Get ApproverBonusApplyButton entity_id
-                bonus_eid = None
-                if entity_registry:
-                    unique_id = f"{self._entry.entry_id}_{self._assignee_id}_{bonus_id}{const.BUTTON_KC_UID_SUFFIX_APPROVER_BONUS_APPLY}"
-                    bonus_eid = entity_registry.async_get_entity_id(
-                        "button", const.DOMAIN, unique_id
-                    )
-
-                # Get bonus points
-                bonus_points = bonus_info.get(const.DATA_BONUS_POINTS, 0)
-
-                # Get applied count for this bonus for this assignee
-                bonus_applies = assignee_info.get(const.DATA_USER_BONUS_APPLIES, {})
-                bonus_entry = bonus_applies.get(bonus_id)
-                if bonus_entry:
-                    periods = bonus_entry.get(const.DATA_USER_BONUS_PERIODS, {})
-                    applied_count = self.coordinator.stats.get_period_total(
-                        periods,
-                        const.PERIOD_ALL_TIME,
-                        const.DATA_USER_BONUS_PERIOD_APPLIES,
-                    )
-                else:
-                    applied_count = 0
-
-                bonuses_attr.append(
-                    {
-                        const.ATTR_EID: bonus_eid,
-                        const.ATTR_NAME: bonus_name,
-                        const.ATTR_POINTS: bonus_points,
-                        const.ATTR_APPLIED: applied_count,
-                    }
-                )
-
-            # Sort bonuses by name (alphabetically)
-            bonuses_attr.sort(key=lambda b: str(b.get(const.ATTR_NAME, "")).lower())
-        # Bonuses for this assignee
-        # Penalties for this assignee - only build if gamification is enabled
-        penalties_attr = []
-        if gamification_enabled:
-            for penalty_id, penalty_info in self.coordinator.penalties_data.items():
-                penalty_name = get_item_name_or_log_error(
-                    "penalty", penalty_id, penalty_info, const.DATA_PENALTY_NAME
-                )
-                if not penalty_name:
-                    continue
-                # Get ApproverPenaltyApplyButton entity_id
-                penalty_eid = None
-                if entity_registry:
-                    unique_id = f"{self._entry.entry_id}_{self._assignee_id}_{penalty_id}{const.BUTTON_KC_UID_SUFFIX_APPROVER_PENALTY_APPLY}"
-                    penalty_eid = entity_registry.async_get_entity_id(
-                        "button", const.DOMAIN, unique_id
-                    )
-
-                # Get penalty points (stored as positive, represents points removed)
-                penalty_points = penalty_info.get(const.DATA_PENALTY_POINTS, 0)
-
-                # Get applied count for this penalty for this assignee
-                penalty_applies = assignee_info.get(const.DATA_USER_PENALTY_APPLIES, {})
-                penalty_entry = penalty_applies.get(penalty_id)
-                if penalty_entry:
-                    periods = penalty_entry.get(const.DATA_USER_PENALTY_PERIODS, {})
-                    applied_count = self.coordinator.stats.get_period_total(
-                        periods,
-                        const.PERIOD_ALL_TIME,
-                        const.DATA_USER_PENALTY_PERIOD_APPLIES,
-                    )
-                else:
-                    applied_count = 0
-
-                penalties_attr.append(
-                    {
-                        const.ATTR_EID: penalty_eid,
-                        const.ATTR_NAME: penalty_name,
-                        const.ATTR_POINTS: penalty_points,
-                        const.ATTR_APPLIED: applied_count,
-                    }
-                )
-
-            # Sort penalties by name (alphabetically)
-            penalties_attr.sort(key=lambda p: str(p.get(const.ATTR_NAME, "")).lower())
-        # Penalties for this assignee
-        # Achievements assigned to this assignee - only build if gamification is enabled
-        achievements_attr = []
-        if gamification_enabled:
-            for (
-                achievement_id,
-                achievement_info,
-            ) in self.coordinator.achievements_data.items():
-                if self._assignee_id not in achievement_info.get(
-                    const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS, []
-                ):
-                    continue
-                achievement_name = get_item_name_or_log_error(
-                    "achievement",
-                    achievement_id,
-                    achievement_info,
-                    const.DATA_ACHIEVEMENT_NAME,
-                )
-                if not achievement_name:
-                    continue
-                # Get AssigneeAchievementProgressSensor entity_id
-                achievement_eid = None
-                if entity_registry:
-                    unique_id = f"{self._entry.entry_id}_{self._assignee_id}_{achievement_id}{const.SENSOR_KC_UID_SUFFIX_ACHIEVEMENT_PROGRESS_SENSOR}"
-                    achievement_eid = entity_registry.async_get_entity_id(
-                        "sensor", const.DOMAIN, unique_id
-                    )
-                achievements_attr.append(
-                    {
-                        const.ATTR_EID: achievement_eid,
-                        const.ATTR_NAME: achievement_name,
-                    }
-                )
-
-            # Sort achievements by name (alphabetically)
-            achievements_attr.sort(key=lambda a: (a.get(const.ATTR_NAME) or "").lower())
-
-        # Challenges assigned to this assignee - only build if gamification is enabled
-        challenges_attr = []
-        if gamification_enabled:
-            for (
-                challenge_id,
-                challenge_info,
-            ) in self.coordinator.challenges_data.items():
-                if self._assignee_id not in challenge_info.get(
-                    const.DATA_CHALLENGE_ASSIGNED_USER_IDS, []
-                ):
-                    continue
-                challenge_name = get_item_name_or_log_error(
-                    "challenge", challenge_id, challenge_info, const.DATA_CHALLENGE_NAME
-                )
-                if not challenge_name:
-                    continue
-                # Get AssigneeChallengeProgressSensor entity_id
-                challenge_eid = None
-                if entity_registry:
-                    unique_id = f"{self._entry.entry_id}_{self._assignee_id}_{challenge_id}{const.SENSOR_KC_UID_SUFFIX_CHALLENGE_PROGRESS_SENSOR}"
-                    challenge_eid = entity_registry.async_get_entity_id(
-                        "sensor", const.DOMAIN, unique_id
-                    )
-                challenges_attr.append(
-                    {
-                        const.ATTR_EID: challenge_eid,
-                        const.ATTR_NAME: challenge_name,
-                    }
-                )
-
-            # Sort challenges by name (alphabetically)
-            challenges_attr.sort(key=lambda c: (c.get(const.ATTR_NAME) or "").lower())
-
-        # Point adjustment buttons for this assignee - only build if gamification is enabled
-        points_buttons_attr = []
-        if gamification_enabled and entity_registry:
-            from .helpers.entity_helpers import get_points_adjustment_buttons
-
-            buttons = get_points_adjustment_buttons(
-                self.hass, self._entry.entry_id, self._assignee_id
+        visible_chores = chores_attr
+        chore_helper_eids: list[str] = []
+        if plan.mode == const.HELPER_SHARD_MODE_SHARDED:
+            visible_chores = []
+            chore_helper_eids = self.coordinator.ui_manager.get_chore_shard_helper_eids(
+                self._assignee_id
             )
-            # Remove delta key used internally for sorting
-            points_buttons_attr = [
-                {"eid": b["eid"], "name": b["name"]} for b in buttons
-            ]
 
-        # Get assignee's preferred dashboard language (default to English)
-        assignee_info_lang: AssigneeData = cast(
-            "AssigneeData", self.coordinator.assignees_data.get(self._assignee_id, {})
+        payload = self._build_payload(
+            entity_registry,
+            visible_chores,
+            translation_sensor_eid=self._get_translation_sensor_eid(),
+            chore_helper_eids=chore_helper_eids,
+            shard_runtime={
+                "family": const.HELPER_SHARD_FAMILY_CHORES,
+                "mode": plan.mode,
+                "expected_shard_count": plan.expected_shard_count,
+                "last_accepted_serialized_size": plan.last_accepted_serialized_size,
+                "last_reconciliation_outcome": plan.last_reconciliation_outcome,
+            },
         )
-        dashboard_language = assignee_info_lang.get(
-            const.DATA_USER_DASHBOARD_LANGUAGE, const.DEFAULT_DASHBOARD_LANGUAGE
+        plan.last_accepted_serialized_size = _serialized_payload_size(payload)
+        payload[const.ATTR_SHARD_RUNTIME]["last_accepted_serialized_size"] = (
+            plan.last_accepted_serialized_size
         )
-
-        # Build chores_by_label dictionary
-        # Group chores by label, with entity IDs sorted by due date
-        chores_by_label: dict[str, Any] = {}
-        for chore in chores_attr:
-            labels = chore.get(const.ATTR_CHORE_LABELS, [])
-            chore_eid = chore.get(const.ATTR_EID)
-
-            # Skip chores without entity IDs
-            if not chore_eid:
-                continue
-
-            # Add this chore to each label group it belongs to
-            for label in labels:
-                if label not in chores_by_label:
-                    chores_by_label[label] = []
-                chores_by_label[label].append(chore)
-
-        # Sort chores within each label by due date (ascending, earliest first)
-        # Chores without due dates are placed at the end, sorted by entity_id
-        for label, chore_list in chores_by_label.items():
-            chore_list.sort(
-                key=lambda c: (
-                    c.get(const.ATTR_CHORE_DUE_DATE) is None,  # None values go last
-                    c.get(const.ATTR_CHORE_DUE_DATE)
-                    or "",  # Sort by due_date (ISO format sorts correctly)
-                    c.get(const.ATTR_EID)
-                    or "",  # Then by entity_id for chores without due dates
-                )
-            )
-            # Convert to list of entity IDs only
-            chores_by_label[label] = [c[const.ATTR_EID] for c in chore_list]
-
-        # Sort labels alphabetically for consistent ordering
-        chores_by_label = dict(sorted(chores_by_label.items()))
-
-        # Build pending approvals data if flags indicate changes
-        pending_approvals = self._build_pending_approvals(entity_registry)
-
-        # Reset change flags after building attributes
-        self.coordinator.ui_manager.reset_pending_change_flags()
-
-        # Build core sensors dict (used by dashboard to avoid slug construction)
-        core_sensors = self._build_core_sensors(entity_registry)
-
-        # Build dashboard helpers dict (used by dashboard to avoid slug construction)
-        dashboard_helpers = self._build_dashboard_helpers(entity_registry)
-
-        # Build resolved UI control payload for reviewed dashboard consumers only
-        ui_control = self.coordinator.ui_manager.get_dashboard_ui_control(
-            self._assignee_id
-        )
-
-        return {
-            const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_DASHBOARD_HELPER,
-            "chores": chores_attr,
-            const.ATTR_CHORES_BY_LABEL: chores_by_label,
-            "rewards": rewards_attr,
-            const.ATTR_UI_CONTROL: ui_control,
-            "badges": badges_attr,
-            "bonuses": bonuses_attr,
-            "penalties": penalties_attr,
-            "achievements": achievements_attr,
-            "challenges": challenges_attr,
-            "points_buttons": points_buttons_attr,
-            "pending_approvals": pending_approvals,
-            "core_sensors": core_sensors,
-            "dashboard_helpers": dashboard_helpers,
-            const.ATTR_USER_NAME: self._assignee_name,
-            const.ATTR_USER_ID: self._assignee_id,
-            const.ATTR_INTEGRATION_ENTRY_ID: self._entry.entry_id,
-            const.ATTR_DASHBOARD_LOOKUP_KEY: (
-                f"{self._entry.entry_id}:{self._assignee_id}"
-            ),
-            "language": dashboard_language,
-            "gamification_enabled": gamification_enabled,
-            "chore_workflow_enabled": chore_workflow_enabled,
-        }
+        return payload
 
     @property
     def icon(self) -> str | None:

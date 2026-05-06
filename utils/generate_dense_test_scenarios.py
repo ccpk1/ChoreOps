@@ -10,7 +10,7 @@ from typing import Final
 import yaml
 
 OUTPUT_DIR: Final = Path("/workspaces/choreops/tests/scenarios")
-DEFAULT_COUNTS: Final[tuple[int, ...]] = (40, 50, 60, 70, 80, 90, 100)
+DEFAULT_COUNTS: Final[tuple[int, ...]] = (40, 50, 60, 70, 80, 90, 100, 120)
 
 ASSIGNEES: Final[tuple[dict[str, str], ...]] = (
     {"name": "Zoë", "ha_user": "assignee1", "dashboard_language": "en"},
@@ -137,7 +137,7 @@ def parse_args() -> argparse.Namespace:
         nargs="*",
         type=int,
         default=list(DEFAULT_COUNTS),
-        help="Chores per assignee to generate. Default: 40 50 60 70 80 90 100",
+        help="Chores per assignee to generate. Default: 40 50 60 70 80 90 100 120",
     )
     parser.add_argument(
         "--output-dir",

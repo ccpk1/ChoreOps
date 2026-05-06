@@ -422,6 +422,9 @@ class ChoreOpsDataCoordinator(DataUpdateCoordinator):
         result = ChoreEntitySyncResult()
 
         if mutation == "deleted":
+            await self.ui_manager.async_reconcile_chore_shards_for_users(
+                sync_context["affected_user_ids"]
+            )
             result.orphaned_assignee_entities_removed = (
                 await remove_orphaned_assignee_chore_entities(
                     self.hass,
@@ -438,6 +441,12 @@ class ChoreOpsDataCoordinator(DataUpdateCoordinator):
                 )
             )
             self.async_update_listeners()
+            self.hass.async_create_task(
+                self.ui_manager.async_finalize_chore_shards_for_users(
+                    sync_context["affected_user_ids"],
+                    registry_only=True,
+                )
+            )
             return result
 
         rename_sensitive_update = sync_context["rename_sensitive_update"]
@@ -493,7 +502,16 @@ class ChoreOpsDataCoordinator(DataUpdateCoordinator):
                 self.chores_data,
             )
         )
+        await self.ui_manager.async_reconcile_chore_shards_for_users(
+            sync_context["affected_user_ids"]
+        )
         self.async_update_listeners()
+        self.hass.async_create_task(
+            self.ui_manager.async_finalize_chore_shards_for_users(
+                sync_context["affected_user_ids"],
+                registry_only=True,
+            )
+        )
 
         const.LOGGER.debug(
             "Chore runtime sync completed for %s (%s): sensors=%s buttons=%s removed_assignee=%s removed_shared=%s",
@@ -542,6 +560,7 @@ class ChoreOpsDataCoordinator(DataUpdateCoordinator):
             "mutation": mutation,
             "assignments_added": sorted(current_assignees - previous_assignees),
             "assignments_removed": sorted(previous_assignees - current_assignees),
+            "affected_user_ids": sorted(previous_assignees | current_assignees),
             "rename_sensitive_update": (
                 previous_chore is not None
                 and current_chore is not None

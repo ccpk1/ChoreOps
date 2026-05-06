@@ -1307,6 +1307,18 @@ def test_shared_chore_engine_fragment_contains_ui_control_contract() -> None:
     assert "'/exclude_completed'" in template_str
     assert "'/exclude_blocked'" in template_str
     assert "'/sort_within_groups'" in template_str
+    assert "chore_helper_eids" in template_str
+    assert "state_attr(helper_eid, 'chores')" in template_str
+    assert "chores_by_label" not in template_str
+
+
+def test_shared_chore_engine_prepare_groups_rebuilds_labels_from_rows() -> None:
+    """Shared grouping fragment should rebuild labels from merged chore rows."""
+    template_str = _read_template("shared/chore_engine/prepare_groups_v1.yaml")
+
+    assert "label_group_candidates" in template_str
+    assert "ns.discovered_labels" in template_str
+    assert "chores_by_label_raw" not in template_str
 
 
 def test_user_gamification_premier_template_renders_with_button_card_templates() -> (

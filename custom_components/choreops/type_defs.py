@@ -1311,6 +1311,7 @@ class ChoreEntitySyncContext(TypedDict):
     mutation: Literal["created", "updated", "deleted"]
     assignments_added: list[str]
     assignments_removed: list[str]
+    affected_user_ids: list[str]
     rename_sensitive_update: bool
     shared_state_changed: bool
 

@@ -88,7 +88,8 @@ CHOREOPS_RUN_STRESS=1 python -m pytest tests/test_dashboard_helper_density_stres
 | `scenario_density_starblum_70.yaml` | 3 assignees, 70 chores each (210 chores total) | Per-user density validation |
 | `scenario_density_starblum_80.yaml` | 3 assignees, 80 chores each (240 chores total) | Per-user density validation |
 | `scenario_density_starblum_90.yaml` | 3 assignees, 90 chores each (270 chores total) | Per-user density validation |
-| `scenario_density_starblum_100.yaml` | 3 assignees, 100 chores each (300 chores total) | Highest-density helper/manual test |
+| `scenario_density_starblum_100.yaml` | 3 assignees, 100 chores each (300 chores total) | High-density helper/manual test |
+| `scenario_density_starblum_120.yaml` | 3 assignees, 120 chores each (360 chores total) | Acceptance-band shard validation above 100 chores |
 | `scenario_minimal.yaml`          | 1 assignee, 1 chore                               | Fastest sanity check    |
 
 ### Manual live-load workflow
