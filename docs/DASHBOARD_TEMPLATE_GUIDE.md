@@ -823,6 +823,32 @@ Authoring rules:
 - Do not impose a template-side cap on resolved shard helpers in v1; consume the
   full ordered pointer list exactly once per card.
 
+Recommended dynamic pattern:
+
+```jinja
+{%- set dashboard_helper = config.entity -%}
+{%- set dashboard_helpers = state_attr(dashboard_helper, 'dashboard_helpers') or {} -%}
+{%- set ns = namespace(chore_list=(state_attr(dashboard_helper, 'chores') or [])) -%}
+{%- for chore_helper in dashboard_helpers.get('chore_helper_eids', []) -%}
+  {%- set ns.chore_list = ns.chore_list + (state_attr(chore_helper, 'chores') or []) -%}
+{%- endfor -%}
+```
+
+Use `ns.chore_list` as the only chore source for filtering, grouping, and rendering.
+This works in both inline mode and shard mode because the shard pointer list is
+empty when no extra helpers are needed.
+
+Limited legacy inline-only pattern:
+
+```jinja
+{%- set chores = state_attr(config.entity, 'chores') or [] -%}
+```
+
+This shorter pattern still works for small households and quick one-off templates,
+but it is not shard-aware. Once a user reaches roughly 40 assigned chores
+(depending on row size and other helper payload fields), the helper may switch to
+shard-backed transport and the inline-only pattern can miss rows.
+
 #### Core Chore Fields (v0.4.x)
 
 | Field      | Type   | Description                            | Example                   |
@@ -963,6 +989,15 @@ Large household example:
   IDs and maintained templates merge shard `chores` rows into one local
   `chore_list` before rendering.
 
+Practical migration guidance:
+
+- If you want a template to stay dynamic as households grow, always merge chore
+  rows from `dashboard_helpers.chore_helper_eids` into one local `chore_list`
+  before rendering.
+- If you intentionally want the shortest possible snippet for a smaller household,
+  the inline-only `state_attr(dashboard_helper, 'chores')` pattern is still valid,
+  but treat it as a limited convenience pattern rather than the long-term default.
+
 #### Future typed-family example
 
 The reusable shard pattern is documented for chores now and rewards next.
@@ -1081,7 +1116,12 @@ icon_color: |
         options:
           type: custom:mushroom-template-card
           primary: |
-            {%- for chore in state_attr(config.entity, 'chores') -%}
+            {%- set dashboard_helpers = state_attr(config.entity, 'dashboard_helpers') or {} -%}
+            {%- set ns = namespace(chore_list=(state_attr(config.entity, 'chores') or [])) -%}
+            {%- for chore_helper in dashboard_helpers.get('chore_helper_eids', []) -%}
+            {%- set ns.chore_list = ns.chore_list + (state_attr(chore_helper, 'chores') or []) -%}
+            {%- endfor -%}
+            {%- for chore in ns.chore_list -%}
             {%- set turn_user_name = chore.turn_user_name -%}
             {%- if turn_user_name -%}
             {{ chore.name }}:
@@ -1094,6 +1134,11 @@ icon_color: |
             {%- endif -%}
             {%- endfor -%}
 ```
+
+For a very small household, you can shorten the example back to a direct
+`state_attr(config.entity, 'chores')` loop, but that should be treated as the
+small-household shortcut only. The merged `ns.chore_list` pattern is the supported
+dynamic version.
 
 ---
 

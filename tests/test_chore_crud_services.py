@@ -476,9 +476,8 @@ class TestCreateChoreEndToEnd:
         assert chore_sensor.attributes["recurring_frequency"] == "weekly"
 
         helper_state = get_dashboard_helper_state(hass, "zoe")
-        chores_by_label = helper_state.attributes[const.ATTR_CHORES_BY_LABEL]
-        assert chore["eid"] in chores_by_label["test"]
-        assert chore["eid"] in chores_by_label["e2e"]
+        assert helper_state is not None
+        assert chore.get(const.ATTR_LABELS) == ["test", "e2e"]
 
     @pytest.mark.asyncio
     async def test_created_chore_exposes_live_status_and_buttons(

@@ -48,6 +48,19 @@ async def scenario_density_100(
 
 
 @pytest.fixture
+async def scenario_density_80(
+    hass: HomeAssistant,
+    mock_hass_users: dict[str, Any],
+) -> SetupResult:
+    """Load the 80-chores-per-user density scenario."""
+    return await setup_from_yaml(
+        hass,
+        mock_hass_users,
+        "tests/scenarios/scenario_density_starblum_80.yaml",
+    )
+
+
+@pytest.fixture
 async def scenario_density_120(
     hass: HomeAssistant,
     mock_hass_users: dict[str, Any],
@@ -272,6 +285,19 @@ async def _restore_user_to_highest_inline_plan(
 class TestDashboardHelperSharding:
     """Validate inline and sharded helper modes around the density threshold."""
 
+    @staticmethod
+    def _get_density_setup_result(
+        scenario_density_80: SetupResult,
+        scenario_density_120: SetupResult,
+        chores_per_user: int,
+    ) -> SetupResult:
+        """Return the setup result for one accepted high-density scenario."""
+        scenario_map = {
+            80: scenario_density_80,
+            120: scenario_density_120,
+        }
+        return scenario_map[chores_per_user]
+
     async def test_end_to_end_setup_and_reload_expose_chore_list_1_attributes(
         self,
         hass: HomeAssistant,
@@ -466,19 +492,30 @@ class TestDashboardHelperSharding:
             )
             assert isinstance(chore_list_state.attributes.get("chores", []), list)
 
-    async def test_acceptance_density_120_stays_sharded_and_complete(
+    @pytest.mark.parametrize("chores_per_user", [80, 120])
+    async def test_acceptance_high_density_stays_sharded_and_complete(
         self,
         hass: HomeAssistant,
+        scenario_density_80: SetupResult,
         scenario_density_120: SetupResult,
+        chores_per_user: int,
     ) -> None:
-        """120 chores per user should stay complete and under the recorder ceiling."""
-        await scenario_density_120.coordinator.ui_manager.async_reconcile_chore_shards_for_users(
-            [scenario_density_120.assignee_ids["Zoë"]]
+        """High-density accepted scenarios should stay complete and under the recorder ceiling."""
+        setup_result = self._get_density_setup_result(
+            scenario_density_80,
+            scenario_density_120,
+            chores_per_user,
         )
-        await scenario_density_120.coordinator.async_request_refresh()
+
+        await (
+            setup_result.coordinator.ui_manager.async_reconcile_chore_shards_for_users(
+                [setup_result.assignee_ids["Zoë"]]
+            )
+        )
+        await setup_result.coordinator.async_request_refresh()
         await hass.async_block_till_done()
 
-        helper_state = _get_dashboard_helper_state(hass, scenario_density_120, "Zoë")
+        helper_state = _get_dashboard_helper_state(hass, setup_result, "Zoë")
         shard_runtime = helper_state.attributes[const.ATTR_SHARD_RUNTIME]
 
         assert shard_runtime["mode"] == const.HELPER_SHARD_MODE_SHARDED
@@ -486,7 +523,38 @@ class TestDashboardHelperSharding:
         assert shard_runtime["last_accepted_serialized_size"] < 16 * 1024
 
         merged_chores = _merge_helper_chores(hass, helper_state)
-        assert len(merged_chores) == 120
+        assert len(merged_chores) == chores_per_user
+
+    async def test_density_80_claim_path_stays_operational(
+        self,
+        hass: HomeAssistant,
+        scenario_density_80: SetupResult,
+    ) -> None:
+        """A representative claim path should still work at 80 chores per user."""
+        zoe_id = scenario_density_80.assignee_ids["Zoë"]
+        first_chore_id = scenario_density_80.chore_ids["Zoë Dense Chore 001"]
+
+        await scenario_density_80.coordinator.ui_manager.async_reconcile_chore_shards_for_users(
+            [zoe_id]
+        )
+        await scenario_density_80.coordinator.async_request_refresh()
+        await hass.async_block_till_done()
+
+        await scenario_density_80.coordinator.chore_manager.claim_chore(
+            zoe_id,
+            first_chore_id,
+            "Zoë",
+        )
+        await scenario_density_80.coordinator.async_request_refresh()
+        await hass.async_block_till_done()
+
+        helper_state = _get_dashboard_helper_state(hass, scenario_density_80, "Zoë")
+        chores = _merge_helper_chores(hass, helper_state)
+        claimed_chore = next(
+            chore for chore in chores if chore.get("name") == "Zoë Dense Chore 001"
+        )
+
+        assert claimed_chore["state"] in {"claimed", "completed", "waiting"}
 
     async def test_reload_reconstructs_shard_helpers_without_unavailable_entities(
         self,

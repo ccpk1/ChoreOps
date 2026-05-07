@@ -3,7 +3,7 @@
 - **Name / Code**: Dashboard helper hybrid sharding / `DASHBOARD_HELPER_HYBRID_SHARDING`
 - **Target release / milestone**: TBD after prototype and dashboard complexity review; candidate for next dashboard-focused feature release
 - **Owner / driver(s)**: TBD
-- **Status**: Phase 4 in progress; backend shard lifecycle is ready for dev smoke validation
+- **Status**: Phase 4 in progress; focused admin template shard support is now validated and Phase 5 audit has identified the main documentation and breaking-change surfaces
 
 ## Summary & immediate steps
 
@@ -12,7 +12,8 @@
 | Phase 1 – Contract review and prototype shape | Define the helper-pointer contract and decide what stays inline vs moves to companion helpers | 100% | Contract, lifecycle, compatibility matrix, and guide updates are documented |
 | Phase 2 – Backend helper sharding | Add runtime-owned companion helper surfaces for large chore payloads and auxiliary data | 100% | Runtime shard plans, companion helper sensors, and targeted validation are complete |
 | Phase 3 – Shared dashboard snippet migration | Update shared snippets to resolve, merge, and cache chore shards in memory once per card | 100% | Canonical branch `ccpk1/issue124` created; shared chore-engine snippets now merge shard helpers and rebuild labels from merged rows |
-| Phase 4 – Testing, thresholds, and rollout | Validate size gains, template responsiveness, and backward compatibility | 85% | Added 120-density acceptance coverage, shard lifecycle/reload/orphan diagnostics tests, a strict one-edit cross-user flip case, a passing full opted-in stress matrix, a verified dev-runtime startup fix, fallback-free shard pointer publication, and direct end-to-end `chore_list_1` proof; live manual validation and broader template/mixed-load coverage remain open |
+| Phase 4 – Testing, thresholds, and rollout | Validate size gains, template responsiveness, and backward compatibility | 90% | Added 120-density acceptance coverage, shard lifecycle/reload/orphan diagnostics tests, a strict one-edit cross-user flip case, a passing full opted-in stress matrix, a verified dev-runtime startup fix, fallback-free shard pointer publication, direct end-to-end `chore_list_1` proof, and focused shard-aware admin template validation; live manual validation and broader template/mixed-load coverage remain open |
+| Phase 5 – Documentation, migration, and breaking-change handling | Document contract changes, migration guidance, and direct-helper compatibility impact | 15% | Initial audit complete: first-party guide is mostly aligned, wiki cookbook is the main stale migration surface, and dashboard preference docs appear low-risk |
 
 1. **Key objective** – Preserve the current dashboard authoring model of “resolve helper once per card, work from local in-memory data” while allowing the main helper to point at an ordered list of additional chore UI helpers under `dashboard_helpers.chore_helper_eids` when the inline `chores` payload becomes too large, so the same contract scales naturally from one shard to many.
 2. **Summary of recent work** –
@@ -29,6 +30,13 @@
   - Live manual validation is no longer blocked by startup or shard-helper publication issues; dashboard responsiveness and authenticated dense-scenario load checks are now the main remaining validation slices.
   - The deterministic fallback helper-ID publication path has been removed from `ui_manager`; main-helper shard pointers now resolve only from real registry-backed shard helpers.
   - The focused shard suite is green again after adding direct end-to-end coverage for `sensor.zoe_choreops_ui_dashboard_chore_list_1` and aligning lifecycle assertions with fallback-free runtime behavior.
+  - `admin-shared-v1` and `admin-peruser-v1` now merge shard-backed chore helper rows in their approval and chore-management paths instead of assuming the main helper always carries inline `chores`.
+  - Focused admin dashboard smoke coverage now proves both shared-admin and per-user admin chore-management views resolve a selected chore from shard-only helper payloads.
+  - The stale CRUD expectation that still required helper-level `chores_by_label` transport was updated to the current chore-row label contract, and the previously failing targeted test now passes.
+  - A dedicated follow-on documentation phase is now needed to cover migration guidance, compatibility messaging, and the breaking-change impact for dashboards or automations that read helper attributes directly.
+  - The first Phase 5 audit found that `docs/DASHBOARD_TEMPLATE_GUIDE.md` is mostly aligned with the shard contract, but it still contains at least one stale inline-chores example that should be rewritten as a shard-aware merge example.
+  - The wiki cookbook now looks like the largest real-world migration surface because it still teaches several direct `state_attr(helper, 'chores')` setup patterns that will not scale once shard mode activates.
+  - The dashboard repo preference documents appear comparatively low-risk: they mostly describe UI options and behavior, with no broad pattern of raw helper chore transport assumptions.
   - Preserve the closed Phase 1 and Phase 2 contracts as the implementation source of truth; do not reopen approved naming, threshold, or runtime-plan decisions without new evidence.
 4. **Risks / blockers** –
    - Jinja can merge lists dynamically, but repeated `state_attr()` calls inside loops will hurt dashboard responsiveness if the contract is not designed to resolve shard payloads once per card.
@@ -210,6 +218,11 @@
   - Fixed the real startup root cause by marking chore shard helpers as always-required in the central entity registry and keeping startup shard creation in the initial sensor entity add path.
   - Removed the deterministic `ui_manager` fallback that synthesized shard helper IDs and kept only registry-backed shard pointer publication.
   - Re-ran the focused shard suite after the fallback removal and confirmed it passes at `10 passed` with the fallback-free runtime behavior.
+  - Updated `admin-shared-v1` and `admin-peruser-v1` in the canonical dashboard repo so the admin approval and chore-management paths merge `dashboard_helpers.chore_helper_eids` instead of reading only inline helper `chores`.
+  - Synced those canonical admin template changes into the vendored runtime dashboard mirror and parity-checked the sync.
+  - Added focused smoke coverage proving both shared-admin and per-user admin chore-management views can resolve a selected chore from shard-only helper payloads.
+  - Re-ran `tests/test_dashboard_template_render_smoke.py` and confirmed the updated focused admin/dashboard smoke slice passes at `24 passed`.
+  - Re-ran the previously failing targeted CRUD test for helper labels after aligning it to the post-`chores_by_label` helper contract and confirmed it passes at `1 passed`.
 - **Key issues**
   - The current stress suite measures attribute size, not dashboard render latency; manual validation will still matter.
   - Backward compatibility needs explicit tests because many dashboards may still assume one helper contains all chore rows inline.
@@ -218,6 +231,8 @@
   - Because the contract changes from possible inline chores to shard-only chores above threshold, validation must prove both states render correctly and that dashboards do not rely on mixed transport.
   - Threshold-edge validation is required, not optional. If users can teeter around the guard, platinum-level entity handling depends on hysteresis and deterministic cleanup behaving correctly under edit churn.
   - Platinum-level signoff here depends on lifecycle validation as much as payload-size validation. Restart, reload, registry cleanup, and cross-user mutation behavior are part of the acceptance bar, not secondary follow-up work.
+  - Admin dashboards were a real compatibility gap even after the shared chore-engine migration because they still performed direct helper chore lookups outside the shared snippets.
+  - The broader breaking-change surface is now documentation-heavy: dashboards, cookbook examples, power-user template snippets, and any direct helper consumers need explicit migration guidance once `chores_by_label` and inline-only assumptions are no longer safe at scale.
 
 ## Testing & validation
 
@@ -241,7 +256,11 @@
   - `CHOREOPS_RUN_STRESS=1 python -m pytest -o addopts='' -m stress tests/test_dashboard_helper_density_stress.py -v --tb=line` ✅ (`16 passed`) after the startup fix
   - `python -m pytest tests/test_dashboard_helper_sharding.py::TestDashboardHelperSharding::test_end_to_end_setup_and_reload_expose_chore_list_1_attributes -q` ✅ (`1 passed`) after removing the deterministic fallback path
   - `python -m pytest tests/test_dashboard_helper_sharding.py -q` ✅ (`10 passed`) after removing the deterministic fallback path and keeping lifecycle assertions aligned to real registry-backed shard publication
-- Outstanding tests: Manual live-load validation, mixed-load acceptance validation, and template-side shard-pointer absence/partial-availability regression coverage remain pending.
+  - `python utils/sync_dashboard_assets.py` ✅ after the admin template shard-support updates
+  - `python utils/sync_dashboard_assets.py --check` ✅ after the admin template shard-support updates
+  - `python -m pytest tests/test_dashboard_template_render_smoke.py -q` ✅ (`24 passed`) after adding shared-admin and per-user admin shard regressions
+  - `python -m pytest tests/test_chore_crud_services.py::TestCreateChoreEndToEnd::test_created_chore_dashboard_helper_attributes_match_input -v --tb=line` ✅ (`1 passed`) after removing the stale `chores_by_label` expectation
+- Outstanding tests: Manual live-load validation, mixed-load acceptance validation, template-side shard-pointer absence/partial-availability regression coverage, and the Phase 5 documentation/migration updates remain pending.
 
 ## Phase 4 validation notes
 
@@ -257,6 +276,35 @@
   - Manual dashboard responsiveness checks in a live Home Assistant environment.
   - Authenticated live-load execution of the dense acceptance scenario in the dev Home Assistant instance.
   - Template-side regression coverage for shard-pointer absent/present/partial-availability cases and a mixed-load validation slice.
+  - Documentation and migration guidance covering the direct-helper compatibility impact, including explicit breaking-change communication for power-user dashboards and cookbook-style helper consumers.
+
+### Phase 5 – Documentation, migration, and breaking-change handling
+
+- **Goal**: Document the real compatibility impact of hybrid helper sharding, provide migration guidance for direct-helper consumers, and decide how the breaking-change surface is communicated before release signoff.
+- **Status**: In progress
+- **Steps / detailed work items**
+  1. [ ] Update this initiative plan summary and supporting notes whenever the compatibility or migration story changes so the breaking-change surface remains visible at the top level.
+  2. [ ] Audit first-party documentation for helper-contract assumptions, including `docs/DASHBOARD_TEMPLATE_GUIDE.md`, any dashboard-generation technical notes, and any places that still imply helper-level `chores_by_label` transport or guaranteed inline `chores` at scale.
+  3. [ ] Audit the wiki and cookbook surfaces for direct helper usage, especially chore examples that currently use `state_attr(helper, 'chores')` or helper-level label indexes, and record which examples need shard-aware replacement patterns.
+  4. [ ] Define and document the supported migration pattern for direct-helper consumers: resolve the main helper once, inspect `dashboard_helpers.chore_helper_eids`, merge shard-backed chore rows once per card/template, and rebuild any derived label grouping locally from merged rows.
+  5. [ ] Explicitly document the breaking-change contract: `chores_by_label` is no longer guaranteed on the helper, and above threshold the main helper may omit inline `chores` in favor of shard pointers.
+  6. [ ] Decide where release-facing breaking-change communication belongs for this repo set, including README/release notes/wiki callouts and any dashboard registry or release-checklist notes needed before ship.
+  7. [ ] Add or update troubleshooting guidance for partial shard availability, stale direct-helper assumptions, and how to identify the active helper mode from runtime attributes or diagnostics.
+  8. [ ] Document the explicit non-goal boundary for templates such as `user-chores-essential-v1` so scale expectations and migration expectations do not drift together.
+  9. [ ] Decide whether any compatibility bridge or deprecation window is warranted for common direct-helper patterns, or whether the contract should be treated as an immediate hard break with documentation-only mitigation.
+- **Phase 5 progress update (2026-05-06)**
+  - Audited first-party docs, the wiki cookbook, and the dashboard repo preference markdown files for direct-helper assumptions tied to inline `chores`, helper-level `chores_by_label`, or missing `dashboard_helpers.chore_helper_eids` awareness.
+  - Confirmed `docs/DASHBOARD_TEMPLATE_GUIDE.md` already documents the shard contract well overall, including the compatibility matrix and the legacy-consumer warning, but it still contains at least one stale example that iterates directly over `state_attr(config.entity, 'chores')` and should be replaced with the supported shard-aware merge pattern.
+  - Confirmed the main stale migration surface is the wiki cookbook page `Tips-&-Tricks:-Template-Cookbook-for-Chores,-Rewards,-and-Approvals.md`, which still teaches direct single-helper and multi-helper `state_attr(helper, 'chores')` accumulation patterns.
+  - Confirmed the dashboard repo preference documents are mostly descriptive configuration references rather than code-pattern guides; they currently appear low-risk for helper-contract breakage and do not show a broader pattern of raw inline-chore assumptions.
+  - Confirmed at least one in-process dashboard doc outside the main initiative plan still references `dashboard_helper.chores` and `dashboard_helper.chores_by_label` as dynamic sources, so the Phase 5 sweep needs to include in-process design docs where those references matter for future work.
+- **Key issues**
+  - This is not only a scale enhancement; it changes what third-party or power-user dashboards can safely assume about the main helper payload.
+  - The highest-risk breakage is likely outside the maintained shared snippets: custom dashboards, cookbook snippets, and one-off automations that read helper attributes directly.
+  - Documentation needs to separate two ideas cleanly: maintained shard-aware templates that remain supported, and direct-helper patterns that may now require migration at higher chore densities.
+  - Release communication has to be explicit enough that users understand why dashboards may appear to "lose chores" if they only read inline helper `chores` and ignore `dashboard_helpers.chore_helper_eids`.
+  - The most useful remediation target is not the dashboard preference docs; it is the cookbook/setup-block guidance that users are likely to copy into template sensors and custom cards.
+  - First-party guide drift is now more subtle than total: the risk is isolated stale examples inside otherwise-correct contract documentation, which can be more misleading than a fully outdated section because readers assume the surrounding page is authoritative.
 
 ## Notes & follow-up
 
