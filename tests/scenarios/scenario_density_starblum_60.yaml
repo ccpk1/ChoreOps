@@ -1,0 +1,2369 @@
+system:
+  points_label: Star Points
+  points_icon: mdi:star
+assignees:
+- name: Zoë
+  ha_user: assignee1
+  dashboard_language: en
+- name: Max!
+  ha_user: assignee2
+  dashboard_language: en
+- name: Lila
+  ha_user: assignee3
+  dashboard_language: en
+approvers:
+- name: Môm Astrid Stårblüm
+  ha_user: approver1
+  assignees:
+  - Zoë
+  - Max!
+  - Lila
+  mobile_notify_service: ''
+- name: Dad Leo Stårblüm
+  ha_user: approver2
+  assignees:
+  - Zoë
+  - Max!
+  - Lila
+  mobile_notify_service: ''
+chores:
+- name: Zoë Dense Chore 001
+  assigned_to:
+  - Zoë
+  points: 5.0
+  icon: mdi:broom
+  description: Generated dense dashboard chore 1 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Kitchen
+  - Bedroom
+- name: Zoë Dense Chore 002
+  assigned_to:
+  - Zoë
+  points: 10.0
+  icon: mdi:spray-bottle
+  description: Generated dense dashboard chore 2 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bedroom
+  - Bathroom
+- name: Zoë Dense Chore 003
+  assigned_to:
+  - Zoë
+  points: 15.0
+  icon: mdi:trash-can-outline
+  description: Generated dense dashboard chore 3 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bathroom
+  - Laundry
+- name: Zoë Dense Chore 004
+  assigned_to:
+  - Zoë
+  points: 20.0
+  icon: mdi:book-open-page-variant
+  description: Generated dense dashboard chore 4 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Laundry
+  - School
+- name: Zoë Dense Chore 005
+  assigned_to:
+  - Zoë
+  points: 25.0
+  icon: mdi:washing-machine
+  description: Generated dense dashboard chore 5 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - School
+  - Outdoor
+- name: Zoë Dense Chore 006
+  assigned_to:
+  - Zoë
+  points: 30.0
+  icon: mdi:shovel
+  description: Generated dense dashboard chore 6 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Outdoor
+  - Kitchen
+- name: Zoë Dense Chore 007
+  assigned_to:
+  - Zoë
+  points: 5.0
+  icon: mdi:broom
+  description: Generated dense dashboard chore 7 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Kitchen
+  - Bedroom
+- name: Zoë Dense Chore 008
+  assigned_to:
+  - Zoë
+  points: 10.0
+  icon: mdi:spray-bottle
+  description: Generated dense dashboard chore 8 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bedroom
+  - Bathroom
+- name: Zoë Dense Chore 009
+  assigned_to:
+  - Zoë
+  points: 15.0
+  icon: mdi:trash-can-outline
+  description: Generated dense dashboard chore 9 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bathroom
+  - Laundry
+- name: Zoë Dense Chore 010
+  assigned_to:
+  - Zoë
+  points: 20.0
+  icon: mdi:book-open-page-variant
+  description: Generated dense dashboard chore 10 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Laundry
+  - School
+- name: Zoë Dense Chore 011
+  assigned_to:
+  - Zoë
+  points: 25.0
+  icon: mdi:washing-machine
+  description: Generated dense dashboard chore 11 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - School
+  - Outdoor
+- name: Zoë Dense Chore 012
+  assigned_to:
+  - Zoë
+  points: 30.0
+  icon: mdi:shovel
+  description: Generated dense dashboard chore 12 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Outdoor
+  - Kitchen
+- name: Zoë Dense Chore 013
+  assigned_to:
+  - Zoë
+  points: 5.0
+  icon: mdi:broom
+  description: Generated dense dashboard chore 13 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Kitchen
+  - Bedroom
+- name: Zoë Dense Chore 014
+  assigned_to:
+  - Zoë
+  points: 10.0
+  icon: mdi:spray-bottle
+  description: Generated dense dashboard chore 14 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bedroom
+  - Bathroom
+- name: Zoë Dense Chore 015
+  assigned_to:
+  - Zoë
+  points: 15.0
+  icon: mdi:trash-can-outline
+  description: Generated dense dashboard chore 15 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bathroom
+  - Laundry
+- name: Zoë Dense Chore 016
+  assigned_to:
+  - Zoë
+  points: 20.0
+  icon: mdi:book-open-page-variant
+  description: Generated dense dashboard chore 16 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Laundry
+  - School
+- name: Zoë Dense Chore 017
+  assigned_to:
+  - Zoë
+  points: 25.0
+  icon: mdi:washing-machine
+  description: Generated dense dashboard chore 17 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - School
+  - Outdoor
+- name: Zoë Dense Chore 018
+  assigned_to:
+  - Zoë
+  points: 30.0
+  icon: mdi:shovel
+  description: Generated dense dashboard chore 18 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Outdoor
+  - Kitchen
+- name: Zoë Dense Chore 019
+  assigned_to:
+  - Zoë
+  points: 5.0
+  icon: mdi:broom
+  description: Generated dense dashboard chore 19 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Kitchen
+  - Bedroom
+- name: Zoë Dense Chore 020
+  assigned_to:
+  - Zoë
+  points: 10.0
+  icon: mdi:spray-bottle
+  description: Generated dense dashboard chore 20 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bedroom
+  - Bathroom
+- name: Zoë Dense Chore 021
+  assigned_to:
+  - Zoë
+  points: 15.0
+  icon: mdi:trash-can-outline
+  description: Generated dense dashboard chore 21 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bathroom
+  - Laundry
+- name: Zoë Dense Chore 022
+  assigned_to:
+  - Zoë
+  points: 20.0
+  icon: mdi:book-open-page-variant
+  description: Generated dense dashboard chore 22 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Laundry
+  - School
+- name: Zoë Dense Chore 023
+  assigned_to:
+  - Zoë
+  points: 25.0
+  icon: mdi:washing-machine
+  description: Generated dense dashboard chore 23 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - School
+  - Outdoor
+- name: Zoë Dense Chore 024
+  assigned_to:
+  - Zoë
+  points: 30.0
+  icon: mdi:shovel
+  description: Generated dense dashboard chore 24 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Outdoor
+  - Kitchen
+- name: Zoë Dense Chore 025
+  assigned_to:
+  - Zoë
+  points: 5.0
+  icon: mdi:broom
+  description: Generated dense dashboard chore 25 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Kitchen
+  - Bedroom
+- name: Zoë Dense Chore 026
+  assigned_to:
+  - Zoë
+  points: 10.0
+  icon: mdi:spray-bottle
+  description: Generated dense dashboard chore 26 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bedroom
+  - Bathroom
+- name: Zoë Dense Chore 027
+  assigned_to:
+  - Zoë
+  points: 15.0
+  icon: mdi:trash-can-outline
+  description: Generated dense dashboard chore 27 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bathroom
+  - Laundry
+- name: Zoë Dense Chore 028
+  assigned_to:
+  - Zoë
+  points: 20.0
+  icon: mdi:book-open-page-variant
+  description: Generated dense dashboard chore 28 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Laundry
+  - School
+- name: Zoë Dense Chore 029
+  assigned_to:
+  - Zoë
+  points: 25.0
+  icon: mdi:washing-machine
+  description: Generated dense dashboard chore 29 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - School
+  - Outdoor
+- name: Zoë Dense Chore 030
+  assigned_to:
+  - Zoë
+  points: 30.0
+  icon: mdi:shovel
+  description: Generated dense dashboard chore 30 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Outdoor
+  - Kitchen
+- name: Zoë Dense Chore 031
+  assigned_to:
+  - Zoë
+  points: 5.0
+  icon: mdi:broom
+  description: Generated dense dashboard chore 31 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Kitchen
+  - Bedroom
+- name: Zoë Dense Chore 032
+  assigned_to:
+  - Zoë
+  points: 10.0
+  icon: mdi:spray-bottle
+  description: Generated dense dashboard chore 32 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bedroom
+  - Bathroom
+- name: Zoë Dense Chore 033
+  assigned_to:
+  - Zoë
+  points: 15.0
+  icon: mdi:trash-can-outline
+  description: Generated dense dashboard chore 33 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bathroom
+  - Laundry
+- name: Zoë Dense Chore 034
+  assigned_to:
+  - Zoë
+  points: 20.0
+  icon: mdi:book-open-page-variant
+  description: Generated dense dashboard chore 34 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Laundry
+  - School
+- name: Zoë Dense Chore 035
+  assigned_to:
+  - Zoë
+  points: 25.0
+  icon: mdi:washing-machine
+  description: Generated dense dashboard chore 35 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - School
+  - Outdoor
+- name: Zoë Dense Chore 036
+  assigned_to:
+  - Zoë
+  points: 30.0
+  icon: mdi:shovel
+  description: Generated dense dashboard chore 36 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Outdoor
+  - Kitchen
+- name: Zoë Dense Chore 037
+  assigned_to:
+  - Zoë
+  points: 5.0
+  icon: mdi:broom
+  description: Generated dense dashboard chore 37 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Kitchen
+  - Bedroom
+- name: Zoë Dense Chore 038
+  assigned_to:
+  - Zoë
+  points: 10.0
+  icon: mdi:spray-bottle
+  description: Generated dense dashboard chore 38 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bedroom
+  - Bathroom
+- name: Zoë Dense Chore 039
+  assigned_to:
+  - Zoë
+  points: 15.0
+  icon: mdi:trash-can-outline
+  description: Generated dense dashboard chore 39 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bathroom
+  - Laundry
+- name: Zoë Dense Chore 040
+  assigned_to:
+  - Zoë
+  points: 20.0
+  icon: mdi:book-open-page-variant
+  description: Generated dense dashboard chore 40 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Laundry
+  - School
+- name: Zoë Dense Chore 041
+  assigned_to:
+  - Zoë
+  points: 25.0
+  icon: mdi:washing-machine
+  description: Generated dense dashboard chore 41 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - School
+  - Outdoor
+- name: Zoë Dense Chore 042
+  assigned_to:
+  - Zoë
+  points: 30.0
+  icon: mdi:shovel
+  description: Generated dense dashboard chore 42 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Outdoor
+  - Kitchen
+- name: Zoë Dense Chore 043
+  assigned_to:
+  - Zoë
+  points: 5.0
+  icon: mdi:broom
+  description: Generated dense dashboard chore 43 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Kitchen
+  - Bedroom
+- name: Zoë Dense Chore 044
+  assigned_to:
+  - Zoë
+  points: 10.0
+  icon: mdi:spray-bottle
+  description: Generated dense dashboard chore 44 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bedroom
+  - Bathroom
+- name: Zoë Dense Chore 045
+  assigned_to:
+  - Zoë
+  points: 15.0
+  icon: mdi:trash-can-outline
+  description: Generated dense dashboard chore 45 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bathroom
+  - Laundry
+- name: Zoë Dense Chore 046
+  assigned_to:
+  - Zoë
+  points: 20.0
+  icon: mdi:book-open-page-variant
+  description: Generated dense dashboard chore 46 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Laundry
+  - School
+- name: Zoë Dense Chore 047
+  assigned_to:
+  - Zoë
+  points: 25.0
+  icon: mdi:washing-machine
+  description: Generated dense dashboard chore 47 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - School
+  - Outdoor
+- name: Zoë Dense Chore 048
+  assigned_to:
+  - Zoë
+  points: 30.0
+  icon: mdi:shovel
+  description: Generated dense dashboard chore 48 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Outdoor
+  - Kitchen
+- name: Zoë Dense Chore 049
+  assigned_to:
+  - Zoë
+  points: 5.0
+  icon: mdi:broom
+  description: Generated dense dashboard chore 49 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Kitchen
+  - Bedroom
+- name: Zoë Dense Chore 050
+  assigned_to:
+  - Zoë
+  points: 10.0
+  icon: mdi:spray-bottle
+  description: Generated dense dashboard chore 50 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bedroom
+  - Bathroom
+- name: Zoë Dense Chore 051
+  assigned_to:
+  - Zoë
+  points: 15.0
+  icon: mdi:trash-can-outline
+  description: Generated dense dashboard chore 51 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bathroom
+  - Laundry
+- name: Zoë Dense Chore 052
+  assigned_to:
+  - Zoë
+  points: 20.0
+  icon: mdi:book-open-page-variant
+  description: Generated dense dashboard chore 52 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Laundry
+  - School
+- name: Zoë Dense Chore 053
+  assigned_to:
+  - Zoë
+  points: 25.0
+  icon: mdi:washing-machine
+  description: Generated dense dashboard chore 53 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - School
+  - Outdoor
+- name: Zoë Dense Chore 054
+  assigned_to:
+  - Zoë
+  points: 30.0
+  icon: mdi:shovel
+  description: Generated dense dashboard chore 54 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Outdoor
+  - Kitchen
+- name: Zoë Dense Chore 055
+  assigned_to:
+  - Zoë
+  points: 5.0
+  icon: mdi:broom
+  description: Generated dense dashboard chore 55 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Kitchen
+  - Bedroom
+- name: Zoë Dense Chore 056
+  assigned_to:
+  - Zoë
+  points: 10.0
+  icon: mdi:spray-bottle
+  description: Generated dense dashboard chore 56 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bedroom
+  - Bathroom
+- name: Zoë Dense Chore 057
+  assigned_to:
+  - Zoë
+  points: 15.0
+  icon: mdi:trash-can-outline
+  description: Generated dense dashboard chore 57 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bathroom
+  - Laundry
+- name: Zoë Dense Chore 058
+  assigned_to:
+  - Zoë
+  points: 20.0
+  icon: mdi:book-open-page-variant
+  description: Generated dense dashboard chore 58 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Laundry
+  - School
+- name: Zoë Dense Chore 059
+  assigned_to:
+  - Zoë
+  points: 25.0
+  icon: mdi:washing-machine
+  description: Generated dense dashboard chore 59 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - School
+  - Outdoor
+- name: Zoë Dense Chore 060
+  assigned_to:
+  - Zoë
+  points: 30.0
+  icon: mdi:shovel
+  description: Generated dense dashboard chore 60 for Zoë
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Outdoor
+  - Kitchen
+- name: Max! Dense Chore 001
+  assigned_to:
+  - Max!
+  points: 5.0
+  icon: mdi:broom
+  description: Generated dense dashboard chore 1 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Kitchen
+  - Bathroom
+- name: Max! Dense Chore 002
+  assigned_to:
+  - Max!
+  points: 10.0
+  icon: mdi:spray-bottle
+  description: Generated dense dashboard chore 2 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bedroom
+  - Laundry
+- name: Max! Dense Chore 003
+  assigned_to:
+  - Max!
+  points: 15.0
+  icon: mdi:trash-can-outline
+  description: Generated dense dashboard chore 3 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bathroom
+  - School
+- name: Max! Dense Chore 004
+  assigned_to:
+  - Max!
+  points: 20.0
+  icon: mdi:book-open-page-variant
+  description: Generated dense dashboard chore 4 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Laundry
+  - Outdoor
+- name: Max! Dense Chore 005
+  assigned_to:
+  - Max!
+  points: 25.0
+  icon: mdi:washing-machine
+  description: Generated dense dashboard chore 5 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - School
+  - Kitchen
+- name: Max! Dense Chore 006
+  assigned_to:
+  - Max!
+  points: 30.0
+  icon: mdi:shovel
+  description: Generated dense dashboard chore 6 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Outdoor
+  - Bedroom
+- name: Max! Dense Chore 007
+  assigned_to:
+  - Max!
+  points: 5.0
+  icon: mdi:broom
+  description: Generated dense dashboard chore 7 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Kitchen
+  - Bathroom
+- name: Max! Dense Chore 008
+  assigned_to:
+  - Max!
+  points: 10.0
+  icon: mdi:spray-bottle
+  description: Generated dense dashboard chore 8 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bedroom
+  - Laundry
+- name: Max! Dense Chore 009
+  assigned_to:
+  - Max!
+  points: 15.0
+  icon: mdi:trash-can-outline
+  description: Generated dense dashboard chore 9 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bathroom
+  - School
+- name: Max! Dense Chore 010
+  assigned_to:
+  - Max!
+  points: 20.0
+  icon: mdi:book-open-page-variant
+  description: Generated dense dashboard chore 10 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Laundry
+  - Outdoor
+- name: Max! Dense Chore 011
+  assigned_to:
+  - Max!
+  points: 25.0
+  icon: mdi:washing-machine
+  description: Generated dense dashboard chore 11 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - School
+  - Kitchen
+- name: Max! Dense Chore 012
+  assigned_to:
+  - Max!
+  points: 30.0
+  icon: mdi:shovel
+  description: Generated dense dashboard chore 12 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Outdoor
+  - Bedroom
+- name: Max! Dense Chore 013
+  assigned_to:
+  - Max!
+  points: 5.0
+  icon: mdi:broom
+  description: Generated dense dashboard chore 13 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Kitchen
+  - Bathroom
+- name: Max! Dense Chore 014
+  assigned_to:
+  - Max!
+  points: 10.0
+  icon: mdi:spray-bottle
+  description: Generated dense dashboard chore 14 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bedroom
+  - Laundry
+- name: Max! Dense Chore 015
+  assigned_to:
+  - Max!
+  points: 15.0
+  icon: mdi:trash-can-outline
+  description: Generated dense dashboard chore 15 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bathroom
+  - School
+- name: Max! Dense Chore 016
+  assigned_to:
+  - Max!
+  points: 20.0
+  icon: mdi:book-open-page-variant
+  description: Generated dense dashboard chore 16 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Laundry
+  - Outdoor
+- name: Max! Dense Chore 017
+  assigned_to:
+  - Max!
+  points: 25.0
+  icon: mdi:washing-machine
+  description: Generated dense dashboard chore 17 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - School
+  - Kitchen
+- name: Max! Dense Chore 018
+  assigned_to:
+  - Max!
+  points: 30.0
+  icon: mdi:shovel
+  description: Generated dense dashboard chore 18 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Outdoor
+  - Bedroom
+- name: Max! Dense Chore 019
+  assigned_to:
+  - Max!
+  points: 5.0
+  icon: mdi:broom
+  description: Generated dense dashboard chore 19 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Kitchen
+  - Bathroom
+- name: Max! Dense Chore 020
+  assigned_to:
+  - Max!
+  points: 10.0
+  icon: mdi:spray-bottle
+  description: Generated dense dashboard chore 20 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bedroom
+  - Laundry
+- name: Max! Dense Chore 021
+  assigned_to:
+  - Max!
+  points: 15.0
+  icon: mdi:trash-can-outline
+  description: Generated dense dashboard chore 21 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bathroom
+  - School
+- name: Max! Dense Chore 022
+  assigned_to:
+  - Max!
+  points: 20.0
+  icon: mdi:book-open-page-variant
+  description: Generated dense dashboard chore 22 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Laundry
+  - Outdoor
+- name: Max! Dense Chore 023
+  assigned_to:
+  - Max!
+  points: 25.0
+  icon: mdi:washing-machine
+  description: Generated dense dashboard chore 23 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - School
+  - Kitchen
+- name: Max! Dense Chore 024
+  assigned_to:
+  - Max!
+  points: 30.0
+  icon: mdi:shovel
+  description: Generated dense dashboard chore 24 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Outdoor
+  - Bedroom
+- name: Max! Dense Chore 025
+  assigned_to:
+  - Max!
+  points: 5.0
+  icon: mdi:broom
+  description: Generated dense dashboard chore 25 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Kitchen
+  - Bathroom
+- name: Max! Dense Chore 026
+  assigned_to:
+  - Max!
+  points: 10.0
+  icon: mdi:spray-bottle
+  description: Generated dense dashboard chore 26 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bedroom
+  - Laundry
+- name: Max! Dense Chore 027
+  assigned_to:
+  - Max!
+  points: 15.0
+  icon: mdi:trash-can-outline
+  description: Generated dense dashboard chore 27 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bathroom
+  - School
+- name: Max! Dense Chore 028
+  assigned_to:
+  - Max!
+  points: 20.0
+  icon: mdi:book-open-page-variant
+  description: Generated dense dashboard chore 28 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Laundry
+  - Outdoor
+- name: Max! Dense Chore 029
+  assigned_to:
+  - Max!
+  points: 25.0
+  icon: mdi:washing-machine
+  description: Generated dense dashboard chore 29 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - School
+  - Kitchen
+- name: Max! Dense Chore 030
+  assigned_to:
+  - Max!
+  points: 30.0
+  icon: mdi:shovel
+  description: Generated dense dashboard chore 30 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Outdoor
+  - Bedroom
+- name: Max! Dense Chore 031
+  assigned_to:
+  - Max!
+  points: 5.0
+  icon: mdi:broom
+  description: Generated dense dashboard chore 31 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Kitchen
+  - Bathroom
+- name: Max! Dense Chore 032
+  assigned_to:
+  - Max!
+  points: 10.0
+  icon: mdi:spray-bottle
+  description: Generated dense dashboard chore 32 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bedroom
+  - Laundry
+- name: Max! Dense Chore 033
+  assigned_to:
+  - Max!
+  points: 15.0
+  icon: mdi:trash-can-outline
+  description: Generated dense dashboard chore 33 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bathroom
+  - School
+- name: Max! Dense Chore 034
+  assigned_to:
+  - Max!
+  points: 20.0
+  icon: mdi:book-open-page-variant
+  description: Generated dense dashboard chore 34 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Laundry
+  - Outdoor
+- name: Max! Dense Chore 035
+  assigned_to:
+  - Max!
+  points: 25.0
+  icon: mdi:washing-machine
+  description: Generated dense dashboard chore 35 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - School
+  - Kitchen
+- name: Max! Dense Chore 036
+  assigned_to:
+  - Max!
+  points: 30.0
+  icon: mdi:shovel
+  description: Generated dense dashboard chore 36 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Outdoor
+  - Bedroom
+- name: Max! Dense Chore 037
+  assigned_to:
+  - Max!
+  points: 5.0
+  icon: mdi:broom
+  description: Generated dense dashboard chore 37 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Kitchen
+  - Bathroom
+- name: Max! Dense Chore 038
+  assigned_to:
+  - Max!
+  points: 10.0
+  icon: mdi:spray-bottle
+  description: Generated dense dashboard chore 38 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bedroom
+  - Laundry
+- name: Max! Dense Chore 039
+  assigned_to:
+  - Max!
+  points: 15.0
+  icon: mdi:trash-can-outline
+  description: Generated dense dashboard chore 39 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bathroom
+  - School
+- name: Max! Dense Chore 040
+  assigned_to:
+  - Max!
+  points: 20.0
+  icon: mdi:book-open-page-variant
+  description: Generated dense dashboard chore 40 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Laundry
+  - Outdoor
+- name: Max! Dense Chore 041
+  assigned_to:
+  - Max!
+  points: 25.0
+  icon: mdi:washing-machine
+  description: Generated dense dashboard chore 41 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - School
+  - Kitchen
+- name: Max! Dense Chore 042
+  assigned_to:
+  - Max!
+  points: 30.0
+  icon: mdi:shovel
+  description: Generated dense dashboard chore 42 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Outdoor
+  - Bedroom
+- name: Max! Dense Chore 043
+  assigned_to:
+  - Max!
+  points: 5.0
+  icon: mdi:broom
+  description: Generated dense dashboard chore 43 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Kitchen
+  - Bathroom
+- name: Max! Dense Chore 044
+  assigned_to:
+  - Max!
+  points: 10.0
+  icon: mdi:spray-bottle
+  description: Generated dense dashboard chore 44 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bedroom
+  - Laundry
+- name: Max! Dense Chore 045
+  assigned_to:
+  - Max!
+  points: 15.0
+  icon: mdi:trash-can-outline
+  description: Generated dense dashboard chore 45 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bathroom
+  - School
+- name: Max! Dense Chore 046
+  assigned_to:
+  - Max!
+  points: 20.0
+  icon: mdi:book-open-page-variant
+  description: Generated dense dashboard chore 46 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Laundry
+  - Outdoor
+- name: Max! Dense Chore 047
+  assigned_to:
+  - Max!
+  points: 25.0
+  icon: mdi:washing-machine
+  description: Generated dense dashboard chore 47 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - School
+  - Kitchen
+- name: Max! Dense Chore 048
+  assigned_to:
+  - Max!
+  points: 30.0
+  icon: mdi:shovel
+  description: Generated dense dashboard chore 48 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Outdoor
+  - Bedroom
+- name: Max! Dense Chore 049
+  assigned_to:
+  - Max!
+  points: 5.0
+  icon: mdi:broom
+  description: Generated dense dashboard chore 49 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Kitchen
+  - Bathroom
+- name: Max! Dense Chore 050
+  assigned_to:
+  - Max!
+  points: 10.0
+  icon: mdi:spray-bottle
+  description: Generated dense dashboard chore 50 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bedroom
+  - Laundry
+- name: Max! Dense Chore 051
+  assigned_to:
+  - Max!
+  points: 15.0
+  icon: mdi:trash-can-outline
+  description: Generated dense dashboard chore 51 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bathroom
+  - School
+- name: Max! Dense Chore 052
+  assigned_to:
+  - Max!
+  points: 20.0
+  icon: mdi:book-open-page-variant
+  description: Generated dense dashboard chore 52 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Laundry
+  - Outdoor
+- name: Max! Dense Chore 053
+  assigned_to:
+  - Max!
+  points: 25.0
+  icon: mdi:washing-machine
+  description: Generated dense dashboard chore 53 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - School
+  - Kitchen
+- name: Max! Dense Chore 054
+  assigned_to:
+  - Max!
+  points: 30.0
+  icon: mdi:shovel
+  description: Generated dense dashboard chore 54 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Outdoor
+  - Bedroom
+- name: Max! Dense Chore 055
+  assigned_to:
+  - Max!
+  points: 5.0
+  icon: mdi:broom
+  description: Generated dense dashboard chore 55 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Kitchen
+  - Bathroom
+- name: Max! Dense Chore 056
+  assigned_to:
+  - Max!
+  points: 10.0
+  icon: mdi:spray-bottle
+  description: Generated dense dashboard chore 56 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bedroom
+  - Laundry
+- name: Max! Dense Chore 057
+  assigned_to:
+  - Max!
+  points: 15.0
+  icon: mdi:trash-can-outline
+  description: Generated dense dashboard chore 57 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bathroom
+  - School
+- name: Max! Dense Chore 058
+  assigned_to:
+  - Max!
+  points: 20.0
+  icon: mdi:book-open-page-variant
+  description: Generated dense dashboard chore 58 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Laundry
+  - Outdoor
+- name: Max! Dense Chore 059
+  assigned_to:
+  - Max!
+  points: 25.0
+  icon: mdi:washing-machine
+  description: Generated dense dashboard chore 59 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - School
+  - Kitchen
+- name: Max! Dense Chore 060
+  assigned_to:
+  - Max!
+  points: 30.0
+  icon: mdi:shovel
+  description: Generated dense dashboard chore 60 for Max!
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Outdoor
+  - Bedroom
+- name: Lila Dense Chore 001
+  assigned_to:
+  - Lila
+  points: 5.0
+  icon: mdi:broom
+  description: Generated dense dashboard chore 1 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Kitchen
+  - Laundry
+- name: Lila Dense Chore 002
+  assigned_to:
+  - Lila
+  points: 10.0
+  icon: mdi:spray-bottle
+  description: Generated dense dashboard chore 2 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bedroom
+  - School
+- name: Lila Dense Chore 003
+  assigned_to:
+  - Lila
+  points: 15.0
+  icon: mdi:trash-can-outline
+  description: Generated dense dashboard chore 3 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bathroom
+  - Outdoor
+- name: Lila Dense Chore 004
+  assigned_to:
+  - Lila
+  points: 20.0
+  icon: mdi:book-open-page-variant
+  description: Generated dense dashboard chore 4 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Laundry
+  - Kitchen
+- name: Lila Dense Chore 005
+  assigned_to:
+  - Lila
+  points: 25.0
+  icon: mdi:washing-machine
+  description: Generated dense dashboard chore 5 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - School
+  - Bedroom
+- name: Lila Dense Chore 006
+  assigned_to:
+  - Lila
+  points: 30.0
+  icon: mdi:shovel
+  description: Generated dense dashboard chore 6 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Outdoor
+  - Bathroom
+- name: Lila Dense Chore 007
+  assigned_to:
+  - Lila
+  points: 5.0
+  icon: mdi:broom
+  description: Generated dense dashboard chore 7 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Kitchen
+  - Laundry
+- name: Lila Dense Chore 008
+  assigned_to:
+  - Lila
+  points: 10.0
+  icon: mdi:spray-bottle
+  description: Generated dense dashboard chore 8 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bedroom
+  - School
+- name: Lila Dense Chore 009
+  assigned_to:
+  - Lila
+  points: 15.0
+  icon: mdi:trash-can-outline
+  description: Generated dense dashboard chore 9 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bathroom
+  - Outdoor
+- name: Lila Dense Chore 010
+  assigned_to:
+  - Lila
+  points: 20.0
+  icon: mdi:book-open-page-variant
+  description: Generated dense dashboard chore 10 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Laundry
+  - Kitchen
+- name: Lila Dense Chore 011
+  assigned_to:
+  - Lila
+  points: 25.0
+  icon: mdi:washing-machine
+  description: Generated dense dashboard chore 11 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - School
+  - Bedroom
+- name: Lila Dense Chore 012
+  assigned_to:
+  - Lila
+  points: 30.0
+  icon: mdi:shovel
+  description: Generated dense dashboard chore 12 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Outdoor
+  - Bathroom
+- name: Lila Dense Chore 013
+  assigned_to:
+  - Lila
+  points: 5.0
+  icon: mdi:broom
+  description: Generated dense dashboard chore 13 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Kitchen
+  - Laundry
+- name: Lila Dense Chore 014
+  assigned_to:
+  - Lila
+  points: 10.0
+  icon: mdi:spray-bottle
+  description: Generated dense dashboard chore 14 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bedroom
+  - School
+- name: Lila Dense Chore 015
+  assigned_to:
+  - Lila
+  points: 15.0
+  icon: mdi:trash-can-outline
+  description: Generated dense dashboard chore 15 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bathroom
+  - Outdoor
+- name: Lila Dense Chore 016
+  assigned_to:
+  - Lila
+  points: 20.0
+  icon: mdi:book-open-page-variant
+  description: Generated dense dashboard chore 16 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Laundry
+  - Kitchen
+- name: Lila Dense Chore 017
+  assigned_to:
+  - Lila
+  points: 25.0
+  icon: mdi:washing-machine
+  description: Generated dense dashboard chore 17 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - School
+  - Bedroom
+- name: Lila Dense Chore 018
+  assigned_to:
+  - Lila
+  points: 30.0
+  icon: mdi:shovel
+  description: Generated dense dashboard chore 18 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Outdoor
+  - Bathroom
+- name: Lila Dense Chore 019
+  assigned_to:
+  - Lila
+  points: 5.0
+  icon: mdi:broom
+  description: Generated dense dashboard chore 19 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Kitchen
+  - Laundry
+- name: Lila Dense Chore 020
+  assigned_to:
+  - Lila
+  points: 10.0
+  icon: mdi:spray-bottle
+  description: Generated dense dashboard chore 20 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bedroom
+  - School
+- name: Lila Dense Chore 021
+  assigned_to:
+  - Lila
+  points: 15.0
+  icon: mdi:trash-can-outline
+  description: Generated dense dashboard chore 21 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bathroom
+  - Outdoor
+- name: Lila Dense Chore 022
+  assigned_to:
+  - Lila
+  points: 20.0
+  icon: mdi:book-open-page-variant
+  description: Generated dense dashboard chore 22 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Laundry
+  - Kitchen
+- name: Lila Dense Chore 023
+  assigned_to:
+  - Lila
+  points: 25.0
+  icon: mdi:washing-machine
+  description: Generated dense dashboard chore 23 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - School
+  - Bedroom
+- name: Lila Dense Chore 024
+  assigned_to:
+  - Lila
+  points: 30.0
+  icon: mdi:shovel
+  description: Generated dense dashboard chore 24 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Outdoor
+  - Bathroom
+- name: Lila Dense Chore 025
+  assigned_to:
+  - Lila
+  points: 5.0
+  icon: mdi:broom
+  description: Generated dense dashboard chore 25 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Kitchen
+  - Laundry
+- name: Lila Dense Chore 026
+  assigned_to:
+  - Lila
+  points: 10.0
+  icon: mdi:spray-bottle
+  description: Generated dense dashboard chore 26 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bedroom
+  - School
+- name: Lila Dense Chore 027
+  assigned_to:
+  - Lila
+  points: 15.0
+  icon: mdi:trash-can-outline
+  description: Generated dense dashboard chore 27 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bathroom
+  - Outdoor
+- name: Lila Dense Chore 028
+  assigned_to:
+  - Lila
+  points: 20.0
+  icon: mdi:book-open-page-variant
+  description: Generated dense dashboard chore 28 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Laundry
+  - Kitchen
+- name: Lila Dense Chore 029
+  assigned_to:
+  - Lila
+  points: 25.0
+  icon: mdi:washing-machine
+  description: Generated dense dashboard chore 29 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - School
+  - Bedroom
+- name: Lila Dense Chore 030
+  assigned_to:
+  - Lila
+  points: 30.0
+  icon: mdi:shovel
+  description: Generated dense dashboard chore 30 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Outdoor
+  - Bathroom
+- name: Lila Dense Chore 031
+  assigned_to:
+  - Lila
+  points: 5.0
+  icon: mdi:broom
+  description: Generated dense dashboard chore 31 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Kitchen
+  - Laundry
+- name: Lila Dense Chore 032
+  assigned_to:
+  - Lila
+  points: 10.0
+  icon: mdi:spray-bottle
+  description: Generated dense dashboard chore 32 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bedroom
+  - School
+- name: Lila Dense Chore 033
+  assigned_to:
+  - Lila
+  points: 15.0
+  icon: mdi:trash-can-outline
+  description: Generated dense dashboard chore 33 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bathroom
+  - Outdoor
+- name: Lila Dense Chore 034
+  assigned_to:
+  - Lila
+  points: 20.0
+  icon: mdi:book-open-page-variant
+  description: Generated dense dashboard chore 34 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Laundry
+  - Kitchen
+- name: Lila Dense Chore 035
+  assigned_to:
+  - Lila
+  points: 25.0
+  icon: mdi:washing-machine
+  description: Generated dense dashboard chore 35 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - School
+  - Bedroom
+- name: Lila Dense Chore 036
+  assigned_to:
+  - Lila
+  points: 30.0
+  icon: mdi:shovel
+  description: Generated dense dashboard chore 36 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Outdoor
+  - Bathroom
+- name: Lila Dense Chore 037
+  assigned_to:
+  - Lila
+  points: 5.0
+  icon: mdi:broom
+  description: Generated dense dashboard chore 37 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Kitchen
+  - Laundry
+- name: Lila Dense Chore 038
+  assigned_to:
+  - Lila
+  points: 10.0
+  icon: mdi:spray-bottle
+  description: Generated dense dashboard chore 38 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bedroom
+  - School
+- name: Lila Dense Chore 039
+  assigned_to:
+  - Lila
+  points: 15.0
+  icon: mdi:trash-can-outline
+  description: Generated dense dashboard chore 39 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bathroom
+  - Outdoor
+- name: Lila Dense Chore 040
+  assigned_to:
+  - Lila
+  points: 20.0
+  icon: mdi:book-open-page-variant
+  description: Generated dense dashboard chore 40 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Laundry
+  - Kitchen
+- name: Lila Dense Chore 041
+  assigned_to:
+  - Lila
+  points: 25.0
+  icon: mdi:washing-machine
+  description: Generated dense dashboard chore 41 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - School
+  - Bedroom
+- name: Lila Dense Chore 042
+  assigned_to:
+  - Lila
+  points: 30.0
+  icon: mdi:shovel
+  description: Generated dense dashboard chore 42 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Outdoor
+  - Bathroom
+- name: Lila Dense Chore 043
+  assigned_to:
+  - Lila
+  points: 5.0
+  icon: mdi:broom
+  description: Generated dense dashboard chore 43 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Kitchen
+  - Laundry
+- name: Lila Dense Chore 044
+  assigned_to:
+  - Lila
+  points: 10.0
+  icon: mdi:spray-bottle
+  description: Generated dense dashboard chore 44 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bedroom
+  - School
+- name: Lila Dense Chore 045
+  assigned_to:
+  - Lila
+  points: 15.0
+  icon: mdi:trash-can-outline
+  description: Generated dense dashboard chore 45 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bathroom
+  - Outdoor
+- name: Lila Dense Chore 046
+  assigned_to:
+  - Lila
+  points: 20.0
+  icon: mdi:book-open-page-variant
+  description: Generated dense dashboard chore 46 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Laundry
+  - Kitchen
+- name: Lila Dense Chore 047
+  assigned_to:
+  - Lila
+  points: 25.0
+  icon: mdi:washing-machine
+  description: Generated dense dashboard chore 47 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - School
+  - Bedroom
+- name: Lila Dense Chore 048
+  assigned_to:
+  - Lila
+  points: 30.0
+  icon: mdi:shovel
+  description: Generated dense dashboard chore 48 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Outdoor
+  - Bathroom
+- name: Lila Dense Chore 049
+  assigned_to:
+  - Lila
+  points: 5.0
+  icon: mdi:broom
+  description: Generated dense dashboard chore 49 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Kitchen
+  - Laundry
+- name: Lila Dense Chore 050
+  assigned_to:
+  - Lila
+  points: 10.0
+  icon: mdi:spray-bottle
+  description: Generated dense dashboard chore 50 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bedroom
+  - School
+- name: Lila Dense Chore 051
+  assigned_to:
+  - Lila
+  points: 15.0
+  icon: mdi:trash-can-outline
+  description: Generated dense dashboard chore 51 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bathroom
+  - Outdoor
+- name: Lila Dense Chore 052
+  assigned_to:
+  - Lila
+  points: 20.0
+  icon: mdi:book-open-page-variant
+  description: Generated dense dashboard chore 52 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Laundry
+  - Kitchen
+- name: Lila Dense Chore 053
+  assigned_to:
+  - Lila
+  points: 25.0
+  icon: mdi:washing-machine
+  description: Generated dense dashboard chore 53 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - School
+  - Bedroom
+- name: Lila Dense Chore 054
+  assigned_to:
+  - Lila
+  points: 30.0
+  icon: mdi:shovel
+  description: Generated dense dashboard chore 54 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Outdoor
+  - Bathroom
+- name: Lila Dense Chore 055
+  assigned_to:
+  - Lila
+  points: 5.0
+  icon: mdi:broom
+  description: Generated dense dashboard chore 55 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Kitchen
+  - Laundry
+- name: Lila Dense Chore 056
+  assigned_to:
+  - Lila
+  points: 10.0
+  icon: mdi:spray-bottle
+  description: Generated dense dashboard chore 56 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bedroom
+  - School
+- name: Lila Dense Chore 057
+  assigned_to:
+  - Lila
+  points: 15.0
+  icon: mdi:trash-can-outline
+  description: Generated dense dashboard chore 57 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Bathroom
+  - Outdoor
+- name: Lila Dense Chore 058
+  assigned_to:
+  - Lila
+  points: 20.0
+  icon: mdi:book-open-page-variant
+  description: Generated dense dashboard chore 58 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Laundry
+  - Kitchen
+- name: Lila Dense Chore 059
+  assigned_to:
+  - Lila
+  points: 25.0
+  icon: mdi:washing-machine
+  description: Generated dense dashboard chore 59 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - School
+  - Bedroom
+- name: Lila Dense Chore 060
+  assigned_to:
+  - Lila
+  points: 30.0
+  icon: mdi:shovel
+  description: Generated dense dashboard chore 60 for Lila
+  completion_criteria: independent
+  recurring_frequency: daily
+  auto_approve: true
+  show_on_calendar: false
+  labels:
+  - Outdoor
+  - Bathroom

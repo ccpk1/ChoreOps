@@ -433,6 +433,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ChoreOpsConfigEntry) ->
     coordinator = entry.runtime_data
     if coordinator:
         coordinator._persist(immediate=True)  # Unload must be immediate
+        coordinator.ui_manager.clear_runtime_state()
         const.LOGGER.debug("Forced immediate persist before unload")
 
     # Clear translation cache to prevent stale translations on reload

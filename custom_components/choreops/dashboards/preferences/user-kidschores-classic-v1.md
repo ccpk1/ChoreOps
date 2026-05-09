@@ -2,6 +2,12 @@
 
 `user-kidschores-classic-v1` is the classic kid-focused user layout. It keeps the original multi-card structure with configurable `pref_*` values.
 
+## Scale note
+
+- This is an inline-only small-household template.
+- It is intended for roughly `20-40` chores per user.
+- It is not a shard-aware high-density template and should not be used as the scale target for larger chore lists.
+
 - `pref_points_precision` (default: `fixed_0`)
   - Controls how point values are formatted across the classic dashboard point displays.
   - Applies to the welcome card, chore point values, reward costs, and showcase totals.

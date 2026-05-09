@@ -5,6 +5,7 @@ These services allow direct actions through scripts or automations.
 Includes UI editor support with selectors for dropdowns and text inputs.
 """
 
+from copy import deepcopy
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, cast
 
@@ -1111,13 +1112,12 @@ def async_setup_services(hass: HomeAssistant):
                     internal_id, due_date_input, assignee_id=None
                 )
 
-            # Create chore status sensor entities for all assigned assignees
-            if coordinator._test_mode:
-                from .sensor import create_chore_entities
-
-                create_chore_entities(coordinator, internal_id)
-
-            await coordinator.async_sync_entities_after_service_create()
+            sync_context = coordinator.chore_manager.build_entity_sync_context(
+                internal_id,
+                mutation="created",
+                current_chore=deepcopy(coordinator.chores_data[internal_id]),
+            )
+            await coordinator.async_sync_chore_entities(sync_context)
 
             const.LOGGER.info(
                 "Service created chore '%s' with ID: %s",
@@ -1205,6 +1205,7 @@ def async_setup_services(hass: HomeAssistant):
             )
 
         existing_chore = coordinator.chores_data[chore_id]
+        previous_chore = deepcopy(existing_chore)
 
         # Build data input, excluding name if it was used for lookup
         service_data = dict(call.data)
@@ -1260,9 +1261,6 @@ def async_setup_services(hass: HomeAssistant):
                 existing_chore.get(const.DATA_CHORE_ASSIGNED_USER_IDS, []),
             )
         )
-        assignments_changed = const.DATA_CHORE_ASSIGNED_USER_IDS in data_input and set(
-            assigned_assignee_ids
-        ) != set(existing_chore.get(const.DATA_CHORE_ASSIGNED_USER_IDS, []))
 
         validation_data = _build_service_chore_validation_data(
             data_input,
@@ -1297,14 +1295,19 @@ def async_setup_services(hass: HomeAssistant):
                     chore_id, due_date_input, assignee_id=None
                 )
 
+            sync_context = coordinator.chore_manager.build_entity_sync_context(
+                chore_id,
+                mutation="updated",
+                previous_chore=previous_chore,
+                current_chore=deepcopy(coordinator.chores_data[chore_id]),
+            )
+            await coordinator.async_sync_chore_entities(sync_context)
+
             const.LOGGER.info(
                 "Service updated chore '%s' with ID: %s",
                 chore_dict[const.DATA_CHORE_NAME],
                 chore_id,
             )
-
-            if assignments_changed:
-                await coordinator.async_sync_entities_after_service_create()
 
             return {const.SERVICE_FIELD_CHORE_CRUD_ID: chore_id}
 
@@ -1373,6 +1376,11 @@ def async_setup_services(hass: HomeAssistant):
 
         # Use Manager-owned CRUD method (handles cleanup and persistence)
         coordinator.chore_manager.delete_chore(chore_id)
+        sync_context = coordinator.chore_manager.build_entity_sync_context(
+            chore_id,
+            mutation="deleted",
+        )
+        await coordinator.async_sync_chore_entities(sync_context)
 
         const.LOGGER.info("Service deleted chore with ID: %s", chore_id)
 

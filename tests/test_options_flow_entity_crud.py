@@ -8,13 +8,14 @@ Replaces legacy test_options_flow*.py tests with focused, reusable patterns.
 
 import datetime
 from typing import Any
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.choreops import const as chore_const
 from custom_components.choreops.helpers.flow_helpers import (
     CHORE_SECTION_ADVANCED_CONFIGURATIONS,
     CHORE_SECTION_ROOT_FORM,
@@ -41,6 +42,8 @@ from tests.helpers import (
     CFOF_CHORES_INPUT_NAME,
     CFOF_CHORES_INPUT_OVERDUE_HANDLING_TYPE,
     CFOF_CHORES_INPUT_RECURRING_FREQUENCY,
+    CFOF_SYSTEM_INPUT_POINTS_ICON,
+    CFOF_SYSTEM_INPUT_POINTS_LABEL,
     COMPLETION_CRITERIA_INDEPENDENT,
     COMPLETION_CRITERIA_ROTATION_SIMPLE,
     CONF_POINTS_ICON,
@@ -53,9 +56,11 @@ from tests.helpers import (
     OPTIONS_FLOW_ACHIEVEMENTS,
     OPTIONS_FLOW_ACTIONS_ADD,
     OPTIONS_FLOW_ACTIONS_BACK,
+    OPTIONS_FLOW_ACTIONS_EDIT,
     OPTIONS_FLOW_BADGES,
     OPTIONS_FLOW_BONUSES,
     OPTIONS_FLOW_CHORES,
+    OPTIONS_FLOW_INPUT_ENTITY_NAME,
     OPTIONS_FLOW_INPUT_MANAGE_ACTION,
     OPTIONS_FLOW_INPUT_MENU_SELECTION,
     OPTIONS_FLOW_PENALTIES,
@@ -239,6 +244,36 @@ async def test_options_flow_back_to_menu(
     assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
 
 
+async def test_system_settings_points_still_reload_integration(
+    hass: HomeAssistant,
+    init_integration: MockConfigEntry,
+) -> None:
+    """Test sanctioned system-settings edits still use config-entry reload."""
+    result = await hass.config_entries.options.async_init(init_integration.entry_id)
+    flow_id = result.get("flow_id")
+
+    result = await hass.config_entries.options.async_configure(
+        flow_id,
+        user_input={OPTIONS_FLOW_INPUT_MENU_SELECTION: chore_const.OPTIONS_FLOW_POINTS},
+    )
+    assert result.get("step_id") == chore_const.OPTIONS_FLOW_STEP_MANAGE_POINTS
+
+    with patch.object(
+        hass.config_entries, "async_reload", new=AsyncMock()
+    ) as reload_entry:
+        result = await hass.config_entries.options.async_configure(
+            flow_id,
+            user_input={
+                CFOF_SYSTEM_INPUT_POINTS_LABEL: "Stars",
+                CFOF_SYSTEM_INPUT_POINTS_ICON: "mdi:star-four-points",
+                chore_const.CFOF_SYSTEM_INPUT_DEFAULT_CHORE_POINTS: 2.5,
+            },
+        )
+
+    assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
+    reload_entry.assert_awaited_once_with(init_integration.entry_id)
+
+
 # =========================================================================
 # Entity Add Tests (using FlowTestHelper converters)
 # =========================================================================
@@ -357,6 +392,336 @@ async def test_add_chore_via_options_flow(
     # Verify chore was created via coordinator
     chore_names = [c["name"] for c in coordinator.chores_data.values()]
     assert "Test Chore" in chore_names
+
+
+async def test_add_chore_via_options_flow_uses_runtime_sync(
+    hass: HomeAssistant,
+    init_integration_with_coordinator: SetupResult,
+) -> None:
+    """Test chore add uses runtime sync and does not mark deferred reload."""
+    config_entry = init_integration_with_coordinator.config_entry
+    coordinator = init_integration_with_coordinator.coordinator
+    assignee_name = next(iter(c["name"] for c in coordinator.assignees_data.values()))
+
+    form_data = FlowTestHelper.build_chore_form_data(
+        {
+            "name": "Runtime Sync Options Chore",
+            "points": 12,
+            "icon": "mdi:broom",
+            "type": "daily",
+            "assigned_to": [assignee_name],
+            "auto_approve": False,
+            "completion_criteria": "independent",
+        }
+    )
+
+    with (
+        patch.object(
+            coordinator,
+            "async_sync_chore_entities",
+            new=AsyncMock(),
+        ) as mock_sync,
+        patch(
+            "custom_components.choreops.options_flow.ChoreOpsOptionsFlowHandler._mark_reload_needed"
+        ) as reload_needed,
+    ):
+        result = await FlowTestHelper.add_entity_via_options_flow(
+            hass,
+            config_entry.entry_id,
+            OPTIONS_FLOW_CHORES,
+            OPTIONS_FLOW_STEP_ADD_CHORE,
+            form_data,
+        )
+
+    assert result.get("type") == FlowResultType.FORM
+    assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
+    mock_sync.assert_awaited_once()
+    reload_needed.assert_not_called()
+
+
+async def test_edit_chore_via_options_flow_uses_runtime_sync(
+    hass: HomeAssistant,
+    init_integration_with_coordinator: SetupResult,
+) -> None:
+    """Test chore edit uses runtime sync and does not mark deferred reload."""
+    config_entry = init_integration_with_coordinator.config_entry
+    coordinator = init_integration_with_coordinator.coordinator
+    assignee_name = next(iter(c["name"] for c in coordinator.assignees_data.values()))
+
+    await FlowTestHelper.add_entity_via_options_flow(
+        hass,
+        config_entry.entry_id,
+        OPTIONS_FLOW_CHORES,
+        OPTIONS_FLOW_STEP_ADD_CHORE,
+        FlowTestHelper.build_chore_form_data(
+            {
+                "name": "Options Flow Edit Target",
+                "points": 10,
+                "icon": "mdi:broom",
+                "type": "daily",
+                "assigned_to": [assignee_name],
+                "auto_approve": False,
+                "completion_criteria": "independent",
+            }
+        ),
+    )
+
+    with (
+        patch.object(
+            coordinator,
+            "async_sync_chore_entities",
+            new=AsyncMock(),
+        ) as mock_sync,
+        patch(
+            "custom_components.choreops.options_flow.ChoreOpsOptionsFlowHandler._mark_reload_needed"
+        ) as reload_needed,
+    ):
+        result = await FlowTestHelper.edit_entity_via_options_flow(
+            hass,
+            config_entry.entry_id,
+            OPTIONS_FLOW_CHORES,
+            "Options Flow Edit Target",
+            FlowTestHelper.build_chore_form_data(
+                {
+                    "name": "Options Flow Edit Target Renamed",
+                    "points": 44,
+                    "icon": "mdi:broom",
+                    "type": "daily",
+                    "assigned_to": [assignee_name],
+                    "auto_approve": False,
+                    "completion_criteria": "independent",
+                }
+            ),
+        )
+
+    assert result.get("type") == FlowResultType.FORM
+    assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
+    mock_sync.assert_awaited_once()
+    reload_needed.assert_not_called()
+
+
+async def test_edit_chore_sparse_payload_preserves_representative_optional_patterns(
+    hass: HomeAssistant,
+    init_integration_with_coordinator: SetupResult,
+) -> None:
+    """Sparse chore edit should preserve representative omitted optional fields."""
+    config_entry = init_integration_with_coordinator.config_entry
+    coordinator = init_integration_with_coordinator.coordinator
+    assignee_name = next(iter(c["name"] for c in coordinator.assignees_data.values()))
+
+    add_result = await FlowTestHelper.add_entity_via_options_flow(
+        hass,
+        config_entry.entry_id,
+        OPTIONS_FLOW_CHORES,
+        OPTIONS_FLOW_STEP_ADD_CHORE,
+        {
+            chore_const.CFOF_CHORES_INPUT_NAME: "Sparse Pattern Preserve",
+            chore_const.CFOF_CHORES_INPUT_DEFAULT_POINTS: 10,
+            chore_const.CFOF_CHORES_INPUT_ICON: "mdi:broom",
+            chore_const.CFOF_CHORES_INPUT_DESCRIPTION: "before",
+            chore_const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: [assignee_name],
+            chore_const.CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
+            chore_const.CFOF_CHORES_INPUT_COMPLETION_CRITERIA: chore_const.COMPLETION_CRITERIA_SHARED,
+            chore_const.CFOF_CHORES_INPUT_DUE_DATE: datetime.datetime.now(datetime.UTC)
+            + datetime.timedelta(days=3),
+            chore_const.CFOF_CHORES_INPUT_APPLICABLE_DAYS: ["mon", "wed"],
+            chore_const.CFOF_CHORES_INPUT_DUE_WINDOW_OFFSET: "4h",
+            chore_const.CFOF_CHORES_INPUT_DUE_REMINDER_OFFSET: "30m",
+            chore_const.CFOF_CHORES_INPUT_CLAIM_LOCK_UNTIL_WINDOW: True,
+            chore_const.CFOF_CHORES_INPUT_AUTO_APPROVE: True,
+            chore_const.CFOF_CHORES_INPUT_NOTIFICATIONS: [
+                chore_const.DATA_CHORE_NOTIFY_ON_CLAIM,
+                chore_const.DATA_CHORE_NOTIFY_ON_DUE_WINDOW,
+            ],
+        },
+    )
+    assert add_result.get("step_id") == OPTIONS_FLOW_STEP_INIT
+
+    menu_result = await FlowTestHelper.navigate_to_entity_menu(
+        hass, config_entry.entry_id, OPTIONS_FLOW_CHORES
+    )
+    edit_action_result = await hass.config_entries.options.async_configure(
+        menu_result["flow_id"],
+        user_input={OPTIONS_FLOW_INPUT_MANAGE_ACTION: OPTIONS_FLOW_ACTIONS_EDIT},
+    )
+    select_result = await hass.config_entries.options.async_configure(
+        edit_action_result["flow_id"],
+        user_input={OPTIONS_FLOW_INPUT_ENTITY_NAME: "Sparse Pattern Preserve"},
+    )
+    result = await hass.config_entries.options.async_configure(
+        select_result["flow_id"],
+        user_input={
+            CHORE_SECTION_ROOT_FORM: {
+                chore_const.CFOF_CHORES_INPUT_NAME: "Sparse Pattern Preserve",
+                chore_const.CFOF_CHORES_INPUT_DEFAULT_POINTS: 10,
+                chore_const.CFOF_CHORES_INPUT_ICON: "mdi:broom",
+                chore_const.CFOF_CHORES_INPUT_DESCRIPTION: "after",
+                chore_const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: [assignee_name],
+                chore_const.CFOF_CHORES_INPUT_COMPLETION_CRITERIA: chore_const.COMPLETION_CRITERIA_SHARED,
+            },
+            CHORE_SECTION_SCHEDULE: {
+                chore_const.CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
+                chore_const.CFOF_CHORES_INPUT_CLAIM_LOCK_UNTIL_WINDOW: True,
+            },
+            CHORE_SECTION_ADVANCED_CONFIGURATIONS: {
+                chore_const.CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: APPROVAL_RESET_UPON_COMPLETION,
+                chore_const.CFOF_CHORES_INPUT_OVERDUE_HANDLING_TYPE: OVERDUE_HANDLING_AT_DUE_DATE,
+                chore_const.CFOF_CHORES_INPUT_AUTO_APPROVE: True,
+                chore_const.CFOF_CHORES_INPUT_SHOW_ON_CALENDAR: True,
+            },
+        },
+    )
+    assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
+
+    stored_chore = next(
+        chore
+        for chore in coordinator.chores_data.values()
+        if chore["name"] == "Sparse Pattern Preserve"
+    )
+    assert stored_chore.get(chore_const.DATA_CHORE_DUE_WINDOW_OFFSET) == "4h"
+    assert stored_chore.get(chore_const.DATA_CHORE_DUE_REMINDER_OFFSET) == "30m"
+    assert stored_chore.get(chore_const.DATA_CHORE_NOTIFY_ON_CLAIM) is True
+    assert stored_chore.get(chore_const.DATA_CHORE_NOTIFY_ON_DUE_WINDOW) is True
+    assert stored_chore.get(chore_const.DATA_CHORE_APPLICABLE_DAYS) == [0, 2]
+
+
+async def test_edit_chore_sparse_payload_explicit_clear_stays_distinct(
+    hass: HomeAssistant,
+    init_integration_with_coordinator: SetupResult,
+) -> None:
+    """Explicit clear_due_date should still clear while omitted fields preserve."""
+    config_entry = init_integration_with_coordinator.config_entry
+    coordinator = init_integration_with_coordinator.coordinator
+    assignee_name = next(iter(c["name"] for c in coordinator.assignees_data.values()))
+
+    add_result = await FlowTestHelper.add_entity_via_options_flow(
+        hass,
+        config_entry.entry_id,
+        OPTIONS_FLOW_CHORES,
+        OPTIONS_FLOW_STEP_ADD_CHORE,
+        {
+            chore_const.CFOF_CHORES_INPUT_NAME: "Sparse Clear Control",
+            chore_const.CFOF_CHORES_INPUT_DEFAULT_POINTS: 10,
+            chore_const.CFOF_CHORES_INPUT_ICON: "mdi:broom",
+            chore_const.CFOF_CHORES_INPUT_DESCRIPTION: "before",
+            chore_const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: [assignee_name],
+            chore_const.CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
+            chore_const.CFOF_CHORES_INPUT_COMPLETION_CRITERIA: chore_const.COMPLETION_CRITERIA_SHARED,
+            chore_const.CFOF_CHORES_INPUT_DUE_DATE: datetime.datetime.now(datetime.UTC)
+            + datetime.timedelta(days=2),
+            chore_const.CFOF_CHORES_INPUT_DUE_WINDOW_OFFSET: "2h",
+            chore_const.CFOF_CHORES_INPUT_CLAIM_LOCK_UNTIL_WINDOW: True,
+            chore_const.CFOF_CHORES_INPUT_AUTO_APPROVE: True,
+        },
+    )
+    assert add_result.get("step_id") == OPTIONS_FLOW_STEP_INIT
+
+    menu_result = await FlowTestHelper.navigate_to_entity_menu(
+        hass, config_entry.entry_id, OPTIONS_FLOW_CHORES
+    )
+    edit_action_result = await hass.config_entries.options.async_configure(
+        menu_result["flow_id"],
+        user_input={OPTIONS_FLOW_INPUT_MANAGE_ACTION: OPTIONS_FLOW_ACTIONS_EDIT},
+    )
+    select_result = await hass.config_entries.options.async_configure(
+        edit_action_result["flow_id"],
+        user_input={OPTIONS_FLOW_INPUT_ENTITY_NAME: "Sparse Clear Control"},
+    )
+    result = await hass.config_entries.options.async_configure(
+        select_result["flow_id"],
+        user_input={
+            CHORE_SECTION_ROOT_FORM: {
+                chore_const.CFOF_CHORES_INPUT_NAME: "Sparse Clear Control",
+                chore_const.CFOF_CHORES_INPUT_DEFAULT_POINTS: 10,
+                chore_const.CFOF_CHORES_INPUT_ICON: "mdi:broom",
+                chore_const.CFOF_CHORES_INPUT_DESCRIPTION: "after",
+                chore_const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: [assignee_name],
+                chore_const.CFOF_CHORES_INPUT_COMPLETION_CRITERIA: chore_const.COMPLETION_CRITERIA_SHARED,
+            },
+            CHORE_SECTION_SCHEDULE: {
+                chore_const.CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
+                chore_const.CFOF_CHORES_INPUT_CLAIM_LOCK_UNTIL_WINDOW: True,
+                chore_const.CFOF_CHORES_INPUT_CLEAR_DUE_DATE: True,
+            },
+            CHORE_SECTION_ADVANCED_CONFIGURATIONS: {
+                chore_const.CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: APPROVAL_RESET_UPON_COMPLETION,
+                chore_const.CFOF_CHORES_INPUT_OVERDUE_HANDLING_TYPE: OVERDUE_HANDLING_AT_DUE_DATE,
+                chore_const.CFOF_CHORES_INPUT_AUTO_APPROVE: True,
+                chore_const.CFOF_CHORES_INPUT_SHOW_ON_CALENDAR: True,
+            },
+        },
+    )
+    assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
+
+    stored_chore = next(
+        chore
+        for chore in coordinator.chores_data.values()
+        if chore["name"] == "Sparse Clear Control"
+    )
+    assert stored_chore.get(chore_const.DATA_CHORE_DUE_DATE) is None
+    assert stored_chore.get(chore_const.DATA_CHORE_DUE_WINDOW_OFFSET) == "2h"
+
+
+async def test_delete_chore_via_options_flow_uses_runtime_sync(
+    hass: HomeAssistant,
+    init_integration_with_coordinator: SetupResult,
+) -> None:
+    """Test chore delete uses runtime sync and does not mark deferred reload."""
+    config_entry = init_integration_with_coordinator.config_entry
+    coordinator = init_integration_with_coordinator.coordinator
+    assignee_name = next(iter(c["name"] for c in coordinator.assignees_data.values()))
+
+    await FlowTestHelper.add_entity_via_options_flow(
+        hass,
+        config_entry.entry_id,
+        OPTIONS_FLOW_CHORES,
+        OPTIONS_FLOW_STEP_ADD_CHORE,
+        FlowTestHelper.build_chore_form_data(
+            {
+                "name": "Options Flow Delete Target",
+                "points": 10,
+                "icon": "mdi:broom",
+                "type": "daily",
+                "assigned_to": [assignee_name],
+                "auto_approve": False,
+                "completion_criteria": "independent",
+            }
+        ),
+    )
+
+    menu_result = await FlowTestHelper.navigate_to_entity_menu(
+        hass, config_entry.entry_id, OPTIONS_FLOW_CHORES
+    )
+    delete_action_result = await hass.config_entries.options.async_configure(
+        menu_result["flow_id"],
+        user_input={
+            OPTIONS_FLOW_INPUT_MANAGE_ACTION: chore_const.OPTIONS_FLOW_ACTIONS_DELETE
+        },
+    )
+    select_result = await hass.config_entries.options.async_configure(
+        delete_action_result["flow_id"],
+        user_input={OPTIONS_FLOW_INPUT_ENTITY_NAME: "Options Flow Delete Target"},
+    )
+
+    with (
+        patch.object(
+            coordinator,
+            "async_sync_chore_entities",
+            new=AsyncMock(),
+        ) as mock_sync,
+        patch(
+            "custom_components.choreops.options_flow.ChoreOpsOptionsFlowHandler._mark_reload_needed"
+        ) as reload_needed,
+    ):
+        result = await hass.config_entries.options.async_configure(
+            select_result["flow_id"],
+            user_input={},
+        )
+
+    assert result.get("type") == FlowResultType.FORM
+    assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
+    mock_sync.assert_awaited_once()
+    reload_needed.assert_not_called()
 
 
 async def test_add_reward_via_options_flow(
@@ -675,7 +1040,7 @@ async def test_add_entities_from_minimal_scenario(
     # Verify flow succeeded (returns to init)
     assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
 
-    # After options flow add, integration reloads - get fresh coordinator
+    # Non-chore options-flow add paths may still reload, so re-read coordinator here.
     coordinator = config_entry.runtime_data
     assignee_names = [p["name"] for p in coordinator.assignees_data.values()]
     assert "New Scenario User" in assignee_names
@@ -693,7 +1058,7 @@ async def test_add_entities_from_minimal_scenario(
     # Verify flow succeeded (returns to init)
     assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
 
-    # Get fresh coordinator again after reload
+    # Re-read coordinator again because non-chore options flow can still reload.
     coordinator = config_entry.runtime_data
     reward_names = [r["name"] for r in coordinator.rewards_data.values()]
     assert "New Scenario Reward" in reward_names

@@ -1300,6 +1300,22 @@ class ChoreUpdatedEvent(TypedDict, total=False):
     user_id: str | None  # Optional: affected assignee when update is user-scoped
 
 
+class ChoreEntitySyncContext(TypedDict):
+    """Runtime entity-sync contract for chore graph mutations.
+
+    Used by the coordinator/runtime entity layer to distinguish add/remove/
+    replace work from ordinary coordinator listener refreshes.
+    """
+
+    chore_id: str
+    mutation: Literal["created", "updated", "deleted"]
+    assignments_added: list[str]
+    assignments_removed: list[str]
+    affected_user_ids: list[str]
+    rename_sensitive_update: bool
+    shared_state_changed: bool
+
+
 class PenaltyAppliedEvent(TypedDict, total=False):
     """Event payload for SIGNAL_SUFFIX_PENALTY_APPLIED.
 

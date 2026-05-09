@@ -39,6 +39,7 @@ from tests.helpers import (
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant, State
+    from homeassistant.helpers.entity_registry import EntityRegistry
 
 
 # ============================================================================
@@ -110,6 +111,27 @@ def find_chore_in_dashboard_helper(
             return chore
 
     return None
+
+
+def get_dashboard_helper_state(hass: HomeAssistant, assignee_slug: str) -> State:
+    """Return a dashboard helper state for an assignee slug."""
+    helper_state = hass.states.get(
+        f"sensor.{assignee_slug}_choreops_ui_dashboard_helper"
+    )
+    assert helper_state is not None
+    return helper_state
+
+
+def get_button_entity_id(
+    entity_registry: EntityRegistry,
+    entry_id: str,
+    assignee_id: str,
+    chore_id: str,
+    suffix: str,
+) -> str | None:
+    """Return a chore workflow button entity ID from unique-id parts."""
+    unique_id = f"{entry_id}_{assignee_id}_{chore_id}{suffix}"
+    return entity_registry.async_get_entity_id("button", DOMAIN, unique_id)
 
 
 # ============================================================================
@@ -288,12 +310,71 @@ class TestCreateChoreSchemaValidation:
 
 
 class TestCreateChoreEndToEnd:
-    """Test create_chore end-to-end functionality.
+    """Test create_chore end-to-end functionality."""
 
-    Note: After creating a chore via service, the chore exists in coordinator storage
-    and dashboard helper, but sensors are not automatically created without re-setup.
-    These tests verify via coordinator + dashboard helper, not via chore status sensors.
-    """
+    @pytest.mark.asyncio
+    async def test_create_uses_runtime_entity_sync(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """Test create_chore uses the shared runtime sync path."""
+        with (
+            patch.object(scenario_full.coordinator, "_persist", new=MagicMock()),
+            patch.object(
+                scenario_full.coordinator,
+                "async_sync_chore_entities",
+                new=AsyncMock(),
+            ) as mock_sync,
+            patch.object(
+                scenario_full.coordinator,
+                "async_sync_entities_after_service_create",
+                new=AsyncMock(),
+            ) as legacy_sync,
+        ):
+            response = await hass.services.async_call(
+                DOMAIN,
+                SERVICE_CREATE_CHORE,
+                {
+                    "name": "Runtime Sync Create Contract",
+                    "assigned_user_names": ["Zoë"],
+                    "points": 15,
+                },
+                blocking=True,
+                return_response=True,
+            )
+
+        assert response is not None
+        mock_sync.assert_awaited_once()
+        legacy_sync.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_create_does_not_reload_config_entry(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """Test chore create does not fall back to config-entry reload."""
+        with (
+            patch.object(scenario_full.coordinator, "_persist", new=MagicMock()),
+            patch.object(
+                hass.config_entries, "async_reload", new=AsyncMock()
+            ) as reload_entry,
+        ):
+            response = await hass.services.async_call(
+                DOMAIN,
+                SERVICE_CREATE_CHORE,
+                {
+                    "name": "No Reload Create Chore",
+                    "assigned_user_names": ["Zoë"],
+                    "points": 10,
+                },
+                blocking=True,
+                return_response=True,
+            )
+
+        assert response is not None
+        reload_entry.assert_not_awaited()
 
     @pytest.mark.asyncio
     async def test_created_chore_appears_in_dashboard_helper(
@@ -393,6 +474,65 @@ class TestCreateChoreEndToEnd:
         assert chore_sensor.attributes.get("labels") == ["test", "e2e"]
         assert chore_sensor.attributes["completion_criteria"] == "shared_first"
         assert chore_sensor.attributes["recurring_frequency"] == "weekly"
+
+        helper_state = get_dashboard_helper_state(hass, "zoe")
+        assert helper_state is not None
+        assert chore.get(const.ATTR_LABELS) == ["test", "e2e"]
+
+    @pytest.mark.asyncio
+    async def test_created_chore_exposes_live_status_and_buttons(
+        self,
+        hass: HomeAssistant,
+        entity_registry: EntityRegistry,
+        scenario_full: SetupResult,
+    ) -> None:
+        """Test service create materializes live chore sensor and workflow buttons."""
+        config_entry = scenario_full.config_entry
+        coordinator = scenario_full.coordinator
+
+        with patch.object(coordinator, "_persist", new=MagicMock()):
+            response = await hass.services.async_call(
+                DOMAIN,
+                SERVICE_CREATE_CHORE,
+                {
+                    "name": "Live Surface Create Chore",
+                    "assigned_user_names": ["Zoë"],
+                    "points": 15,
+                },
+                blocking=True,
+                return_response=True,
+            )
+
+        assert response is not None
+        chore_id = response["id"]
+        await hass.async_block_till_done()
+
+        zoe_chore = find_chore_in_dashboard_helper(
+            hass, "zoe", "Live Surface Create Chore"
+        )
+        assert zoe_chore is not None
+        assert zoe_chore["eid"] is not None
+        assert hass.states.get(zoe_chore["eid"]) is not None
+
+        zoe_id = scenario_full.assignee_ids["Zoë"]
+        approve_eid = get_button_entity_id(
+            entity_registry,
+            config_entry.entry_id,
+            zoe_id,
+            chore_id,
+            const.BUTTON_KC_UID_SUFFIX_APPROVE,
+        )
+        disapprove_eid = get_button_entity_id(
+            entity_registry,
+            config_entry.entry_id,
+            zoe_id,
+            chore_id,
+            const.BUTTON_KC_UID_SUFFIX_DISAPPROVE,
+        )
+        assert approve_eid is not None
+        assert disapprove_eid is not None
+        assert hass.states.get(approve_eid) is not None
+        assert hass.states.get(disapprove_eid) is not None
 
     @pytest.mark.asyncio
     async def test_create_independent_weekly_uses_per_assignee_due_dates_only(
@@ -609,21 +749,26 @@ class TestUpdateChoreEndToEnd:
     """Test update_chore end-to-end functionality via dashboard helper."""
 
     @pytest.mark.asyncio
-    async def test_assignment_change_triggers_entity_sync(
+    async def test_assignment_change_uses_runtime_entity_sync(
         self,
         hass: HomeAssistant,
         scenario_full: SetupResult,
     ) -> None:
-        """Test assignment changes trigger runtime entity synchronization."""
+        """Test assignment changes use the shared runtime sync path."""
         chore_id = scenario_full.chore_ids["Täke Öut Trash"]
 
         with (
             patch.object(scenario_full.coordinator, "_persist", new=MagicMock()),
             patch.object(
                 scenario_full.coordinator,
-                "async_sync_entities_after_service_create",
+                "async_sync_chore_entities",
                 new=AsyncMock(),
             ) as mock_sync,
+            patch.object(
+                scenario_full.coordinator,
+                "async_sync_entities_after_service_create",
+                new=AsyncMock(),
+            ) as legacy_sync,
         ):
             await hass.services.async_call(
                 DOMAIN,
@@ -637,6 +782,137 @@ class TestUpdateChoreEndToEnd:
             )
 
         mock_sync.assert_awaited_once()
+        legacy_sync.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_update_does_not_reload_config_entry(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """Test chore update does not reload the config entry."""
+        chore_id = scenario_full.chore_ids["Täke Öut Trash"]
+
+        with (
+            patch.object(scenario_full.coordinator, "_persist", new=MagicMock()),
+            patch.object(
+                hass.config_entries, "async_reload", new=AsyncMock()
+            ) as reload_entry,
+        ):
+            response = await hass.services.async_call(
+                DOMAIN,
+                SERVICE_UPDATE_CHORE,
+                {"id": chore_id, "points": 77},
+                blocking=True,
+                return_response=True,
+            )
+
+        assert response is not None
+        reload_entry.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_assignment_change_updates_live_entity_surfaces(
+        self,
+        hass: HomeAssistant,
+        entity_registry: EntityRegistry,
+        scenario_full: SetupResult,
+    ) -> None:
+        """Test assignment expansion and shrinkage update live helper and button surfaces."""
+        chore_id = scenario_full.chore_ids["Täke Öut Trash"]
+        config_entry = scenario_full.config_entry
+
+        with patch.object(scenario_full.coordinator, "_persist", new=MagicMock()):
+            response = await hass.services.async_call(
+                DOMAIN,
+                SERVICE_UPDATE_CHORE,
+                {
+                    "id": chore_id,
+                    "assigned_user_names": ["Zoë", "Max!"],
+                },
+                blocking=True,
+                return_response=True,
+            )
+
+        assert response is not None
+        await hass.async_block_till_done()
+
+        max_chore = find_chore_in_dashboard_helper(hass, "max", "Täke Öut Trash")
+        assert max_chore is not None
+        assert max_chore["eid"] is not None
+        assert hass.states.get(max_chore["eid"]) is not None
+
+        max_id = scenario_full.assignee_ids["Max!"]
+        approve_eid = get_button_entity_id(
+            entity_registry,
+            config_entry.entry_id,
+            max_id,
+            chore_id,
+            const.BUTTON_KC_UID_SUFFIX_APPROVE,
+        )
+        assert approve_eid is not None
+
+        with patch.object(scenario_full.coordinator, "_persist", new=MagicMock()):
+            response = await hass.services.async_call(
+                DOMAIN,
+                SERVICE_UPDATE_CHORE,
+                {
+                    "id": chore_id,
+                    "assigned_user_names": ["Max!"],
+                },
+                blocking=True,
+                return_response=True,
+            )
+
+        assert response is not None
+        await hass.async_block_till_done()
+
+        assert find_chore_in_dashboard_helper(hass, "zoe", "Täke Öut Trash") is None
+        assert (
+            get_button_entity_id(
+                entity_registry,
+                config_entry.entry_id,
+                scenario_full.assignee_ids["Zoë"],
+                chore_id,
+                const.BUTTON_KC_UID_SUFFIX_APPROVE,
+            )
+            is None
+        )
+
+    @pytest.mark.asyncio
+    async def test_rename_uses_runtime_entity_sync(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """Test rename updates also use the shared runtime sync path."""
+        chore_id = scenario_full.chore_ids["Täke Öut Trash"]
+
+        with (
+            patch.object(scenario_full.coordinator, "_persist", new=MagicMock()),
+            patch.object(
+                scenario_full.coordinator,
+                "async_sync_chore_entities",
+                new=AsyncMock(),
+            ) as mock_sync,
+            patch.object(
+                scenario_full.coordinator,
+                "async_sync_entities_after_service_create",
+                new=AsyncMock(),
+            ) as legacy_sync,
+        ):
+            await hass.services.async_call(
+                DOMAIN,
+                SERVICE_UPDATE_CHORE,
+                {
+                    "id": chore_id,
+                    "name": "Runtime Sync Renamed by Service",
+                },
+                blocking=True,
+                return_response=True,
+            )
+
+        mock_sync.assert_awaited_once()
+        legacy_sync.assert_not_awaited()
 
     @pytest.mark.asyncio
     async def test_updated_points_reflects_in_dashboard_helper(
@@ -721,6 +997,60 @@ class TestDeleteChoreEndToEnd:
     """Test delete_chore end-to-end functionality via dashboard helper."""
 
     @pytest.mark.asyncio
+    async def test_delete_uses_runtime_entity_sync(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """Test delete_chore uses the shared runtime sync path."""
+        chore_id = scenario_full.chore_ids["Täke Öut Trash"]
+
+        with (
+            patch.object(scenario_full.coordinator, "_persist", new=MagicMock()),
+            patch.object(
+                scenario_full.coordinator,
+                "async_sync_chore_entities",
+                new=AsyncMock(),
+            ) as mock_sync,
+        ):
+            response = await hass.services.async_call(
+                DOMAIN,
+                SERVICE_DELETE_CHORE,
+                {"id": chore_id},
+                blocking=True,
+                return_response=True,
+            )
+
+        assert response is not None
+        mock_sync.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_delete_does_not_reload_config_entry(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """Test chore delete does not reload the config entry."""
+        chore_id = scenario_full.chore_ids["Täke Öut Trash"]
+
+        with (
+            patch.object(scenario_full.coordinator, "_persist", new=MagicMock()),
+            patch.object(
+                hass.config_entries, "async_reload", new=AsyncMock()
+            ) as reload_entry,
+        ):
+            response = await hass.services.async_call(
+                DOMAIN,
+                SERVICE_DELETE_CHORE,
+                {"id": chore_id},
+                blocking=True,
+                return_response=True,
+            )
+
+        assert response is not None
+        reload_entry.assert_not_awaited()
+
+    @pytest.mark.asyncio
     async def test_deleted_chore_removed_from_dashboard_helper(
         self,
         hass: HomeAssistant,
@@ -731,10 +1061,7 @@ class TestDeleteChoreEndToEnd:
         E2E Pattern: Service call → Storage deletion → Dashboard helper removal → Verify
         """
         # First, create a chore to delete
-        with (
-            patch.object(scenario_full.coordinator, "_persist", new=MagicMock()),
-            patch("custom_components.choreops.sensor.create_chore_entities"),
-        ):
+        with patch.object(scenario_full.coordinator, "_persist", new=MagicMock()):
             create_response = await hass.services.async_call(
                 DOMAIN,
                 SERVICE_CREATE_CHORE,

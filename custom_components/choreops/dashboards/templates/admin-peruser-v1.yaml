@@ -137,7 +137,16 @@ views:
                 {%- set pending_approvals = helper_attrs.pending_approvals | default({}, true) -%}
                 {%- set pending_chore_data = pending_approvals.get('chores', []) | default([], true) -%}
                 {%- set pending_reward_data = pending_approvals.get('rewards', []) | default([], true) -%}
-                {%- set helper_chore_items = helper_attrs.chores | default([], true) -%}
+                {%- set helper_chore_items_ns = namespace(items=helper_attrs.chores | default([], true)) -%}
+                {%- set helper_chore_helper_eids = dashboard_helpers.get('chore_helper_eids', []) if dashboard_helpers is mapping else [] -%}
+                {%- if helper_chore_helper_eids is iterable and helper_chore_helper_eids is not string -%}
+                  {%- for chore_helper_eid in helper_chore_helper_eids | list -%}
+                    {%- if chore_helper_eid not in ['', None, 'None'] and states(chore_helper_eid) not in ['unknown', 'unavailable'] -%}
+                      {%- set helper_chore_items_ns.items = helper_chore_items_ns.items + (state_attr(chore_helper_eid, 'chores') | default([], true)) -%}
+                    {%- endif -%}
+                  {%- endfor -%}
+                {%- endif -%}
+                {%- set helper_chore_items = helper_chore_items_ns.items -%}
                 {%- set helper_reward_items = helper_attrs.rewards | default([], true) -%}
                 {%- set chore_count = pending_chore_data | count -%}
                 {%- set reward_count = pending_reward_data | count -%}
@@ -729,7 +738,17 @@ views:
                 {%- endfor -%}
                 {%- set has_header_collapsed_override = shared_admin_ui_root.current is mapping and 'header-collapse' in shared_admin_ui_root.current -%}
                 {%- set selected_user_display = selected_user_name if has_selected_user else '' -%}
-                {%- set selected_helper_chores = state_attr(selected_dashboard_helper, 'chores') | default([], true) if selected_dashboard_helper not in ['', None, 'None'] and states(selected_dashboard_helper) not in ['unknown', 'unavailable'] else [] -%}
+                {%- set selected_dashboard_helpers = state_attr(selected_dashboard_helper, 'dashboard_helpers') or {} if selected_dashboard_helper not in ['', None, 'None'] and states(selected_dashboard_helper) not in ['unknown', 'unavailable'] else {} -%}
+                {%- set selected_helper_chores_ns = namespace(items=state_attr(selected_dashboard_helper, 'chores') | default([], true) if selected_dashboard_helper not in ['', None, 'None'] and states(selected_dashboard_helper) not in ['unknown', 'unavailable'] else []) -%}
+                {%- set selected_chore_helper_eids = selected_dashboard_helpers.get('chore_helper_eids', []) if selected_dashboard_helpers is mapping else [] -%}
+                {%- if selected_chore_helper_eids is iterable and selected_chore_helper_eids is not string -%}
+                  {%- for chore_helper_eid in selected_chore_helper_eids | list -%}
+                    {%- if chore_helper_eid not in ['', None, 'None'] and states(chore_helper_eid) not in ['unknown', 'unavailable'] -%}
+                      {%- set selected_helper_chores_ns.items = selected_helper_chores_ns.items + (state_attr(chore_helper_eid, 'chores') | default([], true)) -%}
+                    {%- endif -%}
+                  {%- endfor -%}
+                {%- endif -%}
+                {%- set selected_helper_chores = selected_helper_chores_ns.items -%}
                 {%- set overdue_chore_count = selected_helper_chores | selectattr('state', 'eq', 'overdue') | list | count -%}
                 {%- set show_reset_all_overdue_card = has_selected_user and overdue_chore_count > 0 and integration_entry_id not in ['', None, 'None'] -%}
                 {%- set header_collapsed = shared_admin_ui_root.current['header-collapse'] if has_header_collapsed_override else pref_selector_default_header_collapsed -%}
@@ -1017,7 +1036,16 @@ views:
                 {%- set has_chore_selector = chore_select_entity not in ['', None, 'None'] -%}
                 {%- set has_selected_chore = has_selected_dashboard_helper and has_chore_selector and selected_chore_name not in ['None', 'none', '', 'unknown', 'unavailable'] -%}
                 {%- set selected_chore_display = selected_chore_name if has_selected_chore else '' -%}
-                {%- set helper_chore_items = state_attr(selected_dashboard_helper, 'chores') | default([], true) if has_selected_dashboard_helper else [] -%}
+                {%- set helper_chore_items_ns = namespace(items=state_attr(selected_dashboard_helper, 'chores') | default([], true) if has_selected_dashboard_helper else []) -%}
+                {%- set selected_chore_helper_eids = selected_dashboard_helpers.get('chore_helper_eids', []) if has_selected_dashboard_helper and selected_dashboard_helpers is mapping else [] -%}
+                {%- if selected_chore_helper_eids is iterable and selected_chore_helper_eids is not string -%}
+                  {%- for chore_helper_eid in selected_chore_helper_eids | list -%}
+                    {%- if chore_helper_eid not in ['', None, 'None'] and states(chore_helper_eid) not in ['unknown', 'unavailable'] -%}
+                      {%- set helper_chore_items_ns.items = helper_chore_items_ns.items + (state_attr(chore_helper_eid, 'chores') | default([], true)) -%}
+                    {%- endif -%}
+                  {%- endfor -%}
+                {%- endif -%}
+                {%- set helper_chore_items = helper_chore_items_ns.items -%}
                 {%- set overdue_chore_items = helper_chore_items | selectattr('state', 'eq', 'overdue') | list if has_selected_dashboard_helper else [] -%}
                 {%- set overdue_chore_count = overdue_chore_items | count -%}
                 {%- set selected_chore_lookup_name = selected_chore_name | string | trim if has_selected_chore else '' -%}

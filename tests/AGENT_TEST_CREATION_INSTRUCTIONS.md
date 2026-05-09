@@ -14,7 +14,7 @@
 
 - **Read source code FIRST**: Know what step IDs a flow returns, what methods are called, what data structures are used
 - **Check return values**: Options flows return to `async_step_init()` after entity add, not `manage_entity` (example: [options_flow.py](../custom_components/choreops/options_flow.py) line 397)
-- **Understand data flow**: After options flow changes, integration reloads → old coordinator references become stale
+- **Understand data flow**: Some options flow changes still reload the integration, but chore CRUD helper paths no longer do. Check the specific flow before assuming coordinator references become stale.
 
 ### 2. Use Established Patterns
 
@@ -30,7 +30,7 @@ Before writing each test file:
 - [ ] Identify the exact flow step sequence and return values
 - [ ] Check existing tests for coordinator access patterns
 - [ ] Verify field names match what the schemas expect
-- [ ] Understand reload behavior and stale reference risks
+- [ ] Understand which exact flow paths still reload and which now stay on the live runtime-sync path
 
 ### 4. Leverage Existing Infrastructure
 
@@ -813,4 +813,4 @@ _For family background, see `README.md`._
 6. **Use SetupResult** - access `coordinator`, `assignee_ids`, `chore_ids` by name
 7. **Mock notifications** - `patch.object(coordinator.notification_manager, "notify_assignee", new=AsyncMock())`
 8. **Pass user context** - service calls need `context=Context(user_id=...)`
-9. **Get fresh coordinator after reload** - use `config_entry.runtime_data` pattern
+9. **Get fresh coordinator after reload-backed flows** - use `config_entry.runtime_data` when the specific path actually reloads

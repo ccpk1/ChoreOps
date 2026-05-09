@@ -11,9 +11,11 @@ following the Platinum Architecture principle of Infrastructure-Only Coordinator
 
 from __future__ import annotations
 
+import asyncio
 from copy import deepcopy
+from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 from homeassistant.helpers import entity_registry as er
 from homeassistant.util import dt as dt_util
@@ -27,6 +29,18 @@ if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
     from ..coordinator import ChoreOpsDataCoordinator
+
+
+@dataclass(slots=True)
+class HelperShardRuntimePlan:
+    """Runtime shard allocation for one user and payload family."""
+
+    family: str
+    mode: Literal["inline", "sharded"]
+    shard_item_ids: list[list[str]]
+    expected_shard_count: int
+    last_accepted_serialized_size: int
+    last_reconciliation_outcome: str
 
 
 class UIManager(BaseManager):
@@ -58,6 +72,11 @@ class UIManager(BaseManager):
         self._pending_chore_changed: bool = True
         self._pending_reward_changed: bool = True
 
+        # Runtime-owned shard plans keyed by payload family then user ID.
+        self._helper_shard_plans: dict[str, dict[str, HelperShardRuntimePlan]] = {
+            const.HELPER_SHARD_FAMILY_CHORES: {}
+        }
+
     async def async_setup(self) -> None:
         """Set up the UI manager.
 
@@ -87,6 +106,8 @@ class UIManager(BaseManager):
 
         # Listen for midnight rollover to bump datetime helpers
         self.listen(const.SIGNAL_SUFFIX_MIDNIGHT_ROLLOVER, self._on_midnight_rollover)
+
+        await self.async_prepare_startup_chore_shard_plans()
 
         const.LOGGER.debug("UIManager setup complete for entry %s", self.entry_id)
 
@@ -118,6 +139,11 @@ class UIManager(BaseManager):
         """
         # Don't need payload data - just check if any languages are now unused
         self.remove_unused_translation_sensors()
+
+        user_id = payload.get(const.DATA_USER_ID)
+        if isinstance(user_id, str) and user_id:
+            self.clear_helper_shard_plan(user_id, const.HELPER_SHARD_FAMILY_CHORES)
+            self._remove_chore_shard_entities_for_user(user_id)
 
     def _on_chore_changed(self, payload: dict[str, Any]) -> None:
         """Handle chore state change - mark pending approvals as changed.
@@ -205,6 +231,199 @@ class UIManager(BaseManager):
             async_add_entities: The callback function from sensor platform setup
         """
         self._sensor_add_entities_callback = async_add_entities
+
+    async def async_prepare_startup_chore_shard_plans(self) -> None:
+        """Build startup chore shard plans from current coordinator data."""
+        await self.async_reconcile_chore_shards_for_users(
+            list(self.coordinator.assignees_data),
+            registry_only=True,
+        )
+
+    async def async_reconcile_chore_shards_for_users(
+        self,
+        user_ids: list[str],
+        *,
+        registry_only: bool = False,
+    ) -> None:
+        """Rebuild chore shard plans and reconcile shard helper entities."""
+        if not user_ids:
+            return
+
+        from ..sensor import AssigneeDashboardChoreShardSensor, build_chore_shard_plan
+
+        entity_registry = er.async_get(self.hass)
+        created_sensors: list[AssigneeDashboardChoreShardSensor] = []
+
+        for user_id in sorted(set(user_ids)):
+            user_data = self.coordinator.assignees_data.get(user_id)
+            if not isinstance(user_data, dict):
+                self.clear_helper_shard_plan(user_id, const.HELPER_SHARD_FAMILY_CHORES)
+                self._remove_chore_shard_entities_for_user(user_id)
+                continue
+
+            user_name = user_data.get(const.DATA_USER_NAME)
+            if not isinstance(user_name, str) or not user_name:
+                continue
+
+            previous_plan = self.get_helper_shard_plan(
+                user_id, const.HELPER_SHARD_FAMILY_CHORES
+            )
+            plan = build_chore_shard_plan(
+                self.hass,
+                self.coordinator,
+                self.coordinator.config_entry,
+                user_id,
+                user_name,
+                previous_plan=previous_plan,
+            )
+            self.set_helper_shard_plan(user_id, const.HELPER_SHARD_FAMILY_CHORES, plan)
+
+            existing_entries = self._get_existing_chore_shard_entries(user_id)
+            live_shard_indexes = self._get_live_chore_shard_indexes(existing_entries)
+            expected_indexes = set(range(1, plan.expected_shard_count + 1))
+
+            removed_count = 0
+            for shard_index, entity_entry in existing_entries.items():
+                if shard_index in expected_indexes:
+                    continue
+                entity_registry.async_remove(entity_entry.entity_id)
+                removed_count += 1
+
+            created_count = 0
+            if not registry_only and self._sensor_add_entities_callback is not None:
+                for shard_index in sorted(expected_indexes):
+                    if shard_index in live_shard_indexes:
+                        continue
+                    created_sensors.append(
+                        AssigneeDashboardChoreShardSensor(
+                            self.coordinator,
+                            self.coordinator.config_entry,
+                            user_id,
+                            user_name,
+                            shard_index,
+                        )
+                    )
+                    created_count += 1
+
+            missing_count = max(plan.expected_shard_count - len(existing_entries), 0)
+            if registry_only and missing_count > 0:
+                plan.last_reconciliation_outcome = (
+                    f"planned_missing={missing_count} removed={removed_count}"
+                )
+            else:
+                plan.last_reconciliation_outcome = (
+                    f"created={created_count} removed={removed_count}"
+                )
+
+        if created_sensors and self._sensor_add_entities_callback is not None:
+            self._sensor_add_entities_callback(created_sensors)
+
+    async def async_finalize_chore_shards_for_users(
+        self,
+        user_ids: list[str],
+        *,
+        registry_only: bool = True,
+    ) -> None:
+        """Refresh shard plans from the settled registry and republish helper state."""
+        if registry_only:
+            await asyncio.sleep(0)
+        await self.async_reconcile_chore_shards_for_users(
+            user_ids,
+            registry_only=registry_only,
+        )
+        self.coordinator.async_update_listeners()
+        if not registry_only:
+            self.hass.async_create_task(
+                self.async_finalize_chore_shards_for_users(
+                    user_ids,
+                    registry_only=True,
+                )
+            )
+
+    def clear_runtime_state(self) -> None:
+        """Clear runtime-only UI manager state on unload."""
+        self._translation_sensors_created.clear()
+        self._helper_shard_plans = {const.HELPER_SHARD_FAMILY_CHORES: {}}
+        self._sensor_add_entities_callback = None
+
+    def get_helper_shard_plan(
+        self, user_id: str, family: str
+    ) -> HelperShardRuntimePlan | None:
+        """Return the runtime shard plan for one user and family."""
+        return self._helper_shard_plans.get(family, {}).get(user_id)
+
+    def set_helper_shard_plan(
+        self, user_id: str, family: str, plan: HelperShardRuntimePlan
+    ) -> None:
+        """Store the runtime shard plan for one user and family."""
+        self._helper_shard_plans.setdefault(family, {})[user_id] = plan
+
+    def clear_helper_shard_plan(self, user_id: str, family: str) -> None:
+        """Drop one runtime shard plan entry if present."""
+        family_plans = self._helper_shard_plans.get(family)
+        if family_plans is not None:
+            family_plans.pop(user_id, None)
+
+    def get_chore_shard_helper_eids(self, user_id: str) -> list[str]:
+        """Return ordered chore shard helper entity IDs for one user."""
+        plan = self.get_helper_shard_plan(user_id, const.HELPER_SHARD_FAMILY_CHORES)
+        if plan is None or plan.expected_shard_count == 0:
+            return []
+
+        return [
+            entity_entry.entity_id
+            for shard_index in range(1, plan.expected_shard_count + 1)
+            if (
+                entity_entry := self._get_existing_chore_shard_entries(user_id).get(
+                    shard_index
+                )
+            )
+        ]
+
+    def get_chore_shard_unique_id(self, user_id: str, shard_index: int) -> str:
+        """Return the stable unique ID for one chore shard helper."""
+        return (
+            f"{self.coordinator.config_entry.entry_id}_{user_id}_{shard_index}"
+            f"{const.SENSOR_KC_UID_SUFFIX_UI_DASHBOARD_CHORE_SHARD_HELPER}"
+        )
+
+    def _get_existing_chore_shard_entries(
+        self, user_id: str
+    ) -> dict[int, er.RegistryEntry]:
+        """Return existing chore shard registry entries keyed by shard index."""
+        entity_registry = er.async_get(self.hass)
+        prefix = f"{self.coordinator.config_entry.entry_id}_{user_id}_"
+        suffix = const.SENSOR_KC_UID_SUFFIX_UI_DASHBOARD_CHORE_SHARD_HELPER
+        shard_entries: dict[int, er.RegistryEntry] = {}
+
+        for entry in entity_registry.entities.values():
+            unique_id = entry.unique_id
+            if not unique_id.startswith(prefix) or not unique_id.endswith(suffix):
+                continue
+
+            shard_index = unique_id[len(prefix) : -len(suffix)]
+            if not shard_index.isdigit():
+                continue
+
+            shard_entries[int(shard_index)] = entry
+
+        return shard_entries
+
+    def _get_live_chore_shard_indexes(
+        self, existing_entries: dict[int, er.RegistryEntry]
+    ) -> set[int]:
+        """Return shard indexes that currently have live states in Home Assistant."""
+        return {
+            shard_index
+            for shard_index, entity_entry in existing_entries.items()
+            if self.hass.states.get(entity_entry.entity_id) is not None
+        }
+
+    def _remove_chore_shard_entities_for_user(self, user_id: str) -> None:
+        """Remove all chore shard helper entities for one user."""
+        entity_registry = er.async_get(self.hass)
+        for entity_entry in self._get_existing_chore_shard_entries(user_id).values():
+            entity_registry.async_remove(entity_entry.entity_id)
 
     def mark_translation_sensor_created(self, lang_code: str) -> None:
         """Mark that a translation sensor for this language has been created.

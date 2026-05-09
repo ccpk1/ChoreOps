@@ -241,6 +241,7 @@ def _base_admin_chore_management_states(
     selected_dashboard_helper: str,
     chore_selector_state: str,
     chore_items: list[dict[str, object]],
+    chore_shard_items: list[list[dict[str, object]]] | None = None,
     selected_user_ui_control: dict[str, object] | None = None,
     chore_sensor_state: str = "pending",
     chore_sensor_attributes: dict[str, object] | None = None,
@@ -249,6 +250,11 @@ def _base_admin_chore_management_states(
 
     selected_user_ui_control = selected_user_ui_control or {}
     chore_sensor_attributes = chore_sensor_attributes or {}
+    chore_shard_items = chore_shard_items or []
+    chore_helper_eids = [
+        f"sensor.alice_dashboard_chore_list_{index}"
+        for index in range(1, len(chore_shard_items) + 1)
+    ]
     mock_states = {
         "select.choreops_admin_target": _MockState(
             entity_id="select.choreops_admin_target",
@@ -281,12 +287,14 @@ def _base_admin_chore_management_states(
             attributes={
                 "purpose": "purpose_dashboard_helper",
                 "integration_entry_id": "entry-123",
+                "dashboard_lookup_key": "entry-123:user-alice",
                 "user_name": "Alice",
                 "user_id": "user-alice",
                 "ui_control": selected_user_ui_control,
                 "dashboard_helpers": {
                     "translation_sensor_eid": "sensor.translations",
                     "chore_select_eid": "select.alice_chores",
+                    "chore_helper_eids": chore_helper_eids,
                 },
                 "core_sensors": {},
                 "chores": chore_items,
@@ -324,7 +332,21 @@ def _base_admin_chore_management_states(
         ),
     }
 
-    for chore_item in chore_items:
+    for chore_helper_eid, shard_items in zip(
+        chore_helper_eids, chore_shard_items, strict=False
+    ):
+        mock_states[chore_helper_eid] = _MockState(
+            entity_id=chore_helper_eid,
+            state="ok",
+            attributes={"chores": shard_items},
+            name=chore_helper_eid,
+        )
+
+    for chore_item in chore_items + [
+        shard_chore_item
+        for shard_group in chore_shard_items
+        for shard_chore_item in shard_group
+    ]:
         chore_entity_id = str(chore_item["eid"])
         mock_states[chore_entity_id] = _MockState(
             entity_id=chore_entity_id,
@@ -921,6 +943,86 @@ def test_admin_chore_management_shows_detail_for_selected_chore() -> None:
     assert parsed[2]["name"] == "Wash Dishes"
 
 
+def test_admin_chore_management_resolves_selected_shard_backed_chore() -> None:
+    """Shared admin chore management resolves selected chores from shard helpers."""
+
+    chores_template = _get_admin_filter_template(
+        "admin-shared-v1", "===== CHORE MANAGEMENT ====="
+    )
+    mock_states = _base_admin_chore_management_states(
+        selected_user_name="Alice",
+        selected_dashboard_helper="sensor.alice_dashboard_helper",
+        chore_selector_state="Wash Dishes",
+        chore_items=[],
+        chore_shard_items=[
+            [
+                {
+                    "name": "Wash Dishes",
+                    "eid": "sensor.alice_chore_wash_dishes",
+                    "state": "pending",
+                }
+            ]
+        ],
+        selected_user_ui_control={
+            "admin-shared": {"chore-management": {"header-collapse": False}}
+        },
+    )
+    env, integration_entities, states, state_attr = _build_runtime_template_env(
+        mock_states
+    )
+
+    output = env.from_string(chores_template).render(
+        integration_entities=integration_entities,
+        states=states,
+        state_attr=state_attr,
+    )
+    parsed = yaml.safe_load(f"[{output}]")
+
+    assert isinstance(parsed, list)
+    assert len(parsed) == 3
+    assert parsed[2]["entity"] == "sensor.alice_chore_wash_dishes"
+    assert parsed[2]["name"] == "Wash Dishes"
+
+
+def test_admin_peruser_chore_management_resolves_selected_shard_backed_chore() -> None:
+    """Per-user admin chore management resolves selected chores from shard helpers."""
+
+    chores_template = _get_admin_peruser_filter_template("===== CHORE MANAGEMENT =====")
+    mock_states = _base_admin_chore_management_states(
+        selected_user_name="Alice",
+        selected_dashboard_helper="sensor.alice_dashboard_helper",
+        chore_selector_state="Wash Dishes",
+        chore_items=[],
+        chore_shard_items=[
+            [
+                {
+                    "name": "Wash Dishes",
+                    "eid": "sensor.alice_chore_wash_dishes",
+                    "state": "pending",
+                }
+            ]
+        ],
+        selected_user_ui_control={
+            "admin-peruser": {"chore-management": {"header-collapse": False}}
+        },
+    )
+    env, integration_entities, states, state_attr = _build_runtime_template_env(
+        mock_states
+    )
+
+    output = env.from_string(chores_template).render(
+        integration_entities=integration_entities,
+        states=states,
+        state_attr=state_attr,
+    )
+    parsed = yaml.safe_load(f"[{output}]")
+
+    assert isinstance(parsed, list)
+    assert len(parsed) == 3
+    assert parsed[2]["entity"] == "sensor.alice_chore_wash_dishes"
+    assert parsed[2]["name"] == "Wash Dishes"
+
+
 def test_admin_chore_management_collapsed_selected_chore_keeps_tinted_header() -> None:
     """Collapsed shared admin chore management keeps the tinted header for context."""
 
@@ -1307,6 +1409,26 @@ def test_shared_chore_engine_fragment_contains_ui_control_contract() -> None:
     assert "'/exclude_completed'" in template_str
     assert "'/exclude_blocked'" in template_str
     assert "'/sort_within_groups'" in template_str
+    assert "chore_helper_eids" in template_str
+    assert "state_attr(helper_eid, 'chores')" in template_str
+    assert "chores_by_label" not in template_str
+
+
+def test_shared_chore_engine_group_render_uses_translation_sensor_reference() -> None:
+    """Shared group render should avoid duplicating the full UI label map per row."""
+    template_str = _read_template("shared/chore_engine/group_render_v1.yaml")
+
+    assert "'translation_sensor_eid': translation_sensor" in template_str
+    assert "'ui_labels': ui_labels" not in template_str
+
+
+def test_shared_chore_engine_prepare_groups_rebuilds_labels_from_rows() -> None:
+    """Shared grouping fragment should rebuild labels from merged chore rows."""
+    template_str = _read_template("shared/chore_engine/prepare_groups_v1.yaml")
+
+    assert "label_group_candidates" in template_str
+    assert "ns.discovered_labels" in template_str
+    assert "chores_by_label_raw" not in template_str
 
 
 def test_user_gamification_premier_template_renders_with_button_card_templates() -> (

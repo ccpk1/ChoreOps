@@ -1,7 +1,7 @@
 [![Quality Scale: Platinum](https://img.shields.io/badge/Quality%20Scale-platinum-platinum.svg)](https://github.com/ccpk1/choreops)
 [![Quality Gates](https://img.shields.io/github/actions/workflow/status/ccpk1/choreops/lint-validation.yaml?branch=main&label=Quality%20Gates)](https://github.com/ccpk1/choreops/actions/workflows/lint-validation.yaml)
 [![Crowdin](https://badges.crowdin.net/choreops-translations/localized.svg)](https://crowdin.com/project/choreops-translations)
-[![License](https://img.shields.io/static/v1?label=License&message=GPL-3.0&color=1E88E5&labelColor=555)](https://github.com/ccpk1/choreops/blob/main/LICENSE) 
+[![License](https://img.shields.io/static/v1?label=License&message=GPL-3.0&color=1E88E5&labelColor=555)](https://github.com/ccpk1/choreops/blob/main/LICENSE)
 [![HACS Custom](https://img.shields.io/static/v1?label=HACS&message=custom&color=1E88E5&labelColor=555)](https://github.com/custom-components/hacs) <br>
 [![Version](https://img.shields.io/github/v/release/ccpk1/choreops?include_prereleases&label=Version&color=1E88E5)](https://github.com/ccpk1/choreops/releases)
 [![Stars](https://img.shields.io/github/stars/ccpk1/choreops)](https://github.com/ccpk1/choreops/stargazers)
@@ -98,8 +98,12 @@ ChoreOps ships with a functional dashboard starter experience, but it is designe
 
 - **Rich sensor data**: granular attributes for dashboards and analytics
 - **Service-level control**: automate create/claim/approve/redeem/adjust actions
+- **Live chore CRUD updates**: chore create, edit, and delete update runtime sensors, workflow buttons, and dashboard helper payloads without a full integration reload
 - **Automation-first architecture**: integrate with scripts, automations, dashboards, voice, and Node-RED
 - **Multi-instance support**: run multiple ChoreOps entries in the same Home Assistant instance
+
+> [!TIP]
+> Chore create, edit, and delete now update runtime chore entities live. Sanctioned system settings changes still reload the integration when that remains the correct Home Assistant boundary.
 
 ---
 

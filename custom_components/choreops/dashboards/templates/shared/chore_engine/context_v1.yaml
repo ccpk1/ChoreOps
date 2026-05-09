@@ -115,6 +115,7 @@
   today_buttons=[],
   this_week_buttons=[],
   other_buttons=[],
+  label_group_candidates=[],
   label_button_groups=[],
   label_order=[],
   group_cards=[]
@@ -124,8 +125,16 @@
   {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') or {} -%}
   {%- set gamification_enabled = state_attr(dashboard_helper, 'gamification_enabled') | default(false, true) -%}
   {%- set points_sensor = core_sensors.get('points_eid') -%}
-  {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
+  {%- set dashboard_helpers = state_attr(dashboard_helper, 'dashboard_helpers') or {} -%}
+  {%- set translation_sensor = dashboard_helpers.get('translation_sensor_eid') -%}
+  {%- set chore_helper_eids = dashboard_helpers.get('chore_helper_eids', []) if dashboard_helpers is mapping else [] -%}
+  {%- if chore_helper_eids is not iterable or chore_helper_eids is string -%}
+    {%- set chore_helper_eids = [] -%}
+  {%- else -%}
+    {%- set chore_helper_eids = chore_helper_eids | list -%}
+  {%- endif -%}
   {%- set ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor else {} -%}
+  {%- set ui_labels = ui if ui is mapping else {} -%}
   {%- set points_label = (state_attr(points_sensor, 'unit_of_measurement') if points_sensor else None) or 'Points' -%}
   {%- set points_icon = (state_attr(points_sensor, 'icon') if points_sensor else None) or 'mdi:star-circle' -%}
   {%- set ui_control = state_attr(dashboard_helper, 'ui_control') | default({}, true) -%}
@@ -225,5 +234,16 @@
   {%- set chore_row_template_name = 'chore_row_kids_v1' if effective_row_variant == 'kids' else 'chore_row_v1' -%}
   {%- set integration_entry_id = state_attr(dashboard_helper, 'integration_entry_id') -%}
   {%- set dashboard_helper_user_id = state_attr(dashboard_helper, 'user_id') -%}
-  {%- set chore_list = state_attr(dashboard_helper, 'chores') | default([], true) -%}
-  {%- set chores_by_label_raw = state_attr(dashboard_helper, 'chores_by_label') | default({}, true) -%}
+  {%- set ns_chore_merge = namespace(rows=state_attr(dashboard_helper, 'chores') | default([], true)) -%}
+  {%- if chore_helper_eids | length > 0 -%}
+    {%- set ns_chore_merge.rows = [] -%}
+    {%- for helper_eid in chore_helper_eids -%}
+      {%- if helper_eid not in ['', none, 'None'] and states(helper_eid) not in ['unknown', 'unavailable'] -%}
+        {%- set helper_rows = state_attr(helper_eid, 'chores') | default([], true) -%}
+        {%- if helper_rows is iterable and helper_rows is not string -%}
+          {%- set ns_chore_merge.rows = ns_chore_merge.rows + (helper_rows | list) -%}
+        {%- endif -%}
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endif -%}
+  {%- set chore_list = ns_chore_merge.rows if ns_chore_merge.rows is iterable and ns_chore_merge.rows is not string else [] -%}

@@ -801,6 +801,8 @@ def build_chore_schema(
     assignees_dict: dict[str, str],
     default: dict[str, Any] | None = None,
     frequency_options: list[str] | None = None,
+    *,
+    preserve_optional_on_omit: bool = False,
 ) -> vol.Schema:
     """Build a schema for chores, referencing existing assignees by name.
 
@@ -816,22 +818,34 @@ def build_chore_schema(
         frequency_options: List of frequency options to show. Defaults to
             const.CHORE_FREQUENCY_OPTIONS (all frequencies). Config flow should pass
             const.CHORE_FREQUENCY_OPTIONS_CONFIG_FLOW to exclude DAILY_MULTI.
+        preserve_optional_on_omit: When True, optional fields use suggested values
+            for display but do not inject backend defaults into sparse edit payloads.
     """
     default = default or {}
     frequency_options = frequency_options or const.CHORE_FREQUENCY_OPTIONS
 
     assignee_choices = {k: k for k in assignees_dict}
 
+    def _optional_field(
+        field_key: str,
+        default_value: Any | None = None,
+        *,
+        has_default: bool = True,
+    ) -> Any:
+        if preserve_optional_on_omit or not has_default:
+            return vol.Optional(field_key)
+        return vol.Optional(field_key, default=default_value)
+
     # Build schema fields in approved UX order grouped by sections
     root_form_fields: dict[Any, Any] = {
         vol.Required(const.CFOF_CHORES_INPUT_NAME, default=const.SENTINEL_EMPTY): str,
-        vol.Optional(
+        _optional_field(
             const.CFOF_CHORES_INPUT_DESCRIPTION,
-            default=const.SENTINEL_EMPTY,
+            const.SENTINEL_EMPTY,
         ): str,
-        vol.Optional(
+        _optional_field(
             const.CFOF_CHORES_INPUT_ICON,
-            default=const.SENTINEL_EMPTY,
+            const.SENTINEL_EMPTY,
         ): selector.IconSelector(),
         vol.Required(
             const.CFOF_CHORES_INPUT_DEFAULT_POINTS,
@@ -891,20 +905,18 @@ def build_chore_schema(
                 translation_key=const.TRANS_KEY_FLOW_HELPERS_RECURRING_FREQUENCY,
             )
         ),
-        vol.Optional(
+        _optional_field(
             const.CFOF_CHORES_INPUT_DUE_DATE,
-            default=default.get(const.CFOF_CHORES_INPUT_DUE_DATE),
+            default.get(const.CFOF_CHORES_INPUT_DUE_DATE),
         ): vol.Any(None, selector.DateTimeSelector()),
         # Keep clear_due_date directly under due_date for consistent UX.
-        vol.Optional(
+        _optional_field(
             const.CFOF_CHORES_INPUT_CLEAR_DUE_DATE,
-            default=False,
+            False,
         ): selector.BooleanSelector(),
-        vol.Optional(
+        _optional_field(
             const.CFOF_CHORES_INPUT_APPLICABLE_DAYS,
-            # Explicitly check for None to preserve empty list [] (when user clears all days)
-            # Storage may have null when per_assignee_applicable_days is source of truth
-            default=(
+            (
                 default.get(const.CFOF_CHORES_INPUT_APPLICABLE_DAYS)
                 if default.get(const.CFOF_CHORES_INPUT_APPLICABLE_DAYS) is not None
                 else const.DEFAULT_APPLICABLE_DAYS
@@ -919,9 +931,9 @@ def build_chore_schema(
                 translation_key=const.TRANS_KEY_FLOW_HELPERS_APPLICABLE_DAYS,
             )
         ),
-        vol.Optional(
+        _optional_field(
             const.CFOF_CHORES_INPUT_DUE_WINDOW_OFFSET,
-            default=default.get(
+            default.get(
                 const.CFOF_CHORES_INPUT_DUE_WINDOW_OFFSET,
                 const.DEFAULT_DUE_WINDOW_OFFSET,
             ),
@@ -938,11 +950,9 @@ def build_chore_schema(
                 ),
             ),
         ): selector.BooleanSelector(),
-        vol.Optional(
+        _optional_field(
             const.CFOF_CHORES_INPUT_CUSTOM_INTERVAL,
-            default=(
-                custom_interval_default if custom_interval_default is not None else 1
-            ),
+            custom_interval_default if custom_interval_default is not None else 1,
         ): vol.Any(
             None,
             vol.All(
@@ -955,9 +965,9 @@ def build_chore_schema(
                 vol.Range(min=1),
             ),
         ),
-        vol.Optional(
+        _optional_field(
             const.CFOF_CHORES_INPUT_CUSTOM_INTERVAL_UNIT,
-            default=(
+            (
                 custom_interval_unit_default
                 if custom_interval_unit_default is not None
                 else const.TIME_UNIT_DAYS
@@ -1030,18 +1040,18 @@ def build_chore_schema(
                 mode=selector.SelectSelectorMode.DROPDOWN,
             )
         ),
-        vol.Optional(
+        _optional_field(
             const.CFOF_CHORES_INPUT_DUE_REMINDER_OFFSET,
-            default=default.get(
+            default.get(
                 const.CFOF_CHORES_INPUT_DUE_REMINDER_OFFSET,
                 const.DEFAULT_DUE_REMINDER_OFFSET,
             ),
         ): selector.TextSelector(
             selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
         ),
-        vol.Optional(
+        _optional_field(
             const.CFOF_CHORES_INPUT_NOTIFICATIONS,
-            default=_build_notification_defaults(default),
+            _build_notification_defaults(default),
         ): selector.SelectSelector(
             selector.SelectSelectorConfig(
                 options=[
@@ -1060,9 +1070,9 @@ def build_chore_schema(
             const.CFOF_CHORES_INPUT_SHOW_ON_CALENDAR,
             default=default.get(const.CFOF_CHORES_INPUT_SHOW_ON_CALENDAR, True),
         ): selector.BooleanSelector(),
-        vol.Optional(
+        _optional_field(
             const.CFOF_CHORES_INPUT_LABELS,
-            default=[],
+            [],
         ): selector.LabelSelector(selector.LabelSelectorConfig(multiple=True)),
     }
 

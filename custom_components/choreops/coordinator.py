@@ -12,10 +12,11 @@ Architecture (v0.5.0+):
 """
 
 import asyncio
+from dataclasses import dataclass
 from datetime import timedelta
 import sys
 import time
-from typing import Any, cast
+from typing import Any, Literal, cast
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -24,6 +25,11 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 
 from . import const
 from .engines.statistics_engine import StatisticsEngine
+from .helpers.entity_helpers import (
+    remove_entities_by_item_id,
+    remove_orphaned_assignee_chore_entities,
+    remove_orphaned_shared_chore_sensors,
+)
 from .managers import (
     ChoreManager,
     EconomyManager,
@@ -43,6 +49,8 @@ from .type_defs import (
     BadgesCollection,
     BonusesCollection,
     ChallengesCollection,
+    ChoreData,
+    ChoreEntitySyncContext,
     ChoresCollection,
     PenaltiesCollection,
     RewardsCollection,
@@ -53,6 +61,16 @@ from .type_defs import (
 # Type alias for typed config entry access (modern HA pattern)
 # Must be defined after imports but before class since it references the class
 type ChoreOpsConfigEntry = ConfigEntry["ChoreOpsDataCoordinator"]
+
+
+@dataclass(slots=True)
+class ChoreEntitySyncResult:
+    """Result summary for chore runtime entity synchronization."""
+
+    sensors_created: int = 0
+    buttons_created: int = 0
+    orphaned_assignee_entities_removed: int = 0
+    orphaned_shared_sensors_removed: int = 0
 
 
 class ChoreOpsDataCoordinator(DataUpdateCoordinator):
@@ -386,6 +404,171 @@ class ChoreOpsDataCoordinator(DataUpdateCoordinator):
             return
 
         await self.hass.config_entries.async_reload(self.config_entry.entry_id)
+
+    async def async_sync_chore_entities(
+        self,
+        sync_context: ChoreEntitySyncContext,
+    ) -> ChoreEntitySyncResult:
+        """Synchronize chore-linked runtime entities without reloading the entry.
+
+        This orchestration handles graph mutations only. It does not write storage;
+        callers must invoke it only after manager-owned persistence succeeds.
+        """
+        from .button import create_chore_button_entities
+        from .sensor import create_chore_entities
+
+        chore_id = sync_context["chore_id"]
+        mutation = sync_context["mutation"]
+        result = ChoreEntitySyncResult()
+
+        if mutation == "deleted":
+            await self.ui_manager.async_reconcile_chore_shards_for_users(
+                sync_context["affected_user_ids"]
+            )
+            result.orphaned_assignee_entities_removed = (
+                await remove_orphaned_assignee_chore_entities(
+                    self.hass,
+                    self.config_entry.entry_id,
+                    self.assignees_data,
+                    self.chores_data,
+                )
+            )
+            result.orphaned_shared_sensors_removed = (
+                await remove_orphaned_shared_chore_sensors(
+                    self.hass,
+                    self.config_entry.entry_id,
+                    self.chores_data,
+                )
+            )
+            self.async_update_listeners()
+            self.hass.async_create_task(
+                self.ui_manager.async_finalize_chore_shards_for_users(
+                    sync_context["affected_user_ids"],
+                    registry_only=True,
+                )
+            )
+            return result
+
+        rename_sensitive_update = sync_context["rename_sensitive_update"]
+        assignments_added = sync_context["assignments_added"]
+
+        if rename_sensitive_update:
+            remove_entities_by_item_id(self.hass, self.config_entry.entry_id, chore_id)
+
+        target_assignee_ids: list[str] | None
+        replace_existing = False
+
+        if mutation == "created" or rename_sensitive_update:
+            target_assignee_ids = None
+            replace_existing = rename_sensitive_update
+        else:
+            target_assignee_ids = assignments_added
+
+        current_chore = self.chores_data.get(chore_id)
+
+        if current_chore is not None:
+            should_create_all = (
+                mutation == "created"
+                or rename_sensitive_update
+                or sync_context["shared_state_changed"]
+            )
+            creation_target_ids = None if should_create_all else target_assignee_ids
+
+            result.sensors_created = create_chore_entities(
+                self,
+                chore_id,
+                assignee_ids=creation_target_ids,
+                replace_existing=replace_existing,
+            )
+            result.buttons_created = create_chore_button_entities(
+                self,
+                chore_id,
+                assignee_ids=creation_target_ids,
+                replace_existing=replace_existing,
+            )
+
+        result.orphaned_assignee_entities_removed = (
+            await remove_orphaned_assignee_chore_entities(
+                self.hass,
+                self.config_entry.entry_id,
+                self.assignees_data,
+                self.chores_data,
+            )
+        )
+        result.orphaned_shared_sensors_removed = (
+            await remove_orphaned_shared_chore_sensors(
+                self.hass,
+                self.config_entry.entry_id,
+                self.chores_data,
+            )
+        )
+        await self.ui_manager.async_reconcile_chore_shards_for_users(
+            sync_context["affected_user_ids"]
+        )
+        self.async_update_listeners()
+        self.hass.async_create_task(
+            self.ui_manager.async_finalize_chore_shards_for_users(
+                sync_context["affected_user_ids"],
+                registry_only=True,
+            )
+        )
+
+        const.LOGGER.debug(
+            "Chore runtime sync completed for %s (%s): sensors=%s buttons=%s removed_assignee=%s removed_shared=%s",
+            chore_id,
+            mutation,
+            result.sensors_created,
+            result.buttons_created,
+            result.orphaned_assignee_entities_removed,
+            result.orphaned_shared_sensors_removed,
+        )
+        return result
+
+    @staticmethod
+    def build_chore_entity_sync_context(
+        chore_id: str,
+        *,
+        mutation: Literal["created", "updated", "deleted"],
+        previous_chore: ChoreData | None = None,
+        current_chore: ChoreData | None = None,
+    ) -> ChoreEntitySyncContext:
+        """Build a chore runtime entity sync context from chore snapshots."""
+
+        def is_shared_chore(chore: ChoreData | None) -> bool:
+            if not chore:
+                return False
+            return chore.get(const.DATA_CHORE_COMPLETION_CRITERIA) in (
+                const.COMPLETION_CRITERIA_SHARED,
+                const.COMPLETION_CRITERIA_SHARED_FIRST,
+            )
+
+        previous_assignees = set(
+            previous_chore.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
+            if previous_chore
+            else []
+        )
+        current_assignees = set(
+            current_chore.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
+            if current_chore
+            else []
+        )
+        previous_shared = is_shared_chore(previous_chore)
+        current_shared = is_shared_chore(current_chore)
+
+        return {
+            "chore_id": chore_id,
+            "mutation": mutation,
+            "assignments_added": sorted(current_assignees - previous_assignees),
+            "assignments_removed": sorted(previous_assignees - current_assignees),
+            "affected_user_ids": sorted(previous_assignees | current_assignees),
+            "rename_sensitive_update": (
+                previous_chore is not None
+                and current_chore is not None
+                and previous_chore.get(const.DATA_CHORE_NAME)
+                != current_chore.get(const.DATA_CHORE_NAME)
+            ),
+            "shared_state_changed": previous_shared != current_shared,
+        }
 
     # -------------------------------------------------------------------------------------
     # Properties for Easy Access

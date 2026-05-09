@@ -4743,6 +4743,9 @@
           "dashboard_helpers": {
             "name": "Dashboard Helpers"
           },
+          "shard_runtime": {
+            "name": "Chore List Runtime"
+          },
           "chores_by_label": {
             "name": "Chores by Label"
           },
@@ -4751,6 +4754,29 @@
           },
           "language": {
             "name": "Language"
+          }
+        }
+      },
+      "assignee_dashboard_chore_list_helper_sensor": {
+        "name": "UI Dashboard Chore List {shard_index}",
+        "state_attributes": {
+          "purpose": {
+            "name": "Purpose",
+            "state": {
+              "purpose_dashboard_chore_shard_helper": "Provides one chore list for dashboard display when a user's full chore list is too large for the main helper"
+            }
+          },
+          "chores": {
+            "name": "Chores"
+          },
+          "shard_index": {
+            "name": "Chore List Number"
+          },
+          "shard_count": {
+            "name": "Total Chore Lists"
+          },
+          "helper_contract_version": {
+            "name": "Helper Contract Version"
           }
         }
       }
