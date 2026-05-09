@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "release_version": "1.0.4",
+  "release_version": "1.0.5",
   "repo": "ccpk1/ChoreOps-Dashboards",
   "title": "ChoreOps Dashboard Registry",
   "description": "Registry manifest for ChoreOps dashboard templates",

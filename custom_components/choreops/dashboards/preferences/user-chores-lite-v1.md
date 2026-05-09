@@ -2,6 +2,12 @@
 
 `user-chores-lite-v1` is a dynamic lightweight profile intended for older devices and lower-capability frontend environments. It keeps the ChoreOps dashboard-helper sorting and grouping intelligence while using native Home Assistant cards for the visible UI.
 
+## Scale note
+
+- This template supports both inline and shard-backed chore transport.
+- It remains lightweight in the frontend, so it may be a better fit than the richer templates when chore counts grow.
+- It is still intended as a compact profile rather than the most feature-rich dashboard, but it can be used beyond the `20-40` inline-only range when the integration switches to shard-backed chore helpers.
+
 ## Quick overview
 
 - Dynamic by design: chores and rewards are still generated from the dashboard helper at runtime.

@@ -2,6 +2,12 @@
 
 This template has configurable `pref_*` values in approval action layout.
 
+## Scale note
+
+- This is an inline-only classic admin template.
+- It is intended for smaller households, roughly in the same `20-40` chores-per-user range as the other inline-only classic layouts.
+- It is not a shard-aware high-density admin template.
+
 - `pref_points_precision` (default: `fixed_0`)
   - Controls how point values are formatted in classic admin summary and chore-value displays.
   - `fixed_0` shows a rounded whole-number display for compact layouts.

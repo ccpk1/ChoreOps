@@ -2,6 +2,12 @@
 
 `user-chores-essential-v1` is a lightweight, chore-focused layout that keeps the strong grouping and filtering behavior from the earlier essentials path while using compact chore rows.
 
+## Scale note
+
+- This is an inline-only small-household template.
+- It is intended for roughly `20-25` chores per user, with `~25` as the practical upper bound for reliable rendering.
+- It is not a shard-aware high-density template and should not be used as the scale target for larger chore lists.
+
 ## Quick overview
 
 - Lightweight by design: focuses on welcome + chores without adding extra dashboard complexity.
