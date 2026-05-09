@@ -4743,6 +4743,9 @@
           "dashboard_helpers": {
             "name": "Pomočniki nadzorne plošče"
           },
+          "shard_runtime": {
+            "name": "Izvajanje seznama opravil"
+          },
           "chores_by_label": {
             "name": "Opravila po založbi"
           },
@@ -4751,6 +4754,29 @@
           },
           "language": {
             "name": "Jezik"
+          }
+        }
+      },
+      "assignee_dashboard_chore_list_helper_sensor": {
+        "name": "Seznam opravil nadzorne plošče uporabniškega vmesnika {shard_index}",
+        "state_attributes": {
+          "purpose": {
+            "name": "Namen",
+            "state": {
+              "purpose_dashboard_chore_shard_helper": "Zagotavlja en seznam opravil za prikaz na nadzorni plošči, ko je celoten seznam opravil uporabnika prevelik za glavnega pomočnika."
+            }
+          },
+          "chores": {
+            "name": "Opravila"
+          },
+          "shard_index": {
+            "name": "Številka seznama opravil"
+          },
+          "shard_count": {
+            "name": "Skupni seznami opravil"
+          },
+          "helper_contract_version": {
+            "name": "Različica pogodbe za pomočnike"
           }
         }
       }

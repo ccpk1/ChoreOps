@@ -4743,6 +4743,9 @@
           "dashboard_helpers": {
             "name": "Instrumentpanelshjälpare"
           },
+          "shard_runtime": {
+            "name": "Körtid för sysslolista"
+          },
           "chores_by_label": {
             "name": "Sysslor efter etikett"
           },
@@ -4751,6 +4754,29 @@
           },
           "language": {
             "name": "Språk"
+          }
+        }
+      },
+      "assignee_dashboard_chore_list_helper_sensor": {
+        "name": "Lista över sysslor i UI-instrumentpanelen {shard_index}",
+        "state_attributes": {
+          "purpose": {
+            "name": "Ändamål",
+            "state": {
+              "purpose_dashboard_chore_shard_helper": "Tillhandahåller en lista över sysslor för visning på instrumentpanelen när en användares fullständiga sysslor är för lång för huvudhjälparen."
+            }
+          },
+          "chores": {
+            "name": "Sysslor"
+          },
+          "shard_index": {
+            "name": "Nummer på sysslolista"
+          },
+          "shard_count": {
+            "name": "Totalt antal sysslor"
+          },
+          "helper_contract_version": {
+            "name": "Hjälpkontraktsversion"
           }
         }
       }

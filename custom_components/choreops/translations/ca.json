@@ -4743,6 +4743,9 @@
           "dashboard_helpers": {
             "name": "Ajudants del tauler de control"
           },
+          "shard_runtime": {
+            "name": "Temps d'execució de la llista de tasques"
+          },
           "chores_by_label": {
             "name": "Tasques per segell discogràfic"
           },
@@ -4751,6 +4754,29 @@
           },
           "language": {
             "name": "Llengua"
+          }
+        }
+      },
+      "assignee_dashboard_chore_list_helper_sensor": {
+        "name": "Llista de tasques del tauler de control de la interfície d'usuari {shard_index}",
+        "state_attributes": {
+          "purpose": {
+            "name": "Propòsit",
+            "state": {
+              "purpose_dashboard_chore_shard_helper": "Proporciona una llista de tasques per a la visualització del tauler de control quan la llista completa de tasques d'un usuari és massa gran per a l'ajudant principal."
+            }
+          },
+          "chores": {
+            "name": "Tasques domèstiques"
+          },
+          "shard_index": {
+            "name": "Número de llista de tasques"
+          },
+          "shard_count": {
+            "name": "Llistes totals de tasques"
+          },
+          "helper_contract_version": {
+            "name": "Versió del contracte d'ajuda"
           }
         }
       }

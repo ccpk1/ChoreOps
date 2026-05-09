@@ -1,0 +1,142 @@
+{
+  "_comment_assignee_section": "══════════════════════════════════════════════════════════════════",
+  "_comment_assignee_desc": "NOTIFICHE AL CANDIDATO: Tono incoraggiante, in seconda persona e con elementi di gamification, con l'aggiunta di emoji. NESSUN prefisso 'ChoreOps:'.",
+  "_comment_assignee_footer": "══════════════════════════════════════════════════════════════════",
+  "chore_approved_assignee": {
+    "title": "🎉 Compito approvato!",
+    "message": "{chore_name} approvato! Hai guadagnato {points} punti"
+  },
+  "chore_disapproved_assignee": {
+    "title": "↩️ Compito restituito",
+    "message": "{chore_name} ha bisogno di ulteriori modifiche."
+  },
+  "chore_overdue_assignee": {
+    "title": "⏰ Compito in sospeso",
+    "message": "{chore_name} è in ritardo! Completalo ora per guadagnare {points} punti"
+  },
+  "chore_overdue_steal_available": {
+    "title": "⚡ Avviso di faccende domestiche",
+    "message": "{chore_name} è in ritardo e disponibile per essere rubato! Completalo prima per guadagnare {points} punti"
+  },
+  "chore_missed_assignee": {
+    "title": "😔 Compito scaduto",
+    "message": "{chore_name} è scaduto senza essere completato."
+  },
+  "chore_due_reminder_assignee": {
+    "title": "⏰ Promemoria per le faccende domestiche",
+    "message": "{chore_name} scade tra {minutes} minuti! Vale {points} punti"
+  },
+  "chore_due_window_assignee": {
+    "title": "🎯 Compito da svolgere ora",
+    "message": "{chore_name} è ora in scadenza! Completa entro {hours} ore per guadagnare {points} punti"
+  },
+  "reward_approved_assignee": {
+    "title": "🎉 Ricompensa approvata!",
+    "message": "{reward_name} approvato!"
+  },
+  "reward_disapproved_assignee": {
+    "title": "💭 Richiesta di ricompensa restituita",
+    "message": "{reward_name} non è stato approvato questa volta."
+  },
+  "badge_earned_assignee": {
+    "title": "🥇 Distintivo conquistato!",
+    "message": "Hai guadagnato il badge {badge_name}!"
+  },
+  "achievement_earned_assignee": {
+    "title": "🏆 Obiettivo raggiunto!",
+    "message": "Hai meritato {achievement_name}! Continua così!"
+  },
+  "challenge_completed_assignee": {
+    "title": "🏁 Sfida completata!",
+    "message": "Hai completato {challenge_name}! Continua così!"
+  },
+  "penalty_applied_assignee": {
+    "title": "⚠️ Penalità applicata",
+    "message": "{penalty_name}: {points} punti detratti. Torniamo in carreggiata!"
+  },
+  "bonus_applied_assignee": {
+    "title": "⭐ Bonus applicato!",
+    "message": "{bonus_name}: Hai guadagnato {points} punti bonus! Ottimo lavoro!"
+  },
+  "multiplier_changed_assignee": {
+    "title": "⚖️ Moltiplicatore aggiornato",
+    "message": "Il tuo moltiplicatore di punti è cambiato da {old_multiplier}x a {new_multiplier}x"
+  },
+  "_comment_approver_section": "══════════════════════════════════════════════════════════════════",
+  "_comment_approver_desc": "NOTIFICHE DELL'APPROVATORE: Informative, in terza persona, attuabili. Formato: '{assignee_name}: Azione'. NESSUN prefisso 'ChoreOps:'.",
+  "_comment_approver_footer": "══════════════════════════════════════════════════════════════════",
+  "chore_claimed_approver": {
+    "title": "✋ {assignee_name}: Compito assegnato",
+    "message": "{assignee_name} rivendicato {chore_name}"
+  },
+  "chore_reminder_approver": {
+    "title": "⏰ {assignee_name}: Approvazione necessaria",
+    "message": "Promemoria: {chore_name} richiesto da {assignee_name} è in attesa della tua revisione"
+  },
+  "chore_overdue_approver": {
+    "title": "⚠️ {assignee_name}: Compito in sospeso",
+    "message": "Il compito {chore_name} di {assignee_name}è in ritardo (scadenza: {due_date})"
+  },
+  "pending_chores_approver": {
+    "title": "📋 {assignee_name}: {count} In sospeso",
+    "message": "{count} incarichi in attesa di revisione. Ultimo: {latest_chore} (+{points} punti)"
+  },
+  "reward_claimed_approver": {
+    "title": "🎁 {assignee_name}: Richiesta di ricompensa",
+    "message": "{assignee_name} ha richiesto {reward_name} per {points} punti"
+  },
+  "reward_reminder_approver": {
+    "title": "⏰ {assignee_name}: Ricompensa in sospeso",
+    "message": "Promemoria: {reward_name} richiesto da {assignee_name} è in attesa della tua approvazione"
+  },
+  "badge_earned_approver": {
+    "title": "🥇 {assignee_name}: Distintivo guadagnato",
+    "message": "{assignee_name} ha ottenuto il badge {badge_name}!"
+  },
+  "achievement_earned_approver": {
+    "title": "🏆 {assignee_name}: Obiettivo raggiunto",
+    "message": "{assignee_name} guadagnato {achievement_name}"
+  },
+  "challenge_completed_approver": {
+    "title": "🏁 {assignee_name}: Sfida completata",
+    "message": "{assignee_name} completato {challenge_name}"
+  },
+  "multiplier_changed_approver": {
+    "title": "⚖️ {assignee_name}: Moltiplicatore aggiornato",
+    "message": "Il moltiplicatore dei punti di {assignee_name}è cambiato da {old_multiplier}x a {new_multiplier}x"
+  },
+  "_comment_system_section": "══════════════════════════════════════════════════════════════════",
+  "_comment_system_desc": "NOTIFICHE DI SISTEMA/AMMINISTRAZIONE: Operazioni di gestione dei dati",
+  "_comment_system_footer": "══════════════════════════════════════════════════════════════════",
+  "data_reset": {
+    "title": "🔄 ChoreOps: Ripristino dati",
+    "message": "I dati di sistema sono stati ripristinati"
+  },
+  "data_reset_global": {
+    "title": "🔄 ChoreOps: Ripristino completo",
+    "message": "Tutti i dati di sistema sono stati ripristinati ai valori predefiniti."
+  },
+  "data_reset_assignee": {
+    "title": "🔄 ChoreOps: Reimposta l'assegnatario",
+    "message": "Ripristino dei dati per {assignee_name}"
+  },
+  "data_reset_item_type": {
+    "title": "🔄 ChoreOps: {item_type} Reimposta",
+    "message": "Tutti i dati {item_type} sono stati reimpostati"
+  },
+  "data_reset_item": {
+    "title": "🔄 ChoreOps: Ripristino oggetto",
+    "message": "{item_type} '{item_name}' è stato ripristinato"
+  },
+  "_comment_actions_section": "══════════════════════════════════════════════════════════════════",
+  "_comment_actions_desc": "PULSANTI DI AZIONE PER LE NOTIFICHE: Linguaggio più delicato e incoraggiante",
+  "_comment_actions_footer": "══════════════════════════════════════════════════════════════════",
+  "actions": {
+    "approve": "✅ Approva",
+    "claim": "✋ Ce l'ho fatta!",
+    "complete": "✅ Completo",
+    "disapprove": "↩️ Non approvare",
+    "remind_30": "⏰ Ricordamelo tra 30 minuti",
+    "skip": "⏭️ Salta"
+  }
+}

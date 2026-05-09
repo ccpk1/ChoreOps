@@ -4743,6 +4743,9 @@
           "dashboard_helpers": {
             "name": "Dashboard-hjælpere"
           },
+          "shard_runtime": {
+            "name": "Kørselstid for pligtliste"
+          },
           "chores_by_label": {
             "name": "Huslige pligter efter label"
           },
@@ -4751,6 +4754,29 @@
           },
           "language": {
             "name": "Sprog"
+          }
+        }
+      },
+      "assignee_dashboard_chore_list_helper_sensor": {
+        "name": "Liste over opgaver i brugergrænseflade-dashboard {shard_index}",
+        "state_attributes": {
+          "purpose": {
+            "name": "Formål",
+            "state": {
+              "purpose_dashboard_chore_shard_helper": "Viser én opgaveliste på dashboardet, når en brugers fulde opgaveliste er for stor til hovedhjælperen."
+            }
+          },
+          "chores": {
+            "name": "Huslige pligter"
+          },
+          "shard_index": {
+            "name": "Nummer på pligtliste"
+          },
+          "shard_count": {
+            "name": "Samlede opgaver"
+          },
+          "helper_contract_version": {
+            "name": "Hjælpekontraktversion"
           }
         }
       }

@@ -133,7 +133,7 @@
         "sections": {
           "section_root_form": {
             "name": "Definicja",
-            "description": "Tożsamość, przypisanie i podstawowe ustawienia umowy.",
+            "description": "Informacje, przypisani użytkownicy i podstawowe ustawienia zadania.",
             "data": {
               "name": "📋 Nazwa zadania domowego",
               "chore_description": "📋 Opis (opcjonalnie)",
@@ -153,26 +153,26 @@
           },
           "section_schedule": {
             "name": "Harmonogram",
-            "description": "Ustawienia czasu, okna dostępu i powtarzającego się interwału.",
+            "description": "Harmonogram, okno czasowe i ustawienia powtarzania.",
             "data": {
               "recurring_frequency": "🔄 Harmonogram: Częstotliwość",
               "due_date": "📅 Harmonogram: Termin (opcjonalnie)",
-              "clear_due_date": "🗑️ Wyczyść termin płatności",
+              "clear_due_date": "🗑️ Usuń termin wykonania",
               "applicable_days": "📅 Harmonogram: Dni obowiązujące (opcjonalnie)",
-              "chore_due_window_offset": "⏱️ Termin płatności: Przesunięcie przed terminem płatności",
-              "chore_claim_lock_until_window": "🔒 Zablokować roszczenie do czasu otwarcia okna płatności?",
+              "chore_due_window_offset": "⏱️ Termin wykonania: Przesunięcie przed terminem wykonania",
+              "chore_claim_lock_until_window": "🔒 Zablokować potwierdzanie, aż będzie dostępne?",
               "custom_interval": "🔄 Harmonogram: niestandardowy interwał (dla niestandardowej częstotliwości)",
-              "custom_interval_unit": "🔄 Harmonogram: Niestandardowa jednostka interwału"
+              "custom_interval_unit": "🔄 Harmonogram: jednostka własnego interwału"
             },
             "data_description": {
               "recurring_frequency": "Jak często zadanie ma się powtarzać: Codziennie, Co tydzień, Co miesiąc, Co rok, Niestandardowo lub Brak.",
-              "due_date": "Opcjonalny termin. Można łączyć z harmonogramami cyklicznymi.",
+              "due_date": "Termin opcjonalny. Można go łączyć z powtarzającymi się harmonogramami.",
               "clear_due_date": "Zaznacz to pole, aby usunąć termin wykonania tego zadania.",
               "applicable_days": "Pozostaw puste pola dla wszystkich dni. Wybierz TYLKO konkretne dni, aby wprowadzić ograniczenie.",
-              "chore_due_window_offset": "Gdy status zadania zmieni się z „Oczekujące” na „Należy”. Format: „1d 6h 30m” lub po prostu „30” dla minut. Wprowadź „0”, aby wyłączyć. Przykład: „1d” oznacza, że zadanie wyświetla się jako „Należy” 1 dzień przed terminem.",
-              "chore_claim_lock_until_window": "Po włączeniu tej opcji osoby przypisane do zadania nie mogą go przejąć przed rozpoczęciem okresu jego realizacji.",
-              "custom_interval": "Liczba jednostek czasu między powtórzeniami (np. 3 dla „co 3 tygodnie”). Używane tylko z częstotliwością niestandardową.",
-              "custom_interval_unit": "Jednostka czasu dla niestandardowego interwału (dni, tygodnie, miesiące). Używana tylko z niestandardową częstotliwością."
+              "chore_due_window_offset": "Kiedy stan zadania zmienia się z \"Oczekujące\" na \"Do wykonania\". Format: \"1d 6h 30m\" lub tylko \"30\" (minuty). Wprowadź \"0\", aby wyłączyć. Przykład: \"1d\" oznacza, że zadanie będzie oznaczone jako \"Do wykonania\" 1 dzień przed terminem.",
+              "chore_claim_lock_until_window": "Po włączeniu osoby przydzielone do zadania nie mogą go przejąć przed terminem dostępności.",
+              "custom_interval": "Liczba jednostek czasu między powtórzeniami (np. 3 — dla „co 3 tygodnie”). Używane tylko przy niestandardowej częstotliwości.",
+              "custom_interval_unit": "Jednostka czasu dla niestandardowego okresu (dni, tygodnie, miesiące). Używane tylko przy niestandardowej częstotliwości."
             }
           },
           "section_advanced_configurations": {
@@ -180,21 +180,21 @@
             "description": "Automatyzacja cyklu życia, powiadomienia, widoczność i metadane.",
             "data": {
               "approval_reset_type": "➡️ Dozwolone ukończenia i czas resetowania zatwierdzenia",
-              "approval_reset_pending_claim_action": "➡️ Oczekujące rozpatrzenie roszczeń w momencie resetowania zatwierdzenia",
-              "auto_approve": "✅ Automatyczne zatwierdzanie roszczeń?",
-              "overdue_handling_type": "⏰ Przeterminowane: Obsługa",
-              "chore_due_reminder_offset": "🔔 Przypomnienie o terminie płatności: Przesunięcie przed terminem płatności",
-              "chore_notifications": "🔔 Wydarzenia powiadomień (opcjonalnie)",
+              "approval_reset_pending_claim_action": "➡️ Oczekujące Zgłoszenia - Co Zrobić przy Resetowaniu",
+              "auto_approve": "✅ Automatycznie zatwierdzić zgłoszenia?",
+              "overdue_handling_type": "⏰ Zadanie Zaległe: Co Robić",
+              "chore_due_reminder_offset": "🔔 Przypomnienie: Kiedy Wysłać Powiadomienie",
+              "chore_notifications": "🔔 Kiedy Powiadamiać (opcjonalnie)",
               "show_on_calendar": "📅 Pokazać w kalendarzu?",
               "chore_labels": "📋 Etykiety (opcjonalnie)"
             },
             "data_description": {
-              "approval_reset_type": "Kontroluje, kiedy uruchamiana jest granica cyklu zatwierdzania zadania (o północy, w dniu ukończenia, po zakończeniu lub ręcznie).",
-              "approval_reset_pending_claim_action": "Dzieje się tak w przypadku roszczeń, które wciąż czekają na zatwierdzenie, gdy nastąpi reset zatwierdzenia.",
-              "auto_approve": "Po włączeniu tej opcji roszczenia będą zatwierdzane natychmiast, bez konieczności przeglądu przez osobę zatwierdzającą.",
-              "overdue_handling_type": "Działanie po terminie: ukryj status przeterminowania, pozostaw przeterminowane do momentu odebrania lub zmień na oczekujące w następnym cyklu zatwierdzania.",
-              "chore_due_reminder_offset": "Kiedy wysłać przypomnienie o terminie. Format: „1d 6h 30m” lub po prostu „30” w przypadku minut. Domyślnie: 30m (30 minut przed terminem). Wprowadź „0”, aby wyłączyć.",
-              "chore_notifications": "Kiedy wysyłać powiadomienia: w przypadku roszczenia, zatwierdzenia, odrzucenia lub w dowolnej kombinacji tych zdarzeń.",
+              "approval_reset_type": "Określa, kiedy następuje reset cyklu zatwierdzania zadania (o północy, w terminie, po wykonaniu lub ręcznie).",
+              "approval_reset_pending_claim_action": "Określa, co dzieje się ze zgłoszeniami oczekującymi na zatwierdzenie w momencie resetu.",
+              "auto_approve": "Po włączeniu zgłoszenia są automatycznie zatwierdzane bez weryfikacji przez opiekuna.",
+              "overdue_handling_type": "Po terminie: ukryj, pozostaw do zgłoszenia lub zresetuj do oczekującego przy następnym cyklu.",
+              "chore_due_reminder_offset": "Kiedy wysłać przypomnienie o terminie. Format: „1d 6h 30m” lub „30” (minuty). Domyślnie: 30m (30 min przed). Wpisz „0”, aby wyłączyć.",
+              "chore_notifications": "Kiedy wysyłać powiadomienia: przy zgłoszeniu, zatwierdzeniu, odrzuceniu lub dowolnej kombinacji.",
               "show_on_calendar": "Wyświetl to zadanie w widoku kalendarza.",
               "chore_labels": "Tagi do organizowania obowiązków (np. „kuchnia”, „na zewnątrz”). Pozostaw puste, jeśli nie są potrzebne."
             }
@@ -208,17 +208,17 @@
           "default_points": "💰 Przyznane punkty",
           "assigned_user_ids": "👥 Przypisany do",
           "completion_criteria": "👥 Kryteria ukończenia",
-          "approval_reset_type": "➡️ Dozwolone ukończenia i czas resetowania zatwierdzenia",
-          "approval_reset_pending_claim_action": "➡️ Oczekujące rozpatrzenie roszczeń w momencie resetowania zatwierdzenia",
-          "overdue_handling_type": "⏰ Przeterminowane: Obsługa",
-          "chore_claim_lock_until_window": "🔒 Zablokować roszczenie do czasu otwarcia okna płatności?",
-          "auto_approve": "✅ Automatyczne zatwierdzanie roszczeń?",
+          "approval_reset_type": "➡️ Limit wykonań i moment resetu zatwierdzania",
+          "approval_reset_pending_claim_action": "➡️ Co zrobić z oczekującymi zgłoszeniami przy resecie zatwierdzania",
+          "overdue_handling_type": "⏰ Zaległe: Sposób obsługi",
+          "chore_claim_lock_until_window": "🔒 Blokować zgłoszenie do czasu, aż zadanie będzie dostępne?",
+          "auto_approve": "✅ Automatycznie zatwierdzać zgłoszenia?",
           "recurring_frequency": "🔄 Harmonogram: Częstotliwość",
           "custom_interval": "🔄 Harmonogram: niestandardowy interwał (dla niestandardowej częstotliwości)",
           "custom_interval_unit": "🔄 Harmonogram: Niestandardowa jednostka interwału",
           "applicable_days": "📅 Harmonogram: Dni obowiązujące (opcjonalnie)",
-          "due_date": "📅 Harmonogram: Termin (opcjonalnie)",
-          "chore_due_window_offset": "⏱️ Termin płatności: Przesunięcie przed terminem płatności",
+          "due_date": "📅 Harmonogram: termin wykonania (opcjonalnie)",
+          "chore_due_window_offset": "⏱️ Okno zgłoszeń: ile przed terminem ma się otworzyć",
           "chore_due_reminder_offset": "🔔 Przypomnienie o terminie płatności: Przesunięcie przed terminem płatności",
           "show_on_calendar": "📅 Pokazać w kalendarzu?",
           "chore_notifications": "🔔 Wydarzenia powiadomień (opcjonalnie)"
@@ -4743,6 +4743,9 @@
           "dashboard_helpers": {
             "name": "Pomocnicy pulpitu nawigacyjnego"
           },
+          "shard_runtime": {
+            "name": "Lista zadań do wykonania"
+          },
           "chores_by_label": {
             "name": "Obowiązki według etykiety"
           },
@@ -4751,6 +4754,29 @@
           },
           "language": {
             "name": "Język"
+          }
+        }
+      },
+      "assignee_dashboard_chore_list_helper_sensor": {
+        "name": "Lista zadań panelu interfejsu użytkownika {shard_index}",
+        "state_attributes": {
+          "purpose": {
+            "name": "Zamiar",
+            "state": {
+              "purpose_dashboard_chore_shard_helper": "Zapewnia jedną listę zadań do wyświetlenia na pulpicie, gdy pełna lista zadań użytkownika jest zbyt długa dla głównego pomocnika"
+            }
+          },
+          "chores": {
+            "name": "Zadania"
+          },
+          "shard_index": {
+            "name": "Numer listy obowiązków"
+          },
+          "shard_count": {
+            "name": "Całkowita liczba list obowiązków"
+          },
+          "helper_contract_version": {
+            "name": "Wersja kontraktu pomocniczego"
           }
         }
       }

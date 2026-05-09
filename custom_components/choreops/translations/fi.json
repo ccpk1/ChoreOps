@@ -4743,6 +4743,9 @@
           "dashboard_helpers": {
             "name": "Kojelaudan apuohjelmat"
           },
+          "shard_runtime": {
+            "name": "Työlistan suoritusaikainen"
+          },
           "chores_by_label": {
             "name": "Kotityöt merkin mukaan"
           },
@@ -4751,6 +4754,29 @@
           },
           "language": {
             "name": "Kieli"
+          }
+        }
+      },
+      "assignee_dashboard_chore_list_helper_sensor": {
+        "name": "Käyttöliittymän kojelaudan tehtävälista {shard_index}",
+        "state_attributes": {
+          "purpose": {
+            "name": "Tarkoitus",
+            "state": {
+              "purpose_dashboard_chore_shard_helper": "Tarjoaa yhden työlistan kojelaudalle, kun käyttäjän koko työlista on liian suuri pääapulle"
+            }
+          },
+          "chores": {
+            "name": "Kotityöt"
+          },
+          "shard_index": {
+            "name": "Työlistan numero"
+          },
+          "shard_count": {
+            "name": "Yhteensä kotitehtävälistoja"
+          },
+          "helper_contract_version": {
+            "name": "Avustajasopimuksen versio"
           }
         }
       }

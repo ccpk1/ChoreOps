@@ -4743,6 +4743,9 @@
           "dashboard_helpers": {
             "name": "Dashboard-Helfer"
           },
+          "shard_runtime": {
+            "name": "Laufzeit der Aufgabenliste"
+          },
           "chores_by_label": {
             "name": "Aufgaben nach Label"
           },
@@ -4751,6 +4754,29 @@
           },
           "language": {
             "name": "Sprache"
+          }
+        }
+      },
+      "assignee_dashboard_chore_list_helper_sensor": {
+        "name": "Aufgabenliste im UI-Dashboard {shard_index}",
+        "state_attributes": {
+          "purpose": {
+            "name": "Zweck",
+            "state": {
+              "purpose_dashboard_chore_shard_helper": "Bietet eine Aufgabenliste für die Anzeige im Dashboard, wenn die vollständige Aufgabenliste eines Benutzers zu groß für den Hauptassistenten ist."
+            }
+          },
+          "chores": {
+            "name": "Aufgaben"
+          },
+          "shard_index": {
+            "name": "Aufgabenliste Nummer"
+          },
+          "shard_count": {
+            "name": "Vollständige Aufgabenlisten"
+          },
+          "helper_contract_version": {
+            "name": "Helfervertragsversion"
           }
         }
       }

@@ -3,16 +3,16 @@
   "_comment_assignee_desc": "VARSLER TIL TILORDNERE: Spillbasert, andrepersons, oppmuntrende tone med emojier. INGEN «ChoreOps:»-prefiks.",
   "_comment_assignee_footer": "═════════════════════════════════════════════════════════════════════════════════════",
   "chore_approved_assignee": {
-    "title": "🎉 Godkjent husarbeid!",
+    "title": "🎉 Godkjent gjøremål!",
     "message": "{chore_name} godkjent! Du har tjent {points} poeng"
   },
   "chore_disapproved_assignee": {
-    "title": "↩️ Gjøremål returnert",
+    "title": "↩️ Gjøremål er ikke godkjent",
     "message": "{chore_name} trenger mer arbeid."
   },
   "chore_overdue_assignee": {
-    "title": "⏰ Forfalt husarbeid",
-    "message": "{chore_name} er for sent! Fullfør nå for å tjene {points} poeng"
+    "title": "⏰ Forfalt gjøremål",
+    "message": "{chore_name} har forfalt! Fullfør nå for å tjene {points} poeng"
   },
   "chore_overdue_steal_available": {
     "title": "⚡ Varsel om husarbeid",
@@ -23,7 +23,7 @@
     "message": "{chore_name} utløp uten fullføring."
   },
   "chore_due_reminder_assignee": {
-    "title": "⏰ Påminnelse om husarbeid",
+    "title": "⏰ Påminnelse om gjøremål",
     "message": "{chore_name} forfaller om {minutes} minutter! Verdt {points} poeng"
   },
   "chore_due_window_assignee": {

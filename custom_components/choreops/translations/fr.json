@@ -4743,6 +4743,9 @@
           "dashboard_helpers": {
             "name": "Assistants de tableau de bord"
           },
+          "shard_runtime": {
+            "name": "Durée de la liste des tâches"
+          },
           "chores_by_label": {
             "name": "Tâches par étiquette"
           },
@@ -4751,6 +4754,29 @@
           },
           "language": {
             "name": "Langue"
+          }
+        }
+      },
+      "assignee_dashboard_chore_list_helper_sensor": {
+        "name": "Liste des tâches du tableau de bord de l'interface utilisateur {shard_index}",
+        "state_attributes": {
+          "purpose": {
+            "name": "But",
+            "state": {
+              "purpose_dashboard_chore_shard_helper": "Fournit une liste de tâches à afficher sur le tableau de bord lorsque la liste complète des tâches de l'utilisateur est trop volumineuse pour l'assistant principal."
+            }
+          },
+          "chores": {
+            "name": "Tâches"
+          },
+          "shard_index": {
+            "name": "Numéro de la liste des tâches"
+          },
+          "shard_count": {
+            "name": "Listes complètes des tâches ménagères"
+          },
+          "helper_contract_version": {
+            "name": "Version du contrat d'assistance"
           }
         }
       }

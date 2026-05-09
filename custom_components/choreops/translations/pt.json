@@ -4743,6 +4743,9 @@
           "dashboard_helpers": {
             "name": "Auxiliares do painel de controlo"
           },
+          "shard_runtime": {
+            "name": "Tempo de execução da lista de tarefas"
+          },
           "chores_by_label": {
             "name": "Tarefas por Etiqueta"
           },
@@ -4751,6 +4754,29 @@
           },
           "language": {
             "name": "Idioma"
+          }
+        }
+      },
+      "assignee_dashboard_chore_list_helper_sensor": {
+        "name": "Lista de tarefas do painel de controlo da interface do utilizador {shard_index}",
+        "state_attributes": {
+          "purpose": {
+            "name": "Finalidade",
+            "state": {
+              "purpose_dashboard_chore_shard_helper": "Fornece uma lista de tarefas para apresentação no painel quando a lista completa de tarefas de um utilizador é demasiado grande para o auxiliar principal."
+            }
+          },
+          "chores": {
+            "name": "Tarefas domésticas"
+          },
+          "shard_index": {
+            "name": "Número da lista de tarefas"
+          },
+          "shard_count": {
+            "name": "Lista completa de tarefas"
+          },
+          "helper_contract_version": {
+            "name": "Versão do Contrato Auxiliar"
           }
         }
       }

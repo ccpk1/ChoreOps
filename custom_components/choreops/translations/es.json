@@ -4743,6 +4743,9 @@
           "dashboard_helpers": {
             "name": "Ayudantes del panel de control"
           },
+          "shard_runtime": {
+            "name": "Tiempo de ejecución de la lista de tareas"
+          },
           "chores_by_label": {
             "name": "Tareas por etiqueta"
           },
@@ -4751,6 +4754,29 @@
           },
           "language": {
             "name": "Idioma"
+          }
+        }
+      },
+      "assignee_dashboard_chore_list_helper_sensor": {
+        "name": "Lista de tareas del panel de control de la interfaz de usuario {shard_index}",
+        "state_attributes": {
+          "purpose": {
+            "name": "Objetivo",
+            "state": {
+              "purpose_dashboard_chore_shard_helper": "Proporciona una lista de tareas para mostrar en el panel de control cuando la lista completa de tareas de un usuario es demasiado grande para el asistente principal."
+            }
+          },
+          "chores": {
+            "name": "Tareas"
+          },
+          "shard_index": {
+            "name": "Número de lista de tareas"
+          },
+          "shard_count": {
+            "name": "Listas de tareas completas"
+          },
+          "helper_contract_version": {
+            "name": "Versión del contrato de ayuda"
           }
         }
       }

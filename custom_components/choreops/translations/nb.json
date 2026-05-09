@@ -4743,6 +4743,9 @@
           "dashboard_helpers": {
             "name": "Dashbordhjelpere"
           },
+          "shard_runtime": {
+            "name": "Kjøretid for gjøremålsliste"
+          },
           "chores_by_label": {
             "name": "Gjøremål etter etikett"
           },
@@ -4751,6 +4754,29 @@
           },
           "language": {
             "name": "Språk"
+          }
+        }
+      },
+      "assignee_dashboard_chore_list_helper_sensor": {
+        "name": "Liste over gjøremål i brukergrensesnitt-dashbordet {shard_index}",
+        "state_attributes": {
+          "purpose": {
+            "name": "Hensikt",
+            "state": {
+              "purpose_dashboard_chore_shard_helper": "Gir én gjøremålsliste for visning på dashbordet når en brukers fullstendige gjøremålsliste er for stor for hovedhjelperen."
+            }
+          },
+          "chores": {
+            "name": "Gjøremål"
+          },
+          "shard_index": {
+            "name": "Nummer på gjøremålsliste"
+          },
+          "shard_count": {
+            "name": "Totalt antall gjøremålslister"
+          },
+          "helper_contract_version": {
+            "name": "Hjelpekontraktversjon"
           }
         }
       }

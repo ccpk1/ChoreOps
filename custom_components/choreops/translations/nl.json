@@ -4743,6 +4743,9 @@
           "dashboard_helpers": {
             "name": "Dashboard Helpers"
           },
+          "shard_runtime": {
+            "name": "Uitvoeringstijd van de takenlijst"
+          },
           "chores_by_label": {
             "name": "Taken per label"
           },
@@ -4751,6 +4754,29 @@
           },
           "language": {
             "name": "Taal"
+          }
+        }
+      },
+      "assignee_dashboard_chore_list_helper_sensor": {
+        "name": "UI Dashboard Takenlijst {shard_index}",
+        "state_attributes": {
+          "purpose": {
+            "name": "Doel",
+            "state": {
+              "purpose_dashboard_chore_shard_helper": "Biedt één takenlijst voor weergave op het dashboard wanneer de volledige takenlijst van een gebruiker te groot is voor de hoofdhelper."
+            }
+          },
+          "chores": {
+            "name": "Klusjes"
+          },
+          "shard_index": {
+            "name": "Takenlijstnummer"
+          },
+          "shard_count": {
+            "name": "Complete takenlijst"
+          },
+          "helper_contract_version": {
+            "name": "Hulpcontractversie"
           }
         }
       }

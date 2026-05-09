@@ -4743,6 +4743,9 @@
           "dashboard_helpers": {
             "name": "Pomocníci pre dashboard"
           },
+          "shard_runtime": {
+            "name": "Zoznam úloh v režime runtime"
+          },
           "chores_by_label": {
             "name": "Domáce práce podľa vydavateľstva"
           },
@@ -4751,6 +4754,29 @@
           },
           "language": {
             "name": "Jazyk"
+          }
+        }
+      },
+      "assignee_dashboard_chore_list_helper_sensor": {
+        "name": "Zoznam úloh na ovládacom paneli používateľského rozhrania {shard_index}",
+        "state_attributes": {
+          "purpose": {
+            "name": "Účel",
+            "state": {
+              "purpose_dashboard_chore_shard_helper": "Poskytuje jeden zoznam úloh pre zobrazenie na ovládacom paneli, keď je celý zoznam úloh používateľa príliš veľký pre hlavného pomocníka."
+            }
+          },
+          "chores": {
+            "name": "Domáce práce"
+          },
+          "shard_index": {
+            "name": "Číslo zoznamu úloh"
+          },
+          "shard_count": {
+            "name": "Celkový zoznam domácich úloh"
+          },
+          "helper_contract_version": {
+            "name": "Verzia zmluvy pre pomocníkov"
           }
         }
       }
