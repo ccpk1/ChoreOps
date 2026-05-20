@@ -5039,6 +5039,10 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 # Remove the key if the field is left empty.
                 self._entry_options.pop(const.CONF_POINTS_ADJUST_VALUES, None)
             # Update default chore points.
+            self._entry_options[const.CONF_DASHBOARD_POINTS_PRECISION] = user_input.get(
+                const.CFOF_SYSTEM_INPUT_DASHBOARD_POINTS_PRECISION,
+                const.DEFAULT_DASHBOARD_POINTS_PRECISION,
+            )
             self._entry_options[const.CONF_DEFAULT_CHORE_POINTS] = user_input.get(
                 const.CFOF_SYSTEM_INPUT_DEFAULT_CHORE_POINTS,
                 const.DEFAULT_CHORE_POINTS,
@@ -5105,10 +5109,11 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             )
             const.LOGGER.debug(
                 "General Options Updated: Points Adjust Values=%s, "
-                "Default Chore Points=%s, Update Interval=%s, Calendar Period to Show=%s, "
+                "Dashboard Points Precision=%s, Default Chore Points=%s, Update Interval=%s, Calendar Period to Show=%s, "
                 "Retention Periods=%s, "
                 "Show Legacy Entities=%s, Kiosk Mode=%s, Admin Approval Bypass=%s, Backup Retention=%s",
                 self._entry_options.get(const.CONF_POINTS_ADJUST_VALUES),
+                self._entry_options.get(const.CONF_DASHBOARD_POINTS_PRECISION),
                 self._entry_options.get(const.CONF_DEFAULT_CHORE_POINTS),
                 self._entry_options.get(const.CONF_UPDATE_INTERVAL),
                 self._entry_options.get(const.CONF_CALENDAR_SHOW_PERIOD),

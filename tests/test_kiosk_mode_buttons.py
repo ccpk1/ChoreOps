@@ -54,6 +54,21 @@ async def _press_button(
     )
 
 
+def _get_schema_default_value(data_schema: Any, field_key: str) -> Any:
+    """Return the default value for a voluptuous schema field."""
+    for schema_key in data_schema.schema:
+        normalized_key = getattr(schema_key, "schema", schema_key)
+        if normalized_key != field_key:
+            continue
+
+        default = getattr(schema_key, "default", None)
+        if callable(default):
+            return default()
+        return default
+
+    return None
+
+
 @pytest.fixture
 async def scenario_minimal(
     hass: HomeAssistant,
@@ -421,6 +436,9 @@ async def test_options_flow_saves_kiosk_mode_toggle(
         result["flow_id"],
         user_input={
             const.CFOF_SYSTEM_INPUT_POINTS_ADJUST_VALUES: "1|-1|2|-2|10|-10",
+            const.CFOF_SYSTEM_INPUT_DASHBOARD_POINTS_PRECISION: (
+                const.DASHBOARD_POINTS_PRECISION_FIXED_2
+            ),
             const.CFOF_SYSTEM_INPUT_UPDATE_INTERVAL: 5,
             const.CFOF_SYSTEM_INPUT_CALENDAR_SHOW_PERIOD: 90,
             const.CFOF_SYSTEM_INPUT_RETENTION_PERIODS: "14|5|3|3",
@@ -435,8 +453,32 @@ async def test_options_flow_saves_kiosk_mode_toggle(
 
     updated_entry = hass.config_entries.async_get_entry(config_entry.entry_id)
     assert updated_entry is not None
+    assert (
+        updated_entry.options.get(const.CONF_DASHBOARD_POINTS_PRECISION)
+        == const.DASHBOARD_POINTS_PRECISION_FIXED_2
+    )
     assert updated_entry.options.get(const.CONF_KIOSK_MODE) is True
     assert updated_entry.options.get(const.CONF_ADMIN_APPROVAL_BYPASS) is False
+
+    reopened_result = await hass.config_entries.options.async_init(
+        config_entry.entry_id
+    )
+    reopened_result = await hass.config_entries.options.async_configure(
+        reopened_result["flow_id"],
+        user_input={OPTIONS_FLOW_INPUT_MENU_SELECTION: OPTIONS_FLOW_GENERAL_OPTIONS},
+    )
+
+    assert (
+        reopened_result.get("step_id") == const.OPTIONS_FLOW_STEP_MANAGE_GENERAL_OPTIONS
+    )
+    assert reopened_result.get("data_schema") is not None
+    assert (
+        _get_schema_default_value(
+            reopened_result["data_schema"],
+            const.CFOF_SYSTEM_INPUT_DASHBOARD_POINTS_PRECISION,
+        )
+        == const.DASHBOARD_POINTS_PRECISION_FIXED_2
+    )
 
 
 async def test_service_claim_auth_stays_strict_with_kiosk_enabled(

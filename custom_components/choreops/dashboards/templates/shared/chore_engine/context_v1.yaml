@@ -126,6 +126,12 @@
   {%- set gamification_enabled = state_attr(dashboard_helper, 'gamification_enabled') | default(false, true) -%}
   {%- set points_sensor = core_sensors.get('points_eid') -%}
   {%- set dashboard_helpers = state_attr(dashboard_helper, 'dashboard_helpers') or {} -%}
+  {%- set dashboard_config = state_attr(dashboard_helper, 'dashboard_config') or {} -%}
+  {%- set pref_points_precision = dashboard_config.get('points_precision', 'fixed_0') if dashboard_config is mapping else 'fixed_0' -%}
+  {%- set pref_points_precision = pref_points_precision | default('fixed_0') | string | lower -%}
+  {%- if pref_points_precision not in ['fixed_0', 'adaptive', 'fixed_1', 'fixed_2'] -%}
+    {%- set pref_points_precision = 'fixed_0' -%}
+  {%- endif -%}
   {%- set translation_sensor = dashboard_helpers.get('translation_sensor_eid') -%}
   {%- set chore_helper_eids = dashboard_helpers.get('chore_helper_eids', []) if dashboard_helpers is mapping else [] -%}
   {%- if chore_helper_eids is not iterable or chore_helper_eids is string -%}

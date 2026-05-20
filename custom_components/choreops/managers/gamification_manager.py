@@ -98,6 +98,8 @@ class GamificationManager(BaseManager):
 
         # Debounce timer handle
         self._eval_timer: asyncio.TimerHandle | None = None
+        self._schedule_eval_handle: asyncio.Handle | None = None
+        self._is_unloading = False
 
         # Debounce configuration
         self._debounce_seconds = _DEBOUNCE_SECONDS
@@ -152,10 +154,24 @@ class GamificationManager(BaseManager):
             self._pending_evaluations.update(pending)
             self._schedule_evaluation()
 
+        self.coordinator.config_entry.async_on_unload(self._cancel_eval_timer)
+
         const.LOGGER.debug(
             "GamificationManager initialized with %s second debounce",
             self._debounce_seconds,
         )
+
+    def _cancel_eval_timer(self) -> None:
+        """Cancel any pending debounce timer during config entry unload."""
+        self._is_unloading = True
+
+        if self._schedule_eval_handle is not None:
+            self._schedule_eval_handle.cancel()
+            self._schedule_eval_handle = None
+
+        if self._eval_timer is not None:
+            self._eval_timer.cancel()
+            self._eval_timer = None
 
     def _on_stats_ready(self, payload: dict[str, Any]) -> None:
         """Handle startup cascade - initialize badge references after stats ready.
@@ -729,7 +745,12 @@ class GamificationManager(BaseManager):
         Uses call_soon_threadsafe to safely interact with event loop
         since this method may be called from dispatcher (SyncWorker thread).
         """
-        self.hass.loop.call_soon_threadsafe(self._schedule_evaluation_impl)
+        if self._is_unloading:
+            return
+
+        self._schedule_eval_handle = self.hass.loop.call_soon_threadsafe(
+            self._schedule_evaluation_impl
+        )
 
     def _schedule_evaluation_impl(self) -> None:
         """Internal implementation that runs on the event loop thread.
@@ -737,6 +758,11 @@ class GamificationManager(BaseManager):
         This method must only be called from the event loop thread
         (via call_soon_threadsafe from _schedule_evaluation).
         """
+        self._schedule_eval_handle = None
+
+        if self._is_unloading:
+            return
+
         if self._eval_timer:
             self._eval_timer.cancel()
 
@@ -759,8 +785,12 @@ class GamificationManager(BaseManager):
         This is the main evaluation loop that runs after debounce timer fires.
         Clears the persistent queue after successful evaluation.
         """
-        # Clear timer reference
-        self._eval_timer = None
+        # Manual callers may force evaluation before the debounce fires.
+        # Cancel the scheduled timer so the test/runtime does not keep a stale
+        # handle alive after this batch has already been processed.
+        if self._eval_timer is not None:
+            self._eval_timer.cancel()
+            self._eval_timer = None
 
         # Capture and clear pending set atomically
         assignees_to_evaluate = self._pending_evaluations.copy()

@@ -4813,6 +4813,15 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
 
         return dashboard_helpers
 
+    def _build_dashboard_config(self) -> dict[str, Any]:
+        """Build resolved dashboard configuration values for template use."""
+        return {
+            const.ATTR_POINTS_PRECISION: self._entry.options.get(
+                const.CONF_DASHBOARD_POINTS_PRECISION,
+                const.DEFAULT_DASHBOARD_POINTS_PRECISION,
+            )
+        }
+
     def _build_payload(
         self,
         entity_registry,
@@ -5151,6 +5160,7 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         self.coordinator.ui_manager.reset_pending_change_flags()
 
         core_sensors = self._build_core_sensors(entity_registry)
+        dashboard_config = self._build_dashboard_config()
         dashboard_helpers = self._build_dashboard_helpers(
             entity_registry,
             translation_sensor_eid=translation_sensor_eid,
@@ -5173,6 +5183,7 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
             "points_buttons": points_buttons_attr,
             "pending_approvals": pending_approvals,
             "core_sensors": core_sensors,
+            const.ATTR_DASHBOARD_CONFIG: dashboard_config,
             "dashboard_helpers": dashboard_helpers,
             const.ATTR_USER_NAME: self._assignee_name,
             const.ATTR_USER_ID: self._assignee_id,

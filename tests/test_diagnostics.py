@@ -252,6 +252,7 @@ async def test_diagnostics_includes_settings(hass, mock_config_entry, mock_coord
     mock_config_entry.options = {
         const.CONF_POINTS_LABEL: "Credits",
         const.CONF_POINTS_ICON: "mdi:currency-usd",
+        const.CONF_DASHBOARD_POINTS_PRECISION: const.DASHBOARD_POINTS_PRECISION_FIXED_1,
         const.CONF_DEFAULT_CHORE_POINTS: 2.5,
         const.CONF_UPDATE_INTERVAL: 25,
         const.CONF_CALENDAR_SHOW_PERIOD: 45,
@@ -270,13 +271,17 @@ async def test_diagnostics_includes_settings(hass, mock_config_entry, mock_coord
     # Get diagnostics
     result = await async_get_config_entry_diagnostics(hass, mock_config_entry)
 
-    # Assert: config_entry_settings section exists with all 10 settings
+    # Assert: config_entry_settings section exists with all 11 settings
     assert const.DATA_CONFIG_ENTRY_SETTINGS in result
     settings = result[const.DATA_CONFIG_ENTRY_SETTINGS]
 
-    assert len(settings) == 10
+    assert len(settings) == 11
     assert settings[const.CONF_POINTS_LABEL] == "Credits"
     assert settings[const.CONF_POINTS_ICON] == "mdi:currency-usd"
+    assert (
+        settings[const.CONF_DASHBOARD_POINTS_PRECISION]
+        == const.DASHBOARD_POINTS_PRECISION_FIXED_1
+    )
     assert settings[const.CONF_UPDATE_INTERVAL] == 25
     assert settings[const.CONF_CALENDAR_SHOW_PERIOD] == 45
     assert settings[const.CONF_RETENTION_DAILY] == 8

@@ -246,9 +246,6 @@ views:
 
                   << template_snippets.user_override_helper >>
 
-                  {%- set pref_points_precision = 'fixed_0' -%}
-
-
                   {#-- 2. Dynamic Lookups & Validations --#}
 
                   << template_snippets.admin_setup_peruser >>
@@ -257,6 +254,7 @@ views:
 
                   << template_snippets.admin_validation_invalid_selection >>
 
+                  {%- set pref_points_precision = ((state_attr(selected_dashboard_helper, 'dashboard_config') or {}).get('points_precision', 'fixed_0')) if has_selected_dashboard_helper else 'fixed_0' -%}
                   {%- set pref_points_precision = pref_points_precision | default('fixed_0') | string | lower -%}
                   {%- if pref_points_precision not in ['fixed_0', 'adaptive', 'fixed_1', 'fixed_2'] -%}
                     {%- set pref_points_precision = 'fixed_0' -%}
@@ -320,10 +318,18 @@ views:
                       {%- set badge_display = "" -%}
                     {%- endif -%}
 
+                    {%- set points_value_numeric = points_value | float(default=0) -%}
+                    {%- set points_value_display = (
+                      (points_value_numeric | round(2) | string | regex_replace('\.?0+$', '')) if pref_points_precision == 'adaptive'
+                      else ('%.1f' | format(points_value_numeric | round(2))) if pref_points_precision == 'fixed_1'
+                      else ('%.2f' | format(points_value_numeric | round(2))) if pref_points_precision == 'fixed_2'
+                      else ('%.0f' | format(points_value_numeric | round(2)))
+                    ) -%}
+
 
                     {%- set content =
                       "## 👨‍👩‍👧 " ~ ui.get('approver_dashboard_for', 'err-approver_dashboard_for') ~ ": " ~ name ~ " \n"
-                      "#### <ha-icon icon=" ~ points_icon ~ "></ha-icon>&nbsp;&nbsp;" ~ points_label ~ ": &nbsp;&nbsp;" ~ (((points_value | round(2)) | string | regex_replace('\.?0+$', ''))) ~ "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" ~ badge_display ~ " \n\n" -%}
+                      "#### <ha-icon icon=" ~ points_icon ~ "></ha-icon>&nbsp;&nbsp;" ~ points_label ~ ": &nbsp;&nbsp;" ~ points_value_display ~ "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" ~ badge_display ~ " \n\n" -%}
 
                     {#-- STATUS TABLE: Pending Approvals and Overdue --#}
                     {%- set status_table = "<table width=100% border=0 cellspacing=0 cellpadding=0>" -%}
@@ -1005,7 +1011,7 @@ views:
                       'type': 'custom:mushroom-template-card',
                       'entity': bonus_button_eid,
                       'primary': ui.get('bonus', 'err-bonus') ~ ": " ~ bonus_name,
-                      'secondary': '⭐ ' ~ ui.get('bonus', 'err-bonus') ~ ':  ' ~ (bonus_points | string) ~ ' ' ~ ns.points_label ~ '\n' ~ '📊 ' ~ ui.get('applied', 'err-applied') ~ ':  ' ~ (bonuses_applied | string) ~ ' ' ~ ui.get('times', 'err-times'),
+                      'secondary': '⭐ ' ~ ui.get('bonus', 'err-bonus') ~ ':  ' ~ (((bonus_points | float(default=0) | round(2) | string | regex_replace('\.?0+$', '')) if pref_points_precision == 'adaptive' else ('%.1f' | format(bonus_points | float(default=0) | round(2))) if pref_points_precision == 'fixed_1' else ('%.2f' | format(bonus_points | float(default=0) | round(2))) if pref_points_precision == 'fixed_2' else ('%.0f' | format(bonus_points | float(default=0) | round(2))))) ~ ' ' ~ ns.points_label ~ '\n' ~ '📊 ' ~ ui.get('applied', 'err-applied') ~ ':  ' ~ (bonuses_applied | string) ~ ' ' ~ ui.get('times', 'err-times'),
                       'multiline_secondary': 'true',
                       'layout': 'vertical',
                       'icon': bonus_icon,
@@ -1165,7 +1171,7 @@ views:
                       'type': 'custom:mushroom-template-card',
                       'entity': penalty_button_eid,
                       'primary': ui.get('penalty', 'err-penalty') ~ ": " ~ penalty_name,
-                      'secondary': '💥 ' ~ ui.get('penalty', 'err-penalty') ~ ':  ' ~ (penalty_points | string) ~ ' ' ~ ns.points_label ~ '\n' ~ '📊 ' ~ ui.get('applied', 'err-applied') ~ ':  ' ~ (penalties_applied | string) ~ ' ' ~ ui.get('times', 'err-times'),
+                      'secondary': '💥 ' ~ ui.get('penalty', 'err-penalty') ~ ':  ' ~ (((penalty_points | float(default=0) | round(2) | string | regex_replace('\.?0+$', '')) if pref_points_precision == 'adaptive' else ('%.1f' | format(penalty_points | float(default=0) | round(2))) if pref_points_precision == 'fixed_1' else ('%.2f' | format(penalty_points | float(default=0) | round(2))) if pref_points_precision == 'fixed_2' else ('%.0f' | format(penalty_points | float(default=0) | round(2))))) ~ ' ' ~ ns.points_label ~ '\n' ~ '📊 ' ~ ui.get('applied', 'err-applied') ~ ':  ' ~ (penalties_applied | string) ~ ' ' ~ ui.get('times', 'err-times'),
                       'multiline_secondary': 'true',
                       'layout': 'vertical',
                       'icon': penalty_icon,

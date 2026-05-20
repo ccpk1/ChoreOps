@@ -791,6 +791,7 @@ OPTIONS_FLOW_MENU_MANAGE_PREFIX: Final = "manage_"
 
 # Global Settings
 CONF_CALENDAR_SHOW_PERIOD: Final = "calendar_show_period"
+CONF_DASHBOARD_POINTS_PRECISION: Final = "dashboard_points_precision"
 CONF_DEFAULT_CHORE_POINTS: Final = "default_chore_points"
 CONF_POINTS_ADJUST_VALUES: Final = "points_adjust_values"
 CONF_POINTS_ICON: Final = "points_icon"
@@ -820,6 +821,7 @@ BACKUP_TAG_MANUAL: Final = "manual"  # User-initiated (never deleted)
 # System settings (ConfigFlow & OptionsFlow)
 CFOF_SYSTEM_INPUT_POINTS_LABEL: Final = "points_label"
 CFOF_SYSTEM_INPUT_POINTS_ICON: Final = "points_icon"
+CFOF_SYSTEM_INPUT_DASHBOARD_POINTS_PRECISION: Final = "dashboard_points_precision"
 CFOF_SYSTEM_INPUT_DEFAULT_CHORE_POINTS: Final = "default_chore_points"
 CFOF_SYSTEM_INPUT_UPDATE_INTERVAL: Final = "update_interval"
 CFOF_SYSTEM_INPUT_CALENDAR_SHOW_PERIOD: Final = "calendar_show_period"
@@ -931,6 +933,18 @@ NOTIFICATION_EVENT: Final = "mobile_app_notification_action"
 CONF_SHOW_LEGACY_ENTITIES: Final = "show_legacy_entities"
 CONF_KIOSK_MODE: Final = "kiosk_mode"
 CONF_ADMIN_APPROVAL_BYPASS: Final = "admin_approval_bypass"
+
+# Dashboard display settings
+DASHBOARD_POINTS_PRECISION_FIXED_0: Final = "fixed_0"
+DASHBOARD_POINTS_PRECISION_ADAPTIVE: Final = "adaptive"
+DASHBOARD_POINTS_PRECISION_FIXED_1: Final = "fixed_1"
+DASHBOARD_POINTS_PRECISION_FIXED_2: Final = "fixed_2"
+DASHBOARD_POINTS_PRECISION_OPTIONS: Final = [
+    DASHBOARD_POINTS_PRECISION_FIXED_0,
+    DASHBOARD_POINTS_PRECISION_ADAPTIVE,
+    DASHBOARD_POINTS_PRECISION_FIXED_1,
+    DASHBOARD_POINTS_PRECISION_FIXED_2,
+]
 
 # Badge Types
 BADGE_TYPE_ACHIEVEMENT_LINKED: Final = "achievement_linked"
@@ -1721,6 +1735,7 @@ DEFAULT_ASSIGNEE_POINTS_MULTIPLIER: Final = 1
 DEFAULT_SHOW_LEGACY_ENTITIES: Final = False
 DEFAULT_KIOSK_MODE: Final = False
 DEFAULT_ADMIN_APPROVAL_BYPASS: Final = True
+DEFAULT_DASHBOARD_POINTS_PRECISION: Final = DASHBOARD_POINTS_PRECISION_FIXED_0
 DEFAULT_NOTIFY_ON_APPROVAL = True
 DEFAULT_NOTIFY_ON_CLAIM = True
 DEFAULT_NOTIFY_ON_DISAPPROVAL = True
@@ -1746,6 +1761,7 @@ DEFAULT_ZERO: Final = 0
 DEFAULT_SYSTEM_SETTINGS: Final = {
     CONF_POINTS_LABEL: DEFAULT_POINTS_LABEL,
     CONF_POINTS_ICON: DEFAULT_POINTS_ICON,
+    CONF_DASHBOARD_POINTS_PRECISION: DEFAULT_DASHBOARD_POINTS_PRECISION,
     CONF_DEFAULT_CHORE_POINTS: DEFAULT_CHORE_POINTS,
     CONF_UPDATE_INTERVAL: DEFAULT_UPDATE_INTERVAL,
     CONF_CALENDAR_SHOW_PERIOD: DEFAULT_CALENDAR_SHOW_PERIOD,
@@ -2528,6 +2544,7 @@ ATTR_HELPER_CONTRACT_VERSION: Final = "helper_contract_version"
 ATTR_CHORE_IS_TODAY_AM: Final = "is_today_am"
 ATTR_CHORE_LABELS: Final = "labels"
 ATTR_CHORE_PRIMARY_GROUP: Final = "primary_group"
+ATTR_DASHBOARD_CONFIG: Final = "dashboard_config"
 ATTR_SHARD_COUNT: Final = "shard_count"
 ATTR_SHARD_INDEX: Final = "shard_index"
 ATTR_SHARD_RUNTIME: Final = "shard_runtime"
@@ -2535,6 +2552,7 @@ ATTR_UI_CONTROL: Final = "ui_control"
 ATTR_UI_ROOT: Final = "ui_root"
 ATTR_UI_ROOT_SHARED_ADMIN: Final = "shared_admin"
 ATTR_UI_ROOT_SELECTED_USER: Final = "selected_user"
+ATTR_POINTS_PRECISION: Final = "points_precision"
 
 # Rotation and availability dashboard attributes
 ATTR_CHORE_CLAIM_MODE: Final = "claim_mode"
@@ -3323,6 +3341,7 @@ TRANS_KEY_CFOF_DATA_RECOVERY_SELECTION: Final = "data_recovery_selection"
 
 # Backup Management
 TRANS_KEY_CFOF_BACKUP_ACTIONS_MENU: Final = "backup_actions_menu"
+TRANS_KEY_CFOF_DASHBOARD_POINTS_PRECISION: Final = "dashboard_points_precision"
 TRANS_KEY_CFOF_SELECT_BACKUP_TO_DELETE: Final = "select_backup_to_delete"
 TRANS_KEY_CFOF_SELECT_BACKUP_TO_RESTORE: Final = "select_backup_to_restore"
 

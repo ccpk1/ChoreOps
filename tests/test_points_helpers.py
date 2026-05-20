@@ -116,6 +116,61 @@ def test_build_points_schema_rejects_zero_default_chore_points() -> None:
         )
 
 
+def test_build_general_options_schema_includes_dashboard_points_precision() -> None:
+    """Test general options schema includes dashboard points precision selector."""
+    schema = fh.build_general_options_schema()
+
+    assert const.CFOF_SYSTEM_INPUT_DASHBOARD_POINTS_PRECISION in schema.schema
+
+
+def test_validate_all_system_settings_accepts_dashboard_points_precision() -> None:
+    """Test system settings validation accepts a supported precision mode."""
+    user_input = {
+        const.CONF_POINTS_LABEL: "Stars",
+        const.CONF_POINTS_ICON: "mdi:star",
+        const.CFOF_SYSTEM_INPUT_DASHBOARD_POINTS_PRECISION: (
+            const.DASHBOARD_POINTS_PRECISION_FIXED_2
+        ),
+        const.CFOF_SYSTEM_INPUT_DEFAULT_CHORE_POINTS: 2.5,
+        const.CFOF_SYSTEM_INPUT_UPDATE_INTERVAL: 5,
+        const.CFOF_SYSTEM_INPUT_CALENDAR_SHOW_PERIOD: 90,
+        const.CFOF_SYSTEM_INPUT_RETENTION_DAILY: 14,
+        const.CFOF_SYSTEM_INPUT_RETENTION_WEEKLY: 5,
+        const.CFOF_SYSTEM_INPUT_RETENTION_MONTHLY: 3,
+        const.CFOF_SYSTEM_INPUT_RETENTION_YEARLY: 3,
+        const.CFOF_SYSTEM_INPUT_POINTS_ADJUST_VALUES: "1|-1|2|-2|10|-10",
+    }
+
+    errors = fh.validate_all_system_settings(user_input)
+
+    assert errors == {}
+
+
+def test_validate_all_system_settings_rejects_invalid_dashboard_points_precision() -> (
+    None
+):
+    """Test system settings validation rejects unsupported precision values."""
+    user_input = {
+        const.CONF_POINTS_LABEL: "Stars",
+        const.CONF_POINTS_ICON: "mdi:star",
+        const.CFOF_SYSTEM_INPUT_DASHBOARD_POINTS_PRECISION: "bogus",
+        const.CFOF_SYSTEM_INPUT_DEFAULT_CHORE_POINTS: 2.5,
+        const.CFOF_SYSTEM_INPUT_UPDATE_INTERVAL: 5,
+        const.CFOF_SYSTEM_INPUT_CALENDAR_SHOW_PERIOD: 90,
+        const.CFOF_SYSTEM_INPUT_RETENTION_DAILY: 14,
+        const.CFOF_SYSTEM_INPUT_RETENTION_WEEKLY: 5,
+        const.CFOF_SYSTEM_INPUT_RETENTION_MONTHLY: 3,
+        const.CFOF_SYSTEM_INPUT_RETENTION_YEARLY: 3,
+        const.CFOF_SYSTEM_INPUT_POINTS_ADJUST_VALUES: "1|-1|2|-2|10|-10",
+    }
+
+    errors = fh.validate_all_system_settings(user_input)
+
+    assert errors[const.CFOF_SYSTEM_INPUT_DASHBOARD_POINTS_PRECISION] == (
+        const.TRANS_KEY_CFOF_DASHBOARD_POINTS_PRECISION
+    )
+
+
 def test_validate_points_inputs_empty_label() -> None:
     """Test validate_points_inputs rejects empty label."""
     user_input = {

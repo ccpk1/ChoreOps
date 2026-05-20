@@ -613,7 +613,7 @@ async def test_backup_includes_config_entry_settings(
     mock_hass,
     mock_storage_manager,
 ):
-    """Test backup includes config_entry_settings section with all 10 system settings."""
+    """Test backup includes config_entry_settings section with all 11 system settings."""
     from unittest.mock import MagicMock
 
     from custom_components.choreops import const
@@ -628,6 +628,7 @@ async def test_backup_includes_config_entry_settings(
     mock_config_entry.options = {
         const.CONF_POINTS_LABEL: "Stars",
         const.CONF_POINTS_ICON: "mdi:star",
+        const.CONF_DASHBOARD_POINTS_PRECISION: const.DASHBOARD_POINTS_PRECISION_FIXED_2,
         const.CONF_DEFAULT_CHORE_POINTS: 2.5,
         const.CONF_UPDATE_INTERVAL: 10,
         const.CONF_CALENDAR_SHOW_PERIOD: 60,
@@ -666,9 +667,13 @@ async def test_backup_includes_config_entry_settings(
     assert const.DATA_CONFIG_ENTRY_SETTINGS in backup_content
 
     settings = backup_content[const.DATA_CONFIG_ENTRY_SETTINGS]
-    assert len(settings) == 10
+    assert len(settings) == 11
     assert settings[const.CONF_POINTS_LABEL] == "Stars"
     assert settings[const.CONF_POINTS_ICON] == "mdi:star"
+    assert (
+        settings[const.CONF_DASHBOARD_POINTS_PRECISION]
+        == const.DASHBOARD_POINTS_PRECISION_FIXED_2
+    )
     assert settings[const.CONF_DEFAULT_CHORE_POINTS] == 2.5
     assert settings[const.CONF_UPDATE_INTERVAL] == 10
     assert settings[const.CONF_CALENDAR_SHOW_PERIOD] == 60
@@ -691,7 +696,7 @@ async def test_roundtrip_preserves_all_settings(
     mock_hass,
     mock_storage_manager,
 ):
-    """Test backup → restore roundtrip preserves all 10 system settings exactly."""
+    """Test backup → restore roundtrip preserves all 11 system settings exactly."""
     from unittest.mock import MagicMock
 
     from custom_components.choreops import const
@@ -707,6 +712,7 @@ async def test_roundtrip_preserves_all_settings(
     original_settings = {
         const.CONF_POINTS_LABEL: "Gems",
         const.CONF_POINTS_ICON: "mdi:diamond",
+        const.CONF_DASHBOARD_POINTS_PRECISION: const.DASHBOARD_POINTS_PRECISION_ADAPTIVE,
         const.CONF_DEFAULT_CHORE_POINTS: 7.25,
         const.CONF_UPDATE_INTERVAL: 15,
         const.CONF_CALENDAR_SHOW_PERIOD: 120,
@@ -748,8 +754,8 @@ async def test_roundtrip_preserves_all_settings(
     # Step 3: Simulate restore - validate and compare
     restored_settings = validate_config_entry_settings(backed_up_settings)
 
-    # Assert: All 10 settings preserved exactly
-    assert len(restored_settings) == 10
+    # Assert: All settings preserved exactly, including newly added ones.
+    assert len(restored_settings) == len(original_settings)
     for key, original_value in original_settings.items():
         assert restored_settings[key] == original_value, (
             f"Setting {key} not preserved: expected {original_value}, "

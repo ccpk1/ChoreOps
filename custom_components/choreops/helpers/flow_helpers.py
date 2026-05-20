@@ -3344,12 +3344,26 @@ def build_general_options_schema(default: dict | None = None) -> vol.Schema:
         const.CONF_ADMIN_APPROVAL_BYPASS,
         const.DEFAULT_ADMIN_APPROVAL_BYPASS,
     )
+    default_dashboard_points_precision = default.get(
+        const.CONF_DASHBOARD_POINTS_PRECISION,
+        const.DEFAULT_DASHBOARD_POINTS_PRECISION,
+    )
 
     return vol.Schema(
         {
             vol.Required(
                 const.CFOF_SYSTEM_INPUT_POINTS_ADJUST_VALUES, default=default_points_str
             ): str,
+            vol.Required(
+                const.CFOF_SYSTEM_INPUT_DASHBOARD_POINTS_PRECISION,
+                default=default_dashboard_points_precision,
+            ): selector.SelectSelector(
+                selector.SelectSelectorConfig(
+                    options=const.DASHBOARD_POINTS_PRECISION_OPTIONS,
+                    translation_key=const.TRANS_KEY_CFOF_DASHBOARD_POINTS_PRECISION,
+                    mode=selector.SelectSelectorMode.DROPDOWN,
+                )
+            ),
             vol.Required(
                 const.CFOF_SYSTEM_INPUT_DEFAULT_CHORE_POINTS,
                 default=default_default_chore_points,
@@ -3464,6 +3478,7 @@ def parse_retention_periods(retention_str: str) -> tuple[int, int, int, int]:
 def build_all_system_settings_schema(
     default_points_label: str | None = None,
     default_points_icon: str | None = None,
+    default_dashboard_points_precision: str | None = None,
     default_default_chore_points: float | None = None,
     default_update_interval: int | None = None,
     default_calendar_show_period: int | None = None,
@@ -3497,6 +3512,8 @@ def build_all_system_settings_schema(
     defaults = {
         "points_label": default_points_label or const.DEFAULT_POINTS_LABEL,
         "points_icon": default_points_icon or const.DEFAULT_POINTS_ICON,
+        "dashboard_points_precision": default_dashboard_points_precision
+        or const.DEFAULT_DASHBOARD_POINTS_PRECISION,
         "default_chore_points": default_default_chore_points
         or const.DEFAULT_CHORE_POINTS,
         "update_interval": default_update_interval or const.DEFAULT_UPDATE_INTERVAL,
@@ -3519,6 +3536,19 @@ def build_all_system_settings_schema(
     )
 
     # Add update interval field
+    precision_fields = {
+        vol.Required(
+            const.CFOF_SYSTEM_INPUT_DASHBOARD_POINTS_PRECISION,
+            default=defaults["dashboard_points_precision"],
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=const.DASHBOARD_POINTS_PRECISION_OPTIONS,
+                translation_key=const.TRANS_KEY_CFOF_DASHBOARD_POINTS_PRECISION,
+                mode=selector.SelectSelectorMode.DROPDOWN,
+            )
+        ),
+    }
+
     update_interval_fields = {
         vol.Required(
             const.CFOF_SYSTEM_INPUT_UPDATE_INTERVAL, default=defaults["update_interval"]
@@ -3570,6 +3600,7 @@ def build_all_system_settings_schema(
     # Combine all fields
     all_fields = {
         **points_fields.schema,
+        **precision_fields,
         **update_interval_fields,
         **calendar_fields,
         **retention_fields,
@@ -3632,6 +3663,14 @@ def validate_all_system_settings(user_input: dict[str, Any]) -> dict[str, str]:
             errors[const.CFOP_ERROR_DEFAULT_CHORE_POINTS] = (
                 const.TRANS_KEY_CFOF_INVALID_DEFAULT_CHORE_POINTS
             )
+
+    dashboard_points_precision = user_input.get(
+        const.CFOF_SYSTEM_INPUT_DASHBOARD_POINTS_PRECISION
+    )
+    if dashboard_points_precision not in const.DASHBOARD_POINTS_PRECISION_OPTIONS:
+        errors[const.CFOF_SYSTEM_INPUT_DASHBOARD_POINTS_PRECISION] = (
+            const.TRANS_KEY_CFOF_DASHBOARD_POINTS_PRECISION
+        )
 
     # Validate retention periods (all positive ints)
     for field, error_key in [

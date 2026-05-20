@@ -25,6 +25,7 @@ from typing import Any
 from homeassistant.core import HomeAssistant
 import pytest
 
+from custom_components.choreops import const
 from tests.helpers import (
     ATTR_CLAIMED_BY,
     ATTR_COMPLETED_BY,
@@ -268,6 +269,21 @@ class TestDashboardHelperUiControl:
         ui_control = helper_state.attributes.get("ui_control")
         assert isinstance(ui_control, dict)
         assert ui_control["gamification"]["rewards"]["header_collapse"] is True
+
+    async def test_dashboard_config_includes_resolved_points_precision(
+        self,
+        hass: HomeAssistant,
+        scenario_minimal: SetupResult,
+    ) -> None:
+        """Dashboard helper should expose resolved dashboard config for templates."""
+        helper_state = hass.states.get("sensor.zoe_choreops_ui_dashboard_helper")
+        assert helper_state is not None
+
+        dashboard_config = helper_state.attributes.get(const.ATTR_DASHBOARD_CONFIG)
+        assert isinstance(dashboard_config, dict)
+        assert dashboard_config.get(const.ATTR_POINTS_PRECISION) == (
+            const.DEFAULT_DASHBOARD_POINTS_PRECISION
+        )
 
 
 class TestAssigneeChoresSensorAttributes:

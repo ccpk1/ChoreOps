@@ -790,7 +790,7 @@ sharding behavior:
 | ----- | -------------- | ----- |
 | `row data` | `chores`, `rewards`, `badges`, `bonuses`, `penalties`, `achievements`, `challenges`, `points_buttons` | Lists consumed directly by dashboard cards |
 | `derived indexes` | `chores_by_label` | Transitional backend convenience index scheduled for removal from transport |
-| `auxiliary catalogs` | `pending_approvals`, `core_sensors`, `ui_control` | Supporting payloads that stay on the main helper in the first shard release |
+| `auxiliary catalogs` | `pending_approvals`, `core_sensors`, `ui_control`, `dashboard_config` | Supporting payloads that stay on the main helper in the first shard release |
 | `plumbing/meta` | `dashboard_helpers`, `user_name`, `user_id`, `integration_entry_id`, `dashboard_lookup_key`, `language`, `gamification_enabled` | Lookup, identity, and helper-pointer fields |
 
 Authoring rule:

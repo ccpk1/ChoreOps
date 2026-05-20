@@ -102,10 +102,12 @@ class SystemManager(BaseManager):
         # 1. Timer Owner: Register ALL System Heartbeats
         # Midnight Rollover - single timer for all nightly tasks
         # Domain managers subscribe to MIDNIGHT_ROLLOVER and perform their own tasks
-        async_track_time_change(
-            self.hass,
-            self._on_midnight_tick,
-            **const.DEFAULT_DAILY_RESET_TIME,
+        self.coordinator.config_entry.async_on_unload(
+            async_track_time_change(
+                self.hass,
+                self._on_midnight_tick,
+                **const.DEFAULT_DAILY_RESET_TIME,
+            )
         )
 
         # 2. Signal Listener: Subscribe to lifecycle DELETED signals

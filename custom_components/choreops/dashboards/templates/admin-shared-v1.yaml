@@ -1024,7 +1024,7 @@ views:
 
               {%- set pref_claim_accent = '#a957fa' -%}
 
-              {%- set pref_points_precision = 'fixed_0' -%}
+              {#-- points precision resolves from the selected dashboard helper below --#}
 
               {%- set pref_chore_selector_column_count = 3 -%}
 
@@ -1047,6 +1047,7 @@ views:
               {%- set pref_chore_management_primary_tint_mix_pct = pref_chore_management_primary_tint_mix_pct | int(default=14) -%}
               {%- set pref_chore_management_show_header_background = (pref_chore_management_show_header_background | default('true') | string | lower) == 'true' -%}
               {%- set pref_chore_management_show_header_thin_border = (pref_chore_management_show_header_thin_border | default('true') | string | lower) == 'true' -%}
+              {%- set pref_points_precision = ((state_attr(selected_dashboard_helper, 'dashboard_config') or {}).get('points_precision', 'fixed_0')) if has_selected_dashboard_helper else 'fixed_0' -%}
               {%- set pref_points_precision = pref_points_precision | default('fixed_0') | string | lower -%}
               {%- set pref_chore_selector_column_count = pref_chore_selector_column_count | int(default=3) -%}
               {%- set pref_chore_action_column_count = pref_chore_action_column_count | int(default=4) -%}
@@ -2324,7 +2325,7 @@ views:
 
               {%- set pref_economy_management_show_header_thin_border = true -%}
 
-              {%- set pref_points_precision = 'fixed_0' -%}
+              {#-- points precision resolves from the selected dashboard helper below --#}
 
 
               {#-- 2. Dynamic Lookups & Validations --#}
@@ -2343,6 +2344,7 @@ views:
               {%- set pref_economy_management_primary_tint_mix_pct = pref_economy_management_primary_tint_mix_pct | int(default=14) -%}
               {%- set pref_economy_management_show_header_background = (pref_economy_management_show_header_background | default('true') | string | lower) == 'true' -%}
               {%- set pref_economy_management_show_header_thin_border = (pref_economy_management_show_header_thin_border | default('true') | string | lower) == 'true' -%}
+              {%- set pref_points_precision = ((state_attr(selected_dashboard_helper, 'dashboard_config') or {}).get('points_precision', 'fixed_0')) if has_selected_dashboard_helper else 'fixed_0' -%}
               {%- set pref_points_precision = pref_points_precision | default('fixed_0') | string | lower -%}
               {%- if pref_points_precision not in ['fixed_0', 'adaptive', 'fixed_1', 'fixed_2'] -%}
                 {%- set pref_points_precision = 'fixed_0' -%}
