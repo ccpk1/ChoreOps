@@ -45,14 +45,7 @@ views:
 
                   << template_snippets.user_override_helper >>
 
-                  {%- set pref_points_precision = 'fixed_0' -%}  {#-- Controls point formatting. Allowed: fixed_0, adaptive, fixed_1, fixed_2. --#}
-
                   {#-- 2. Dynamic Lookups & Validations --#}
-
-                  {%- set pref_points_precision = pref_points_precision | default('fixed_0') | string | lower -%}
-                  {%- if pref_points_precision not in ['fixed_0', 'adaptive', 'fixed_1', 'fixed_2'] -%}
-                    {%- set pref_points_precision = 'fixed_0' -%}
-                  {%- endif -%}
 
                   << template_snippets.user_setup >>
 
@@ -63,10 +56,17 @@ views:
 
                     {#-- 3. Collect Data --#}
                     {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') or {} -%}
+                    {%- set dashboard_helpers = state_attr(dashboard_helper, 'dashboard_helpers') or {} -%}
+                    {%- set dashboard_config = state_attr(dashboard_helper, 'dashboard_config') or {} -%}
                     {%- set points_sensor = core_sensors.get('points_eid') -%}
                     {%- set total_sensor = core_sensors.get('chores_eid') -%}
                     {%- set highest_badge_entity = core_sensors.get('badges_eid') -%}
-                    {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
+                    {%- set pref_points_precision = dashboard_config.get('points_precision', 'fixed_0') if dashboard_config is mapping else 'fixed_0' -%}
+                    {%- set pref_points_precision = pref_points_precision | default('fixed_0') | string | lower -%}
+                    {%- if pref_points_precision not in ['fixed_0', 'adaptive', 'fixed_1', 'fixed_2'] -%}
+                      {%- set pref_points_precision = 'fixed_0' -%}
+                    {%- endif -%}
+                    {%- set translation_sensor = dashboard_helpers.get('translation_sensor_eid') -%}
                     {%- set ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor else {} -%}
                     {%- set points_value = (states(points_sensor) | float(default=0)) if points_sensor else 0 -%}
                     {%- set points_label = (state_attr(points_sensor, 'unit_of_measurement') if points_sensor else None) or 'Points' -%}
@@ -872,16 +872,10 @@ views:
                   {%- set entry_id = '<< integration.entry_id >>' -%}
                   {%- set lookup_key = entry_id ~ ':' ~ user_id -%}
 
-                  {%- set pref_points_precision = 'fixed_0' -%}
-
                   {%- set pref_show_penalties = true -%}
 
 
                   {#-- Type coercion for preferences --#}
-                  {%- set pref_points_precision = pref_points_precision | default('fixed_0') | string | lower -%}
-                  {%- if pref_points_precision not in ['fixed_0', 'adaptive', 'fixed_1', 'fixed_2'] -%}
-                    {%- set pref_points_precision = 'fixed_0' -%}
-                  {%- endif -%}
                   {%- set pref_show_penalties = (pref_show_penalties | default('true') | string | lower) == 'true' -%}
 
                   {#-- 2. Initialize Variables --#}
@@ -934,11 +928,18 @@ views:
                   {%- if not skip_render -%}
 
                     {#-- 3. Collect Data --#}
+                    {%- set dashboard_helpers = state_attr(dashboard_helper, 'dashboard_helpers') or {} -%}
+                    {%- set dashboard_config = state_attr(dashboard_helper, 'dashboard_config') or {} -%}
+                    {%- set pref_points_precision = dashboard_config.get('points_precision', 'fixed_0') if dashboard_config is mapping else 'fixed_0' -%}
+                    {%- set pref_points_precision = pref_points_precision | default('fixed_0') | string | lower -%}
+                    {%- if pref_points_precision not in ['fixed_0', 'adaptive', 'fixed_1', 'fixed_2'] -%}
+                      {%- set pref_points_precision = 'fixed_0' -%}
+                    {%- endif -%}
                     {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') or {} -%}
                     {%- set points_sensor = core_sensors.get('points_eid') -%}
                     {%- set all_time_sensor = core_sensors.get('chores_eid') -%}
                     {%- set highest_badge_entity = core_sensors.get('badges_eid') -%}
-                    {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
+                    {%- set translation_sensor = dashboard_helpers.get('translation_sensor_eid') -%}
                     {%- set ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor else {} -%}
                     {%- set helper_attrs = states[dashboard_helper].attributes -%}
                     {%- set gamification_enabled = helper_attrs.gamification_enabled | default(false, true) -%}

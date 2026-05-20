@@ -56,6 +56,7 @@
 						'pref_due_accent': pref_due_accent,
 						'pref_overdue_accent': pref_overdue_accent,
 						'pref_steal_accent': pref_steal_accent,
+						'pref_points_precision': pref_points_precision,
 						'gamification_enabled': gamification_enabled,
 						'points_label': points_label,
 						'points_icon': points_icon

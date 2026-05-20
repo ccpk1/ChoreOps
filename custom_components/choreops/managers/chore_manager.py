@@ -6057,6 +6057,7 @@ class ChoreManager(BaseManager):
                     )
                     continue
 
+                next_due_dt: datetime | None
                 if frequency == const.FREQUENCY_NONE:
                     if skip_non_recurring:
                         skipped.append(
@@ -6182,6 +6183,7 @@ class ChoreManager(BaseManager):
                     )
                     continue
 
+                next_assignee_due_dt: datetime | None
                 if frequency == const.FREQUENCY_NONE:
                     if skip_non_recurring:
                         skipped.append(
@@ -6194,15 +6196,18 @@ class ChoreManager(BaseManager):
                             }
                         )
                         continue
-                    next_due_dt = after_utc
+                    next_assignee_due_dt = after_utc
                 else:
-                    next_due_dt = self._calculate_next_due_date_for_assignee(
+                    next_assignee_due_dt = self._calculate_next_due_date_for_assignee(
                         chore_info,
                         chore_id,
                         assignee_id,
                         reference_time=after_utc,
                     )
-                    if next_due_dt is None or next_due_dt <= after_utc:
+                    if (
+                        next_assignee_due_dt is None
+                        or next_assignee_due_dt <= after_utc
+                    ):
                         skipped.append(
                             {
                                 "chore_id": chore_id,
@@ -6218,7 +6223,7 @@ class ChoreManager(BaseManager):
                     const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES,
                     {},
                 )
-                per_assignee_due_dates[assignee_id] = next_due_dt.isoformat()
+                per_assignee_due_dates[assignee_id] = next_assignee_due_dt.isoformat()
                 self._transition_chore_state(
                     assignee_id,
                     chore_id,
@@ -6234,7 +6239,7 @@ class ChoreManager(BaseManager):
                         "chore_name": chore_name,
                         "user_id": assignee_id,
                         "old_due_date": due_dt.isoformat(),
-                        "new_due_date": next_due_dt.isoformat(),
+                        "new_due_date": next_assignee_due_dt.isoformat(),
                         "shared": False,
                     }
                 )

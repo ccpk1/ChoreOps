@@ -22,13 +22,10 @@
 - Home Assistant theme variables remain the default source for colors.
 - The accent preferences below are intentional product-specific exceptions for chore-state semantics and are declared as template variables for easier long-term maintenance.
 
-- `pref_points_precision` (default: `fixed_0`)
-  - Controls how point values are formatted in the welcome card.
-  - `fixed_0` shows a rounded whole-number display for compact layouts.
-  - `adaptive` shows whole numbers when possible, otherwise up to 2 decimals.
-  - `fixed_1` always shows 1 decimal place.
-  - `fixed_2` always shows 2 decimal places.
-  - Allowed: `fixed_0`, `adaptive`, `fixed_1`, `fixed_2`.
+- Universal points precision
+  - This template now reads the resolved precision mode from the assignee dashboard helper contract instead of a local `pref_points_precision` variable.
+  - The source of truth is the ChoreOps General Options setting surfaced as `dashboard_config.points_precision`.
+  - `fixed_0` remains the fallback when the helper value is missing during transition.
 
 ## Card: Chores
 

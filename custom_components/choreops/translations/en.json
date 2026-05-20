@@ -1633,6 +1633,7 @@
         "title": "General Options",
         "description": "Manage general settings for the ChoreOps integration.\n\n ℹ️ [Learn more about General Options]({documentation_url})",
         "data": {
+          "dashboard_points_precision": "Dashboard Points Precision",
           "default_chore_points": "Default Points per Chore",
           "points_adjust_values": "Manual Points Adjustment Button Values",
           "update_interval": "Update Interval",
@@ -1649,6 +1650,7 @@
           "backup_action_selection": "Backup Actions"
         },
         "data_description": {
+          "dashboard_points_precision": "Choose how points are displayed across supported dashboards. This changes dashboard formatting only and does not change stored point values or calculations.",
           "default_chore_points": "Default points value used for new chores when custom points are not specified.",
           "points_adjust_values": "List of values for the manual points adjustment buttons. Each value separate by '|'.",
           "update_interval": "Interval in minutes for updating the internal state of ChoreOps.",
@@ -1946,6 +1948,14 @@
         "delete_backup": "🗑️  Delete a backup",
         "restore_backup": "🔄 Restore from backup",
         "return_to_menu": "↩️  Return to main menu"
+      }
+    },
+    "dashboard_points_precision": {
+      "options": {
+        "fixed_0": "Whole numbers only",
+        "adaptive": "Adaptive (show decimals only when needed)",
+        "fixed_1": "Always 1 decimal place",
+        "fixed_2": "Always 2 decimal places"
       }
     },
     "select_backup_to_delete": {
@@ -4739,6 +4749,9 @@
           },
           "core_sensors": {
             "name": "Core Sensors"
+          },
+          "dashboard_config": {
+            "name": "Dashboard Config"
           },
           "dashboard_helpers": {
             "name": "Dashboard Helpers"
