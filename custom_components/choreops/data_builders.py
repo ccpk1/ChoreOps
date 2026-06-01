@@ -874,6 +874,15 @@ def build_user_assignment_profile(
                 const.DEFAULT_DASHBOARD_LANGUAGE,
             )
         ),
+        const.DATA_USER_NOTIF_CLICK_URL: str(
+            _resolve_user_input_field(
+                user_input,
+                existing_data,
+                const.CFOF_USERS_INPUT_NOTIF_CLICK_URL,
+                const.DATA_USER_NOTIF_CLICK_URL,
+                "",
+            )
+        ),
         const.DATA_USER_UI_PREFERENCES: _normalize_dict_field(
             _resolve_user_input_field(
                 user_input,
@@ -1185,6 +1194,24 @@ def build_user_profile(
                 const.DEFAULT_DASHBOARD_LANGUAGE,
             )
         ),
+        const.DATA_USER_NOTIF_CLICK_URL: str(
+            _resolve_user_input_field(
+                user_input,
+                existing_data,
+                const.CFOF_USERS_INPUT_NOTIF_CLICK_URL,
+                const.DATA_USER_NOTIF_CLICK_URL,
+                "",
+            )
+        ),
+        const.DATA_USER_NOTIF_APPROVE_CLICK_URL: str(
+            _resolve_user_input_field(
+                user_input,
+                existing_data,
+                const.CFOF_USERS_INPUT_NOTIF_APPROVE_CLICK_URL,
+                const.DATA_USER_NOTIF_APPROVE_CLICK_URL,
+                "",
+            )
+        ),
         const.DATA_USER_UI_PREFERENCES: _normalize_dict_field(
             _resolve_user_input_field(
                 user_input,
@@ -1258,6 +1285,8 @@ _USER_MANAGER_PROFILE_PRESERVE_FIELDS: frozenset[str] = frozenset(
         const.DATA_USER_MOBILE_NOTIFY_SERVICE,
         const.DATA_USER_USE_PERSISTENT_NOTIFICATIONS,
         const.DATA_USER_DASHBOARD_LANGUAGE,
+        const.DATA_USER_NOTIF_CLICK_URL,
+        const.DATA_USER_NOTIF_APPROVE_CLICK_URL,
         const.DATA_USER_UI_PREFERENCES,
     }
 )

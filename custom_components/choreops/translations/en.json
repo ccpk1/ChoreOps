@@ -81,13 +81,15 @@
               "name": "Name",
               "ha_user_id": "Home Assistant User",
               "dashboard_language": "Language",
-              "mobile_notify_service": "Notifications"
+              "mobile_notify_service": "Notifications",
+              "notif_click_url": "Notification tap URL"
             },
             "data_description": {
               "name": "Unique name for this user profile.",
               "ha_user_id": "Optional: Link this profile to a Home Assistant user. If kiosk mode is disabled, shared-device claim and redeem actions rely on this link.",
               "dashboard_language": "Language used for dashboard content and notifications.",
-              "mobile_notify_service": "Select notification service or leave empty to disable notifications."
+              "mobile_notify_service": "Select notification service or leave empty to disable notifications.",
+              "notif_click_url": "Optional URL to open when notification is tapped. Leave empty for default behavior."
             }
           },
           "section_system_usage": {
@@ -110,12 +112,14 @@
             "data": {
               "can_approve": "Can approve",
               "can_manage": "Can manage",
-              "associated_user_ids": "Associated users"
+              "associated_user_ids": "Associated users",
+              "notif_approve_click_url": "Approval notification tap URL"
             },
             "data_description": {
               "can_approve": "Allows approval and disapproval actions.",
               "can_manage": "Allows management actions that require elevated permissions.",
-              "associated_user_ids": "Users this approver/admin supervises for approval actions."
+              "associated_user_ids": "Users this approver/admin supervises for approval actions.",
+              "notif_approve_click_url": "Optional URL for approval notifications. Overrides the general notification tap URL when approving chores or rewards."
             }
           }
         }
@@ -569,13 +573,15 @@
               "name": "Name",
               "ha_user_id": "Home Assistant User",
               "dashboard_language": "Language",
-              "mobile_notify_service": "Notifications"
+              "mobile_notify_service": "Notifications",
+              "notif_click_url": "Notification tap URL"
             },
             "data_description": {
               "name": "Unique name for this user profile.",
               "ha_user_id": "Optional: Link this profile to a Home Assistant user. If kiosk mode is disabled, shared-device claim and redeem actions rely on this link.",
               "dashboard_language": "Language used for dashboard content and notifications.",
-              "mobile_notify_service": "Select notification service or leave empty to disable notifications."
+              "mobile_notify_service": "Select notification service or leave empty to disable notifications.",
+              "notif_click_url": "Optional URL to open when notification is tapped. Leave empty for default behavior."
             }
           },
           "section_system_usage": {
@@ -598,12 +604,14 @@
             "data": {
               "can_approve": "Can approve",
               "can_manage": "Can manage",
-              "associated_user_ids": "Associated users"
+              "associated_user_ids": "Associated users",
+              "notif_approve_click_url": "Approval notification tap URL"
             },
             "data_description": {
               "can_approve": "Allows approval and disapproval actions.",
               "can_manage": "Allows management actions that require elevated permissions.",
-              "associated_user_ids": "Users this approver/admin supervises for approval actions."
+              "associated_user_ids": "Users this approver/admin supervises for approval actions.",
+              "notif_approve_click_url": "Optional URL for approval notifications. Overrides the general notification tap URL when approving chores or rewards."
             }
           }
         }
@@ -1000,13 +1008,15 @@
               "name": "Name",
               "ha_user_id": "Home Assistant User",
               "dashboard_language": "Language",
-              "mobile_notify_service": "Notifications"
+              "mobile_notify_service": "Notifications",
+              "notif_click_url": "Notification tap URL"
             },
             "data_description": {
               "name": "Unique name for this user profile.",
               "ha_user_id": "Optional: Link this profile to a Home Assistant user. If kiosk mode is disabled, shared-device claim and redeem actions rely on this link.",
               "dashboard_language": "Language used for dashboard content and notifications.",
-              "mobile_notify_service": "Select notification service or leave empty to disable notifications."
+              "mobile_notify_service": "Select notification service or leave empty to disable notifications.",
+              "notif_click_url": "Optional URL to open when notification is tapped. Leave empty for default behavior."
             }
           },
           "section_system_usage": {
@@ -1029,12 +1039,14 @@
             "data": {
               "can_approve": "Can approve",
               "can_manage": "Can manage",
-              "associated_user_ids": "Associated users"
+              "associated_user_ids": "Associated users",
+              "notif_approve_click_url": "Approval notification tap URL"
             },
             "data_description": {
               "can_approve": "Allows approval and disapproval actions.",
               "can_manage": "Allows management actions that require elevated permissions.",
-              "associated_user_ids": "Users this approver/admin supervises for approval actions."
+              "associated_user_ids": "Users this approver/admin supervises for approval actions.",
+              "notif_approve_click_url": "Optional URL for approval notifications. Overrides the general notification tap URL when approving chores or rewards."
             }
           }
         }
