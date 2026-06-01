@@ -296,6 +296,7 @@ USER_IDENTITY_FIELDS = (
     const.CFOF_USERS_INPUT_HA_USER_ID,
     const.CFOF_USERS_INPUT_DASHBOARD_LANGUAGE,
     const.CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE,
+    const.CFOF_USERS_INPUT_NOTIF_CLICK_URL,
 )
 
 USER_SYSTEM_USAGE_FIELDS = (
@@ -308,6 +309,7 @@ USER_ADMIN_APPROVAL_FIELDS = (
     const.CFOF_USERS_INPUT_CAN_APPROVE,
     const.CFOF_USERS_INPUT_CAN_MANAGE,
     const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS,
+    const.CFOF_USERS_INPUT_NOTIF_APPROVE_CLICK_URL,
 )
 
 
@@ -411,6 +413,14 @@ async def _build_user_schema_impl(
                 multiple=False,
             )
         ),
+        vol.Optional(
+            const.CFOF_USERS_INPUT_NOTIF_CLICK_URL,
+            default="",
+        ): selector.TextSelector(
+            selector.TextSelectorConfig(
+                type=selector.TextSelectorType.URL,
+            )
+        ),
     }
 
     usage_fields: dict[Any, Any] = {
@@ -433,6 +443,14 @@ async def _build_user_schema_impl(
             const.CFOF_USERS_INPUT_CAN_APPROVE,
             default=False,
         ): selector.BooleanSelector(),
+        vol.Optional(
+            const.CFOF_USERS_INPUT_NOTIF_APPROVE_CLICK_URL,
+            default="",
+        ): selector.TextSelector(
+            selector.TextSelectorConfig(
+                type=selector.TextSelectorType.URL,
+            )
+        ),
         vol.Optional(
             const.CFOF_USERS_INPUT_CAN_MANAGE,
             default=False,

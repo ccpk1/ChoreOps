@@ -621,6 +621,8 @@ class AssigneeData(TypedDict):
     mobile_notify_service: str
     use_persistent_notifications: bool
     dashboard_language: NotRequired[str]
+    notif_click_url: NotRequired[str]
+    notif_approve_click_url: NotRequired[str]
     ui_preferences: NotRequired[dict[str, Any]]
 
     # Badge tracking

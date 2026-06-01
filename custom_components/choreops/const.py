@@ -616,6 +616,8 @@ CFOF_GLOBAL_INPUT_INTERNAL_ID: Final = "internal_id"
 CFOF_USERS_INPUT_NAME: Final = "name"
 CFOF_USERS_INPUT_HA_USER_ID: Final = "ha_user_id"
 CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE: Final = "mobile_notify_service"
+CFOF_USERS_INPUT_NOTIF_CLICK_URL: Final = "notif_click_url"
+CFOF_USERS_INPUT_NOTIF_APPROVE_CLICK_URL: Final = "notif_approve_click_url"
 
 # DATA RECOVERY
 CFOF_DATA_RECOVERY_INPUT_SELECTION: Final = "backup_selection"
@@ -1209,6 +1211,8 @@ DATA_USER_REWARD_STATS: Final = "reward_stats"
 
 DATA_USER_USE_PERSISTENT_NOTIFICATIONS: Final = "use_persistent_notifications"
 DATA_USER_DASHBOARD_LANGUAGE: Final = "dashboard_language"
+DATA_USER_NOTIF_CLICK_URL: Final = "notif_click_url"
+DATA_USER_NOTIF_APPROVE_CLICK_URL: Final = "notif_approve_click_url"
 
 # USERS (capability model)
 DATA_USER_ID: Final = "user_id"
