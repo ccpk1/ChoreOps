@@ -800,6 +800,22 @@ class NotificationManager(BaseManager):
 
         return translated_actions
 
+    def _get_points_label(self) -> str:
+        """Return the configured label for points."""
+        return str(
+            self.coordinator.config_entry.options.get(
+                const.CONF_POINTS_LABEL, const.DEFAULT_POINTS_LABEL
+            )
+        )
+
+    def _build_notification_placeholders(
+        self, message_data: dict[str, Any] | None
+    ) -> dict[str, Any]:
+        """Build notification placeholders with shared defaults."""
+        placeholders = dict(message_data or {})
+        placeholders.setdefault("points_label", self._get_points_label())
+        return placeholders
+
     # =========================================================================
     # Core Notification Send Method
     # =========================================================================
@@ -1073,17 +1089,18 @@ class NotificationManager(BaseManager):
         message_json_key = self._convert_notification_key(message_key)
         title_notification = translations.get(title_json_key, {})
         message_notification = translations.get(message_json_key, {})
+        placeholders = self._build_notification_placeholders(message_data)
 
         # Format title and message with placeholders
         title = self._format_notification_text(
             title_notification.get("title", title_key),
-            message_data,
+            placeholders,
             title_json_key,
             "title",
         )
         message = self._format_notification_text(
             message_notification.get("message", message_key),
-            message_data,
+            placeholders,
             message_json_key,
             "message",
         )
@@ -1262,17 +1279,18 @@ class NotificationManager(BaseManager):
             message_json_key = self._convert_notification_key(message_key)
             title_notification = translations.get(title_json_key, {})
             message_notification = translations.get(message_json_key, {})
+            placeholders = self._build_notification_placeholders(message_data)
 
             # Format both title and message with placeholders
             title = self._format_notification_text(
                 title_notification.get("title", title_key),
-                message_data,
+                placeholders,
                 title_json_key,
                 "title",
             )
             message = self._format_notification_text(
                 message_notification.get("message", message_key),
-                message_data,
+                placeholders,
                 message_json_key,
                 "message",
             )
@@ -1384,7 +1402,7 @@ class NotificationManager(BaseManager):
         """
         perf_start = time.perf_counter()
         notification_tasks: list[tuple[str, Any]] = []
-        message_data = placeholders or {}
+        message_data = self._build_notification_placeholders(placeholders)
 
         for approver_id, approver_info in self.coordinator.approvers_data.items():
             # Use approver's language preference, fall back to system language

@@ -4,7 +4,7 @@
   "_comment_assignee_footer": "══════════════════════════════════════════════════════════════════",
   "chore_approved_assignee": {
     "title": "🎉 Chore Approved!",
-    "message": "{chore_name} approved! You earned {points} points"
+    "message": "{chore_name} approved! You earned {points} {points_label}"
   },
   "chore_disapproved_assignee": {
     "title": "↩️ Chore Returned",
@@ -12,11 +12,11 @@
   },
   "chore_overdue_assignee": {
     "title": "⏰ Chore Overdue",
-    "message": "{chore_name} is overdue! Complete it now to earn {points} points"
+    "message": "{chore_name} is overdue! Complete it now to earn {points} {points_label}"
   },
   "chore_overdue_steal_available": {
     "title": "⚡ Chore Alert",
-    "message": "{chore_name} is overdue and available to steal! Complete it first to earn {points} points"
+    "message": "{chore_name} is overdue and available to steal! Complete it first to earn {points} {points_label}"
   },
   "chore_missed_assignee": {
     "title": "😔 Chore Expired",
@@ -24,11 +24,11 @@
   },
   "chore_due_reminder_assignee": {
     "title": "⏰ Chore Reminder",
-    "message": "{chore_name} is due in {minutes} minutes! Worth {points} points"
+    "message": "{chore_name} is due in {minutes} minutes! Worth {points} {points_label}"
   },
   "chore_due_window_assignee": {
     "title": "🎯 Chore Now Due",
-    "message": "{chore_name} is now due! Complete within {hours} hour(s) to earn {points} points"
+    "message": "{chore_name} is now due! Complete within {hours} hour(s) to earn {points} {points_label}"
   },
   "reward_approved_assignee": {
     "title": "🎉 Reward Approved!",
@@ -52,15 +52,15 @@
   },
   "penalty_applied_assignee": {
     "title": "⚠️ Penalty Applied",
-    "message": "{penalty_name}: {points} points deducted. Let's get back on track!"
+    "message": "{penalty_name}: {points} {points_label} deducted. Let's get back on track!"
   },
   "bonus_applied_assignee": {
     "title": "⭐ Bonus Applied!",
-    "message": "{bonus_name}: You earned {points} bonus points! Great job"
+    "message": "{bonus_name}: You earned {points} bonus {points_label}! Great job"
   },
   "multiplier_changed_assignee": {
     "title": "⚖️ Multiplier Updated",
-    "message": "Your points multiplier changed from {old_multiplier}x to {new_multiplier}x"
+    "message": "Your {points_label} multiplier changed from {old_multiplier}x to {new_multiplier}x"
   },
   "_comment_approver_section": "══════════════════════════════════════════════════════════════════",
   "_comment_approver_desc": "APPROVER NOTIFICATIONS: Informative, third-person, actionable. Format: '{assignee_name}: Action'. NO 'ChoreOps:' prefix.",
@@ -79,11 +79,11 @@
   },
   "pending_chores_approver": {
     "title": "📋 {assignee_name}: {count} Pending",
-    "message": "{count} chores awaiting review. Latest: {latest_chore} (+{points} pts)"
+    "message": "{count} chores awaiting review. Latest: {latest_chore} (+{points} {points_label})"
   },
   "reward_claimed_approver": {
     "title": "🎁 {assignee_name}: Reward Request",
-    "message": "{assignee_name} requested {reward_name} for {points} points"
+    "message": "{assignee_name} requested {reward_name} for {points} {points_label}"
   },
   "reward_reminder_approver": {
     "title": "⏰ {assignee_name}: Reward Pending",
@@ -103,7 +103,7 @@
   },
   "multiplier_changed_approver": {
     "title": "⚖️ {assignee_name}: Multiplier Updated",
-    "message": "{assignee_name}'s points multiplier changed from {old_multiplier}x to {new_multiplier}x"
+    "message": "{assignee_name}'s {points_label} multiplier changed from {old_multiplier}x to {new_multiplier}x"
   },
   "_comment_system_section": "══════════════════════════════════════════════════════════════════",
   "_comment_system_desc": "SYSTEM/ADMIN NOTIFICATIONS: Data management operations",
