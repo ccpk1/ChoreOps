@@ -226,7 +226,7 @@
   {%- set next_row_variant = 'kids' if effective_row_variant == 'standard' else 'standard' -%}
   {%- set next_sort_within_groups = 'default' if effective_sort_within_groups == 'by_state_and_date' else 'name_asc' if effective_sort_within_groups == 'default' else 'name_desc' if effective_sort_within_groups == 'name_asc' else 'date_asc' if effective_sort_within_groups == 'name_desc' else 'date_desc' if effective_sort_within_groups == 'date_asc' else 'by_state_and_date' -%}
   {%- set sort_mode_label_key = 'sort_mode_default' if effective_sort_within_groups == 'default' else 'sort_mode_name_asc' if effective_sort_within_groups == 'name_asc' else 'sort_mode_name_desc' if effective_sort_within_groups == 'name_desc' else 'sort_mode_date_asc' if effective_sort_within_groups == 'date_asc' else 'sort_mode_date_desc' if effective_sort_within_groups == 'date_desc' else 'sort_mode_by_state_and_date' -%}
-  {%- set effective_exclude_states = pref_exclude_states | reject('equalto', 'completed') | reject('equalto', 'completed_by_other') | reject('equalto', 'not_my_turn') | reject('equalto', 'missed') | list -%}
+  {%- set effective_exclude_states = pref_exclude_states | list -%}
   {%- if exclude_completed_effective and 'completed' not in effective_exclude_states -%}
     {%- set effective_exclude_states = effective_exclude_states + ['completed'] -%}
   {%- endif -%}
