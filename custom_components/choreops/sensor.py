@@ -1110,9 +1110,10 @@ class AssigneeChoreStatusSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         last_overdue = assignee_chore_data.get(const.DATA_USER_CHORE_DATA_LAST_OVERDUE)
 
         stored_labels = chore_info.get(const.DATA_CHORE_LABELS, [])
-        friendly_labels = [
-            get_friendly_label(self.hass, label)
+        raw_labels = [
+            label
             for label in cast("list", stored_labels)
+            if isinstance(label, str) and label.strip()
         ]
 
         # Phase 4: Add v0.5.0 rotation and claim interaction attributes
@@ -1146,7 +1147,7 @@ class AssigneeChoreStatusSensor(ChoreOpsCoordinatorEntity, SensorEntity):
                 const.DATA_CHORE_DESCRIPTION, const.SENTINEL_EMPTY
             ),
             const.ATTR_ASSIGNED_USER_NAMES: assigned_assignees_names,
-            const.ATTR_LABELS: friendly_labels,
+            const.ATTR_LABELS: raw_labels,
             # --- 2. State & actionability ---
             const.ATTR_GLOBAL_STATE: global_state,
             const.ATTR_CAN_CLAIM: can_claim,
@@ -4479,6 +4480,23 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
             for chore in chores_attr
         ]
 
+    @staticmethod
+    def _build_label_entries(
+        hass: HomeAssistant,
+        stored_labels: Any,
+    ) -> list[dict[str, str]]:
+        """Normalize chore labels for dashboard rendering."""
+        raw_labels = [
+            label
+            for label in cast("list", stored_labels)
+            if isinstance(label, str) and label.strip()
+        ]
+        friendly_labels = [get_friendly_label(hass, label) for label in raw_labels]
+        return [
+            {"id": label, "name": friendly_label}
+            for label, friendly_label in zip(raw_labels, friendly_labels, strict=False)
+        ]
+
     def _build_chore_rows(
         self,
         entity_registry,
@@ -4583,7 +4601,7 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         - eid: entity_id (for fetching additional attributes from chore sensor)
         - name: chore name (for display)
         - state: pending/claimed/completed/overdue (for status coloring)
-        - labels: list of label strings (for label filtering)
+        - labels: list of {id, name} label objects (for display and filtering)
         - primary_group: today/this_week/other (for grouping)
         - is_today_am: boolean or None (for AM/PM sorting)
 
@@ -4598,6 +4616,8 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         if not chore_name:
             return None
 
+        hass = self.hass or self.coordinator.hass
+
         # Single bulk fetch for all status data
         ctx = self.coordinator.chore_manager.get_chore_status_context(
             self._assignee_id, chore_id
@@ -4607,9 +4627,8 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         is_due = ctx[const.CHORE_CTX_IS_DUE]
 
         # Get chore labels (always a list, even if empty)
-        chore_labels = chore_info.get(const.DATA_CHORE_LABELS, [])
-        if not isinstance(chore_labels, list):
-            chore_labels = []
+        stored_labels = chore_info.get(const.DATA_CHORE_LABELS, [])
+        label_entries = self._build_label_entries(hass, stored_labels)
 
         # Convert due date to local datetime for grouping calculations
         due_date_local_dt = None
@@ -4651,7 +4670,7 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
             const.ATTR_EID: chore_eid,
             const.ATTR_NAME: chore_name,
             const.ATTR_STATE: state,
-            const.ATTR_CHORE_LABELS: chore_labels,
+            const.ATTR_CHORE_LABELS: label_entries,
             const.ATTR_CHORE_PRIMARY_GROUP: primary_group,
             const.ATTR_CHORE_IS_TODAY_AM: is_today_am,
         }
