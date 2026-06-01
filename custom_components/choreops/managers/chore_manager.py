@@ -5679,8 +5679,14 @@ class ChoreManager(BaseManager):
         # Emit signal for StatisticsManager to handle period buckets
         # Pass missed_streak_tally for daily bucket snapshot (display purposes)
         # Phase 3 Step 2: Include optional due_date and reason fields (D-07)
+        chore_info = self.coordinator.chores_data.get(chore_id)
         signal_payload: dict[str, Any] = {
             "chore_id": chore_id,
+            "chore_name": str(
+                chore_info.get(const.DATA_CHORE_NAME, "Unknown Chore")
+                if chore_info
+                else "Unknown Chore"
+            ),
             "user_id": assignee_id,
             "user_name": assignee_name,
             "missed_streak_tally": new_missed_streak,

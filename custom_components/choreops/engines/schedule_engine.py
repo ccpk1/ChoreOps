@@ -1186,6 +1186,7 @@ def calculate_next_due_date_from_chore_info(
                 interval_unit=custom_unit,
                 delta=custom_interval,
                 require_future=True,
+                reference_datetime=reference_time,
                 return_type=const.HELPER_RETURN_DATETIME,
             ),
         )
