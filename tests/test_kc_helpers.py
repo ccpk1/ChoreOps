@@ -342,6 +342,7 @@ class TestAuthorizationHelpers:
         hass: HomeAssistant,
         scenario_minimal: SetupResult,
         mock_hass_users: dict[str, Any],
+        caplog: pytest.LogCaptureFixture,
     ) -> None:
         """Admin approval bypass should follow the general option when disabled."""
         config_entry = scenario_minimal.config_entry
@@ -366,6 +367,12 @@ class TestAuthorizationHelpers:
         )
 
         assert is_authorized is False
+        assert any(
+            "Approval blocked for unlinked admin" in record.message
+            and mock_hass_users["admin"].id in record.message
+            and assignee_id in record.message
+            for record in caplog.records
+        )
 
     async def test_linked_approver_authorized_for_target_assignee(
         self,
