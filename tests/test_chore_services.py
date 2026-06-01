@@ -1345,6 +1345,7 @@ class TestAuthorizationAcceptance:
         hass: HomeAssistant,
         setup_chore_services_scenario: SetupResult,
         mock_hass_users: dict[str, Any],
+        caplog: pytest.LogCaptureFixture,
     ) -> None:
         """Admin approval should follow linked-approver rules when bypass is disabled."""
         coordinator = setup_chore_services_scenario.coordinator
@@ -1379,6 +1380,13 @@ class TestAuthorizationAcceptance:
                 blocking=True,
                 context=admin_context,
             )
+
+        assert any(
+            "Approval blocked for unlinked admin" in record.message
+            and mock_hass_users["admin"].id in record.message
+            and assignee_id in record.message
+            for record in caplog.records
+        )
 
     @pytest.mark.asyncio
     async def test_non_approver_denied_approve_action(

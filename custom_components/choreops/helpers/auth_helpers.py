@@ -178,6 +178,21 @@ def _get_associated_user_ids(user_data: Mapping[str, object]) -> set[str]:
     }
 
 
+def _get_user_record_details(
+    user_data: Mapping[str, object],
+) -> tuple[str | None, str | None, str | None]:
+    """Return internal id, display name, and linked HA user id for logging."""
+    internal_id = user_data.get(const.DATA_USER_INTERNAL_ID)
+    if not isinstance(internal_id, str) or not internal_id:
+        internal_id = None
+
+    name = user_data.get(const.DATA_USER_NAME)
+    if not isinstance(name, str) or not name:
+        name = None
+
+    return internal_id, name, _get_record_ha_user_ref(user_data)
+
+
 def _get_target_user_aliases(
     users: dict[str, object],
     target_user_id: str,
@@ -285,46 +300,241 @@ async def _has_approval_authority_for_target(
     if not user:
         return False
 
+    user_name = user.name if isinstance(user.name, str) else const.DISPLAY_UNKNOWN
     admin_approval_bypass_enabled = is_admin_approval_bypass_enabled(hass)
-    if user.is_admin:
-        return admin_approval_bypass_enabled
 
     coordinator: ChoreOpsDataCoordinator | None = _get_choreops_coordinator(hass)
     if not coordinator:
+        const.LOGGER.debug(
+            "Approval denied: no loaded coordinator for ha_user_id=%s ha_user_name=%s target_user_id=%s admin=%s bypass_enabled=%s",
+            user.id,
+            user_name,
+            target_user_id,
+            user.is_admin,
+            admin_approval_bypass_enabled,
+        )
         return False
 
     users = coordinator._data.get(const.DATA_USERS, {})
+    target_user_data = users.get(target_user_id) if isinstance(users, dict) else None
+    target_internal_id: str | None = None
+    target_name: str | None = None
+    target_linked_ha_user_id: str | None = None
+    if isinstance(target_user_data, dict):
+        target_internal_id, target_name, target_linked_ha_user_id = (
+            _get_user_record_details(target_user_data)
+        )
+
+    const.LOGGER.debug(
+        "Approval auth evaluation: ha_user_id=%s ha_user_name=%s target_user_id=%s target_user_name=%s target_choreops_user_id=%s target_linked_ha_user_id=%s admin_bypass_enabled=%s",
+        user.id,
+        user_name,
+        target_user_id,
+        target_name or target_user_id,
+        target_internal_id or target_user_id,
+        target_linked_ha_user_id,
+        admin_approval_bypass_enabled,
+    )
+
     if isinstance(users, dict) and users:
         actor_user_data = _find_user_record_for_ha_user(users, user)
         if actor_user_data is not None:
-            if not actor_user_data.get(const.DATA_USER_CAN_APPROVE, False):
-                return False
-
+            actor_internal_id, actor_name, actor_linked_ha_user_id = (
+                _get_user_record_details(actor_user_data)
+            )
             associated_user_ids = _get_associated_user_ids(actor_user_data)
-            if not associated_user_ids:
+            target_aliases = _get_target_user_aliases(users, target_user_id)
+
+            const.LOGGER.debug(
+                "Approval auth linked record matched: ha_user_id=%s ha_user_name=%s choreops_user_id=%s choreops_user_name=%s linked_ha_user_id=%s target_user_id=%s target_user_name=%s target_choreops_user_id=%s can_approve=%s associated_user_ids=%s target_aliases=%s",
+                user.id,
+                user_name,
+                actor_internal_id,
+                actor_name,
+                actor_linked_ha_user_id,
+                target_user_id,
+                target_name or target_user_id,
+                target_internal_id or target_user_id,
+                bool(actor_user_data.get(const.DATA_USER_CAN_APPROVE, False)),
+                sorted(associated_user_ids),
+                sorted(target_aliases),
+            )
+
+            if not actor_user_data.get(const.DATA_USER_CAN_APPROVE, False):
+                const.LOGGER.warning(
+                    "Approval blocked for linked user without approval capability: ha_user_id=%s ha_user_name=%s choreops_user_id=%s choreops_user_name=%s linked_ha_user_id=%s target_user_id=%s target_user_name=%s target_choreops_user_id=%s",
+                    user.id,
+                    user_name,
+                    actor_internal_id,
+                    actor_name,
+                    actor_linked_ha_user_id,
+                    target_user_id,
+                    target_name or target_user_id,
+                    target_internal_id or target_user_id,
+                )
                 return False
 
-            target_aliases = _get_target_user_aliases(users, target_user_id)
-            return bool(associated_user_ids & target_aliases)
+            if not associated_user_ids:
+                const.LOGGER.warning(
+                    "Approval blocked for linked user without target associations: ha_user_id=%s ha_user_name=%s choreops_user_id=%s choreops_user_name=%s linked_ha_user_id=%s target_user_id=%s target_user_name=%s target_choreops_user_id=%s",
+                    user.id,
+                    user_name,
+                    actor_internal_id,
+                    actor_name,
+                    actor_linked_ha_user_id,
+                    target_user_id,
+                    target_name or target_user_id,
+                    target_internal_id or target_user_id,
+                )
+                return False
 
-        if _all_users_unlinked(users):
+            if associated_user_ids & target_aliases:
+                const.LOGGER.debug(
+                    "Approval allowed for linked user: ha_user_id=%s ha_user_name=%s choreops_user_id=%s choreops_user_name=%s target_user_id=%s target_user_name=%s target_choreops_user_id=%s",
+                    user.id,
+                    user_name,
+                    actor_internal_id,
+                    actor_name,
+                    target_user_id,
+                    target_name or target_user_id,
+                    target_internal_id or target_user_id,
+                )
+                return True
+
+            const.LOGGER.warning(
+                "Approval blocked for linked user because target is not associated: ha_user_id=%s ha_user_name=%s choreops_user_id=%s choreops_user_name=%s linked_ha_user_id=%s target_user_id=%s target_user_name=%s target_choreops_user_id=%s associated_user_ids=%s target_aliases=%s",
+                user.id,
+                user_name,
+                actor_internal_id,
+                actor_name,
+                actor_linked_ha_user_id,
+                target_user_id,
+                target_name or target_user_id,
+                target_internal_id or target_user_id,
+                sorted(associated_user_ids),
+                sorted(target_aliases),
+            )
+            return False
+
+        for approver_record in coordinator.approvers_data.values():
+            if not isinstance(approver_record, dict):
+                continue
+
+            if not _ha_user_ref_matches(
+                user, approver_record.get(const.DATA_USER_HA_USER_ID)
+            ):
+                continue
+
+            legacy_internal_id, legacy_name, legacy_linked_ha_user_id = (
+                _get_user_record_details(approver_record)
+            )
+            legacy_can_approve = bool(
+                approver_record.get(const.DATA_USER_CAN_APPROVE, False)
+            )
+            legacy_associated_user_ids = _get_associated_user_ids(approver_record)
+            legacy_target_aliases = _get_target_user_aliases(users, target_user_id)
+
+            const.LOGGER.debug(
+                "Approval auth legacy record matched: ha_user_id=%s ha_user_name=%s choreops_user_id=%s choreops_user_name=%s linked_ha_user_id=%s target_user_id=%s target_user_name=%s target_choreops_user_id=%s can_approve=%s associated_user_ids=%s target_aliases=%s",
+                user.id,
+                user_name,
+                legacy_internal_id,
+                legacy_name,
+                legacy_linked_ha_user_id,
+                target_user_id,
+                target_name or target_user_id,
+                target_internal_id or target_user_id,
+                legacy_can_approve,
+                sorted(legacy_associated_user_ids),
+                sorted(legacy_target_aliases),
+            )
+
+            if not legacy_can_approve:
+                const.LOGGER.warning(
+                    "Approval blocked for legacy linked user without approval capability: ha_user_id=%s ha_user_name=%s choreops_user_id=%s choreops_user_name=%s linked_ha_user_id=%s target_user_id=%s target_user_name=%s target_choreops_user_id=%s",
+                    user.id,
+                    user_name,
+                    legacy_internal_id,
+                    legacy_name,
+                    legacy_linked_ha_user_id,
+                    target_user_id,
+                    target_name or target_user_id,
+                    target_internal_id or target_user_id,
+                )
+                return False
+
+            if not legacy_associated_user_ids:
+                const.LOGGER.warning(
+                    "Approval blocked for legacy linked user without target associations: ha_user_id=%s ha_user_name=%s choreops_user_id=%s choreops_user_name=%s linked_ha_user_id=%s target_user_id=%s target_user_name=%s target_choreops_user_id=%s",
+                    user.id,
+                    user_name,
+                    legacy_internal_id,
+                    legacy_name,
+                    legacy_linked_ha_user_id,
+                    target_user_id,
+                    target_name or target_user_id,
+                    target_internal_id or target_user_id,
+                )
+                return False
+
+            if legacy_associated_user_ids & legacy_target_aliases:
+                const.LOGGER.debug(
+                    "Approval allowed for legacy linked user: ha_user_id=%s ha_user_name=%s choreops_user_id=%s choreops_user_name=%s target_user_id=%s target_user_name=%s target_choreops_user_id=%s",
+                    user.id,
+                    user_name,
+                    legacy_internal_id,
+                    legacy_name,
+                    target_user_id,
+                    target_name or target_user_id,
+                    target_internal_id or target_user_id,
+                )
+                return True
+
+            const.LOGGER.warning(
+                "Approval blocked for legacy linked user because target is not associated: ha_user_id=%s ha_user_name=%s choreops_user_id=%s choreops_user_name=%s linked_ha_user_id=%s target_user_id=%s target_user_name=%s target_choreops_user_id=%s associated_user_ids=%s target_aliases=%s",
+                user.id,
+                user_name,
+                legacy_internal_id,
+                legacy_name,
+                legacy_linked_ha_user_id,
+                target_user_id,
+                target_name or target_user_id,
+                target_internal_id or target_user_id,
+                sorted(legacy_associated_user_ids),
+                sorted(legacy_target_aliases),
+            )
+            return False
+
+        if _all_users_unlinked(users) and not user.is_admin:
+            const.LOGGER.debug(
+                "Approval allowed because all user records are unlinked: ha_user_id=%s ha_user_name=%s target_user_id=%s target_user_name=%s",
+                user.id,
+                user_name,
+                target_user_id,
+                target_name or target_user_id,
+            )
             return True
 
-    # Legacy fallback during migration
-    for approver_record in coordinator.approvers_data.values():
-        if not _ha_user_ref_matches(
-            user, approver_record.get(const.DATA_USER_HA_USER_ID)
-        ):
-            continue
+    if user.is_admin:
+        if admin_approval_bypass_enabled:
+            const.LOGGER.debug(
+                "Approval allowed for unlinked admin because bypass is enabled: ha_user_id=%s ha_user_name=%s target_user_id=%s target_user_name=%s",
+                user.id,
+                user_name,
+                target_user_id,
+                target_name or target_user_id,
+            )
+            return True
 
-        if not approver_record.get(const.DATA_USER_CAN_APPROVE, False):
-            return False
-
-        associated_user_ids = _get_associated_user_ids(approver_record)
-        if not associated_user_ids:
-            return False
-
-        return target_user_id in associated_user_ids
+        const.LOGGER.warning(
+            "Approval blocked for unlinked admin: ha_user_id=%s ha_user_name=%s target_user_id=%s target_user_name=%s admin_bypass_enabled=%s",
+            user.id,
+            user_name,
+            target_user_id,
+            target_name or target_user_id,
+            admin_approval_bypass_enabled,
+        )
+        return False
 
     return False
 
