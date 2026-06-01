@@ -1209,8 +1209,6 @@ class AssigneeChoreStatusSensor(ChoreOpsCoordinatorEntity, SensorEntity):
             ),
             const.ATTR_DUE_WINDOW_START: self._get_due_window_start_iso(),
             const.ATTR_CHORE_AVAILABLE_AT: available_at,
-            const.ATTR_TIME_UNTIL_DUE: self._get_time_until_due(),
-            const.ATTR_TIME_UNTIL_OVERDUE: self._get_time_until_overdue(),
             # Use coordinator helper to correctly handle INDEPENDENT (per-assignee) vs SHARED (chore-level)
             const.ATTR_APPROVAL_PERIOD_START: self.coordinator.chore_manager.get_approval_period_start(
                 self._assignee_id, self._chore_id
@@ -2642,8 +2640,6 @@ class SystemChoreSharedStateSensor(ChoreOpsCoordinatorEntity, SensorEntity):
             # Return None when no due_date - dashboard templates use None check
             const.ATTR_DUE_DATE: chore_info.get(const.DATA_CHORE_DUE_DATE),
             const.ATTR_DUE_WINDOW_START: self._get_due_window_start_iso(),
-            const.ATTR_TIME_UNTIL_DUE: self._get_time_until_due(),
-            const.ATTR_TIME_UNTIL_OVERDUE: self._get_time_until_overdue(),
             # --- 3. Statistics ---
             const.ATTR_CHORE_APPROVALS_TODAY: total_approvals_today,
             # --- 4. Timestamps ---
