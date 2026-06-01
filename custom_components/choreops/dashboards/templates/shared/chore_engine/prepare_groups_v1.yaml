@@ -3,13 +3,34 @@
 	{%- set chore_sensor_id = chore.eid if chore is mapping else chore -%}
 	{%- set chore_status = chore.state if chore is mapping else states(chore_sensor_id) -%}
 	{%- set chore_labels = chore.labels if chore is mapping else state_attr(chore_sensor_id, 'labels') | default([], true) -%}
+	{%- set chore_labels = chore_labels if chore_labels is iterable and chore_labels is not string else [] -%}
+	{%- set chore_label_data = namespace(names=[], terms=[]) -%}
+	{%- for label in chore_labels -%}
+		{%- if label is mapping -%}
+			{%- set label_id = label.get('id', '') | string | trim -%}
+			{%- set label_name = label.get('name', '') | string | trim -%}
+			{%- if label_id -%}
+				{%- set chore_label_data.terms = chore_label_data.terms + [label_id | lower] -%}
+			{%- endif -%}
+			{%- if label_name -%}
+				{%- set chore_label_data.terms = chore_label_data.terms + [label_name | lower] -%}
+				{%- set chore_label_data.names = chore_label_data.names + [label_name] -%}
+			{%- endif -%}
+		{%- elif label is string -%}
+			{%- set label_text = label | string | trim -%}
+			{%- if label_text -%}
+				{%- set chore_label_data.terms = chore_label_data.terms + [label_text | lower] -%}
+				{%- set chore_label_data.names = chore_label_data.names + [label_text] -%}
+			{%- endif -%}
+		{%- endif -%}
+	{%- endfor -%}
 	{%- set chore_primary_group = chore.primary_group if chore is mapping else state_attr(chore_sensor_id, 'primary_group') | default('other') -%}
 	{%- set chore_is_today_am = chore.is_today_am if chore is mapping else state_attr(chore_sensor_id, 'is_today_am') -%}
 	{%- set chore_due_date = state_attr(chore_sensor_id, 'due_date') -%}
 	{%- set chore_recurring_frequency = state_attr(chore_sensor_id, 'recurring_frequency') | default('', true) | string | lower -%}
 
 	{#-- Step 1: Skip if chore labels match exclude list --#}
-	{%- if not (chore_labels | select('in', pref_exclude_label_list) | list | count > 0) -%}
+	{%- if not (chore_label_data.terms | select('in', pref_exclude_label_list) | list | count > 0) -%}
 
 		{#-- Step 2: Skip chores by excluded states preference --#}
 		{%- if chore_status in effective_exclude_states -%}
@@ -28,7 +49,7 @@
 			{%- set ns.overdue_buttons = ns.overdue_buttons + [chore_sensor_id] -%}
 
 		{#-- Step 4: Skip chores with labels when label grouping is enabled (they're processed separately) --#}
-		{%- elif effective_use_label_grouping and (chore_labels | default([], true) | list | length > 0) -%}
+		{%- elif effective_use_label_grouping and (chore_labels | length > 0) -%}
 			{%- set ns.label_group_candidates = ns.label_group_candidates + [{'eid': chore_sensor_id, 'labels': chore_labels}] -%}
 
 		{#-- Step 5: Handle recurring filters BEFORE primary_group logic (override primary_group assignment) --#}
@@ -69,17 +90,44 @@
 	{%- set ns.discovered_labels = [] -%}
 	{%- for chore in ns.label_group_candidates -%}
 		{%- for label in chore.labels | default([], true) -%}
-			{%- if label not in ns.discovered_labels and label not in pref_exclude_label_list -%}
-				{%- set ns.discovered_labels = ns.discovered_labels + [label] -%}
+			{%- if label is mapping -%}
+				{%- set label_name = label.get('name', '') | string | trim -%}
+				{%- set label_key = label_name | lower -%}
+				{%- if label_name and label_key not in pref_exclude_label_list and label_name not in ns.discovered_labels -%}
+					{%- set ns.discovered_labels = ns.discovered_labels + [label_name] -%}
+				{%- endif -%}
+			{%- elif label is string -%}
+				{%- set label_name = label | string | trim -%}
+				{%- set label_key = label_name | lower -%}
+				{%- if label_name and label_key not in pref_exclude_label_list and label_name not in ns.discovered_labels -%}
+					{%- set ns.discovered_labels = ns.discovered_labels + [label_name] -%}
+				{%- endif -%}
 			{%- endif -%}
 		{%- endfor -%}
 	{%- endfor -%}
 
 	{#-- Determine label order: use pref_label_display_order first, then append remaining labels alphabetically --#}
 	{%- if pref_label_display_order | length > 0 -%}
-		{%- set ns.label_order = pref_label_display_order | reject('in', pref_exclude_label_list) | list -%}
+		{%- set ns.label_order = [] -%}
+		{%- for preferred_label in pref_label_display_order -%}
+			{%- for chore in ns.label_group_candidates -%}
+				{%- for label in chore.labels | default([], true) -%}
+					{%- if label is mapping -%}
+						{%- set label_name = label.get('name', '') | string | trim -%}
+						{%- if label_name and label_name | lower not in pref_exclude_label_list and label_name not in ns.label_order and label_name | lower == preferred_label -%}
+							{%- set ns.label_order = ns.label_order + [label_name] -%}
+						{%- endif -%}
+					{%- elif label is string -%}
+						{%- set label_name = label | string | trim -%}
+						{%- if label_name and label_name | lower not in pref_exclude_label_list and label_name not in ns.label_order and label_name | lower == preferred_label -%}
+							{%- set ns.label_order = ns.label_order + [label_name] -%}
+						{%- endif -%}
+					{%- endif -%}
+				{%- endfor -%}
+			{%- endfor -%}
+		{%- endfor -%}
 		{%- for label in ns.discovered_labels | sort -%}
-			{%- if label not in ns.label_order -%}
+			{%- if label not in ns.label_order and label | lower not in pref_exclude_label_list -%}
 				{%- set ns.label_order = ns.label_order + [label] -%}
 			{%- endif -%}
 		{%- endfor -%}
@@ -89,12 +137,22 @@
 
 	{#-- Build label button groups in order --#}
 	{%- for label in ns.label_order -%}
-		{%- if label not in pref_exclude_label_list -%}
+		{%- if label | lower not in pref_exclude_label_list -%}
 			{%- set ns.temp_label_buttons = [] -%}
 			{%- for chore in ns.label_group_candidates -%}
-				{%- if label in (chore.labels | default([], true)) and chore.eid not in ns.temp_label_buttons -%}
-					{%- set ns.temp_label_buttons = ns.temp_label_buttons + [chore.eid] -%}
-				{%- endif -%}
+				{%- for chore_label in chore.labels | default([], true) -%}
+					{%- if chore_label is mapping -%}
+						{%- set label_name = chore_label.get('name', '') | string | trim -%}
+						{%- if label_name == label and chore.eid not in ns.temp_label_buttons -%}
+							{%- set ns.temp_label_buttons = ns.temp_label_buttons + [chore.eid] -%}
+						{%- endif -%}
+					{%- elif chore_label is string -%}
+						{%- set label_name = chore_label | string | trim -%}
+						{%- if label_name == label and chore.eid not in ns.temp_label_buttons -%}
+							{%- set ns.temp_label_buttons = ns.temp_label_buttons + [chore.eid] -%}
+						{%- endif -%}
+					{%- endif -%}
+				{%- endfor -%}
 			{%- endfor -%}
 			{%- if ns.temp_label_buttons | length > 0 -%}
 				{%- set ns.label_button_groups = ns.label_button_groups + [{'id': none, 'name': label, 'buttons': ns.temp_label_buttons, 'icon': 'mdi:label'}] -%}
