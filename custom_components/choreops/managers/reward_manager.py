@@ -896,7 +896,6 @@ class RewardManager(BaseManager):
             )
 
         existing = rewards_data[reward_id]
-        previous_assigned = existing.get(const.DATA_REWARD_ASSIGNED_USER_IDS, [])
 
         # Build updated reward (merge existing with updates)
         updated_reward = dict(db.build_reward(updates, existing=existing))
@@ -908,28 +907,9 @@ class RewardManager(BaseManager):
 
         reward_name = str(updated_reward.get(const.DATA_REWARD_NAME, ""))
 
-        # If assignment changed, clean up orphaned entities and trigger entity sync
-        new_assigned = updated_reward.get(const.DATA_REWARD_ASSIGNED_USER_IDS, [])
-        if previous_assigned != new_assigned:
-            from ..helpers.entity_helpers import (
-                remove_orphaned_assignee_reward_entities,
-            )
-
-            async def _sync_reward_entities() -> None:
-                """Clean orphaned reward entities and trigger HA entity sync."""
-                try:
-                    await remove_orphaned_assignee_reward_entities(
-                        self.hass,
-                        self.coordinator.config_entry.entry_id,
-                        self.coordinator.assignees_data,
-                        self.coordinator.rewards_data,
-                    )
-                except Exception:
-                    const.LOGGER.exception(
-                        "Failed to sync reward entities after assignment change"
-                    )
-
-            self.hass.async_create_task(_sync_reward_entities())
+        # Entity sync is now handled by the caller (services.py / options_flow.py)
+        # via async_sync_reward_entities(), which also handles orphan cleanup.
+        # The manager owns persistence and signal emission only.
 
         # Emit lifecycle event
         self.emit(

@@ -2131,14 +2131,8 @@ def async_setup_services(hass: HomeAssistant):
             reward_dict = coordinator.reward_manager.create_reward(data_input)
             internal_id = str(reward_dict[const.DATA_REWARD_INTERNAL_ID])
 
-            # Create reward status sensor entities for all assignees with
-            # gamification enabled.
-            if coordinator._test_mode:
-                from .sensor import create_reward_entities
-
-                create_reward_entities(coordinator, internal_id)
-
-            await coordinator.async_sync_entities_after_service_create()
+            # Runtime entity sync — no full reload
+            await coordinator.async_sync_reward_entities(internal_id, "created")
 
             const.LOGGER.info(
                 "Service created reward '%s' with ID: %s",
@@ -2259,13 +2253,14 @@ def async_setup_services(hass: HomeAssistant):
                 reward_id, data_input
             )
 
-            # If assigned_user_ids changed, sync entities to add/remove
-            # entities for newly assigned or unassigned users.
+            # Runtime entity sync on assignment changes — no full reload
             if (
                 const.SERVICE_FIELD_REWARD_CRUD_ASSIGNED_USER_NAMES in call.data
                 or const.SERVICE_FIELD_REWARD_CRUD_ASSIGNED_USER_IDS in call.data
             ):
-                await coordinator.async_sync_entities_after_service_create()
+                await coordinator.async_sync_reward_entities(
+                    reward_id, "assigned_users_changed"
+                )
 
             const.LOGGER.info(
                 "Service updated reward '%s' with ID: %s",

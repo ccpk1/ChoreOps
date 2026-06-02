@@ -28,6 +28,7 @@ from .engines.statistics_engine import StatisticsEngine
 from .helpers.entity_helpers import (
     remove_entities_by_item_id,
     remove_orphaned_assignee_chore_entities,
+    remove_orphaned_assignee_reward_entities,
     remove_orphaned_shared_chore_sensors,
 )
 from .managers import (
@@ -569,6 +570,48 @@ class ChoreOpsDataCoordinator(DataUpdateCoordinator):
             ),
             "shared_state_changed": previous_shared != current_shared,
         }
+
+    async def async_sync_reward_entities(
+        self,
+        reward_id: str,
+        mutation: Literal["created", "assigned_users_changed", "deleted"],
+    ) -> None:
+        """Synchronize reward-linked runtime entities without reloading the entry.
+
+        Handles targeted entity creation and orphan cleanup for reward CRUD.
+        Does not write storage; callers must invoke this only after
+        manager-owned persistence succeeds.
+
+        Args:
+            reward_id: Internal ID of the reward.
+            mutation: The type of mutation that triggered the sync.
+        """
+        if mutation == "deleted":
+            await remove_orphaned_assignee_reward_entities(
+                self.hass,
+                self.config_entry.entry_id,
+                self.assignees_data,
+                self.rewards_data,
+            )
+            self.async_update_listeners()
+            return
+
+        # Create sensor and button entities for assigned users
+        from .button import create_reward_button_entities
+        from .sensor import create_reward_entities
+
+        create_reward_entities(self, reward_id)
+        create_reward_button_entities(self, reward_id)
+
+        # Clean any orphaned entities from assignment shrinkage
+        await remove_orphaned_assignee_reward_entities(
+            self.hass,
+            self.config_entry.entry_id,
+            self.assignees_data,
+            self.rewards_data,
+        )
+
+        self.async_update_listeners()
 
     # -------------------------------------------------------------------------------------
     # Properties for Easy Access

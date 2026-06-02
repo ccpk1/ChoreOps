@@ -3112,12 +3112,15 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                         user_input, immediate_persist=True
                     )
 
+                    reward_internal_id = reward_data[const.DATA_REWARD_INTERNAL_ID]
                     const.LOGGER.debug(
                         "Added Reward '%s' with ID: %s",
                         reward_data[const.DATA_REWARD_NAME],
-                        reward_data[const.DATA_REWARD_INTERNAL_ID],
+                        reward_internal_id,
                     )
-                    self._mark_reload_needed()
+                    await coordinator.async_sync_reward_entities(
+                        reward_internal_id, "created"
+                    )
                     return await self.async_step_init()
 
                 except EntityValidationError as err:
@@ -3183,7 +3186,9 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                         updated_reward[const.DATA_REWARD_NAME],
                         internal_id,
                     )
-                    self._mark_reload_needed()
+                    await coordinator.async_sync_reward_entities(
+                        str(internal_id), "assigned_users_changed"
+                    )
                     return await self.async_step_init()
 
                 except EntityValidationError as err:
