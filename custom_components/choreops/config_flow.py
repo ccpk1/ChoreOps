@@ -1045,6 +1045,10 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
 
                 # CFOF_* keys now aligned with DATA_* keys - pass directly
                 reward_data = dict(db.build_reward(user_input))
+                # Strip empty assigned_user_ids so boot normalization fills
+                # with gamified users (config flow has no coordinator to resolve)
+                if not reward_data.get(const.DATA_REWARD_ASSIGNED_USER_IDS):
+                    del reward_data[const.DATA_REWARD_ASSIGNED_USER_IDS]
                 self._rewards_temp[internal_id] = reward_data
 
                 reward_name = reward_data[const.DATA_REWARD_NAME]

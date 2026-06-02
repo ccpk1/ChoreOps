@@ -80,6 +80,7 @@ from .helpers.entity_helpers import (
     get_assignee_name_by_id,
     get_friendly_label,
     get_item_name_or_log_error,
+    is_user_assigned_to_reward,
     should_create_entity,
     should_create_entity_for_user_assignee,
     should_create_gamification_entities,
@@ -494,6 +495,8 @@ async def async_setup_entry(
                 assignee_id,
             ):
                 continue
+            if not is_user_assigned_to_reward(coordinator, assignee_id, reward_id):
+                continue
             assignee_name = get_item_name_or_log_error(
                 "assignee", assignee_id, assignee_info, const.DATA_USER_NAME
             )
@@ -757,41 +760,61 @@ def create_chore_entities(
 
 
 def create_reward_entities(
-    coordinator: ChoreOpsDataCoordinator, reward_id: str
-) -> None:
-    """Create reward status sensor entities for a newly created reward.
+    coordinator: ChoreOpsDataCoordinator,
+    reward_id: str,
+    *,
+    assignee_ids: list[str] | None = None,
+) -> int:
+    """Create missing reward status sensor entities for a reward.
 
-    Called by create_reward service after adding reward to storage.
-    Creates AssigneeRewardStatusSensor for each assignee with gamification enabled.
+    Args:
+        coordinator: Runtime coordinator.
+        reward_id: Internal ID of the reward.
+        assignee_ids: Optional subset of assignee IDs to create sensors for.
+            When omitted, create sensors for all currently assigned assignees.
+
+    Returns:
+        Count of entities handed to Home Assistant for creation.
     """
     if _async_add_entities_callback is None:
         const.LOGGER.warning("Cannot create reward entities: callback not registered")
-        return
+        return 0
 
     reward_info = coordinator.rewards_data.get(reward_id)
     if not reward_info:
         const.LOGGER.warning(
             "Cannot create reward entities: reward %s not found", reward_id
         )
-        return
+        return 0
 
     reward_name = get_item_name_or_log_error(
         "reward", reward_id, reward_info, const.DATA_REWARD_NAME
     )
     if not reward_name:
-        return
+        return 0
 
-    entities = []
+    entities: list[SensorEntity] = []
 
     for assignee_id, assignee_info in coordinator.assignees_data.items():
+        if assignee_ids is not None and assignee_id not in assignee_ids:
+            continue
         # Skip linked profiles without gamification
         if not should_create_gamification_entities(coordinator, assignee_id):
+            continue
+        if not is_user_assigned_to_reward(coordinator, assignee_id, reward_id):
             continue
 
         assignee_name = get_item_name_or_log_error(
             "assignee", assignee_id, assignee_info, const.DATA_USER_NAME
         )
         if not assignee_name:
+            continue
+
+        unique_id = (
+            f"{coordinator.config_entry.entry_id}_{assignee_id}_{reward_id}"
+            f"{const.SENSOR_KC_UID_SUFFIX_REWARD_STATUS_SENSOR}"
+        )
+        if _sensor_entity_exists(coordinator, unique_id):
             continue
 
         entities.append(
@@ -812,6 +835,8 @@ def create_reward_entities(
             len(entities),
             reward_name,
         )
+
+    return len(entities)
 
 
 # ------------------------------------------------------------------------------------------
@@ -2942,6 +2967,16 @@ class AssigneeRewardStatusSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         last_approved = reward_data.get(const.DATA_USER_REWARD_DATA_LAST_APPROVED)
         last_disapproved = reward_data.get(const.DATA_USER_REWARD_DATA_LAST_DISAPPROVED)
 
+        # Resolve assigned user names from stored UUIDs
+        assigned_ids: list[str] = reward_info.get(
+            const.DATA_REWARD_ASSIGNED_USER_IDS, []
+        )
+        assigned_user_names = [
+            name
+            for k_id in assigned_ids
+            if (name := get_assignee_name_by_id(self.coordinator, k_id))
+        ]
+
         # Get pending claims count
         pending_claims = reward_data.get(
             const.DATA_USER_REWARD_DATA_PENDING_COUNT, const.DEFAULT_ZERO
@@ -2981,6 +3016,7 @@ class AssigneeRewardStatusSensor(ChoreOpsCoordinatorEntity, SensorEntity):
             const.ATTR_DESCRIPTION: reward_info.get(
                 const.DATA_REWARD_DESCRIPTION, const.SENTINEL_EMPTY
             ),
+            const.ATTR_ASSIGNED_USER_NAMES: assigned_user_names,
             const.ATTR_COST: reward_info.get(
                 const.DATA_REWARD_COST, const.DEFAULT_REWARD_COST
             ),
@@ -4866,6 +4902,11 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
                     "reward", reward_id, reward_info, const.DATA_REWARD_NAME
                 )
                 if not reward_name:
+                    continue
+
+                if not is_user_assigned_to_reward(
+                    self.coordinator, self._assignee_id, reward_id
+                ):
                     continue
 
                 reward_eid = None

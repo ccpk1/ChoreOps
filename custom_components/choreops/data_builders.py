@@ -266,6 +266,17 @@ def validate_reward_data(
             )
             return errors
 
+    # === 4. Assigned user IDs validation ===
+    if const.DATA_REWARD_ASSIGNED_USER_IDS in data:
+        assigned = data[const.DATA_REWARD_ASSIGNED_USER_IDS]
+        if not isinstance(assigned, list) or not all(
+            isinstance(uid, str) for uid in assigned
+        ):
+            errors[const.CFOP_ERROR_REWARD_ASSIGNED_USERS] = (
+                const.TRANS_KEY_CFOF_INVALID_REWARD_ASSIGNED_USERS
+            )
+            return errors
+
     return errors
 
 
@@ -350,6 +361,7 @@ def build_reward(
         description=str(get_field(const.DATA_REWARD_DESCRIPTION, const.SENTINEL_EMPTY)),
         icon=str(get_field(const.DATA_REWARD_ICON, const.SENTINEL_EMPTY)),
         reward_labels=list(get_field(const.DATA_REWARD_LABELS, [])),
+        assigned_user_ids=list(get_field(const.DATA_REWARD_ASSIGNED_USER_IDS, [])),
     )
 
 
@@ -371,6 +383,7 @@ _REWARD_DATA_RESET_PRESERVE_FIELDS: frozenset[str] = frozenset(
         const.DATA_REWARD_DESCRIPTION,
         const.DATA_REWARD_ICON,
         const.DATA_REWARD_LABELS,
+        const.DATA_REWARD_ASSIGNED_USER_IDS,
     }
 )
 

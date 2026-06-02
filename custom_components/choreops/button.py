@@ -37,6 +37,7 @@ from .helpers.device_helpers import create_assignee_device_info_from_coordinator
 from .helpers.entity_helpers import (
     get_assignee_name_by_id,
     get_friendly_label,
+    is_user_assigned_to_reward,
     should_create_entity_for_user_assignee,
     should_create_gamification_entities,
 )
@@ -196,6 +197,127 @@ def create_chore_button_entities(
     return len(entities)
 
 
+def create_reward_button_entities(
+    coordinator: ChoreOpsDataCoordinator,
+    reward_id: str,
+    *,
+    assignee_ids: list[str] | None = None,
+) -> int:
+    """Create missing reward-linked buttons for a reward.
+
+    Creates AssigneeRewardRedeemButton, ApproverRewardApproveButton, and
+    ApproverRewardDisapproveButton for each assigned, gamification-enabled
+    assignee.  Skips entities already registered in the entity registry.
+
+    Args:
+        coordinator: Runtime coordinator.
+        reward_id: Internal ID of the reward.
+        assignee_ids: Optional subset of assignee IDs to create buttons for.
+            When omitted, create buttons for all currently assigned assignees.
+
+    Returns:
+        Count of entities handed to Home Assistant for creation.
+    """
+    if _async_add_entities_callback is None:
+        const.LOGGER.warning("Cannot create reward buttons: callback not registered")
+        return 0
+
+    reward_info = coordinator.rewards_data.get(reward_id)
+    if not reward_info:
+        const.LOGGER.warning(
+            "Cannot create reward buttons: reward %s not found", reward_id
+        )
+        return 0
+
+    reward_name = str(
+        reward_info.get(
+            const.DATA_REWARD_NAME,
+            f"{const.TRANS_KEY_LABEL_REWARD} {reward_id}",
+        )
+    )
+    reward_icon = reward_info.get(const.DATA_REWARD_ICON, const.SENTINEL_EMPTY)
+    entry = coordinator.config_entry
+    entities: list[ButtonEntity] = []
+
+    for assignee_id, assignee_info in coordinator.assignees_data.items():
+        if assignee_ids is not None and assignee_id not in assignee_ids:
+            continue
+        if not should_create_gamification_entities(coordinator, assignee_id):
+            continue
+        if not is_user_assigned_to_reward(coordinator, assignee_id, reward_id):
+            continue
+
+        assignee_name = str(
+            assignee_info.get(
+                const.DATA_USER_NAME,
+                f"{const.TRANS_KEY_LABEL_ASSIGNEE} {assignee_id}",
+            )
+        )
+
+        # Redeem Button
+        redeem_unique_id = (
+            f"{entry.entry_id}_{assignee_id}_{reward_id}"
+            f"{const.BUTTON_KC_UID_SUFFIX_ASSIGNEE_REWARD_REDEEM}"
+        )
+        if not _button_entity_exists(coordinator, redeem_unique_id):
+            entities.append(
+                AssigneeRewardRedeemButton(
+                    coordinator=coordinator,
+                    entry=entry,
+                    assignee_id=assignee_id,
+                    assignee_name=assignee_name,
+                    reward_id=reward_id,
+                    reward_name=reward_name,
+                    icon=reward_icon,
+                )
+            )
+
+        # Approve Button
+        approve_unique_id = (
+            f"{entry.entry_id}_{assignee_id}_{reward_id}"
+            f"{const.BUTTON_KC_UID_SUFFIX_APPROVE_REWARD}"
+        )
+        if not _button_entity_exists(coordinator, approve_unique_id):
+            entities.append(
+                ApproverRewardApproveButton(
+                    coordinator=coordinator,
+                    entry=entry,
+                    assignee_id=assignee_id,
+                    assignee_name=assignee_name,
+                    reward_id=reward_id,
+                    reward_name=reward_name,
+                    icon=reward_icon,
+                )
+            )
+
+        # Disapprove Button
+        disapprove_unique_id = (
+            f"{entry.entry_id}_{assignee_id}_{reward_id}"
+            f"{const.BUTTON_KC_UID_SUFFIX_DISAPPROVE_REWARD}"
+        )
+        if not _button_entity_exists(coordinator, disapprove_unique_id):
+            entities.append(
+                ApproverRewardDisapproveButton(
+                    coordinator=coordinator,
+                    entry=entry,
+                    assignee_id=assignee_id,
+                    assignee_name=assignee_name,
+                    reward_id=reward_id,
+                    reward_name=reward_name,
+                )
+            )
+
+    if entities:
+        _async_add_entities_callback(entities)
+        const.LOGGER.debug(
+            "Created %d reward-linked buttons for reward: %s",
+            len(entities),
+            reward_name,
+        )
+
+    return len(entities)
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ChoreOpsConfigEntry,
@@ -293,6 +415,9 @@ async def async_setup_entry(
             const.DATA_USER_NAME, f"{const.TRANS_KEY_LABEL_ASSIGNEE} {assignee_id}"
         )
         for reward_id, reward_info in coordinator.rewards_data.items():
+            # Skip rewards not assigned to this user
+            if not is_user_assigned_to_reward(coordinator, assignee_id, reward_id):
+                continue
             # Icon from storage (empty = use icons.json translation)
             reward_icon = reward_info.get(const.DATA_REWARD_ICON, const.SENTINEL_EMPTY)
             # Redeem Reward Button

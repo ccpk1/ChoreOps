@@ -132,6 +132,7 @@ class RewardData(TypedDict):
     description: str
     icon: str
     reward_labels: list[str]
+    assigned_user_ids: list[str]
 
 
 class PenaltyData(TypedDict):

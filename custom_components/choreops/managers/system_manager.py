@@ -285,6 +285,25 @@ class SystemManager(BaseManager):
                 due_state_repair_summary["global_states_normalized"],
             )
 
+        # 1e. Normalize reward assigned_user_ids (missing/sentinel → explicit UUIDs)
+        # Empty lists [] are intentional ("no users") and must NOT be normalized.
+        rewards_data = self.coordinator._data.get(const.DATA_REWARDS, {})
+        normalized_count = 0
+        for reward_info in list(rewards_data.values()):
+            assigned = reward_info.get(const.DATA_REWARD_ASSIGNED_USER_IDS)
+            if assigned is None or const.SENTINEL_ALL_USERS in assigned:
+                from ..helpers.entity_helpers import get_all_gamified_user_ids
+
+                reward_info[const.DATA_REWARD_ASSIGNED_USER_IDS] = (
+                    get_all_gamified_user_ids(self.coordinator)
+                )
+                normalized_count += 1
+        if normalized_count:
+            const.LOGGER.info(
+                "SystemManager: Normalized %d rewards from sentinel to explicit UUIDs",
+                normalized_count,
+            )
+
         # 2. Startup Safety Net (Registry validation)
         await self.run_startup_safety_net()
         const.LOGGER.info("SystemManager: Data integrity verified")

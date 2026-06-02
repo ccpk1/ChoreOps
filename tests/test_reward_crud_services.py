@@ -545,3 +545,80 @@ class TestUpdateRewardEndToEnd:
         # Verify cost updated
         reward_data = coordinator.rewards_data[reward_id]
         assert reward_data["cost"] == 777.0
+
+
+# ============================================================================
+# RUNTIME ENTITY SYNC — NO RELOAD REQUIRED
+# ============================================================================
+
+
+class TestRewardRuntimeEntitySync:
+    """Test that reward CRUD uses runtime entity sync, not full reload."""
+
+    @pytest.mark.asyncio
+    async def test_create_reward_no_config_entry_reload(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """Test create_reward does NOT call config entry reload."""
+        coordinator = scenario_full.coordinator
+        reload_called = False
+        original_reload = hass.config_entries.async_reload
+
+        async def _track_reload(*args, **kwargs):
+            nonlocal reload_called
+            reload_called = True
+            return await original_reload(*args, **kwargs)
+
+        hass.config_entries.async_reload = _track_reload
+
+        with patch.object(coordinator, "_persist", new=MagicMock()):
+            response = await hass.services.async_call(
+                DOMAIN,
+                SERVICE_CREATE_REWARD,
+                {"name": "No Reload Reward", "cost": 10.0},
+                blocking=True,
+                return_response=True,
+            )
+            await hass.async_block_till_done()
+
+        assert not reload_called, (
+            "create_reward should use runtime sync, not config entry reload"
+        )
+        assert response is not None
+        assert "id" in response
+
+    @pytest.mark.asyncio
+    async def test_update_reward_assignment_no_config_entry_reload(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """Test update_reward with assignment change does NOT call reload."""
+        coordinator = scenario_full.coordinator
+        reward_id = scenario_full.reward_ids["Extra Screen Time"]
+        zoe_id = scenario_full.assignee_ids["Zoë"]
+        reload_called = False
+        original_reload = hass.config_entries.async_reload
+
+        async def _track_reload(*args, **kwargs):
+            nonlocal reload_called
+            reload_called = True
+            return await original_reload(*args, **kwargs)
+
+        hass.config_entries.async_reload = _track_reload
+
+        with patch.object(coordinator, "_persist", new=MagicMock()):
+            await hass.services.async_call(
+                DOMAIN,
+                SERVICE_UPDATE_REWARD,
+                {"id": reward_id, "assigned_user_ids": [zoe_id]},
+                blocking=True,
+                return_response=True,
+            )
+            await hass.async_block_till_done()
+
+        assert not reload_called, (
+            "update_reward assignment change should use runtime sync, not reload"
+        )

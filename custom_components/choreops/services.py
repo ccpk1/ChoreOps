@@ -646,6 +646,12 @@ CREATE_REWARD_SCHEMA = vol.Schema(
             vol.Optional(const.SERVICE_FIELD_REWARD_CRUD_LABELS, default=[]): vol.All(
                 cv.ensure_list, [cv.string]
             ),
+            vol.Optional(const.SERVICE_FIELD_REWARD_CRUD_ASSIGNED_USER_NAMES): vol.All(
+                cv.ensure_list, [cv.string]
+            ),
+            vol.Optional(const.SERVICE_FIELD_REWARD_CRUD_ASSIGNED_USER_IDS): vol.All(
+                cv.ensure_list, [cv.string]
+            ),
         }
     )
 )
@@ -662,6 +668,12 @@ UPDATE_REWARD_SCHEMA = vol.Schema(
                 None, "", cv.icon
             ),
             vol.Optional(const.SERVICE_FIELD_REWARD_CRUD_LABELS): vol.All(
+                cv.ensure_list, [cv.string]
+            ),
+            vol.Optional(const.SERVICE_FIELD_REWARD_CRUD_ASSIGNED_USER_NAMES): vol.All(
+                cv.ensure_list, [cv.string]
+            ),
+            vol.Optional(const.SERVICE_FIELD_REWARD_CRUD_ASSIGNED_USER_IDS): vol.All(
                 cv.ensure_list, [cv.string]
             ),
         }
@@ -923,7 +935,72 @@ _SERVICE_TO_REWARD_DATA_MAPPING: dict[str, str] = {
     const.SERVICE_FIELD_REWARD_CRUD_DESCRIPTION: const.DATA_REWARD_DESCRIPTION,
     const.SERVICE_FIELD_REWARD_CRUD_ICON: const.DATA_REWARD_ICON,
     const.SERVICE_FIELD_REWARD_CRUD_LABELS: const.DATA_REWARD_LABELS,
+    const.SERVICE_FIELD_REWARD_CRUD_ASSIGNED_USER_IDS: (
+        const.DATA_REWARD_ASSIGNED_USER_IDS
+    ),
 }
+
+
+def _resolve_reward_assigned_user_names(
+    coordinator: "ChoreOpsDataCoordinator",
+    service_data: dict[str, Any],
+) -> None:
+    """Resolve display names in assigned_user_names to UUIDs in-place.
+
+    Mutates ``service_data``, replacing name-based keys with the canonical
+    ``SERVICE_FIELD_REWARD_CRUD_ASSIGNED_USER_IDS`` key containing resolved
+    UUIDs (or the ``SENTINEL_ALL_USERS`` sentinel).
+
+    Follows the same pattern as chore assignment name resolution.
+    """
+    assignee_names: list[str] | None = service_data.get(
+        const.SERVICE_FIELD_REWARD_CRUD_ASSIGNED_USER_NAMES
+    )
+    if assignee_names is None and (
+        const.SERVICE_FIELD_REWARD_CRUD_ASSIGNED_USER_IDS in service_data
+    ):
+        # Legacy key: accept raw UUIDs directly, but resolve sentinel
+        raw_ids = service_data[const.SERVICE_FIELD_REWARD_CRUD_ASSIGNED_USER_IDS]
+        if isinstance(raw_ids, list) and const.SENTINEL_ALL_USERS in raw_ids:
+            from .helpers.entity_helpers import get_all_gamified_user_ids
+
+            service_data[const.SERVICE_FIELD_REWARD_CRUD_ASSIGNED_USER_IDS] = (
+                get_all_gamified_user_ids(coordinator)
+            )
+        return
+
+    if assignee_names is None:
+        # No assignment update requested
+        return
+
+    # Sentinel: "*" means all gamified users — resolve to explicit UUIDs
+    if assignee_names == [const.SENTINEL_ALL_USERS]:
+        from .helpers.entity_helpers import get_all_gamified_user_ids
+
+        service_data[const.SERVICE_FIELD_REWARD_CRUD_ASSIGNED_USER_IDS] = (
+            get_all_gamified_user_ids(coordinator)
+        )
+        service_data.pop(const.SERVICE_FIELD_REWARD_CRUD_ASSIGNED_USER_NAMES, None)
+        return
+
+    # Resolve each display name to a UUID
+    assignee_ids: list[str] = []
+    for assignee_name in assignee_names:
+        try:
+            assignee_id = get_item_id_or_raise(
+                coordinator,
+                const.ITEM_TYPE_USER,
+                assignee_name,
+                role=const.ROLE_ASSIGNEE,
+            )
+            assignee_ids.append(assignee_id)
+        except HomeAssistantError as err:
+            const.LOGGER.warning("Reward assigned_user_names lookup failed: %s", err)
+            raise
+
+    service_data[const.SERVICE_FIELD_REWARD_CRUD_ASSIGNED_USER_IDS] = assignee_ids
+    service_data.pop(const.SERVICE_FIELD_REWARD_CRUD_ASSIGNED_USER_NAMES, None)
+
 
 # ==============================================================================
 # ROTATION MANAGEMENT SCHEMAS (Phase 3 Step 7 - v0.5.0)
@@ -2023,9 +2100,15 @@ def async_setup_services(hass: HomeAssistant):
 
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
 
+        # Resolve assigned_user_names to UUIDs (if provided).
+        # Follows chore pattern: accept display names, resolve to UUIDs,
+        # accept legacy assigned_user_ids key for backward compatibility.
+        service_data = dict(call.data)
+        _resolve_reward_assigned_user_names(coordinator, service_data)
+
         # Map service fields to DATA_* keys for data_builders
         data_input = _map_service_to_data_keys(
-            dict(call.data), _SERVICE_TO_REWARD_DATA_MAPPING
+            service_data, _SERVICE_TO_REWARD_DATA_MAPPING
         )
 
         # Validate using shared validation (single source of truth)
@@ -2048,14 +2131,8 @@ def async_setup_services(hass: HomeAssistant):
             reward_dict = coordinator.reward_manager.create_reward(data_input)
             internal_id = str(reward_dict[const.DATA_REWARD_INTERNAL_ID])
 
-            # Create reward status sensor entities for all assignees with
-            # gamification enabled.
-            if coordinator._test_mode:
-                from .sensor import create_reward_entities
-
-                create_reward_entities(coordinator, internal_id)
-
-            await coordinator.async_sync_entities_after_service_create()
+            # Runtime entity sync — no full reload
+            await coordinator.async_sync_reward_entities(internal_id, "created")
 
             const.LOGGER.info(
                 "Service created reward '%s' with ID: %s",
@@ -2148,6 +2225,9 @@ def async_setup_services(hass: HomeAssistant):
             # Only include it in data_input if there's ALSO a reward_id (explicit rename)
             service_data.pop(const.SERVICE_FIELD_REWARD_NAME, None)
 
+        # Resolve assigned_user_names to UUIDs (if provided)
+        _resolve_reward_assigned_user_names(coordinator, service_data)
+
         data_input = _map_service_to_data_keys(
             service_data, _SERVICE_TO_REWARD_DATA_MAPPING
         )
@@ -2172,6 +2252,15 @@ def async_setup_services(hass: HomeAssistant):
             reward_dict = coordinator.reward_manager.update_reward(
                 reward_id, data_input
             )
+
+            # Runtime entity sync on assignment changes — no full reload
+            if (
+                const.SERVICE_FIELD_REWARD_CRUD_ASSIGNED_USER_NAMES in call.data
+                or const.SERVICE_FIELD_REWARD_CRUD_ASSIGNED_USER_IDS in call.data
+            ):
+                await coordinator.async_sync_reward_entities(
+                    reward_id, "assigned_users_changed"
+                )
 
             const.LOGGER.info(
                 "Service updated reward '%s' with ID: %s",

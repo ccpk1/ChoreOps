@@ -487,6 +487,8 @@
       "invalid_reward_count": "Invalid reward count",
       "invalid_reward_name": "Invalid reward name",
       "invalid_reward_cost": "Reward cost must be zero or greater with up to 2 decimal places",
+      "invalid_reward_assigned_users": "One or more assigned users are not valid",
+      "mixed_reward_assignment_sentinel": "Cannot mix 'all users' with specific users",
       "invalid_bonus": "Invalid bonus",
       "invalid_bonus_count": "Invalid bonus count",
       "invalid_bonus_name": "Invalid bonus name",
@@ -934,7 +936,8 @@
           "cost": "Reward Cost",
           "description": "Description (optional)",
           "reward_labels": "Reward Labels",
-          "icon": "Icon (mdi:xxx)"
+          "icon": "Icon (mdi:xxx)",
+          "assigned_user_ids": "Assigned to"
         }
       },
       "add_penalty": {
@@ -1397,7 +1400,8 @@
           "cost": "Reward Cost",
           "description": "Description (optional)",
           "reward_labels": "Reward Labels",
-          "icon": "Icon (mdi:xxx)"
+          "icon": "Icon (mdi:xxx)",
+          "assigned_user_ids": "Assigned to"
         }
       },
       "edit_penalty": {
@@ -2483,6 +2487,11 @@
           "name": "Labels",
           "description": "Labels for grouping rewards.",
           "example": "['weekend', 'special']"
+        },
+        "assigned_user_names": {
+          "name": "Assigned to",
+          "description": "User display names assigned to this reward. Use [\"*\"] for all users. Pass an empty list to assign to no users.",
+          "example": "['Zoë', 'Max!']"
         }
       }
     },
@@ -2529,6 +2538,11 @@
           "name": "Labels",
           "description": "Updated labels.",
           "example": "['premium', 'special']"
+        },
+        "assigned_user_names": {
+          "name": "Assigned to",
+          "description": "User display names assigned to this reward. Use [\"*\"] for all users. Pass an empty list to remove all assigned users. Omit to leave current assignments unchanged.",
+          "example": "['Zoë', 'Max!']"
         }
       }
     },

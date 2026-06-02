@@ -464,6 +464,7 @@ SENTINEL_NONE_TEXT: Final = "None"
 SENTINEL_NO_SELECTION: Final = (
     "__none__"  # Non-empty sentinel for SelectSelector "None" option
 )
+SENTINEL_ALL_USERS: Final = "*"  # All gamified users assigned
 
 # Display Values
 DISPLAY_DOT: Final = "."
@@ -712,6 +713,10 @@ CFOF_REWARDS_INPUT_DESCRIPTION: Final = (
 CFOF_REWARDS_INPUT_ICON: Final = "icon"
 CFOF_REWARDS_INPUT_LABELS: Final = "reward_labels"
 CFOF_REWARDS_INPUT_NAME: Final = "name"  # Aligned with DATA_REWARD_NAME
+CFOF_REWARDS_INPUT_ASSIGNED_USER_NAMES: Final = "assigned_user_names"
+CFOF_REWARDS_INPUT_ASSIGNED_USER_IDS: Final = (
+    "assigned_user_ids"  # Aligned with DATA_REWARD_ASSIGNED_USER_IDS
+)
 CFOF_REWARDS_INPUT_REWARD_COUNT: Final = "reward_count"
 
 # BONUSES
@@ -1593,6 +1598,7 @@ DATA_REWARD_INTERNAL_ID: Final = "internal_id"
 DATA_REWARD_LABELS: Final = "reward_labels"
 DATA_REWARD_NAME: Final = "name"
 DATA_REWARD_TIMESTAMP: Final = "timestamp"
+DATA_REWARD_ASSIGNED_USER_IDS: Final = "assigned_user_ids"
 
 # BONUSES
 DATA_BONUS_DESCRIPTION: Final = "description"
@@ -2903,6 +2909,8 @@ SERVICE_FIELD_REWARD_CRUD_COST: Final = "cost"
 SERVICE_FIELD_REWARD_CRUD_DESCRIPTION: Final = "description"
 SERVICE_FIELD_REWARD_CRUD_ICON: Final = "icon"
 SERVICE_FIELD_REWARD_CRUD_LABELS: Final = "labels"
+SERVICE_FIELD_REWARD_CRUD_ASSIGNED_USER_NAMES: Final = "assigned_user_names"
+SERVICE_FIELD_REWARD_CRUD_ASSIGNED_USER_IDS: Final = "assigned_user_ids"
 
 # Penalty service fields
 SERVICE_FIELD_PENALTY_NAME: Final = "penalty_name"
@@ -3275,6 +3283,7 @@ CFOP_ERROR_END_DATE: Final = "end_date"
 CFOP_ERROR_PENALTY_NAME: Final = "name"
 CFOP_ERROR_REWARD_NAME: Final = "name"
 CFOP_ERROR_REWARD_COST: Final = "cost"
+CFOP_ERROR_REWARD_ASSIGNED_USERS: Final = "assigned_user_names"
 CFOP_ERROR_SELECT_CHORE_ID: Final = "selected_chore_id"
 CFOP_ERROR_START_DATE: Final = "start_date"
 CFOP_ERROR_CHORE_OPTIONS: Final = (
@@ -3495,6 +3504,10 @@ TRANS_KEY_CFOF_INVALID_REWARD_COUNT: Final = "invalid_reward_count"
 TRANS_KEY_CFOF_INVALID_REWARD_NAME: Final = "invalid_reward_name"
 TRANS_KEY_CFOF_INVALID_REWARD_COST: Final = (
     "invalid_reward_cost"  # Reward cost must be >= 0
+)
+TRANS_KEY_CFOF_INVALID_REWARD_ASSIGNED_USERS: Final = "invalid_reward_assigned_users"
+TRANS_KEY_CFOF_MIXED_REWARD_ASSIGNMENT_SENTINEL: Final = (
+    "mixed_reward_assignment_sentinel"
 )
 TRANS_KEY_CFOF_INVALID_SELECTION: Final = "invalid_selection"
 TRANS_KEY_CFOF_POINTS_LABEL_REQUIRED: Final = "points_label_required"

@@ -828,6 +828,14 @@ class RewardManager(BaseManager):
         Emits:
             SIGNAL_SUFFIX_REWARD_CREATED with reward_id and reward_name.
         """
+        # Default to all gamified users if no assignment specified
+        if const.DATA_REWARD_ASSIGNED_USER_IDS not in user_input:
+            from ..helpers.entity_helpers import get_all_gamified_user_ids
+
+            user_input[const.DATA_REWARD_ASSIGNED_USER_IDS] = get_all_gamified_user_ids(
+                self.coordinator
+            )
+
         # Build complete reward data structure
         reward_data = dict(db.build_reward(user_input))
         internal_id = str(reward_data[const.DATA_REWARD_INTERNAL_ID])
@@ -888,6 +896,7 @@ class RewardManager(BaseManager):
             )
 
         existing = rewards_data[reward_id]
+
         # Build updated reward (merge existing with updates)
         updated_reward = dict(db.build_reward(updates, existing=existing))
 
@@ -897,6 +906,10 @@ class RewardManager(BaseManager):
         self.coordinator.async_update_listeners()
 
         reward_name = str(updated_reward.get(const.DATA_REWARD_NAME, ""))
+
+        # Entity sync is now handled by the caller (services.py / options_flow.py)
+        # via async_sync_reward_entities(), which also handles orphan cleanup.
+        # The manager owns persistence and signal emission only.
 
         # Emit lifecycle event
         self.emit(
