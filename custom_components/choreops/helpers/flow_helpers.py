@@ -2662,43 +2662,69 @@ def validate_badge_common_inputs(
 # ----------------------------------------------------------------------------------
 
 
-def build_reward_schema(default=None):
+def build_reward_schema(default=None, assignees_dict=None):
     """Build a schema for rewards, keyed by internal_id in the dict.
 
     Note: Uses static defaults to enable field clearing.
     For edit forms, use add_suggested_values_to_schema() to show current values.
+
+    Args:
+        default: Default values dict for the form.
+        assignees_dict: Optional dict of assignee_id → assignee_info for the
+            assigned_user_ids multi-select. If None, the selector is omitted.
+
+    Returns:
+        vol.Schema for the reward form.
     """
     default = default or {}
 
-    return vol.Schema(
-        {
-            vol.Required(
-                const.CFOF_REWARDS_INPUT_NAME, default=const.SENTINEL_EMPTY
-            ): str,
+    fields: dict[vol.Required | vol.Optional, Any] = {
+        vol.Required(const.CFOF_REWARDS_INPUT_NAME, default=const.SENTINEL_EMPTY): str,
+        vol.Optional(
+            const.CFOF_REWARDS_INPUT_DESCRIPTION,
+            default=const.SENTINEL_EMPTY,
+        ): str,
+        vol.Optional(
+            const.CFOF_REWARDS_INPUT_LABELS,
+            default=[],
+        ): selector.LabelSelector(selector.LabelSelectorConfig(multiple=True)),
+        vol.Required(
+            const.CFOF_REWARDS_INPUT_COST,
+            default=const.DEFAULT_REWARD_COST,
+        ): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                mode=selector.NumberSelectorMode.BOX,
+                min=0,
+                step=0.01,
+            )
+        ),
+        vol.Optional(
+            const.CFOF_REWARDS_INPUT_ICON,
+            default=const.SENTINEL_EMPTY,
+        ): selector.IconSelector(),
+    }
+
+    # Add assigned users multi-select when assignees are available
+    if assignees_dict:
+        assignee_choices = [
+            {"value": assignee_id, "label": info.get(const.DATA_USER_NAME, assignee_id)}
+            for assignee_id, info in assignees_dict.items()
+        ]
+        fields[
             vol.Optional(
-                const.CFOF_REWARDS_INPUT_DESCRIPTION,
-                default=const.SENTINEL_EMPTY,
-            ): str,
-            vol.Optional(
-                const.CFOF_REWARDS_INPUT_LABELS,
-                default=[],
-            ): selector.LabelSelector(selector.LabelSelectorConfig(multiple=True)),
-            vol.Required(
-                const.CFOF_REWARDS_INPUT_COST,
-                default=const.DEFAULT_REWARD_COST,
-            ): selector.NumberSelector(
-                selector.NumberSelectorConfig(
-                    mode=selector.NumberSelectorMode.BOX,
-                    min=0,
-                    step=0.01,
-                )
-            ),
-            vol.Optional(
-                const.CFOF_REWARDS_INPUT_ICON,
-                default=const.SENTINEL_EMPTY,
-            ): selector.IconSelector(),
-        }
-    )
+                const.CFOF_REWARDS_INPUT_ASSIGNED_USER_IDS,
+                default=default.get(const.CFOF_REWARDS_INPUT_ASSIGNED_USER_IDS, []),
+            )
+        ] = selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=assignee_choices,
+                multiple=True,
+                mode=selector.SelectSelectorMode.DROPDOWN,
+                translation_key=const.TRANS_KEY_FLOW_HELPERS_ASSIGNED_USER_IDS,
+            )
+        )
+
+    return vol.Schema(fields)
 
 
 def validate_rewards_inputs(
@@ -2735,6 +2761,12 @@ def validate_rewards_inputs(
     # Include cost if provided
     if const.CFOF_REWARDS_INPUT_COST in user_input:
         data_dict[const.DATA_REWARD_COST] = user_input[const.CFOF_REWARDS_INPUT_COST]
+
+    # Include assigned_user_ids if provided (CFOF key is aligned with DATA key)
+    if const.CFOF_REWARDS_INPUT_ASSIGNED_USER_IDS in user_input:
+        data_dict[const.DATA_REWARD_ASSIGNED_USER_IDS] = user_input[
+            const.CFOF_REWARDS_INPUT_ASSIGNED_USER_IDS
+        ]
 
     # Call shared validation (single source of truth)
     is_update = current_reward_id is not None

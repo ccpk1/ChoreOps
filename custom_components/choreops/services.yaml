@@ -968,6 +968,14 @@ create_reward:
       selector:
         text:
           multiple: true
+    assigned_user_names:
+      name: "Assigned to"
+      description: "List of user display names to assign this reward to. Only assigned users will see reward entities. Use ['*'] for all users. Pass an empty list to assign to no users."
+      example: "['Zoë', 'Max!']"
+      required: false
+      selector:
+        text:
+          multiple: true
 
 update_reward:
   name: "Update Reward"
@@ -1029,6 +1037,14 @@ update_reward:
       name: "Labels"
       description: "The new labels to categorize the reward."
       example: "['fun', 'gaming']"
+      required: false
+      selector:
+        text:
+          multiple: true
+    assigned_user_names:
+      name: "Assigned to"
+      description: "List of user display names to assign this reward to. Only assigned users will see reward entities. Use ['*'] for all users. Pass an empty list to remove all assigned users. Omit to leave current assignments unchanged."
+      example: "['Zoë', 'Max!']"
       required: false
       selector:
         text:

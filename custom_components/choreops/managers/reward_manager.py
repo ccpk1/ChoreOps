@@ -828,6 +828,14 @@ class RewardManager(BaseManager):
         Emits:
             SIGNAL_SUFFIX_REWARD_CREATED with reward_id and reward_name.
         """
+        # Default to all gamified users if no assignment specified
+        if const.DATA_REWARD_ASSIGNED_USER_IDS not in user_input:
+            from ..helpers.entity_helpers import get_all_gamified_user_ids
+
+            user_input[const.DATA_REWARD_ASSIGNED_USER_IDS] = get_all_gamified_user_ids(
+                self.coordinator
+            )
+
         # Build complete reward data structure
         reward_data = dict(db.build_reward(user_input))
         internal_id = str(reward_data[const.DATA_REWARD_INTERNAL_ID])
@@ -888,6 +896,8 @@ class RewardManager(BaseManager):
             )
 
         existing = rewards_data[reward_id]
+        previous_assigned = existing.get(const.DATA_REWARD_ASSIGNED_USER_IDS, [])
+
         # Build updated reward (merge existing with updates)
         updated_reward = dict(db.build_reward(updates, existing=existing))
 
@@ -897,6 +907,29 @@ class RewardManager(BaseManager):
         self.coordinator.async_update_listeners()
 
         reward_name = str(updated_reward.get(const.DATA_REWARD_NAME, ""))
+
+        # If assignment changed, clean up orphaned entities and trigger entity sync
+        new_assigned = updated_reward.get(const.DATA_REWARD_ASSIGNED_USER_IDS, [])
+        if previous_assigned != new_assigned:
+            from ..helpers.entity_helpers import (
+                remove_orphaned_assignee_reward_entities,
+            )
+
+            async def _sync_reward_entities() -> None:
+                """Clean orphaned reward entities and trigger HA entity sync."""
+                try:
+                    await remove_orphaned_assignee_reward_entities(
+                        self.hass,
+                        self.coordinator.config_entry.entry_id,
+                        self.coordinator.assignees_data,
+                        self.coordinator.rewards_data,
+                    )
+                except Exception:
+                    const.LOGGER.exception(
+                        "Failed to sync reward entities after assignment change"
+                    )
+
+            self.hass.async_create_task(_sync_reward_entities())
 
         # Emit lifecycle event
         self.emit(

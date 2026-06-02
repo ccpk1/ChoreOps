@@ -3124,7 +3124,17 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                     # Map field-specific error for form highlighting
                     errors[err.field] = err.translation_key
 
-        schema = fh.build_reward_schema()
+        schema = fh.build_reward_schema(assignees_dict=coordinator.assignees_data)
+
+        # Pre-populate with all gamified users on first view
+        if user_input is None:
+            from .helpers.entity_helpers import get_all_gamified_user_ids
+
+            gamified_ids = get_all_gamified_user_ids(coordinator)
+            suggested = {
+                const.CFOF_REWARDS_INPUT_ASSIGNED_USER_IDS: gamified_ids,
+            }
+            schema = self.add_suggested_values_to_schema(schema, suggested)
 
         # On validation error, preserve user's attempted input
         if user_input:
@@ -3193,6 +3203,9 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 const.DATA_REWARD_COST, const.DEFAULT_REWARD_COST
             ),
             const.CFOF_REWARDS_INPUT_ICON: existing_reward.get(const.DATA_REWARD_ICON),
+            const.CFOF_REWARDS_INPUT_ASSIGNED_USER_IDS: existing_reward.get(
+                const.DATA_REWARD_ASSIGNED_USER_IDS, []
+            ),
         }
 
         # On validation error, merge user's attempted input with existing data
@@ -3200,7 +3213,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             suggested_values.update(user_input)
 
         # Build schema with static defaults
-        schema = fh.build_reward_schema()
+        schema = fh.build_reward_schema(assignees_dict=coordinator.assignees_data)
         # Apply values as suggestions
         schema = self.add_suggested_values_to_schema(schema, suggested_values)
 

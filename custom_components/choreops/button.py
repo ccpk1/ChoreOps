@@ -37,6 +37,7 @@ from .helpers.device_helpers import create_assignee_device_info_from_coordinator
 from .helpers.entity_helpers import (
     get_assignee_name_by_id,
     get_friendly_label,
+    is_user_assigned_to_reward,
     should_create_entity_for_user_assignee,
     should_create_gamification_entities,
 )
@@ -293,6 +294,9 @@ async def async_setup_entry(
             const.DATA_USER_NAME, f"{const.TRANS_KEY_LABEL_ASSIGNEE} {assignee_id}"
         )
         for reward_id, reward_info in coordinator.rewards_data.items():
+            # Skip rewards not assigned to this user
+            if not is_user_assigned_to_reward(coordinator, assignee_id, reward_id):
+                continue
             # Icon from storage (empty = use icons.json translation)
             reward_icon = reward_info.get(const.DATA_REWARD_ICON, const.SENTINEL_EMPTY)
             # Redeem Reward Button

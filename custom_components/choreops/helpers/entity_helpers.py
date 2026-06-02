@@ -791,6 +791,65 @@ async def remove_orphaned_assignee_chore_entities(
     )
 
 
+async def remove_orphaned_assignee_reward_entities(
+    hass: HomeAssistant,
+    entry_id: str,
+    assignees_data: dict[str, Any],
+    rewards_data: dict[str, Any],
+) -> int:
+    """Remove reward entities for assignees no longer assigned to a reward.
+
+    Mirrors ``remove_orphaned_assignee_chore_entities`` exactly for the reward
+    domain.  Scans sensor and button platforms and removes entities whose
+    (assignee_id, reward_id) combination is no longer valid per the reward's
+    ``assigned_user_ids`` field.
+
+    Args:
+        hass: HomeAssistant instance.
+        entry_id: Config entry ID.
+        assignees_data: Dict of assignee_id → assignee_info.
+        rewards_data: Dict of reward_id → reward_info.
+
+    Returns:
+        Count of removed entities.
+    """
+    if not assignees_data or not rewards_data:
+        return 0
+
+    prefix = f"{entry_id}_"
+
+    # Build valid assignee-reward combinations
+    valid_combinations: set[tuple[str, str]] = set()
+    for reward_id, reward_info in rewards_data.items():
+        assigned_ids: list[str] = reward_info.get(
+            const.DATA_REWARD_ASSIGNED_USER_IDS, []
+        )
+        for assignee_id in assigned_ids:
+            valid_combinations.add((assignee_id, reward_id))
+
+    # Build regex for efficient extraction
+    assignee_ids_pat = "|".join(
+        re.escape(assignee_id) for assignee_id in assignees_data
+    )
+    reward_ids_pat = "|".join(re.escape(reward_id) for reward_id in rewards_data)
+    pattern = re.compile(rf"^({assignee_ids_pat})_({reward_ids_pat})")
+
+    def is_valid(unique_id: str) -> bool:
+        core = unique_id[len(prefix) :]
+        match = pattern.match(core)
+        if not match:
+            return True  # Not an assignee-reward entity, keep it
+        return (match.group(1), match.group(2)) in valid_combinations
+
+    return await remove_entities_by_validator(
+        hass,
+        entry_id,
+        platforms=[const.Platform.SENSOR, const.Platform.BUTTON],
+        is_valid=is_valid,
+        entity_type="assignee-reward entity",
+    )
+
+
 async def remove_orphaned_progress_entities(
     hass: HomeAssistant,
     entry_id: str,
@@ -1103,6 +1162,57 @@ def should_create_gamification_entities(
         True if gamification entities should be created, False otherwise.
     """
     return resolve_user_entity_policy(coordinator, assignee_id).gamification_enabled
+
+
+def get_all_gamified_user_ids(
+    coordinator: ChoreOpsDataCoordinator,
+) -> list[str]:
+    """Return the internal IDs of all users with gamification enabled.
+
+    Used to resolve the ``SENTINEL_ALL_USERS`` sentinel to explicit UUIDs
+    at input boundaries so storage never contains the sentinel.
+
+    Args:
+        coordinator: The ChoreOps data coordinator.
+
+    Returns:
+        List of internal IDs for users where gamification is enabled.
+        Returns all assignable user IDs if no feature-gated profiles exist.
+    """
+    gamified: list[str] = []
+    for user_id in coordinator.assignees_data:
+        policy = resolve_user_entity_policy(coordinator, user_id)
+        if policy.gamification_enabled:
+            gamified.append(user_id)
+    return gamified
+
+
+def is_user_assigned_to_reward(
+    coordinator: ChoreOpsDataCoordinator,
+    assignee_id: str,
+    reward_id: str,
+) -> bool:
+    """Return whether an assignee is assigned to a specific reward.
+
+    Storage always contains explicit UUID lists after normalization;
+    the ``SENTINEL_ALL_USERS`` sentinel is resolved at input boundaries
+    (service handlers, RewardManager.create_reward) and never reaches
+    this function.
+
+    Args:
+        coordinator: The ChoreOps data coordinator.
+        assignee_id: Internal UUID of the user/assignee.
+        reward_id: Internal UUID of the reward.
+
+    Returns:
+        True if the assignee is assigned to the reward, False otherwise.
+    """
+    reward_info = coordinator.rewards_data.get(reward_id)
+    if not reward_info:
+        return False
+
+    assigned_ids: list[str] = reward_info.get(const.DATA_REWARD_ASSIGNED_USER_IDS, [])
+    return assignee_id in assigned_ids
 
 
 def should_create_entity(
