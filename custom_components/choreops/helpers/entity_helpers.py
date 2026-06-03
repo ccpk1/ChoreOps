@@ -1181,6 +1181,56 @@ def get_all_assignable_user_ids(
     return list(coordinator.assignees_data.keys())
 
 
+def build_chore_select_display_name(
+    chore_info: dict[str, Any],
+    assignee_id: str,
+    coordinator: ChoreOpsDataCoordinator,
+) -> str:
+    """Build the display name for a chore as shown in the per-user select.
+
+    Shared between ``AssigneeDashboardHelperChoresSelect.options`` and
+    ``services._sync_chore_select_selection`` so display names stay
+    consistent regardless of which code path builds them.
+
+    Args:
+        chore_info: Chore data dict with ``DATA_CHORE_*`` keys.
+        assignee_id: The viewing user's internal ID.
+        coordinator: ChoreOps data coordinator for name lookups.
+
+    Returns:
+        Display string like ``"Clean Room (Bob)"`` for assigned chores
+        or ``"⊘ Clean Room (Alice)"`` / ``"⊘ Shovel Snow"`` for others.
+    """
+    chore_name: str = str(chore_info.get(const.DATA_CHORE_NAME, ""))
+    assigned_user_ids: list[str] = list(
+        chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
+    )
+
+    def _resolve_names(uids: list[str], *, exclude: str | None = None) -> list[str]:
+        """Resolve UUIDs to display names, optionally excluding one."""
+        names: list[str] = []
+        for uid in uids:
+            if exclude is not None and uid == exclude:
+                continue
+            user_data = cast(
+                "dict[str, Any]",
+                coordinator.assignees_data.get(uid, {}),
+            )
+            names.append(str(user_data.get(const.DATA_USER_NAME, uid)))
+        return names
+
+    if assignee_id in assigned_user_ids:
+        other_names = _resolve_names(assigned_user_ids, exclude=assignee_id)
+        if other_names:
+            return f"{chore_name} ({', '.join(other_names)})"
+        return chore_name
+
+    other_names = _resolve_names(assigned_user_ids)
+    if other_names:
+        return f"{const.UNASSIGNED_CHORE_PREFIX}{chore_name} ({', '.join(other_names)})"
+    return f"{const.UNASSIGNED_CHORE_PREFIX}{chore_name}"
+
+
 def get_all_gamified_user_ids(
     coordinator: ChoreOpsDataCoordinator,
 ) -> list[str]:

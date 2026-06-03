@@ -1115,3 +1115,129 @@ class TestDeleteChoreEndToEnd:
         )
         assert zoe_chore_after is None, "Chore should be removed from Zoë's dashboard"
         assert max_chore_after is None, "Chore should be removed from Max!'s dashboard"
+
+
+# ============================================================================
+# UPDATE CHORE - ASSIGNMENT_ACTION TESTS
+# ============================================================================
+
+
+def _get_assigned_names(coordinator: Any, chore_id: str) -> list[str]:
+    """Return display names of users assigned to a chore."""
+    chore = coordinator.chores_data.get(chore_id, {})
+    uids: list[str] = list(chore.get(const.DATA_CHORE_ASSIGNED_USER_IDS, []))
+    names: list[str] = []
+    for uid in uids:
+        user_data = coordinator.assignees_data.get(uid, {})
+        names.append(str(user_data.get(const.DATA_USER_NAME, uid)))
+    return sorted(names)
+
+
+class TestAssignmentActionMerge:
+    """Test assignment_action add/remove/replace merge logic."""
+
+    @pytest.mark.asyncio
+    async def test_add_appends_to_existing(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """``add`` appends listed users to current assignees (deduplicated)."""
+        # Feed the cåts is assigned to [Zoë]
+        chore_id = scenario_full.chore_ids["Feed the cåts"]
+        assert _get_assigned_names(scenario_full.coordinator, chore_id) == ["Zoë"]
+
+        with patch.object(scenario_full.coordinator, "_persist", new=MagicMock()):
+            await hass.services.async_call(
+                DOMAIN,
+                SERVICE_UPDATE_CHORE,
+                {
+                    "id": chore_id,
+                    "assigned_user_names": ["Max!"],
+                    "assignment_action": "add",
+                },
+                blocking=True,
+            )
+
+        assert _get_assigned_names(scenario_full.coordinator, chore_id) == [
+            "Max!",
+            "Zoë",
+        ]
+
+    @pytest.mark.asyncio
+    async def test_add_duplicate_is_idempotent(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """``add`` of already-assigned user is a no-op."""
+        chore_id = scenario_full.chore_ids["Feed the cåts"]
+        assert _get_assigned_names(scenario_full.coordinator, chore_id) == ["Zoë"]
+
+        with patch.object(scenario_full.coordinator, "_persist", new=MagicMock()):
+            await hass.services.async_call(
+                DOMAIN,
+                SERVICE_UPDATE_CHORE,
+                {
+                    "id": chore_id,
+                    "assigned_user_names": ["Zoë"],
+                    "assignment_action": "add",
+                },
+                blocking=True,
+            )
+
+        assert _get_assigned_names(scenario_full.coordinator, chore_id) == ["Zoë"]
+
+    @pytest.mark.asyncio
+    async def test_remove_filters_from_existing(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """``remove`` removes listed users from current assignees."""
+        # Täke Öut Trash is assigned to [Zoë, Max!, Lila]
+        chore_id = scenario_full.chore_ids["Täke Öut Trash"]
+        assert _get_assigned_names(scenario_full.coordinator, chore_id) == [
+            "Lila",
+            "Max!",
+            "Zoë",
+        ]
+
+        with patch.object(scenario_full.coordinator, "_persist", new=MagicMock()):
+            await hass.services.async_call(
+                DOMAIN,
+                SERVICE_UPDATE_CHORE,
+                {
+                    "id": chore_id,
+                    "assigned_user_names": ["Lila"],
+                    "assignment_action": "remove",
+                },
+                blocking=True,
+            )
+
+        assert _get_assigned_names(scenario_full.coordinator, chore_id) == [
+            "Max!",
+            "Zoë",
+        ]
+
+    @pytest.mark.asyncio
+    async def test_replace_is_default_behavior(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """Omitted ``assignment_action`` defaults to ``replace``."""
+        chore_id = scenario_full.chore_ids["Täke Öut Trash"]
+
+        with patch.object(scenario_full.coordinator, "_persist", new=MagicMock()):
+            await hass.services.async_call(
+                DOMAIN,
+                SERVICE_UPDATE_CHORE,
+                {
+                    "id": chore_id,
+                    "assigned_user_names": ["Lila"],
+                },
+                blocking=True,
+            )
+
+        assert _get_assigned_names(scenario_full.coordinator, chore_id) == ["Lila"]

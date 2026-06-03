@@ -466,6 +466,12 @@ SENTINEL_NO_SELECTION: Final = (
 )
 SENTINEL_ALL_USERS: Final = "*"  # All gamified users assigned
 
+# Chore Assignment Select Prefix
+UNASSIGNED_CHORE_PREFIX: Final = "⊘ "  # Prefix for unassigned chores in select
+SELECT_SECTION_DIVIDER: Final = (
+    "──────────"  # Visual divider between assigned/unassigned sections
+)
+
 # Display Values
 DISPLAY_DOT: Final = "."
 DISPLAY_UNKNOWN: Final = "Unknown"
@@ -2877,6 +2883,13 @@ SERVICE_FIELD_CHORE_CRUD_AUTO_APPROVE: Final = "auto_approve"
 SERVICE_FIELD_CHORE_CRUD_DUE_DATE: Final = "due_date"
 SERVICE_FIELD_CHORE_CRUD_DUE_WINDOW_OFFSET: Final = "due_window_offset"
 SERVICE_FIELD_CHORE_CRUD_DUE_REMINDER_OFFSET: Final = "due_reminder_offset"
+SERVICE_FIELD_CHORE_CRUD_ASSIGNMENT_ACTION: Final = "assignment_action"
+
+# Update Chore assignment action values
+ASSIGNMENT_ACTION_ADD: Final = "add"
+ASSIGNMENT_ACTION_REMOVE: Final = "remove"
+ASSIGNMENT_ACTION_REPLACE: Final = "replace"
+DEFAULT_ASSIGNMENT_ACTION: Final = "replace"
 
 # ==== Test aliases for convenience ====
 SERVICE_FIELD_NAME: Final = "name"  # Alias for SERVICE_FIELD_CHORE_CRUD_NAME

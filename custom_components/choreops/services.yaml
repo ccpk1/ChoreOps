@@ -1330,6 +1330,17 @@ update_chore:
       required: false
       selector:
         text:
+    assignment_action:
+      name: "Assignment Action"
+      description: "How to handle the assigned_user_names list. 'replace' sets the list directly (default, backward-compatible). 'add' appends the listed users to existing assignees. 'remove' removes the listed users from existing assignees."
+      example: "add"
+      required: false
+      selector:
+        select:
+          options:
+            - "replace"
+            - "add"
+            - "remove"
     assigned_user_names:
       name: "Assigned to"
       description: "New list of assignee names to assign to this chore. Use ['*'] for all assignable users. Pass an empty list to remove all assigned users. Omit to leave current assignments unchanged."

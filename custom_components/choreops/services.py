@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Any, cast
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers import config_validation as cv, entity_registry as er
 from homeassistant.util import dt as dt_util
 import voluptuous as vol
 
@@ -839,6 +839,16 @@ UPDATE_CHORE_SCHEMA = vol.Schema(
             vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_IDS): vol.All(
                 cv.ensure_list, [cv.string]
             ),
+            vol.Optional(
+                const.SERVICE_FIELD_CHORE_CRUD_ASSIGNMENT_ACTION,
+                default=const.DEFAULT_ASSIGNMENT_ACTION,
+            ): vol.In(
+                [
+                    const.ASSIGNMENT_ACTION_ADD,
+                    const.ASSIGNMENT_ACTION_REMOVE,
+                    const.ASSIGNMENT_ACTION_REPLACE,
+                ]
+            ),
             vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_POINTS): vol.Coerce(float),
             vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_DESCRIPTION): cv.string,
             vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_ICON): vol.Any(
@@ -1059,6 +1069,98 @@ def _map_service_to_data_keys(
     return {
         mapping[key]: value for key, value in service_data.items() if key in mapping
     }
+
+
+async def _sync_chore_select_selection(
+    hass: HomeAssistant,
+    coordinator: "ChoreOpsDataCoordinator",
+    entry_id: str,
+    new_chore_data: dict[str, Any],
+    previous_chore: dict[str, Any] | None = None,
+) -> None:
+    """Re-select the same chore in per-user selects after display name changes.
+
+    Matches by the chore's canonical name (stable across assignment changes)
+    rather than the full display string.  Uses ``build_chore_select_display_name``
+    so display names always match what ``options`` produces.
+
+    Checks every assignee because any of them could have the chore
+    selected — either from the assigned section or from the unassigned
+    section (with ``⊘`` prefix).  Co-assignee display changes are
+    caught this way.
+    """
+    from .helpers.entity_helpers import build_chore_select_display_name
+
+    chore_name: str = str(new_chore_data.get(const.DATA_CHORE_NAME, ""))
+    if not chore_name:
+        return
+
+    new_assigned: list[str] = new_chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
+    previous_assigned: list[str] = (
+        previous_chore.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
+        if previous_chore
+        else []
+    )
+    user_ids_to_check = list(coordinator.assignees_data.keys())
+    if not user_ids_to_check:
+        return
+
+    entity_registry = er.async_get(hass)
+    for uid in user_ids_to_check:
+        select_unique_id = (
+            f"{entry_id}_{uid}"
+            f"{const.SELECT_KC_UID_SUFFIX_ASSIGNEE_DASHBOARD_HELPER_CHORES_SELECT}"
+        )
+        select_eid = entity_registry.async_get_entity_id(
+            "select", const.DOMAIN, select_unique_id
+        )
+        if not select_eid:
+            continue
+
+        state = hass.states.get(select_eid)
+        if not state:
+            continue
+
+        state_value: str = str(state.state)
+
+        if state_value in ("unavailable", ""):
+            continue
+        if state_value == const.SENTINEL_NONE_TEXT:
+            continue
+        if state_value == "unknown":
+            # Only recover when this user was previously or newly
+            # assigned — their select was reset because the old
+            # display value left the option list.
+            if uid not in previous_assigned and uid not in new_assigned:
+                continue
+
+        # Strip prefix / co-assignee suffix to match core chore name.
+        if state_value != "unknown":
+            core = state_value.removeprefix(const.UNASSIGNED_CHORE_PREFIX)
+            core = core.split(" (", 1)[0]
+            if core != chore_name:
+                continue
+
+        new_display = build_chore_select_display_name(
+            new_chore_data,
+            uid,
+            coordinator,
+        )
+        if new_display == state_value:
+            continue
+
+        await hass.services.async_call(
+            "select",
+            "select_option",
+            {"entity_id": select_eid, "option": new_display},
+            blocking=True,
+        )
+        const.LOGGER.debug(
+            "Updated select '%s' from '%s' to '%s' after chore update",
+            select_eid,
+            state_value,
+            new_display,
+        )
 
 
 # --- Setup Services ---
@@ -1343,6 +1445,29 @@ def async_setup_services(hass: HomeAssistant):
             service_data, _SERVICE_TO_CHORE_DATA_MAPPING
         )
 
+        # Apply assignment_action merge logic when updating assignees.
+        # "add" / "remove" merge with existing list; "replace" (default)
+        # sets the list directly for backward compatibility.
+        assignment_action: str = call.data.get(
+            const.SERVICE_FIELD_CHORE_CRUD_ASSIGNMENT_ACTION,
+            const.DEFAULT_ASSIGNMENT_ACTION,
+        )
+        if assignment_action != const.ASSIGNMENT_ACTION_REPLACE and (
+            const.DATA_CHORE_ASSIGNED_USER_IDS in data_input
+        ):
+            existing_ids: list[str] = list(
+                existing_chore.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
+            )
+            incoming_ids: list[str] = data_input[const.DATA_CHORE_ASSIGNED_USER_IDS]
+            if assignment_action == const.ASSIGNMENT_ACTION_ADD:
+                data_input[const.DATA_CHORE_ASSIGNED_USER_IDS] = list(
+                    dict.fromkeys(existing_ids + incoming_ids)
+                )
+            elif assignment_action == const.ASSIGNMENT_ACTION_REMOVE:
+                data_input[const.DATA_CHORE_ASSIGNED_USER_IDS] = [
+                    uid for uid in existing_ids if uid not in incoming_ids
+                ]
+
         # Extract due_date for special handling
         due_date_input = call.data.get(const.SERVICE_FIELD_CHORE_CRUD_DUE_DATE)
         due_date_iso = _normalize_service_due_date_input(due_date_input)
@@ -1385,6 +1510,17 @@ def async_setup_services(hass: HomeAssistant):
             if due_date_input is not None:
                 await coordinator.chore_manager.set_due_date(
                     chore_id, due_date_input, assignee_id=None
+                )
+
+            # Sync select selections BEFORE entity sync so HA does not
+            # reset selects to "unknown" when options change underneath.
+            if const.DATA_CHORE_ASSIGNED_USER_IDS in data_input:
+                await _sync_chore_select_selection(
+                    hass,
+                    coordinator,
+                    entry_id,
+                    cast("dict[str, Any]", coordinator.chores_data[chore_id]),
+                    cast("dict[str, Any]", previous_chore),
                 )
 
             sync_context = coordinator.chore_manager.build_entity_sync_context(

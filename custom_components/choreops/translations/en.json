@@ -2771,6 +2771,11 @@
           "name": "Due Reminder Offset",
           "description": "New due reminder offset. Duration before due date to send reminder notification. Format: '30m', '1h', '1d 6h 30m', etc. Use '0' to disable.",
           "example": "30m"
+        },
+        "assignment_action": {
+          "name": "Assignment Action",
+          "description": "How to handle the assigned_user_names list. 'replace' sets the list directly (default, backward-compatible). 'add' appends the listed users to existing assignees. 'remove' removes the listed users from existing assignees.",
+          "example": "add"
         }
       }
     },
