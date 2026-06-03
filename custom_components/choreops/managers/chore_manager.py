@@ -3265,6 +3265,16 @@ class ChoreManager(BaseManager):
         # Store updated chore
         self._coordinator._data[const.DATA_CHORES][chore_id] = updated_chore
 
+        # Handle rotation cleanup when assigned_user_ids becomes empty
+        new_assigned = updated_chore.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
+        if not new_assigned and ChoreEngine.is_rotation_mode(updated_chore):
+            updated_chore[const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID] = None
+            updated_chore[const.DATA_CHORE_ROTATION_CYCLE_OVERRIDE] = False
+            const.LOGGER.debug(
+                "Rotation metadata cleared for chore '%s' (all assignees removed)",
+                chore_id,
+            )
+
         reset_events: set[tuple[str, str, str]] = set()
 
         # Reset states to PENDING if due dates are being updated

@@ -1109,6 +1109,7 @@ def async_setup_services(hass: HomeAssistant):
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
 
         # Resolve assignee names to UUIDs.
+        # Sentinel "*" resolves to all assignable users.
         # Exception by design: during contract migration we accept legacy payloads
         # that still put names under assigned_user_ids.
         assignee_names = call.data.get(
@@ -1118,7 +1119,7 @@ def async_setup_services(hass: HomeAssistant):
             assignee_names = call.data.get(
                 const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_IDS
             )
-        if not assignee_names:
+        if assignee_names is None:
             raise HomeAssistantError(
                 translation_domain=const.DOMAIN,
                 translation_key=const.TRANS_KEY_ERROR_MISSING_FIELD,
@@ -1131,19 +1132,27 @@ def async_setup_services(hass: HomeAssistant):
                 },
             )
 
-        assignee_ids = []
-        for assignee_name in assignee_names:
-            try:
-                assignee_id = get_item_id_or_raise(
-                    coordinator,
-                    const.ITEM_TYPE_USER,
-                    assignee_name,
-                    role=const.ROLE_ASSIGNEE,
-                )
-                assignee_ids.append(assignee_id)
-            except HomeAssistantError as err:
-                const.LOGGER.warning("Create Chore - assignee lookup failed: %s", err)
-                raise
+        # Sentinel "*" resolves to all assignable users
+        if assignee_names == [const.SENTINEL_ALL_USERS]:
+            from .helpers.entity_helpers import get_all_assignable_user_ids
+
+            assignee_ids = get_all_assignable_user_ids(coordinator)
+        else:
+            assignee_ids = []
+            for assignee_name in assignee_names:
+                try:
+                    assignee_id = get_item_id_or_raise(
+                        coordinator,
+                        const.ITEM_TYPE_USER,
+                        assignee_name,
+                        role=const.ROLE_ASSIGNEE,
+                    )
+                    assignee_ids.append(assignee_id)
+                except HomeAssistantError as err:
+                    const.LOGGER.warning(
+                        "Create Chore - assignee lookup failed: %s", err
+                    )
+                    raise
 
         # Map service fields to DATA_* keys
         data_input = _map_service_to_data_keys(
@@ -1304,21 +1313,27 @@ def async_setup_services(hass: HomeAssistant):
             ]
 
         if assignee_names is not None:
-            assignee_ids = []
-            for assignee_name in assignee_names:
-                try:
-                    assignee_id = get_item_id_or_raise(
-                        coordinator,
-                        const.ITEM_TYPE_USER,
-                        assignee_name,
-                        role=const.ROLE_ASSIGNEE,
-                    )
-                    assignee_ids.append(assignee_id)
-                except HomeAssistantError as err:
-                    const.LOGGER.warning(
-                        "Update Chore - assignee lookup failed: %s", err
-                    )
-                    raise
+            # Sentinel "*" resolves to all assignable users
+            if assignee_names == [const.SENTINEL_ALL_USERS]:
+                from .helpers.entity_helpers import get_all_assignable_user_ids
+
+                assignee_ids = get_all_assignable_user_ids(coordinator)
+            else:
+                assignee_ids = []
+                for assignee_name in assignee_names:
+                    try:
+                        assignee_id = get_item_id_or_raise(
+                            coordinator,
+                            const.ITEM_TYPE_USER,
+                            assignee_name,
+                            role=const.ROLE_ASSIGNEE,
+                        )
+                        assignee_ids.append(assignee_id)
+                    except HomeAssistantError as err:
+                        const.LOGGER.warning(
+                            "Update Chore - assignee lookup failed: %s", err
+                        )
+                        raise
             service_data[const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_IDS] = (
                 assignee_ids
             )

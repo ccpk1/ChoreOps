@@ -2593,7 +2593,7 @@
         },
         "assigned_user_names": {
           "name": "Assigned to",
-          "description": "List of assignee names to assign this chore to.",
+          "description": "List of assignee names to assign this chore to. Use [\"*\"] for all assignable users. Pass an empty list to create without assignees.",
           "example": "['Emma', 'Jack']"
         },
         "points": {
@@ -2699,7 +2699,7 @@
         },
         "assigned_user_names": {
           "name": "Assigned to",
-          "description": "New list of assignee names to assign this chore to.",
+          "description": "New list of assignee names to assign this chore to. Use [\"*\"] for all assignable users. Pass an empty list to remove all assigned users. Omit to leave current assignments unchanged.",
           "example": "['Emma', 'Jack']"
         },
         "points": {

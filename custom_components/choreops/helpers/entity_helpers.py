@@ -1164,6 +1164,23 @@ def should_create_gamification_entities(
     return resolve_user_entity_policy(coordinator, assignee_id).gamification_enabled
 
 
+def get_all_assignable_user_ids(
+    coordinator: ChoreOpsDataCoordinator,
+) -> list[str]:
+    """Return the internal IDs of all assignable users.
+
+    Used to resolve the ``SENTINEL_ALL_USERS`` sentinel to explicit UUIDs
+    at input boundaries so storage never contains the sentinel.
+
+    Args:
+        coordinator: The ChoreOps data coordinator.
+
+    Returns:
+        List of internal IDs for all assignable users.
+    """
+    return list(coordinator.assignees_data.keys())
+
+
 def get_all_gamified_user_ids(
     coordinator: ChoreOpsDataCoordinator,
 ) -> list[str]:

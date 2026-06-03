@@ -1332,7 +1332,7 @@ update_chore:
         text:
     assigned_user_names:
       name: "Assigned to"
-      description: "New list of assignee names to assign to this chore."
+      description: "New list of assignee names to assign to this chore. Use ['*'] for all assignable users. Pass an empty list to remove all assigned users. Omit to leave current assignments unchanged."
       example: "['Emma', 'Jack', 'Sophia']"
       required: false
       selector:

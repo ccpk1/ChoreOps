@@ -477,7 +477,10 @@ class TestCreateChoreEndToEnd:
 
         helper_state = get_dashboard_helper_state(hass, "zoe")
         assert helper_state is not None
-        assert chore.get(const.ATTR_LABELS) == ["test", "e2e"]
+        assert chore.get(const.ATTR_LABELS) == [
+            {"id": "test", "name": "test"},
+            {"id": "e2e", "name": "e2e"},
+        ]
 
     @pytest.mark.asyncio
     async def test_created_chore_exposes_live_status_and_buttons(
