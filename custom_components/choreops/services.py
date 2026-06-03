@@ -371,9 +371,14 @@ def _build_service_chore_validation_data(
             assigned_assignee_ids, due_date_iso
         )
     elif existing_chore is not None:
-        validation_data[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] = dict(
+        # Start with existing due dates, then merge any auto-generated
+        # dates from data_input (e.g. from assignment_action add/replace).
+        per_assignee = dict(
             existing_chore.get(const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {})
         )
+        if const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES in data_input:
+            per_assignee.update(data_input[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES])
+        validation_data[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] = per_assignee
 
     validation_data.pop(const.DATA_CHORE_DUE_DATE, None)
     return validation_data
@@ -1163,6 +1168,106 @@ async def _sync_chore_select_selection(
         )
 
 
+def _ensure_per_assignee_due_dates(
+    validation_data: dict[str, Any],
+    data_input: dict[str, Any],
+    assigned_assignee_ids: list[str],
+    existing_chore: dict[str, Any],
+    due_date_iso: str | None,
+    chore_id: str,
+) -> None:
+    """Fill missing or past per-assignee due dates for independent chores.
+
+    Called after ``_build_service_chore_validation_data`` so we start from
+    the correct base: existing storage dates merged with any user-provided
+    ``due_date`` from the service call.
+
+    Only touches independent chores with a frequency that requires dates
+    (everything except ``none`` and ``daily``).  Updates both
+    ``validation_data`` (for the validator) and ``data_input`` (for
+    ``chore_manager.update_chore`` to persist).
+
+    Rules for each assigned user:
+    - User-provided explicit date → use it
+    - Existing valid future date → preserve it
+    - No date or past date → auto-generate from schedule
+    """
+    if existing_chore.get(const.DATA_CHORE_COMPLETION_CRITERIA) != (
+        const.COMPLETION_CRITERIA_INDEPENDENT
+    ):
+        return
+
+    freq = existing_chore.get(
+        const.DATA_CHORE_RECURRING_FREQUENCY, const.FREQUENCY_NONE
+    )
+    if freq in (const.FREQUENCY_NONE, const.FREQUENCY_DAILY):
+        return
+
+    from .engines.schedule_engine import calculate_next_due_date
+
+    now_utc = dt_util.utcnow()
+    existing_dates: dict[str, str] = dict(
+        existing_chore.get(const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {})
+    )
+    merged: dict[str, str] = {}
+
+    custom_interval: int = int(
+        existing_chore.get(const.DATA_CHORE_CUSTOM_INTERVAL, 1) or 1
+    )
+    custom_unit: str = str(
+        existing_chore.get(
+            const.DATA_CHORE_CUSTOM_INTERVAL_UNIT,
+            const.TIME_UNIT_DAYS,
+        )
+    )
+    raw_days = existing_chore.get(
+        const.DATA_CHORE_APPLICABLE_DAYS,
+        const.DEFAULT_APPLICABLE_DAYS,
+    )
+    applicable_days: list[int] | None = (
+        [int(d) for d in raw_days] if raw_days else None
+    )
+
+    for uid in assigned_assignee_ids:
+        # 1. User-provided explicit due date wins
+        if due_date_iso is not None:
+            merged[uid] = due_date_iso
+            continue
+
+        # 2. Existing valid future date → preserve it
+        existing_str = existing_dates.get(uid)
+        if existing_str:
+            try:
+                existing_dt = dt_util.parse_datetime(existing_str)
+                if existing_dt and existing_dt > now_utc:
+                    merged[uid] = existing_str
+                    continue
+            except (ValueError, TypeError):
+                pass  # unparseable → treat as missing
+
+        # 3. Missing or past → auto-generate
+        next_due = calculate_next_due_date(
+            base_date=now_utc.isoformat(),
+            frequency=freq,
+            interval=custom_interval,
+            interval_unit=custom_unit,
+            applicable_days=applicable_days,
+            reference_datetime=now_utc,
+        )
+        if next_due:
+            merged[uid] = next_due.isoformat()
+            const.LOGGER.info(
+                "Auto-generated due date for %s on '%s': %s",
+                uid,
+                existing_chore.get(const.DATA_CHORE_NAME, chore_id),
+                next_due.isoformat(),
+            )
+
+    if merged:
+        validation_data[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] = dict(merged)
+        data_input[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] = dict(merged)
+
+
 # --- Setup Services ---
 def async_setup_services(hass: HomeAssistant):
     """Register ChoreOps services."""
@@ -1484,6 +1589,19 @@ def async_setup_services(hass: HomeAssistant):
             assigned_assignee_ids,
             due_date_iso=due_date_iso,
             existing_chore=existing_chore,
+        )
+
+        # Fill in missing or past per-assignee due dates for independent
+        # chores with frequencies that require dates (not none/daily).
+        # Runs AFTER _build_service_chore_validation_data so we start from
+        # the correct base (existing dates + optional user-provided date).
+        _ensure_per_assignee_due_dates(
+            validation_data,
+            data_input,
+            assigned_assignee_ids,
+            cast("dict[str, Any]", existing_chore),
+            due_date_iso,
+            chore_id,
         )
 
         # Validate using shared validation (single source of truth)
