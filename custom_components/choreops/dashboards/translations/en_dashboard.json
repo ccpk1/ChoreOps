@@ -174,6 +174,8 @@
   "select_chore_to_manage": "Select a chore to manage",
   "select_user_first": "Select a user first",
   "select_user_to_manage_chores_first": "Choose a user above to manage chores.",
+  "assign_to_user": "Assign to:",
+  "remove_from_user": "Remove from:",
   "selected_user": "Selected user",
   "viewing_selected_chore": "Managing selected chore for",
   "viewing_selected_user": "Viewing selected user",

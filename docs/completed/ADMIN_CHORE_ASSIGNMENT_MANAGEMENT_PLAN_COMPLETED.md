@@ -5,15 +5,15 @@
 - **Name / Code**: `admin-chore-assignment-management`
 - **Target release / milestone**: v0.7.0
 - **Owner / driver(s)**: TBD
-- **Status**: _Phase 1 complete — backend implementation done, Phase 3 (testing) next_
+- **Status**: _Complete — all phases delivered_
 
 ## Summary & immediate steps
 
 | Phase | Description | % complete | Quick notes |
 |---|---|---|---|
-| Phase 1 — Core Backend | Select options extension + `assignment_action` + select sync | **100%** | 6 files changed, select sync working |
-| Phase 2 — Dashboard Template | Opscenter assignment management card | 0% | Blocked by Phase 3 test coverage |
-| Phase 3 — Testing & Polish | Dedicated tests for new functionality | 0% | **Next priority** — 124 existing pass |
+| Phase 1 — Core Backend | Select options extension + `assignment_action` + select sync | **100%** | 7 files changed, 128 tests pass |
+| Phase 2 — Dashboard Template | Opscenter assignment management card | **100%** | Both admin templates updated |
+| Phase 3 — Testing & Polish | Dedicated tests for new functionality | **100%** | 4 `assignment_action` tests, 128 total pass |
 
 1. **Key objective**: Give admins a per-user chore assignment interface in the opscenter. Extend the existing `AssigneeDashboardHelperChoresSelect` to show both assigned and unassigned chores. Add `assignment_action: add|remove|replace` to `update_chore` so the backend handles list merging rather than the frontend. Automatically sync select display names after assignment changes so the UI never shows stale values.
 
@@ -26,7 +26,7 @@
    - `_sync_chore_select_selection()` runs **before** entity sync so HA never sees a stale select state. Iterates all assignees to catch co-assignee display changes. Handles `"unknown"` recovery for both previously and newly assigned users.
    - Lint + MyPy clean, 124 existing tests pass, live-tested with multi-user add/remove scenarios.
 
-3. **Next steps**: Begin Phase 3 (dedicated tests) before Phase 2 (dashboard template). The sync logic has multiple edge cases (remove-only, add-only, co-assignee changes, "unknown" recovery) that need test coverage before building the template on top.
+3. **Next steps**: Begin Phase 2 implementation. The admin-peruser-v1 template's Chore Management section already has a `chore_select_entity` (the `select.{user}_choreops_ui_dashboard_chore_list_helper`) that now shows all chores with `⊘` prefix for unassigned ones. We need to add conditional Assign/Remove buttons that detect the prefix and call `choreops.update_chore` with the appropriate `assignment_action`.
 
 4. **Challenges resolved during implementation**:
    - **Select going "unknown"**: HA resets a select entity when `current_option` is not in `options`. Fixed by (a) syncing selects before entity sync so HA never sees the mismatch, (b) iterating ALL assignees (not just previous/new union) because any user can have an unassigned chore selected, (c) allowing "unknown" recovery for both `previous_assigned` and `new_assigned` users.
@@ -103,30 +103,53 @@ flowchart TD
 
 ### Phase 2 — Dashboard Template
 
-- **Goal**: Add an assignment management section to the opscenter dashboard template. A conditional card shows "Assign" or "Remove" based on the selected chore's prefix.
+- **Goal**: Add assign/remove buttons to the Chore Management section of `admin-peruser-v1.yaml`. When an admin selects a chore from the per-user dropdown, a conditional button card appears below the management summary offering "Assign to [User]" or "Remove from [User]" based on whether the selected option starts with the `⊘ ` prefix.
+
+**UX analysis**: The `admin-peruser-v1` template already has a Chore Management section with:
+
+1. A collapsible header card (`management_summary_card`) showing the chore selector + selected chore name
+2. Below it, when expanded, chore details and action cards
+
+The select entity (`select.{user}_choreops_ui_dashboard_chore_list_helper`) now returns options like:
+- `"Clean Room (Bob)"` — assigned to this user, with co-assignee context
+- `"Clean Room"` — assigned to this user, sole assignee
+- `"──────────"` — visual divider
+- `"⊘ Mow Lawn (Alice)"` — unassigned, with current assignee context
+- `"⊘ Shovel Snow"` — unassigned, no assignees
+
+**Design**: A single conditional button card inserted after the management summary card, visible only when `has_selected_chore` is true:
+
+| Condition | Button | Service call |
+|---|---|---|
+| `selected_chore_name` starts with `⊘ ` | **Assign to [User]** | `update_chore` with `assignment_action: add`, `assigned_user_names: [user]` |
+| Otherwise (assigned) | **Remove from [User]** | `update_chore` with `assignment_action: remove`, `assigned_user_names: [user]` |
+
+**Chore name extraction**: Strip `⊘ ` prefix and ` (co-assignee)` suffix before passing to service:
+```jinja2
+{% set raw = selected_chore_name.removeprefix('⊘ ') %}
+{% set chore_name = raw.split(' (')[0] %}
+```
 
 **Steps / detailed work items**:
 
-1. [ ] `choreops-dashboards/templates/` — New section in opscenter template:
-    - Select entity card for `select.{user}_choreops_ui_dashboard_chore_list_helper`
-    - Conditional button: `{% if states('...').startswith('⊘ ') %}` → show "Assign to [User]" button
-    - Conditional button: `{% elif states('...') != 'None' %}` → show "Remove from [User]" button
-    - Remove button calls `update_chore` with `assignment_action: remove`
-    - Assign button calls `update_chore` with `assignment_action: add`
+1. [ ] `admin-peruser-v1.yaml` — Add assignment button card after `management_summary_card`:
+    - Visible only when `has_selected_chore` is true
+    - `⊘` prefix detection: `{% set is_unassigned = selected_chore_name.startswith('⊘ ') %}`
+    - Assign button: `mdi:account-plus-outline` icon, `var(--success-color)` tint, calls `update_chore` with `assignment_action: add`
+    - Remove button: `mdi:account-minus-outline` icon, `var(--error-color)` tint, calls `update_chore` with `assignment_action: remove`
+    - Both extract the core chore name via `.removeprefix()` + `.split(' (')[0]`
 
-2. [ ] Template strips `⊘ ` prefix from selected value before passing to service:
-    ```jinja2
-    {% set selected = states('select.alice_choreops_ui_dashboard_chore_list_helper') %}
-    {% set chore_name = selected.removeprefix('⊘ ') %}
-    ```
+2. [ ] `admin-shared-v1.yaml` — Mirror the same assignment card (if it has a per-user chore selector)
 
-3. [ ] After service call, reset select to `None` (or the updated value) via `choreops.manage_ui_control` or direct `select.select_option`.
+3. [ ] After service call behavior: the `_sync_chore_select_selection` function runs synchronously before entity sync and updates the select's display name. The select rebuilds its options on the next coordinator refresh. No manual reset needed — the sync handles it.
 
-4. [ ] `choreops-dashboards/dashboard_registry.json` — Register new card/template if needed.
+4. [ ] `utils/sync_dashboard_assets.py` — Run after template edits to sync into `custom_components/choreops/dashboards/`
 
-**Key issues**:
-- Select reset after action: service changes the chore's assignment state, but the select still shows the old prefix until HA re-renders the options. Mitigation: call `select.select_option` with `option: "None"` after the service completes, or accept a brief stale state.
-- The select `options` rebuilds on each coordinator update. After `update_chore` persists and emits, the coordinator refreshes, the select rebuilds options, and the prefix updates. This is ~1-2 seconds.
+**Key design decisions**:
+- **Single button card, not two**: One card that conditionally renders either the assign or remove variant. Simpler template, less conditional nesting.
+- **No select reset**: The sync function handles display name updates. The select stays on the selected chore; its display updates from `⊘ Chore` to `Chore` (or vice versa).
+- **Strip co-assignee suffix**: `"⊘ Mow Lawn (Alice)"` → extract `"Mow Lawn"` for the service call. Co-assignee info is visual only.
+- **Follow DASHBOARD_UI_DESIGN_GUIDELINE.md**: Use theme variables for colors, `card-background-color` for surface, `divider-color` for borders, semantic icon choices.
 
 ---
 

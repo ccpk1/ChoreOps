@@ -1224,9 +1224,7 @@ def _ensure_per_assignee_due_dates(
         const.DATA_CHORE_APPLICABLE_DAYS,
         const.DEFAULT_APPLICABLE_DAYS,
     )
-    applicable_days: list[int] | None = (
-        [int(d) for d in raw_days] if raw_days else None
-    )
+    applicable_days: list[int] | None = [int(d) for d in raw_days] if raw_days else None
 
     for uid in assigned_assignee_ids:
         # 1. User-provided explicit due date wins
