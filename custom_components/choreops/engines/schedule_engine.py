@@ -817,18 +817,30 @@ class RecurrenceEngine:
             if slot_utc > reference_utc:
                 return slot_utc
 
-        # Past all slots today, wrap to first slot tomorrow
-        tomorrow_date = current_date + timedelta(days=1)
-        tomorrow_slots = parse_daily_multi_times(
-            self._daily_multi_times,
-            reference_date=tomorrow_date,
-            timezone_info=const.DEFAULT_TIME_ZONE,
-        )
-        if tomorrow_slots:
-            return as_utc(tomorrow_slots[0])
+        # Past all slots today, advance day-by-day until a slot after
+        # reference_utc is found (matches bounded-iteration pattern used by
+        # _calculate_with_relativedelta and dt_next_schedule).
+        iteration = 0
+        search_date = current_date + timedelta(days=1)
+        while iteration < const.MAX_DATE_CALCULATION_ITERATIONS:
+            iteration += 1
+            day_slots = parse_daily_multi_times(
+                self._daily_multi_times,
+                reference_date=search_date,
+                timezone_info=const.DEFAULT_TIME_ZONE,
+            )
+            if not day_slots:
+                search_date = search_date + timedelta(days=1)
+                continue
+            first_slot_utc = as_utc(day_slots[0])
+            if first_slot_utc > reference_utc:
+                return first_slot_utc
+            search_date = search_date + timedelta(days=1)
 
         const.LOGGER.warning(
-            "RecurrenceEngine: DAILY_MULTI failed to calculate next slot"
+            "RecurrenceEngine: DAILY_MULTI failed to calculate next slot "
+            "after %d iterations",
+            iteration,
         )
         return None
 
