@@ -5954,9 +5954,10 @@ class ChoreManager(BaseManager):
         per_assignee_times = chore_info.get(
             const.DATA_CHORE_PER_ASSIGNEE_DAILY_MULTI_TIMES, {}
         )
-        if assignee_id in per_assignee_times:
+        per_assignee_times_val = per_assignee_times.get(assignee_id, "")
+        if per_assignee_times_val:
             chore_info_for_calc[const.DATA_CHORE_DAILY_MULTI_TIMES] = (
-                per_assignee_times[assignee_id]
+                per_assignee_times_val
             )
 
         effective_reference_time = reference_time or dt_util.utcnow()
