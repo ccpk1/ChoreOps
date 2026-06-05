@@ -909,6 +909,208 @@ views:
                   }
                 } }},
                 {%- endif -%}
+                {#-- ===== RESCHEDULE CHORES ===== --#}
+                {%- if has_selected_user -%}
+                  {%- set reschedule_date_helper = selected_dashboard_helpers.get('date_helper_eid') if selected_dashboard_helpers is mapping else '' -%}
+                  {%- set has_reschedule_date_helper = reschedule_date_helper not in ['', None, 'None'] -%}
+                  {%- set reschedule_date_display = (
+                    ui.get('reschedule_push_label', 'err-reschedule_push_label') ~ " " ~ (as_timestamp(states(reschedule_date_helper)) | timestamp_custom('%a, %b %d, %Y %I:%M %p', true))
+                  ) if has_reschedule_date_helper and states(reschedule_date_helper) not in ['unknown', 'unavailable'] else ui.get('no_date_set', 'err-no_date_set') -%}
+                  {%- set after_datetime = states(reschedule_date_helper) if has_reschedule_date_helper and states(reschedule_date_helper) not in ['unknown', 'unavailable', 'none', ''] else '' -%}
+                  {%- set has_after_datetime = after_datetime != '' -%}
+                  {{ {
+                    'type': 'custom:button-card',
+                    'entity': reschedule_date_helper if has_reschedule_date_helper else selected_dashboard_helper,
+                    'show_name': True,
+                    'show_label': True,
+                    'show_state': False,
+                    'show_icon': True,
+                    'icon': 'mdi:calendar-sync',
+                    'name': ui.get('reschedule_chores', 'err-reschedule_chores'),
+                    'label': reschedule_date_display,
+                    'tap_action': {'action': 'none'},
+                    'hold_action': {'action': 'more-info'} if has_reschedule_date_helper else {'action': 'none'},
+                    'custom_fields': {
+                      'pick': {
+                        'card': {
+                          'type': 'custom:button-card',
+                          'entity': reschedule_date_helper if has_reschedule_date_helper else selected_dashboard_helper,
+                          'icon': 'mdi:calendar-search',
+                          'show_name': False,
+                          'show_icon': True,
+                          'tap_action': {'action': 'more-info'} if has_reschedule_date_helper else {'action': 'none'},
+                          'styles': {
+                            'card': [
+                              {'width': '34px'},
+                              {'height': '34px'},
+                              {'border-radius': '10px'},
+                              {'box-shadow': 'none'},
+                              {'border': '1px solid color-mix(in srgb, var(--primary-color) 18%, var(--divider-color))'},
+                              {'background-color': 'color-mix(in srgb, var(--primary-color) 10%, var(--card-background-color))'}
+                            ],
+                            'icon': [
+                              {'width': '18px'},
+                              {'color': 'var(--primary-color)'}
+                            ]
+                          }
+                        }
+                      },
+                      'indep': {
+                        'card': {
+                          'type': 'custom:button-card',
+                          'show_name': True,
+                          'show_state': False,
+                          'show_icon': True,
+                          'icon': 'mdi:calendar-sync-outline',
+                          'name': ui.get('reschedule_independent', 'err-reschedule_independent'),
+                          'tap_action': ({
+                            'action': 'call-service',
+                            'service': 'choreops.reschedule_chores_after',
+                            'data': {
+                              'config_entry_id': integration_entry_id,
+                              'user_names': [selected_user_name],
+                              'after': after_datetime
+                            }
+                          }) if has_after_datetime else {'action': 'none'},
+                          'styles': {
+                            'card': [
+                              {'padding': '6px 2px'},
+                              {'border-radius': '12px'},
+                              {'box-shadow': 'none'},
+                              {'border': '1px solid color-mix(in srgb, var(--primary-color) 18%, var(--divider-color))'},
+                              {'background-color': 'color-mix(in srgb, var(--primary-color) 8%, var(--card-background-color))'}
+                            ],
+                            'grid': [
+                              {'grid-template-areas': '"i" "n"'},
+                              {'grid-template-columns': '1fr'},
+                              {'grid-template-rows': 'min-content min-content'},
+                              {'justify-items': 'center'},
+                              {'row-gap': '4px'}
+                            ],
+                            'icon': [
+                              {'width': '22px'},
+                              {'height': '22px'},
+                              {'color': 'var(--primary-color)'}
+                            ],
+                            'name': [
+                              {'text-align': 'center'},
+                              {'white-space': 'normal'},
+                              {'word-break': 'break-word'},
+                              {'font-size': '11px'},
+                              {'font-weight': '600'},
+                              {'line-height': '1.3'},
+                              {'color': 'var(--primary-text-color)'},
+                              {'padding': '0 2px'}
+                            ]
+                          }
+                        }
+                      },
+                      'all': {
+                        'card': {
+                          'type': 'custom:button-card',
+                          'show_name': True,
+                          'show_state': False,
+                          'show_icon': True,
+                          'icon': 'mdi:calendar-refresh',
+                          'name': ui.get('reschedule_all_incl_shared', 'err-reschedule_all_incl_shared'),
+                          'tap_action': ({
+                            'action': 'call-service',
+                            'service': 'choreops.reschedule_chores_after',
+                            'data': {
+                              'config_entry_id': integration_entry_id,
+                              'user_names': [selected_user_name],
+                              'after': after_datetime,
+                              'reschedule_shared': true
+                            }
+                          }) if has_after_datetime else {'action': 'none'},
+                          'styles': {
+                            'card': [
+                              {'padding': '6px 2px'},
+                              {'border-radius': '12px'},
+                              {'box-shadow': 'none'},
+                              {'border': '1px solid color-mix(in srgb, var(--primary-color) 18%, var(--divider-color))'},
+                              {'background-color': 'color-mix(in srgb, var(--primary-color) 8%, var(--card-background-color))'}
+                            ],
+                            'grid': [
+                              {'grid-template-areas': '"i" "n"'},
+                              {'grid-template-columns': '1fr'},
+                              {'grid-template-rows': 'min-content min-content'},
+                              {'justify-items': 'center'},
+                              {'row-gap': '4px'}
+                            ],
+                            'icon': [
+                              {'width': '22px'},
+                              {'height': '22px'},
+                              {'color': 'var(--primary-color)'}
+                            ],
+                            'name': [
+                              {'text-align': 'center'},
+                              {'white-space': 'normal'},
+                              {'word-break': 'break-word'},
+                              {'font-size': '11px'},
+                              {'font-weight': '600'},
+                              {'line-height': '1.3'},
+                              {'color': 'var(--primary-text-color)'},
+                              {'padding': '0 2px'}
+                            ]
+                          }
+                        }
+                      }
+                    },
+                    'styles': {
+                      'card': [
+                        {'padding': '12px 14px'},
+                        {'margin-top': '0px'},
+                        {'border-radius': '14px'},
+                        {'box-shadow': 'none'},
+                        {'margin-bottom': '0px'},
+                        {'border': '1px solid var(--divider-color)'},
+                        {'background-color': 'var(--card-background-color)'}
+                      ],
+                      'grid': [
+                        {'grid-template-areas': '"i n . pick" "i l . pick" ". indep all ."'},
+                        {'grid-template-columns': '26px 1fr 1fr 34px'},
+                        {'grid-template-rows': 'min-content min-content auto'},
+                        {'column-gap': '10px'},
+                        {'row-gap': '8px'},
+                        {'align-items': 'center'}
+                      ],
+                      'icon': [
+                        {'width': '20px'},
+                        {'height': '20px'},
+                        {'color': 'var(--primary-color)'}
+                      ],
+                      'name': [
+                        {'justify-self': 'start'},
+                        {'font-size': '13px'},
+                        {'font-weight': '700'},
+                        {'line-height': '1.2'}
+                      ],
+                      'label': [
+                        {'justify-self': 'start'},
+                        {'text-align': 'left'},
+                        {'font-size': '12px'},
+                        {'line-height': '1.35'},
+                        {'color': 'var(--secondary-text-color)'},
+                        {'white-space': 'normal'}
+                      ],
+                      'custom_fields': {
+                        'pick': [
+                          {'justify-self': 'end'},
+                          {'align-self': 'center'}
+                        ],
+                        'indep': [
+                          {'justify-self': 'stretch'},
+                          {'align-self': 'stretch'}
+                        ],
+                        'all': [
+                          {'justify-self': 'stretch'},
+                          {'align-self': 'stretch'}
+                        ]
+                      }
+                    }
+                  } }},
+                {%- endif -%}
               {%- endif -%}
 
         - type: custom:auto-entities
@@ -1544,7 +1746,7 @@ views:
                   {%- set due_dt_raw = chore_attrs.get('due_date') or chore_attrs.get('due_window_start') or chore_attrs.get('available_at') -%}
                   {%- set due_dt = as_datetime(due_dt_raw) if due_dt_raw not in [None, 'None', '', 'unknown', 'unavailable'] else none -%}
                   {%- set due_label = ui.get('available', 'err-available') if chore_attrs.get('available_at') not in [None, 'None', '', 'unknown', 'unavailable'] and chore_attrs.get('due_date') in [None, 'None', '', 'unknown', 'unavailable'] and chore_attrs.get('due_window_start') in [None, 'None', '', 'unknown', 'unavailable'] else ui.get('due_date', 'err-due_date') -%}
-                  {%- set due_display = as_timestamp(due_dt) | timestamp_custom('%A, %b %d • %I:%M %p', true) if due_dt else ui.get('none', 'err-none') -%}
+                  {%- set due_display = as_timestamp(due_dt) | timestamp_custom('%A, %b %d, %Y • %I:%M %p', true) if due_dt else ui.get('none', 'err-none') -%}
                   {%- set assigned_users = chore_attrs.get('assigned_user_names', []) | default([], true) -%}
                   {%- set claimed_by = chore_attrs.get('claimed_by', []) | default([], true) -%}
                   {%- set completed_by = chore_attrs.get('completed_by', []) | default([], true) -%}
