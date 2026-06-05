@@ -874,6 +874,14 @@ reschedule_chores_after:
       example: false
       selector:
         boolean:
+    allow_long_recurrences:
+      name: "Allow Long Recurrences"
+      description: "Allow rescheduling of monthly, quarterly, yearly, and other long-interval recurrences. Default false to prevent accidental large jumps."
+      required: false
+      default: false
+      example: true
+      selector:
+        boolean:
 
 remove_awarded_badges:
   name: "Remove Awarded Badges"

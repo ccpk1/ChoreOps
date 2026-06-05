@@ -3137,6 +3137,11 @@
           "name": "Skip Non-Recurring Chores",
           "description": "Enable this to leave non-recurring chores unchanged instead of moving their due date to the boundary.",
           "example": "false"
+        },
+        "allow_long_recurrences": {
+          "name": "Allow Long Recurrences",
+          "description": "Allow rescheduling of monthly, quarterly, yearly, and other long-interval recurrences. Default false to prevent accidental large jumps.",
+          "example": "true"
         }
       }
     },

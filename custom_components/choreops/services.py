@@ -607,6 +607,10 @@ RESCHEDULE_CHORES_AFTER_SCHEMA = vol.Schema(
                 const.SERVICE_FIELD_SKIP_NON_RECURRING,
                 default=False,
             ): cv.boolean,
+            vol.Optional(
+                const.SERVICE_FIELD_ALLOW_LONG_RECURRENCES,
+                default=False,
+            ): cv.boolean,
         }
     )
 )
@@ -2313,6 +2317,9 @@ def async_setup_services(hass: HomeAssistant):
             ),
             skip_non_recurring=bool(
                 call.data.get(const.SERVICE_FIELD_SKIP_NON_RECURRING, False)
+            ),
+            allow_long_recurrences=bool(
+                call.data.get(const.SERVICE_FIELD_ALLOW_LONG_RECURRENCES, False)
             ),
         )
 

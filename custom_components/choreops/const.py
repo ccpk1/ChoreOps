@@ -2859,6 +2859,7 @@ SERVICE_FIELD_CHORE_IDS: Final = "chore_ids"
 SERVICE_FIELD_AFTER: Final = "after"
 SERVICE_FIELD_RESCHEDULE_SHARED: Final = "reschedule_shared"
 SERVICE_FIELD_SKIP_NON_RECURRING: Final = "skip_non_recurring"
+SERVICE_FIELD_ALLOW_LONG_RECURRENCES: Final = "allow_long_recurrences"
 SERVICE_FIELD_MARK_AS_MISSED: Final = "mark_as_missed"
 
 # Chore service fields (CRUD) - user-friendly names for service calls

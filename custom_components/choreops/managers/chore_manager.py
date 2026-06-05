@@ -5977,6 +5977,54 @@ class ChoreManager(BaseManager):
             reference_time=effective_reference_time,
         )
 
+    @staticmethod
+    def _is_long_recurrence(
+        chore_info: ChoreData | dict[str, Any],
+        frequency: str,
+    ) -> bool:
+        """Check if a chore's recurrence interval exceeds 2 weeks.
+
+        Protects against accidental large jumps (e.g., a 1-week vacation
+        pushing a yearly chore a full year forward).
+
+        Returns True for monthly/quarterly/yearly standard frequencies,
+        period-end equivalents, and custom intervals where the effective
+        recurrence period exceeds 14 days.
+        """
+        # Standard long-period frequencies
+        if frequency in (
+            const.FREQUENCY_MONTHLY,
+            const.FREQUENCY_QUARTERLY,
+            const.FREQUENCY_YEARLY,
+            const.FREQUENCY_CUSTOM_1_MONTH,
+            const.FREQUENCY_CUSTOM_1_QUARTER,
+            const.FREQUENCY_CUSTOM_1_YEAR,
+        ):
+            return True
+
+        # Period-end frequencies (month-end, quarter-end, year-end)
+        if frequency in (
+            const.PERIOD_MONTH_END,
+            const.PERIOD_QUARTER_END,
+            const.PERIOD_YEAR_END,
+        ):
+            return True
+
+        # Custom intervals: check unit and interval magnitude
+        if frequency in (const.FREQUENCY_CUSTOM, const.FREQUENCY_CUSTOM_FROM_COMPLETE):
+            custom_unit = chore_info.get(const.DATA_CHORE_CUSTOM_INTERVAL_UNIT, "")
+            custom_interval = chore_info.get(const.DATA_CHORE_CUSTOM_INTERVAL)
+            if custom_unit and custom_interval is not None:
+                if custom_unit == const.TIME_UNIT_MONTHS:
+                    return int(custom_interval) > 0
+                if custom_unit == const.TIME_UNIT_WEEKS:
+                    return int(custom_interval) > 2
+                if custom_unit == const.TIME_UNIT_DAYS:
+                    return int(custom_interval) > 14
+                if custom_unit == const.TIME_UNIT_HOURS:
+                    return int(custom_interval) > 336  # 14 days in hours
+        return False
+
     async def reschedule_chores_after(
         self,
         after_dt: datetime,
@@ -5985,6 +6033,7 @@ class ChoreManager(BaseManager):
         assignee_ids: list[str] | None = None,
         reschedule_shared: bool = False,
         skip_non_recurring: bool = False,
+        allow_long_recurrences: bool = False,
     ) -> dict[str, Any]:
         """Reschedule chore due dates so they fall after the supplied datetime."""
         after_utc = dt_util.as_utc(after_dt)
@@ -6014,6 +6063,22 @@ class ChoreManager(BaseManager):
                 const.DATA_CHORE_RECURRING_FREQUENCY,
                 const.FREQUENCY_NONE,
             )
+
+            # Gate: skip long recurrences (monthly+) unless explicitly allowed.
+            # Prevents vacation pushes from accidentally jumping yearly chores
+            # a full year forward.
+            if not allow_long_recurrences and self._is_long_recurrence(
+                chore_info, frequency
+            ):
+                skipped.append(
+                    {
+                        "chore_id": chore_id,
+                        "chore_name": chore_name,
+                        "reason": "recurrence_interval_too_long",
+                        "frequency": frequency,
+                    }
+                )
+                continue
 
             if ChoreEngine.uses_chore_level_due_date(chore_info):
                 if assignee_filter and not any(
