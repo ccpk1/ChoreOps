@@ -2593,7 +2593,7 @@
         },
         "assigned_user_names": {
           "name": "Assigned to",
-          "description": "List of assignee names to assign this chore to.",
+          "description": "List of assignee names to assign this chore to. Use [\"*\"] for all assignable users. Pass an empty list to create without assignees.",
           "example": "['Emma', 'Jack']"
         },
         "points": {
@@ -2699,7 +2699,7 @@
         },
         "assigned_user_names": {
           "name": "Assigned to",
-          "description": "New list of assignee names to assign this chore to.",
+          "description": "New list of assignee names to assign this chore to. Use [\"*\"] for all assignable users. Pass an empty list to remove all assigned users. Omit to leave current assignments unchanged.",
           "example": "['Emma', 'Jack']"
         },
         "points": {
@@ -2771,6 +2771,11 @@
           "name": "Due Reminder Offset",
           "description": "New due reminder offset. Duration before due date to send reminder notification. Format: '30m', '1h', '1d 6h 30m', etc. Use '0' to disable.",
           "example": "30m"
+        },
+        "assignment_action": {
+          "name": "Assignment Action",
+          "description": "How to handle the assigned_user_names list. 'replace' sets the list directly (default, backward-compatible). 'add' appends the listed users to existing assignees. 'remove' removes the listed users from existing assignees.",
+          "example": "add"
         }
       }
     },
@@ -3132,6 +3137,11 @@
           "name": "Skip Non-Recurring Chores",
           "description": "Enable this to leave non-recurring chores unchanged instead of moving their due date to the boundary.",
           "example": "false"
+        },
+        "allow_long_recurrences": {
+          "name": "Allow Long Recurrences",
+          "description": "Allow rescheduling of monthly, quarterly, yearly, and other long-interval recurrences. Default false to prevent accidental large jumps.",
+          "example": "true"
         }
       }
     },

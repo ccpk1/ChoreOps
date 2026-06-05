@@ -24,6 +24,7 @@ from .helpers.device_helpers import (
     create_system_device_info,
 )
 from .helpers.entity_helpers import (
+    build_chore_select_display_name,
     should_create_entity,
     should_create_entity_for_user_assignee,
 )
@@ -124,7 +125,7 @@ class ChoreOpsSelectBase(ChoreOpsCoordinatorEntity, SelectEntity):
         """
         super().__init__(coordinator)
         self._entry = entry
-        self._selected_option: str | None = None
+        self._selected_option: str = const.SENTINEL_NONE_TEXT
 
     @property
     def current_option(self) -> str | None:
@@ -520,30 +521,38 @@ class AssigneeDashboardHelperChoresSelect(ChoreOpsSelectBase):
 
     @property
     def options(self) -> list[str]:
-        """Return a list of chore names assigned to this assignee, with a 'None' option.
+        """Return chore names for this user including unassigned chores.
 
-        Filters coordinator.chores_data to include only chores where assignee_id is in
-        the assigned_assignees list. Prepends 'None' option for clearing selection.
-        Returns chore names sorted alphabetically for consistent ordering.
+        Assigned chores appear as plain names with current assignees in
+        parentheses.  Unassigned chores appear with the
+        ``UNASSIGNED_CHORE_PREFIX`` prefix.  Both groups are sorted
+        alphabetically and separated by a visual divider.
         """
-        # Collect chore names for this assignee
-        chore_names = []
-        for chore_id, chore_info in self.coordinator.chores_data.items():
-            if self._assignee_id in chore_info.get(
+        assigned: list[str] = []
+        unassigned: list[str] = []
+
+        for _chore_id, chore_info in self.coordinator.chores_data.items():
+            assigned_user_ids: list[str] = chore_info.get(
                 const.DATA_CHORE_ASSIGNED_USER_IDS, []
-            ):
-                chore_name = chore_info.get(
-                    const.DATA_CHORE_NAME,
-                    f"{const.TRANS_KEY_LABEL_CHORE} {chore_id}",
-                )
-                chore_names.append(chore_name)
+            )
+            display = build_chore_select_display_name(
+                cast("dict[str, Any]", chore_info),
+                self._assignee_id,
+                self.coordinator,
+            )
+            if self._assignee_id in assigned_user_ids:
+                assigned.append(display)
+            else:
+                unassigned.append(display)
 
-        # Sort alphabetically (case-insensitive)
-        chore_names.sort(key=str.lower)
+        assigned.sort(key=str.lower)
+        unassigned.sort(key=str.lower)
 
-        # Start with a "None" entry and add sorted chores
         options = [const.SENTINEL_NONE_TEXT]
-        options.extend(chore_names)
+        options.extend(assigned)
+        if unassigned:
+            options.append(const.SELECT_SECTION_DIVIDER)
+            options.extend(unassigned)
         return options
 
     @property

@@ -1360,8 +1360,7 @@ def validate_chore_data(
     Validation Rules:
         1. Name not empty (create) or not blank (update if provided)
         2. Name not duplicate
-        3. At least one assignee assigned (create only)
-        4. Points >= 0 (if provided)
+        3. Points >= 0 (if provided)
         5. Effective due dates not in past and parseable
         6. DAILY_MULTI + reset type combination
         7. Overdue + reset type combination
@@ -1429,15 +1428,7 @@ def validate_chore_data(
                 )
                 return errors
 
-    # === 3. Assigned assignees validation (create only) ===
-    assigned_assignees = data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
-    if not is_update and not assigned_assignees:
-        errors[const.CFOP_ERROR_ASSIGNED_USER_IDS] = (
-            const.TRANS_KEY_CFOF_NO_ASSIGNEES_ASSIGNED
-        )
-        return errors
-
-    # === 4. Points >= 0 ===
+    # === 3. Points >= 0 ===
     if const.DATA_CHORE_DEFAULT_POINTS in data:
         points = data[const.DATA_CHORE_DEFAULT_POINTS]
         try:
@@ -1468,6 +1459,7 @@ def validate_chore_data(
     completion_criteria = data.get(
         const.DATA_CHORE_COMPLETION_CRITERIA, const.COMPLETION_CRITERIA_INDEPENDENT
     )
+    assigned_assignees = data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
     due_date_raw = data.get(const.DATA_CHORE_DUE_DATE)
     per_assignee_due_dates = _normalize_dict_field(
         data.get(const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {})
