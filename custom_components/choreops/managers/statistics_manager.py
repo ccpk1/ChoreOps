@@ -2358,6 +2358,13 @@ class StatisticsManager(BaseManager):
         today_iso: str,
     ) -> bool:
         """Return True if this chore is assignee-actionable today."""
+        # Pause guard: Paused users have no actionable chores
+        user_data = self.coordinator._data.get(const.DATA_USERS, {}).get(
+            assignee_id, {}
+        )
+        if user_data.get(const.DATA_USER_CHORES_PAUSED):
+            return False
+
         per_assignee_due_dates = cast(
             "dict[str, str | None]",
             chore_info.get(const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {}),

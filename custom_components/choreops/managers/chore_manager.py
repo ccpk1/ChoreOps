@@ -387,6 +387,61 @@ class ChoreManager(BaseManager):
             await self._process_overdue(filtered_overdue, now_utc, persist=False)
             state_modified = state_modified or len(filtered_overdue) > 0
 
+            # Phase C: Advance rotation past paused turn-holders (safety net)
+            # Primary mechanism is real-time (set_user_chores_paused).
+            # Midnight pass catches edge cases: paused via direct data write,
+            # backup restore, schema migrations, or race conditions.
+            chores_data = self._coordinator._data.get(const.DATA_CHORES, {})
+            for chore_id, chore_info in chores_data.items():
+                if not ChoreEngine.is_rotation_mode(chore_info):
+                    continue
+                current_turn = chore_info.get(
+                    const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID
+                )
+                if current_turn is None:
+                    continue
+                assigned = chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
+                if current_turn not in assigned:
+                    continue
+                if not self._is_chore_paused_for_assignee(current_turn, chore_id):
+                    continue
+                # Turn-holder is paused — advance to next available
+                idx = assigned.index(current_turn)
+                for _ in range(len(assigned)):
+                    idx = (idx + 1) % len(assigned)
+                    candidate = assigned[idx]
+                    if candidate == current_turn:
+                        break  # Full cycle, all paused
+                    if not self._is_chore_paused_for_assignee(candidate, chore_id):
+                        chore_info[const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID] = (
+                            candidate
+                        )
+                        state_modified = True
+                        const.LOGGER.debug(
+                            "Midnight rotation safety: advanced past paused %s to %s",
+                            current_turn,
+                            candidate,
+                        )
+                        break
+
+            # Phase D: Auto-unpause expired pauses (runs after reset + overdue)
+            now_iso = now_utc.isoformat()
+            users_data = self._coordinator._data.get(const.DATA_USERS, {})
+            unpaused_count = 0
+            for user_id, user_data_inner in users_data.items():
+                if not user_data_inner.get(const.DATA_USER_CHORES_PAUSED):
+                    continue
+                until_str = user_data_inner.get(const.DATA_USER_CHORES_PAUSED_UNTIL)
+                if until_str and until_str < now_iso:
+                    user_data_inner[const.DATA_USER_CHORES_PAUSED] = False
+                    user_data_inner.pop(const.DATA_USER_CHORES_PAUSED_UNTIL, None)
+                    unpaused_count += 1
+            if unpaused_count > 0:
+                state_modified = True
+                const.LOGGER.info(
+                    "Auto-unpaused %d user(s) at midnight", unpaused_count
+                )
+
             return reset_count
         except Exception:
             const.LOGGER.exception("ChoreManager: Error during midnight rollover")
@@ -2032,6 +2087,11 @@ class ChoreManager(BaseManager):
 
             # Phase 4 Guard Rail: Idempotency - check current state before processing
             assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
+
+            # Pause guard: Skip paused users — no overdue processing
+            if self._is_chore_paused_for_assignee(assignee_id, chore_id):
+                continue
+
             current_state = assignee_chore_data.get(const.DATA_USER_CHORE_DATA_STATE)
 
             if current_state == const.CHORE_STATE_OVERDUE:
@@ -2282,6 +2342,10 @@ class ChoreManager(BaseManager):
                 if not assignee_id:
                     continue
 
+                # Pause guard: Skip paused users — no midnight reset processing
+                if self._is_chore_paused_for_assignee(assignee_id, chore_id):
+                    continue
+
                 assignee_state = self._derive_boundary_assignee_state(
                     assignee_id,
                     chore_id,
@@ -2345,6 +2409,10 @@ class ChoreManager(BaseManager):
 
             for assignee_entry in assignee_entries:
                 assignee_id = assignee_entry[const.CHORE_SCAN_ENTRY_USER_ID]
+
+                # Pause guard: Skip paused users — no midnight reset processing
+                if self._is_chore_paused_for_assignee(assignee_id, chore_id):
+                    continue
 
                 assignee_state = self._derive_boundary_assignee_state(
                     assignee_id,
@@ -3774,16 +3842,22 @@ class ChoreManager(BaseManager):
         from other assignees' states instead of checking a stored
         completed_by_other state.
 
+        Pause guard: Paused users cannot claim chores.
+
         Checks (in order):
-        1. Single-claimer blocking - Another assignee is claimed/approved
-        2. pending_claim - Already has a claim awaiting approval
-        3. already_approved - Already approved in current period (if not multi-claim)
+        1. Pause guard - User is paused
+        2. Single-claimer blocking - Another assignee is claimed/approved
+        3. pending_claim - Already has a claim awaiting approval
+        4. already_approved - Already approved in current period (if not multi-claim)
 
         Returns:
             Tuple of (can_claim: bool, error_key: str | None)
             - (True, None) if claim is allowed
             - (False, translation_key) if claim is blocked
         """
+        # Pause guard: Block claim for paused users
+        if self._is_chore_paused_for_assignee(assignee_id, chore_id):
+            return (False, const.TRANS_KEY_ERROR_CHORE_PAUSED)
         # Get current assignee's chore data and chore definition
         assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
         chore_data: ChoreData | dict[str, Any] = self._coordinator.chores_data.get(
@@ -3985,6 +4059,38 @@ class ChoreManager(BaseManager):
 
         return assignee_states
 
+    def _is_chore_paused_for_assignee(self, assignee_id: str, chore_id: str) -> bool:
+        """Check all pause scopes. Returns True if chore should show as paused.
+
+        Checks three sources (composed via OR):
+          1. User-level: DATA_USER_CHORES_PAUSED on user record (MVP)
+          2. Chore-level: DATA_CHORE_PAUSED on chore record (future)
+          3. Chore\u00d7User: DATA_CHORE_PAUSED_FOR list on chore record (future)
+
+        MVP implements scope 1 only; scopes 2 & 3 are architectural hooks
+        that return False until their storage fields exist.
+        """
+        chore_data = self._coordinator._data.get(const.DATA_CHORES, {}).get(
+            chore_id, {}
+        )
+        user_data = self._coordinator._data.get(const.DATA_USERS, {}).get(
+            assignee_id, {}
+        )
+
+        # Scope 1: User-level — all chores paused for this user (MVP)
+        if user_data.get(const.DATA_USER_CHORES_PAUSED):
+            return True
+
+        # Scope 2: Chore-level — this chore paused for all users (future)
+        if chore_data.get(const.DATA_CHORE_PAUSED):
+            return True
+
+        # Scope 3: Chore\u00d7User — this chore paused for this specific user (future)
+        if assignee_id in chore_data.get(const.DATA_CHORE_PAUSED_FOR, []):
+            return True
+
+        return False
+
     def get_chore_status_context(
         self, assignee_id: str, chore_id: str
     ) -> dict[str, Any]:
@@ -4018,6 +4124,26 @@ class ChoreManager(BaseManager):
         """
         # Single data fetch
         assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
+
+        # P0: Check if chore processing is paused for this assignee
+        if self._is_chore_paused_for_assignee(assignee_id, chore_id):
+            return {
+                const.CHORE_CTX_STATE: const.CHORE_STATE_PAUSED,
+                const.CHORE_CTX_STORED_STATE: None,
+                const.CHORE_CTX_IS_OVERDUE: False,
+                const.CHORE_CTX_IS_DUE: False,
+                const.CHORE_CTX_HAS_PENDING_CLAIM: False,
+                const.CHORE_CTX_IS_APPROVED_IN_PERIOD: False,
+                const.CHORE_CTX_IS_COMPLETED_BY_OTHER: False,
+                const.CHORE_CTX_CAN_CLAIM: False,
+                const.CHORE_CTX_CAN_CLAIM_ERROR: None,
+                const.CHORE_CTX_CLAIM_MODE: const.CHORE_CLAIM_MODE_BLOCKED_PAUSED,
+                const.CHORE_CTX_CAN_APPROVE: False,
+                const.CHORE_CTX_CAN_APPROVE_ERROR: None,
+                const.CHORE_CTX_DUE_DATE: None,
+                const.CHORE_CTX_AVAILABLE_AT: None,
+                const.CHORE_CTX_LAST_COMPLETED: None,
+            }
 
         # Pre-compute all status flags using Engine methods
         has_pending = ChoreEngine.chore_has_pending_claim(assignee_chore_data)
@@ -4200,6 +4326,7 @@ class ChoreManager(BaseManager):
             const.CHORE_STATE_NOT_MY_TURN,
             const.CHORE_STATE_OVERDUE,
             const.CHORE_STATE_MISSED,
+            const.CHORE_STATE_PAUSED,
         ):
             return False
 
@@ -4209,6 +4336,7 @@ class ChoreManager(BaseManager):
             const.CHORE_CLAIM_MODE_BLOCKED_PENDING_CLAIM,
             const.CHORE_CLAIM_MODE_BLOCKED_NOT_MY_TURN,
             const.CHORE_CLAIM_MODE_BLOCKED_MISSED_LOCKED,
+            const.CHORE_CLAIM_MODE_BLOCKED_PAUSED,
         ):
             return False
 
@@ -5158,6 +5286,13 @@ class ChoreManager(BaseManager):
                 translation_key=const.TRANS_KEY_ERROR_ASSIGNEE_NOT_ASSIGNED,
             )
 
+        # Pause guard: Reject setting turn to a paused user
+        if self._is_chore_paused_for_assignee(assignee_id, chore_id):
+            raise ServiceValidationError(
+                translation_domain=const.DOMAIN,
+                translation_key=const.TRANS_KEY_ERROR_CHORE_PAUSED,
+            )
+
         # Set the turn
         chore_info[const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID] = assignee_id
 
@@ -5648,12 +5783,18 @@ class ChoreManager(BaseManager):
         - Stored at chore data level (survives retention pruning)
         - Reset to 0 on chore completion (in approve_chore)
 
+        Pause guard: Skip paused users — no missed recording.
+
         Args:
             assignee_id: The assignee's internal ID
             chore_id: The chore's internal ID
             due_date: Optional due date for the missed chore (D-07)
             reason: Optional reason for missed chore (D-07)
         """
+        # Pause guard: Skip paused users — no missed recording
+        if self._is_chore_paused_for_assignee(assignee_id, chore_id):
+            return
+
         assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
 
         # Get assignee name for notification standard
@@ -5709,6 +5850,103 @@ class ChoreManager(BaseManager):
             signal_payload["reason"] = reason
 
         self.emit(const.SIGNAL_SUFFIX_CHORE_MISSED, **signal_payload)
+
+    def _advance_rotation_past_paused_assignee(self, assignee_id: str) -> None:
+        """Advance rotation turn past a paused assignee for all rotation chores.
+
+        Called in real time when a user is paused, not deferred to midnight.
+        Handles all rotation types (simple, smart, primary_backup) and all
+        overdue handling types (at_midnight, at_due_date, overdue_until_complete).
+
+        Scans all rotation chores where this user is the current turn-holder
+        and advances to the next available non-paused assignee. If all assignees
+        are paused, the rotation freezes at the current position.
+        """
+        chores_data = self._coordinator._data.get(const.DATA_CHORES, {})
+        advanced_count = 0
+        for chore_id, chore_info in chores_data.items():
+            if not ChoreEngine.is_rotation_mode(chore_info):
+                continue
+            current_turn = chore_info.get(const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID)
+            if current_turn != assignee_id:
+                continue  # Not the turn-holder, skip
+
+            assigned = chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
+            if not assigned or assignee_id not in assigned:
+                continue
+
+            # Find next available (non-paused) assignee
+            idx = assigned.index(assignee_id)
+            advanced = False
+            for _ in range(len(assigned)):
+                idx = (idx + 1) % len(assigned)
+                candidate = assigned[idx]
+                if candidate == assignee_id:
+                    break  # Full cycle, all paused — freeze
+                if not self._is_chore_paused_for_assignee(candidate, chore_id):
+                    chore_info[const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID] = (
+                        candidate
+                    )
+                    advanced = True
+                    advanced_count += 1
+                    const.LOGGER.debug(
+                        "Real-time rotation advance: paused %s, chore %s, turn set to %s",
+                        assignee_id,
+                        chore_id,
+                        candidate,
+                    )
+                    break
+
+            if not advanced:
+                const.LOGGER.debug(
+                    "Real-time rotation: all assignees paused for chore %s, freezing",
+                    chore_id,
+                )
+
+        if advanced_count > 0:
+            const.LOGGER.info(
+                "Advanced rotation past paused user %s in %d chore(s)",
+                assignee_id,
+                advanced_count,
+            )
+
+    async def set_user_chores_paused(
+        self,
+        assignee_id: str,
+        paused: bool,
+        paused_until: str | None = None,
+    ) -> None:
+        """Set chore pause flag and advance rotation if pausing.
+
+        Sets the flag on the user record. If PAUSING (not unpausing),
+        checks all rotation chores where this user is the current turn-holder
+        and advances the turn to the next available non-paused assignee
+        in real time (not waiting for midnight).
+
+        Args:
+            assignee_id: Internal ID of the user to pause/resume
+            paused: True to pause, False to resume
+            paused_until: Optional UTC ISO datetime for auto-resume
+        """
+        user_data = self._coordinator._data.get(const.DATA_USERS, {}).get(assignee_id)
+        if user_data is None:
+            raise ServiceValidationError(
+                translation_domain=const.DOMAIN,
+                translation_key=const.TRANS_KEY_ERROR_CHORE_NOT_FOUND,
+            )
+
+        user_data[const.DATA_USER_CHORES_PAUSED] = paused
+        if paused_until is not None:
+            user_data[const.DATA_USER_CHORES_PAUSED_UNTIL] = paused_until
+        elif not paused:
+            user_data.pop(const.DATA_USER_CHORES_PAUSED_UNTIL, None)
+
+        # If pausing: advance rotation past this user in real time
+        if paused:
+            self._advance_rotation_past_paused_assignee(assignee_id)
+
+        self.coordinator._persist_and_update()
+        self.emit(const.SIGNAL_SUFFIX_USER_UPDATED, user_id=assignee_id)
 
     def _reschedule_chore_due(
         self,

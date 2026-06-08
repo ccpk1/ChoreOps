@@ -641,6 +641,8 @@ CFOF_USERS_INPUT_ENABLE_GAMIFICATION: Final = "enable_gamification"
 CFOF_USERS_INPUT_DASHBOARD_LANGUAGE: Final = "dashboard_language"
 CFOF_USERS_INPUT_CAN_APPROVE: Final = "can_approve"
 CFOF_USERS_INPUT_CAN_MANAGE: Final = "can_manage"
+CFOF_USERS_INPUT_CHORES_PAUSED: Final = "chores_paused"
+CFOF_USERS_INPUT_CHORES_PAUSED_UNTIL: Final = "chores_paused_until"
 
 # CHORES
 CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: Final = "approval_reset_type"
@@ -1235,6 +1237,8 @@ DATA_USER_ASSOCIATED_USER_IDS: Final = "associated_user_ids"
 DATA_USER_CAN_APPROVE: Final = "can_approve"
 DATA_USER_CAN_MANAGE: Final = "can_manage"
 DATA_USER_CAN_BE_ASSIGNED: Final = "can_be_assigned"
+DATA_USER_CHORES_PAUSED: Final = "chores_paused"
+DATA_USER_CHORES_PAUSED_UNTIL: Final = "chores_paused_until"
 DATA_USER_ENABLE_CHORE_WORKFLOW: Final = "enable_chore_workflow"
 DATA_USER_ENABLE_GAMIFICATION: Final = "enable_gamification"
 
@@ -1429,6 +1433,8 @@ DATA_CHORE_NOTIFY_ON_DUE_WINDOW: Final = "notify_on_due_window"
 DATA_CHORE_NOTIFY_DUE_REMINDER: Final = "notify_due_reminder"
 DATA_CHORE_DUE_WINDOW_OFFSET: Final = "chore_due_window_offset"
 DATA_CHORE_DUE_REMINDER_OFFSET: Final = "chore_due_reminder_offset"
+DATA_CHORE_PAUSED: Final = "paused"  # Scope 2: Global chore pause (future)
+DATA_CHORE_PAUSED_FOR: Final = "paused_for"  # Scope 3: Chore×User pause (future)
 CHORE_CLAIM_LOCK_UNTIL_WINDOW: Final = "chore_claim_lock_until_window"
 DATA_CHORE_CLAIM_LOCK_UNTIL_WINDOW: Final = CHORE_CLAIM_LOCK_UNTIL_WINDOW
 DATA_CHORE_AUTO_APPROVE: Final = "auto_approve"
@@ -1857,6 +1863,7 @@ CHORE_STATE_COMPLETED_BY_OTHER: Final = "completed_by_other"
 CHORE_STATE_DUE: Final = "due"
 CHORE_STATE_WAITING: Final = "waiting"
 CHORE_STATE_NOT_MY_TURN: Final = "not_my_turn"
+CHORE_STATE_PAUSED: Final = "paused"
 
 # Allowlists by state contract surface
 # - Assignee persisted: assignee_chore_data[chore_id][state]
@@ -1895,6 +1902,7 @@ CHORE_UI_ASSIGNEE_STATES: Final[frozenset[str]] = frozenset(
         CHORE_STATE_OVERDUE,
         CHORE_STATE_MISSED,
         CHORE_STATE_NOT_MY_TURN,
+        CHORE_STATE_PAUSED,
         CHORE_STATE_COMPLETED,
         CHORE_STATE_COMPLETED_BY_OTHER,
     }
@@ -1924,6 +1932,7 @@ CHORE_CLAIM_MODE_BLOCKED_PENDING_CLAIM: Final = "blocked_pending_claim"
 CHORE_CLAIM_MODE_BLOCKED_WAITING_WINDOW: Final = "blocked_waiting_window"
 CHORE_CLAIM_MODE_BLOCKED_NOT_MY_TURN: Final = "blocked_not_my_turn"
 CHORE_CLAIM_MODE_BLOCKED_MISSED_LOCKED: Final = "blocked_missed_locked"
+CHORE_CLAIM_MODE_BLOCKED_PAUSED: Final = "blocked_paused"
 
 CHORE_CLAIM_MODES: Final[frozenset[str]] = frozenset(
     {
@@ -1935,6 +1944,7 @@ CHORE_CLAIM_MODES: Final[frozenset[str]] = frozenset(
         CHORE_CLAIM_MODE_BLOCKED_WAITING_WINDOW,
         CHORE_CLAIM_MODE_BLOCKED_NOT_MY_TURN,
         CHORE_CLAIM_MODE_BLOCKED_MISSED_LOCKED,
+        CHORE_CLAIM_MODE_BLOCKED_PAUSED,
     }
 )
 
@@ -3183,6 +3193,9 @@ TRANS_KEY_ERROR_CHORE_MISSED_LOCKED: Final = (
     "chore_missed_locked"  # Chore was missed and is now locked
 )
 TRANS_KEY_ERROR_CHORE_COMPLETED_BY_OTHER: Final = "chore_completed_by_other"  # SHARED_FIRST chore already completed by another assignee
+TRANS_KEY_ERROR_CHORE_PAUSED: Final = (
+    "chore_paused"  # Chore processing is paused for this user
+)
 
 # Claim mode labels
 # Existing blocked claim-mode semantics reuse TRANS_KEY_ERROR_CHORE_* keys above.

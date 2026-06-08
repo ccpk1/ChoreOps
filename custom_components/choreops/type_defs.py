@@ -664,7 +664,14 @@ class UserData(AssigneeData):
 
     Phase 3 bridge: `UserData` currently reuses the `AssigneeData` shape so
     runtime refactors can migrate manager/platform code incrementally.
+
+    Pause chore fields:
+        chores_paused: bool - True if chore processing is paused for this user
+        chores_paused_until: str | None - UTC ISO datetime when pause auto-clears
     """
+
+    chores_paused: NotRequired[bool]
+    chores_paused_until: NotRequired[str | None]
 
 
 AssigneeDataAlias = UserData

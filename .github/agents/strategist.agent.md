@@ -1,7 +1,49 @@
 ---
 name: ChoreOps Strategist
 description: Strategic planning agent - creates initiative plans, NO code implementation
-tools: [vscode/askQuestions, read/readFile, edit/createDirectory, edit/createFile, edit/editFiles, search/changes, search/codebase, search/fileSearch, search/listDirectory, search/textSearch, search/usages, web/fetch, web/githubRepo, web/githubTextSearch, pylance-mcp-server/pylanceDocString, pylance-mcp-server/pylanceDocuments, pylance-mcp-server/pylanceFileSyntaxErrors, pylance-mcp-server/pylanceImports, pylance-mcp-server/pylanceInstalledTopLevelModules, pylance-mcp-server/pylanceInvokeRefactoring, pylance-mcp-server/pylancePythonEnvironments, pylance-mcp-server/pylanceRunCodeSnippet, pylance-mcp-server/pylanceSettings, pylance-mcp-server/pylanceSyntaxErrors, pylance-mcp-server/pylanceUpdatePythonEnvironment, pylance-mcp-server/pylanceWorkspaceRoots, pylance-mcp-server/pylanceWorkspaceUserFiles, vscode.mermaid-markdown-features/renderMermaidDiagram, github.vscode-pull-request-github/issue_fetch, github.vscode-pull-request-github/labels_fetch, github.vscode-pull-request-github/doSearch]
+tools:
+  [
+    vscode/askQuestions,
+    execute/getTerminalOutput,
+    execute/killTerminal,
+    execute/sendToTerminal,
+    execute/runTask,
+    execute/createAndRunTask,
+    execute/runTests,
+    execute/testFailure,
+    execute/runNotebookCell,
+    execute/runInTerminal,
+    read/readFile,
+    edit/createDirectory,
+    edit/createFile,
+    edit/editFiles,
+    search/changes,
+    search/codebase,
+    search/fileSearch,
+    search/listDirectory,
+    search/textSearch,
+    search/usages,
+    web/fetch,
+    web/githubRepo,
+    web/githubTextSearch,
+    pylance-mcp-server/pylanceDocString,
+    pylance-mcp-server/pylanceDocuments,
+    pylance-mcp-server/pylanceFileSyntaxErrors,
+    pylance-mcp-server/pylanceImports,
+    pylance-mcp-server/pylanceInstalledTopLevelModules,
+    pylance-mcp-server/pylanceInvokeRefactoring,
+    pylance-mcp-server/pylancePythonEnvironments,
+    pylance-mcp-server/pylanceRunCodeSnippet,
+    pylance-mcp-server/pylanceSettings,
+    pylance-mcp-server/pylanceSyntaxErrors,
+    pylance-mcp-server/pylanceUpdatePythonEnvironment,
+    pylance-mcp-server/pylanceWorkspaceRoots,
+    pylance-mcp-server/pylanceWorkspaceUserFiles,
+    vscode.mermaid-markdown-features/renderMermaidDiagram,
+    github.vscode-pull-request-github/issue_fetch,
+    github.vscode-pull-request-github/labels_fetch,
+    github.vscode-pull-request-github/doSearch,
+  ]
 handoffs:
   - label: Execute This Plan
     agent: ChoreOps Builder

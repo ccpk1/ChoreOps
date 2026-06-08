@@ -465,6 +465,14 @@ async def _build_user_schema_impl(
                 multiple=True,
             )
         ),
+        vol.Optional(
+            const.CFOF_USERS_INPUT_CHORES_PAUSED,
+            default=False,
+        ): selector.BooleanSelector(),
+        vol.Optional(
+            const.CFOF_USERS_INPUT_CHORES_PAUSED_UNTIL,
+            default=None,
+        ): vol.Any(None, selector.DateTimeSelector()),
     }
 
     return vol.Schema(
@@ -577,6 +585,15 @@ def _validate_users_inputs_impl(
         data_dict[const.DATA_USER_CAN_MANAGE] = user_input.get(
             const.CFOF_USERS_INPUT_CAN_MANAGE,
             False,
+        )
+    if const.CFOF_USERS_INPUT_CHORES_PAUSED in user_input:
+        data_dict[const.DATA_USER_CHORES_PAUSED] = user_input.get(
+            const.CFOF_USERS_INPUT_CHORES_PAUSED,
+            False,
+        )
+    if const.CFOF_USERS_INPUT_CHORES_PAUSED_UNTIL in user_input:
+        data_dict[const.DATA_USER_CHORES_PAUSED_UNTIL] = user_input.get(
+            const.CFOF_USERS_INPUT_CHORES_PAUSED_UNTIL
         )
 
     # Call shared validation (single source of truth)

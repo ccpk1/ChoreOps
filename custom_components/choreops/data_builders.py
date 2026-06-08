@@ -1098,6 +1098,16 @@ def validate_user_profile_data(
         )
         return errors
 
+    # === 8. Pause fields validation ===
+    chores_paused = data.get(const.DATA_USER_CHORES_PAUSED)
+    paused_until = data.get(const.DATA_USER_CHORES_PAUSED_UNTIL)
+    if chores_paused is True and paused_until is not None:
+        # Ensure paused_until is a valid ISO datetime string
+        if not isinstance(paused_until, str) or not paused_until.strip():
+            errors[const.CFOF_USERS_INPUT_CHORES_PAUSED_UNTIL] = (
+                const.TRANS_KEY_CFOF_INVALID_DATE_FORMAT
+            )
+
     return errors
 
 
@@ -1279,6 +1289,22 @@ def build_user_profile(
                 False,
             )
         ),
+        const.DATA_USER_CHORES_PAUSED: bool(
+            _resolve_user_input_field(
+                user_input,
+                existing_data,
+                const.CFOF_USERS_INPUT_CHORES_PAUSED,
+                const.DATA_USER_CHORES_PAUSED,
+                False,
+            )
+        ),
+        const.DATA_USER_CHORES_PAUSED_UNTIL: _resolve_user_input_field(
+            user_input,
+            existing_data,
+            const.CFOF_USERS_INPUT_CHORES_PAUSED_UNTIL,
+            const.DATA_USER_CHORES_PAUSED_UNTIL,
+            None,
+        ),
     }
     return cast("UserData", user_profile_data)
 
@@ -1301,6 +1327,8 @@ _USER_MANAGER_PROFILE_PRESERVE_FIELDS: frozenset[str] = frozenset(
         const.DATA_USER_NOTIF_CLICK_URL,
         const.DATA_USER_NOTIF_APPROVE_CLICK_URL,
         const.DATA_USER_UI_PREFERENCES,
+        const.DATA_USER_CHORES_PAUSED,
+        const.DATA_USER_CHORES_PAUSED_UNTIL,
     }
 )
 
