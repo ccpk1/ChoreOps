@@ -14,8 +14,8 @@
 | Phase 1 — Storage & Constants | User data fields, type defs, consts, data builder validation | **100%** | Implemented: const.py, type_defs.py, data_builders.py, flow_helpers.py, en.json |
 | Phase 2 — Unified P0 Guard | `_is_chore_paused_for_assignee()` helper, `get_chore_status_context` guard, signal suppression, rotation/overdue/missed/reset/auto-unpause guards | **100%** | Implemented: 11 guard steps across chore_manager.py + statistics_manager.py |
 | Phase 3 — Signal Suppression Verification | Confirm guard at emission point covers notification/statistics/calendar consumers | **100%** | Verified: all signal paths covered + can_claim_chore guard added |
-| Phase 4 — Display Surfaces | Sensor state mapping, dashboard status_maps, claim mode icons, sort order, calendar filtering | 0% | Backend constants ready; dashboard templates in choreops-dashboards repo pending |
-| Phase 5 — Admin Workflow | "Pause User's Chores" dashboard card + `choreops.pause_user_chores` service | 0% | Manager method implemented (set_user_chores_paused); service schema and dashboard card pending |
+| Phase 4 — Display Surfaces | Sensor state mapping, dashboard status_maps, claim mode icons, sort order, calendar filtering | **100%** | All 9 template files updated in choreops-dashboards repo and synced to vendored runtime. Parity verified. |
+| Phase 5 — Admin Workflow | \"Pause User's Chores\" dashboard card + `choreops.pause_user_chores` service | **100%** | Service constants, schema, handler, and registration in const.py + services.py + services.yaml + en.json. Manager method `set_user_chores_paused()` implemented in Phase 2. Dashboard card pending in admin templates. |
 | Phase 6 — Testing | FSM guard tests, rotation skip, all-paused freeze, return-from-pause, regression | 0% | Not started — test environment has pre-existing HA framework mismatch |
 | Phase 7 — Documentation & Polish | Wiki, ARCHITECTURE.md, DASHBOARD_UI_DESIGN_GUIDELINE.md | 0% | Not started |
 

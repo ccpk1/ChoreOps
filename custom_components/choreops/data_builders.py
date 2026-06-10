@@ -1105,7 +1105,7 @@ def validate_user_profile_data(
         # Ensure paused_until is a valid ISO datetime string
         if not isinstance(paused_until, str) or not paused_until.strip():
             errors[const.CFOF_USERS_INPUT_CHORES_PAUSED_UNTIL] = (
-                const.TRANS_KEY_CFOF_INVALID_DATE_FORMAT
+                const.TRANS_KEY_ERROR_INVALID_DATE_FORMAT
             )
 
     return errors

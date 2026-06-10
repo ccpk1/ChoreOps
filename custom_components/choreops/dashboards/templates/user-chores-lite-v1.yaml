@@ -157,7 +157,7 @@ views:
 
                     {%- set pref_exclude_blocked = false -%}
 
-                    {%- set pref_exclude_states = [] -%}
+                    {%- set pref_exclude_states = [] -%}  {#-- Example: ['completed', 'completed_by_other', 'paused', 'not_my_turn', 'missed'] --#}
 
                     {%- set pref_exclude_nonrecurring_no_due_date = false -%}
 
@@ -386,13 +386,15 @@ views:
                                 {%- elif chore_state == 'claimed' -%}
                                   {%- set state_priority = 4 -%}
                                 {%- elif chore_state == 'completed' -%}
+                                  {%- set state_priority = 6 -%}
+                                {%- elif chore_state == 'paused' -%}
                                   {%- set state_priority = 5 -%}
                                 {%- elif chore_state == 'completed_by_other' -%}
-                                  {%- set state_priority = 6 -%}
-                                {%- elif chore_state == 'not_my_turn' -%}
                                   {%- set state_priority = 7 -%}
-                                {%- elif chore_state == 'missed' -%}
+                                {%- elif chore_state == 'not_my_turn' -%}
                                   {%- set state_priority = 8 -%}
+                                {%- elif chore_state == 'missed' -%}
+                                  {%- set state_priority = 9 -%}
                                 {%- else -%}
                                   {%- set state_priority = 50 -%}
                                 {%- endif -%}

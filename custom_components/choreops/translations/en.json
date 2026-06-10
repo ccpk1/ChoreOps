@@ -2261,6 +2261,37 @@
         }
       }
     },
+    "pause_user_chores": {
+      "name": "Pause User's Chores",
+      "description": "Pause or resume chore processing for a user.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Config Entry ID (Optional)",
+          "description": "Use this if you have more than one ChoreOps setup. It targets one specific setup.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Config Entry Name (Optional)",
+          "description": "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID.",
+          "example": "Family Chores"
+        },
+        "user_name": {
+          "name": "User Name",
+          "description": "Name of the user whose chores to pause or resume.",
+          "example": "Sarah"
+        },
+        "paused": {
+          "name": "Paused",
+          "description": "True to pause chores, False to resume.",
+          "example": "true"
+        },
+        "paused_until": {
+          "name": "Paused Until",
+          "description": "Optional return date. If set, chores auto-resume at midnight after this date.",
+          "example": "2026-06-10T00:00:00+00:00"
+        }
+      }
+    },
     "redeem_reward": {
       "name": "Redeem Reward",
       "description": "An approver redeems a reward for an assignee, deducting points.",

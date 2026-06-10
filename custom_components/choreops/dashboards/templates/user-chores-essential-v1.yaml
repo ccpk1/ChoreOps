@@ -205,7 +205,7 @@ views:
 
                   {%- set pref_exclude_completed = false -%}
 
-                  {%- set pref_exclude_states = [] -%}  {#-- Example: ['completed', 'completed_by_other', 'not_my_turn', 'missed'] --#}
+                  {%- set pref_exclude_states = [] -%}  {#-- Example: ['completed', 'completed_by_other', 'paused', 'not_my_turn', 'missed'] --#}
 
                   {%- set pref_exclude_nonrecurring_no_due_date = false -%}
 
@@ -476,13 +476,15 @@ views:
                               {%- elif chore_state == 'claimed' -%}
                                 {%- set state_priority = 4 -%}
                               {%- elif chore_state in ['completed', 'approved'] -%}
-                                {%- set state_priority = 5 -%}
-                              {%- elif chore_state == 'completed_by_other' -%}
                                 {%- set state_priority = 6 -%}
-                              {%- elif chore_state == 'not_my_turn' -%}
+                              {%- elif chore_state == 'completed_by_other' -%}
                                 {%- set state_priority = 7 -%}
-                              {%- elif chore_state == 'missed' -%}
+                              {%- elif chore_state == 'paused' -%}
+                                {%- set state_priority = 5 -%}
+                              {%- elif chore_state == 'not_my_turn' -%}
                                 {%- set state_priority = 8 -%}
+                              {%- elif chore_state == 'missed' -%}
+                                {%- set state_priority = 9 -%}
                               {%- else -%}
                                 {%- set state_priority = 50 -%}
                               {%- endif -%}
@@ -672,6 +674,7 @@ views:
                                   'missed': ui.get('missed', 'err-missed'),
                                   'completed_by_other': ui.get('completed_by_other', 'err-completed_by_other'),
                                   'not_my_turn': ui.get('not_my_turn', 'err-not_my_turn'),
+                                  'paused': ui.get('paused', 'err-paused'),
                                   'already_approved': ui.get('completed', 'err-completed'),
                                   'pending_claim': ui.get('claimed', 'err-claimed'),
                                   'missed_locked': ui.get('missed_locked', 'err-missed_locked'),
@@ -680,6 +683,7 @@ views:
                                   'blocked_pending_claim': ui.get('claimed', 'err-claimed'),
                                   'blocked_waiting_window': ui.get('waiting', 'err-waiting'),
                                   'blocked_not_my_turn': ui.get('not_my_turn', 'err-not_my_turn'),
+                                  'blocked_paused': ui.get('paused', 'err-paused'),
                                   'blocked_missed_locked': ui.get('missed_locked', 'err-missed_locked'),
                                   'steal_available': ui.get('steal_available', 'err-steal_available')
                                 }) | tojson ~ "; const rawState = entity.state; let status = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); const claimMode = entity.attributes.claim_mode || null; if (claimMode === 'steal_available') status = 'steal_available'; else if (entity.attributes.can_claim === false && claimMode && !['completed', 'completed_in_part'].includes(status)) status = claimMode; const value = entity.attributes.due_date || entity.attributes.due_window_start; const dateText = value ? new Date(value).toLocaleString(undefined, {month:'short', day:'numeric', hour:'numeric', minute:'2-digit'}) : '--'; const statusLabel = statusMap[status] || status; const dueLabel = " ~ (ui.get('date', 'err-date') | tojson) ~ "; return `<b>${String(statusLabel).toUpperCase()}</b> • ${dueLabel}: ${dateText}`; ]]]",

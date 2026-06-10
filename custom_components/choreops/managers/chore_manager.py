@@ -428,7 +428,7 @@ class ChoreManager(BaseManager):
             now_iso = now_utc.isoformat()
             users_data = self._coordinator._data.get(const.DATA_USERS, {})
             unpaused_count = 0
-            for user_id, user_data_inner in users_data.items():
+            for _user_id, user_data_inner in users_data.items():
                 if not user_data_inner.get(const.DATA_USER_CHORES_PAUSED):
                     continue
                 until_str = user_data_inner.get(const.DATA_USER_CHORES_PAUSED_UNTIL)

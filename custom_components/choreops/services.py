@@ -636,6 +636,18 @@ GENERATE_ACTIVITY_REPORT_SCHEMA = vol.Schema(
     )
 )
 
+PAUSE_USER_CHORES_SCHEMA = vol.Schema(
+    _with_service_target_fields(
+        {
+            vol.Required(const.SERVICE_FIELD_USER_NAME): cv.string,
+            vol.Optional(const.SERVICE_FIELD_CHORES_PAUSED, default=True): cv.boolean,
+            vol.Optional(const.SERVICE_FIELD_CHORES_PAUSED_UNTIL): vol.Any(
+                cv.datetime, None
+            ),
+        }
+    )
+)
+
 # ==============================================================================
 # REWARD CRUD SCHEMAS (using data_builders pattern)
 # ==============================================================================
@@ -3649,11 +3661,70 @@ def async_setup_services(hass: HomeAssistant):
         # SystemManager handles: validation, backup, manager calls, notification
         await coordinator.system_manager.orchestrate_data_reset(dict(call.data))
 
+    async def handle_pause_user_chores(call: ServiceCall) -> None:
+        """Handle pause_user_chores service call.
+
+        Pause or resume chore processing for a user. While paused,
+        no overdue/missed stats accumulate and rotation advances past
+        this user.
+
+        Args:
+            call: Service call with user_name, paused, paused_until fields
+        """
+        entry_id = _resolve_target_entry_id(hass, dict(call.data))
+        if not entry_id:
+            const.LOGGER.warning("Pause User Chores: No ChoreOps entry found")
+            return
+
+        coordinator = _get_coordinator_by_entry_id(hass, entry_id)
+
+        user_name = call.data.get(const.SERVICE_FIELD_USER_NAME)
+        paused = call.data.get(const.SERVICE_FIELD_CHORES_PAUSED, True)
+        paused_until_raw = call.data.get(const.SERVICE_FIELD_CHORES_PAUSED_UNTIL)
+
+        # Resolve user_name to internal ID
+        assignee_id = get_item_id_or_raise(
+            coordinator,
+            const.ITEM_TYPE_USER,
+            user_name,
+            role=const.ROLE_ASSIGNEE,
+        )
+
+        # Convert datetime to ISO string if provided
+        paused_until: str | None = None
+        if paused_until_raw is not None:
+            if isinstance(paused_until_raw, datetime):
+                paused_until = paused_until_raw.isoformat()
+            else:
+                paused_until = str(paused_until_raw)
+
+        # Delegate to ChoreManager
+        await coordinator.chore_manager.set_user_chores_paused(
+            assignee_id=assignee_id,
+            paused=paused,
+            paused_until=paused_until,
+        )
+
+        const.LOGGER.info(
+            "Pause User Chores: user=%s paused=%s",
+            user_name,
+            paused,
+        )
+
+        await coordinator.async_request_refresh()
+
     hass.services.async_register(
         const.DOMAIN,
         const.SERVICE_RESET_TRANSACTIONAL_DATA,
         handle_reset_transactional_data,
         schema=RESET_TRANSACTIONAL_DATA_SCHEMA,
+    )
+
+    hass.services.async_register(
+        const.DOMAIN,
+        const.SERVICE_PAUSE_USER_CHORES,
+        handle_pause_user_chores,
+        schema=PAUSE_USER_CHORES_SCHEMA,
     )
 
     const.LOGGER.info("ChoreOps services have been registered successfully")
@@ -3700,6 +3771,7 @@ async def async_unload_services(hass: HomeAssistant) -> None:
         const.SERVICE_RESET_ROTATION,
         const.SERVICE_OPEN_ROTATION_CYCLE,
         const.SERVICE_GENERATE_ACTIVITY_REPORT,
+        const.SERVICE_PAUSE_USER_CHORES,
     ]
 
     for service in services:

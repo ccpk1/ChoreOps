@@ -249,7 +249,7 @@ views:
 
                   {%- set pref_exclude_blocked = false -%}
 
-                  {%- set pref_exclude_states = [] -%}  {#-- Example: ['completed', 'completed_by_other', 'not_my_turn', 'missed'] --#}
+                  {%- set pref_exclude_states = [] -%}  {#-- Example: ['completed', 'completed_by_other', 'paused', 'not_my_turn', 'missed'] --#}
 
                   {%- set pref_exclude_nonrecurring_no_due_date = false -%}
 
