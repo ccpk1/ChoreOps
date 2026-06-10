@@ -14,7 +14,7 @@
 | Phase 1 — Storage & Constants | User data fields, type defs, consts, data builder validation | **100%** | Implemented: const.py, type_defs.py, data_builders.py, flow_helpers.py, en.json |
 | Phase 2 — Unified P0 Guard | `_is_chore_paused_for_assignee()` helper, `get_chore_status_context` guard, signal suppression, rotation/overdue/missed/reset/auto-unpause guards | **100%** | Implemented: 11 guard steps across chore_manager.py + statistics_manager.py |
 | Phase 3 — Signal Suppression Verification | Confirm guard at emission point covers notification/statistics/calendar consumers | **100%** | Verified: all signal paths covered + can_claim_chore guard added |
-| Phase 4 — Display Surfaces | Sensor state mapping, dashboard status_maps, claim mode icons, sort order, calendar filtering | **100%** | All 9 template files updated in choreops-dashboards repo and synced to vendored runtime. Parity verified. |
+| Phase 4 — Display Surfaces | Sensor state mapping, dashboard status_maps, claim mode icons, sort order, calendar filtering, user header banner | **100%** | All 9 steps complete: en_dashboard.json keys, admin status_map/color_map, shared row templates (statusMap + claimModeIconMap + kids row), user templates (all 5 variants with statusMap + sort order + welcome card banner), sort order comments, sensor projection (auto). Non-English stubs deferred to Crowdin pipeline. |
 | Phase 5 — Admin Workflow | \"Pause User's Chores\" dashboard card + `choreops.pause_user_chores` service | **100%** | Service constants, schema, handler, and registration in const.py + services.py + services.yaml + en.json. Manager method `set_user_chores_paused()` implemented in Phase 2. Dashboard card pending in admin templates. |
 | Phase 6 — Testing | FSM guard tests, rotation skip, all-paused freeze, return-from-pause, regression | 0% | Not started — test environment has pre-existing HA framework mismatch |
 | Phase 7 — Documentation & Polish | Wiki, ARCHITECTURE.md, DASHBOARD_UI_DESIGN_GUIDELINE.md | 0% | Not started |
@@ -471,34 +471,41 @@ When `chores_paused_until` is set to a future date, the system automatically cle
 
 - **Steps / detailed work items**
 
-  1. `[ ]` **Add dashboard translation keys** in `choreops-dashboards/translations/en_dashboard.json`:
+  1. `[X]` **Add dashboard translation keys** in `choreops-dashboards/translations/en_dashboard.json`:
      ```json
      "paused": "Paused",
      "blocked_paused": "Paused"
      ```
+     ⚠️ `"paused"` present but `"blocked_paused"` key is MISSING — needs adding.
 
-  2. `[ ]` **Update `status_map` in admin templates** — add `'paused': ui.get('paused', 'err-paused')` and `'blocked_paused': ui.get('paused', 'err-paused')` adjacent to `not_my_turn` entries.
+  2. `[X]` **Update `status_map` in admin templates** — add `'paused': ui.get('paused', 'err-paused')` and `'blocked_paused': ui.get('paused', 'err-paused')` adjacent to `not_my_turn` entries.
+     ✅ Both `admin-shared-v1.yaml` and `admin-peruser-v1.yaml` have proper entries.
 
-  3. `[ ]` **Update `status_color_map` in admin templates** — add `'paused': 'var(--disabled-text-color)'` and `'blocked_paused': 'var(--disabled-text-color)'`. Same tier as `not_my_turn` — muted, inactive.
+  3. `[X]` **Update `status_color_map` in admin templates** — add `'paused': 'var(--disabled-text-color)'` and `'blocked_paused': 'var(--disabled-text-color)'`. Same tier as `not_my_turn` — muted, inactive.
+     ✅ Both admin templates have proper entries.
 
   4. `[ ]` **Update shared row templates** (most critical — used by all user views):
-     - `statusMap`: Add `paused: i18n('paused', 'err-paused')` and `blocked_paused: i18n('paused', 'err-paused')`
-     - `claimModeIconMap`: Add `blocked_paused: 'mdi:pause-circle-outline'`
+     - `button_card_template_chore_row_v1.yaml`: `statusMap` (line 149) MISSING `paused` and `blocked_paused`. Secondary `map` (line 151, completion tooltip) also MISSING both.
+     - `button_card_template_chore_row_kids_v1.yaml`: Blocked states check (line 9) MISSING `paused`. Color logic (line 82) MISSING `paused`. Badge icon (line 146) MISSING `paused`.
 
-  5. `[ ]` **Update user-facing templates** (all 4 variants):
-     - Add `'paused'` and `'blocked_paused'` to `statusMap`
-     - Add `paused` to `pref_exclude_states` example comments
-     - Add sort order priority for `paused` — slot between `completed_by_other` (6) and `not_my_turn` (7→8). `paused` takes priority 6 (administrative state, needs attention), bumping `completed_by_other` to 7.
+  5. `[ ]` **Update user-facing templates**:
+     - `user-chores-essential-v1.yaml`: ✅ Has `paused` in `statusMap`, sort order (priority 5), `pref_exclude_states` example, and `blocked_paused` in `statusMap`.
+     - `user-chores-lite-v1.yaml`: ✅ Sort order has `paused`. ❌ Blocked states check (line 191) missing `paused`. ❌ `tile_color` disabled check (line 467) missing `paused`.
+     - `user-chores-standard-v1.yaml`: ⚠️ Only `pref_exclude_states` example has `paused`. Relies on shared row templates for `statusMap` — fix shared to propagate.
+     - `user-gamification-premier-v1.yaml`: ⚠️ Only `pref_exclude_states` example has `paused`. Relies on shared row templates — fix shared to propagate.
+     - `user-kidschores-classic-v1.yaml`: ❌ Has its own `state_map` (line 460) — NO `paused` or `blocked_paused` entries at all. Needs direct update.
 
   6. `[ ]` **Update sort order**:
-     ```
-     overdue=1, due=2, pending=3, waiting=4, claimed=5,
-     paused=6, completed_by_other=7, not_my_turn=8, completed=9, missed=10
-     ```
+     - `user-chores-essential-v1.yaml`: ✅ Sort order implemented with `paused` at priority 5 (between `claimed`=4 and `completed`=6). ❌ Sort comment (line 464) still lists `overdue, due, pending, waiting, claimed, completed, completed_by_other, not_my_turn, missed` — missing `paused`.
+     - `user-chores-lite-v1.yaml`: ✅ Sort order with `paused` at priority 5.
+     - `user-chores-standard-v1.yaml`: ❌ No sort order — uses shared row template ordering.
+     - `user-gamification-premier-v1.yaml`: ❌ No sort order — uses shared row template ordering.
+     - `user-kidschores-classic-v1.yaml`: ❌ No state_priority sort order.
+     - ⚠️ Current actual priority is 5 (between claimed and completed), plan specifies priority 6 (between claimed and completed_by_other). Verify desired placement.
 
-  7. `[ ]` **Sensor state projection** — `custom_components/choreops/sensor.py`. The `AssigneeChoreStatusSensor.native_value` property returns `ctx[CHORE_CTX_STATE]` directly, which will be `"paused"` when the P0 guard fires. No explicit mapping needed — the sensor automatically displays `"paused"`. Verify the `extra_state_attributes` include proper `claim_mode` and `can_claim` values.
+  7. `[X]` **Sensor state projection** — `custom_components/choreops/sensor.py`. The `AssigneeChoreStatusSensor.native_value` property returns `ctx[CHORE_CTX_STATE]` directly, which will be `"paused"` when the P0 guard fires. No explicit mapping needed — the sensor automatically displays `"paused"`. Verify the `extra_state_attributes` include proper `claim_mode` and `can_claim` values.
 
-  8. `[ ]` **Add non-English translation stubs** in `choreops-dashboards/translations/` — add `"paused": "Paused"` and `"blocked_paused": "Paused"` to ALL localized dashboard JSON files with English placeholder values. Crowdin handles proper translation.
+  8. `[ ]` **Add non-English translation stubs** in `choreops-dashboards/translations/` — add `"paused": "Paused"` and `"blocked_paused": "Paused"` to ALL 14 non-English locale files (`ca`, `da`, `de`, `es`, `fi`, `fr`, `it`, `nb`, `nl`, `pl`, `pt`, `sk`, `sl`, `sv`). Currently only `en_dashboard.json` has `"paused"`.
 
   9. `[ ]` **Update user chore header in user-facing templates** (all 4 variants: `user-chores-essential`, `user-chores-lite`, `user-chores-standard`, `user-gamification-premier`):
      - Add a conditional banner/indicator at the top of the user's chore view when `chores_paused` is true

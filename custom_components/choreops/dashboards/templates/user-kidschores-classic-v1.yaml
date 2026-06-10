@@ -76,6 +76,7 @@ views:
                     {%- set highest_badge = ((states(highest_badge_entity) if highest_badge_entity else 'None') or 'None') -%}
                     {%- set highest_badge_icon = (state_attr(highest_badge_entity, 'icon') if highest_badge_entity else None) or 'mdi:medal-outline' -%}
                     {%- set points_multiplier = (state_attr(points_sensor, 'points_multiplier') | float(default=1)) if points_sensor else 1 -%}
+                    {%- set chores_paused = state_attr(dashboard_helper, 'chores_paused') | bool(false) -%}
 
                     {#-- 4. Build Display --#}
                     {%- set points_value = points_value | round(2) -%}
@@ -106,9 +107,10 @@ views:
 
                     {%- set content =
                       "## 👋 " ~ ui.get('welcome', 'err-welcome') ~ ", " ~ name ~ "! \n"
+                      ~ ("⏸️ **" ~ ui.get('chores_are_paused', 'err-chores_are_paused') ~ "** \n" if chores_paused else
                       "#### <ha-icon icon=" ~ points_icon ~ "></ha-icon>&nbsp;&nbsp;" ~ points_label ~ ": &nbsp;&nbsp;" ~ points_display ~ "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" ~ badge_display ~ " \n"
-                      "**📅 " ~ ui.get('weekly_completed', 'err-weekly_completed') ~ ":** &nbsp;&nbsp;" ~ weekly_completed ~ "  \n"
-                      "**☀️ " ~ ui.get('todays_completed', 'err-todays_completed') ~ ":** &nbsp;&nbsp;" ~ todays_completed ~ "  \n\n"
+                      ~ "**📅 " ~ ui.get('weekly_completed', 'err-weekly_completed') ~ ":** &nbsp;&nbsp;" ~ weekly_completed ~ "  \n"
+                      ~ "**☀️ " ~ ui.get('todays_completed', 'err-todays_completed') ~ ":** &nbsp;&nbsp;" ~ todays_completed ~ "  \n\n")
                     -%}
 
                     {#-- 5. Render --#}
@@ -458,6 +460,8 @@ views:
                           'completed_in_part': ui.get('completed_in_part', 'err-completed_in_part'),
                             'completed_by_other': ui.get('completed_by_other', 'err-completed_by_other'),
                           'not_my_turn': ui.get('not_my_turn', 'err-not_my_turn'),
+                          'paused': ui.get('paused', 'err-paused'),
+                          'blocked_paused': ui.get('paused', 'err-paused'),
                           'missed': ui.get('missed', 'err-missed'),
                             'overdue': ui.get('overdue', 'err-overdue'),
                           'approved': ui.get('completed', 'err-completed'),

@@ -100,6 +100,7 @@ views:
                     {%- set highest_badge_icon = (state_attr(highest_badge_entity, 'icon') if highest_badge_entity else None) or 'mdi:medal-outline' -%}
                     {%- set overdue_now = (state_attr(total_sensor, 'chore_stat_current_overdue') | int(default=0)) if total_sensor else 0 -%}
                     {%- set due_today_open = (state_attr(total_sensor, 'chore_stat_current_due_today') | int(default=0)) if total_sensor else 0 -%}
+                    {%- set chores_paused = state_attr(dashboard_helper, 'chores_paused') | bool(false) -%}
 
                     {#-- 4. Build Display - essentials minimal --#}
                     {%- set p_icon = points_icon | default('mdi:star', true) -%}
@@ -127,7 +128,11 @@ views:
                       {%- set rank_pill = "<span style='font-size: 12px; background: var(--secondary-background-color); padding: 4px 12px; border-radius: 999px; border: 1px solid var(--divider-color); display: inline-flex; align-items: center; justify-content: center; white-space: nowrap;'><ha-icon icon='" ~ highest_badge_icon ~ "' style='width: 18px; height: 14px; margin-right: 5px; color: var(--warning-color);'></ha-icon><span style='font-weight: 600; color: var(--primary-text-color);'>" ~ highest_badge ~ mult_text ~ "</span></span>" -%}
                     {%- endif -%}
 
-                    {%- if overdue_now > 0 -%}
+                    {%- if chores_paused -%}
+                      {%- set status_icon = 'mdi:pause-circle-outline' -%}
+                      {%- set status_color = 'var(--warning-color)' -%}
+                      {%- set status_text = ui.get('chores_are_paused', 'err-chores_are_paused') -%}
+                    {%- elif overdue_now > 0 -%}
                       {%- set status_icon = 'mdi:alert-octagon' -%}
                       {%- set status_color = 'var(--error-color)' -%}
                       {%- set status_text = ui.get('overdue', 'err-overdue') ~ ': ' ~ overdue_now|string -%}

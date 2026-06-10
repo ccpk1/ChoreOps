@@ -161,6 +161,8 @@
   "pause_until": "Pause Until...",
   "pause_control_section": "PAUSE CONTROLS",
   "paused": "Paused",
+  "blocked_paused": "Paused",
+  "chores_are_paused": "Chores paused",
   "overdue_handling": "Overdue",
   "overdue_in": "Overdue in",
   "overview": "Overview",

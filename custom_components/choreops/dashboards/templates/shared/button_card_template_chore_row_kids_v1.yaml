@@ -6,7 +6,7 @@ chore_row_kids_v1:
     "hold_action": { "action": "more-info" },
     "tap_action":
       {
-        "action": "[[[ const rawState = entity.state; const state = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); const canClaim = entity.attributes.can_claim === true; const blocked = ['waiting', 'missed', 'completed_by_other', 'not_my_turn', 'completed', 'completed_in_part']; if ((!canClaim && state !== 'claimed') || blocked.includes(state)) return 'none'; return 'call-service'; ]]]",
+        "action": "[[[ const rawState = entity.state; const state = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); const canClaim = entity.attributes.can_claim === true; const blocked = ['waiting', 'missed', 'paused', 'completed_by_other', 'not_my_turn', 'completed', 'completed_in_part']; if ((!canClaim && state !== 'claimed') || blocked.includes(state)) return 'none'; return 'call-service'; ]]]",
         "service": "button.press",
         "data":
           {
@@ -79,7 +79,7 @@ chore_row_kids_v1:
                 { "align-items": "center" },
                 { "justify-content": "center" },
                 {
-                  "background-color": "[[[ const rawState = entity.state; const state = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); const claimAccent = (typeof variables !== 'undefined' && variables && typeof variables.pref_claim_accent === 'string' && variables.pref_claim_accent.trim().length > 0) ? variables.pref_claim_accent.trim() : '#a957fa'; if (state === 'claimed' || state === 'claimed_in_part') return claimAccent; if (['completed', 'completed_in_part'].includes(state)) return 'var(--success-color)'; if (['missed', 'not_my_turn', 'completed_by_other', 'waiting'].includes(state)) return 'var(--disabled-text-color)'; return 'transparent'; ]]]",
+                  "background-color": "[[[ const rawState = entity.state; const state = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); const claimAccent = (typeof variables !== 'undefined' && variables && typeof variables.pref_claim_accent === 'string' && variables.pref_claim_accent.trim().length > 0) ? variables.pref_claim_accent.trim() : '#a957fa'; if (state === 'claimed' || state === 'claimed_in_part') return claimAccent; if (['completed', 'completed_in_part'].includes(state)) return 'var(--success-color)'; if (['missed', 'paused', 'not_my_turn', 'completed_by_other', 'waiting'].includes(state)) return 'var(--disabled-text-color)'; return 'transparent'; ]]]",
                 },
                 { "color": "var(--primary-text-color)" },
               ],
