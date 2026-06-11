@@ -209,6 +209,7 @@ choreops-claimed-color: "#A957FA"
 | `waiting`            | Waiting       | `#9E9E9E`    | `var(--disabled-text-color)` | `mdi:clock-outline`         | Dependency blocked                  |
 | `missed`             | Missed        | `#F44336`    | `var(--error-color)`         | `mdi:lock-outline`          | Window closed; locked               |
 | `not_my_turn`        | Not Your Turn | `#9E9E9E`    | `var(--disabled-text-color)` | `mdi:account-lock-outline`  | Show `Currently: [Sibling Name]`    |
+| `paused`            | Paused        | `#FF9800`    | `var(--warning-color)`       | `mdi:pause-circle-outline`  | User's chores are paused            |
 | `completed_by_other` | Done by Other | `#9E9E9E`    | `var(--disabled-text-color)` | `mdi:account-check-outline` | Show `Completed by: [Sibling Name]` |
 
 ### Action affordance style defaults (chore rows)

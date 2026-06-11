@@ -501,6 +501,21 @@ Chore state contract is layered and explicit:
 
 Any new state must be inserted deliberately into this contract.
 
+### Paused state (derived UI state)
+
+The `paused` state is a **derived UI state** — it is never persisted on chore records.
+It is an administrative overlay injected by the P0 guard in
+`ChoreManager.get_chore_status_context()`. The guard checks
+`_is_chore_paused_for_assignee()` which supports three scopes via OR:
+
+1. **User-level** (`DATA_USER_CHORES_PAUSED`) — all chores paused for a user (MVP)
+2. **Chore-level** (`DATA_CHORE_PAUSED`) — chore paused globally (future)
+3. **Chore×User** (`DATA_CHORE_PAUSED_FOR`) — chore paused per user (future)
+
+When the guard fires, it returns `state=paused`, `claim_mode=blocked_paused`,
+`can_claim=false`, and suppresses all overdue/missed signal emissions for that
+assignee.
+
 Interaction lane contract (hard fork v1):
 
 - Display lane stays in `state` and `global_state` for visual lifecycle projection.
@@ -508,6 +523,8 @@ Interaction lane contract (hard fork v1):
   as the single action gate.
 - Canonical derivation rule: `can_claim = claim_mode in {claimable,
 steal_available}`.
+
+> **P0 — `paused` (derived UI state)**: Applied above the FSM priority table by `get_chore_status_context`. See the Paused state section above. When active, all states below are overridden.
 
 | Priority | Engine workflow state | Assignee UI state (Option A) | Meaning / Effect                                             |
 | -------- | --------------------- | ---------------------------- | ------------------------------------------------------------ |
@@ -522,7 +539,7 @@ steal_available}`.
 
 Assignee UI allowlist (`CHORE_UI_ASSIGNEE_STATES`):
 
-- `pending`, `due`, `waiting`, `claimed`, `overdue`, `missed`,
+- `paused`, `pending`, `due`, `waiting`, `claimed`, `overdue`, `missed`,
   `not_my_turn`, `completed`, `completed_by_other`
 
 Global persisted allowlist (`CHORE_PERSISTED_GLOBAL_STATES`):

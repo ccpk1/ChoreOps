@@ -83,6 +83,7 @@ views:
                       {%- set due_today_open = (state_attr(total_sensor, 'chore_stat_current_due_today') | int(default=0)) if total_sensor else 0 -%}
                       {%- set todays_completed = (state_attr(total_sensor, 'chore_stat_approved_today') | int(default=0)) if total_sensor else 0 -%}
                       {%- set weekly_completed = (state_attr(total_sensor, 'chore_stat_approved_week') | int(default=0)) if total_sensor else 0 -%}
+                      {%- set chores_paused = state_attr(dashboard_helper, 'chores_paused') | bool(false) -%}
 
                       {#-- 4. Build Display --#}
                       {%- set points_value = points_value | round(2) -%}
@@ -104,10 +105,11 @@ views:
                       {%- set content =
                         "## 👋 " ~ ui.get('welcome', 'err-welcome') ~ ", " ~ name ~ "\n"
                         ~ ("**⭐ " ~ points_label ~ ":** " ~ points_display ~ "  \n" if gamification_enabled else "")
-                        ~ "**🧹 " ~ ui.get('overdue', 'err-overdue') ~ ":** " ~ overdue_now|string ~ ""
+                        ~ ("⏸️ **" ~ ui.get('chores_are_paused', 'err-chores_are_paused') ~ "**  \n" if chores_paused else
+                        "**🧹 " ~ ui.get('overdue', 'err-overdue') ~ ":** " ~ overdue_now|string ~ ""
                         ~ "  •  **📅 " ~ ui.get('due_today', 'err-due_today') ~ ":** " ~ due_today_open|string ~ "  \n"
                         ~ "**☀️ " ~ ui.get('todays_completed', 'err-todays_completed') ~ ":** " ~ todays_completed|string
-                        ~ "  •  **🗓️ " ~ ui.get('weekly_completed', 'err-weekly_completed') ~ ":** " ~ weekly_completed|string
+                        ~ "  •  **🗓️ " ~ ui.get('weekly_completed', 'err-weekly_completed') ~ ":** " ~ weekly_completed|string)
                       -%}
 
                       {#-- 5. Render --#}
@@ -157,7 +159,7 @@ views:
 
                     {%- set pref_exclude_blocked = false -%}
 
-                    {%- set pref_exclude_states = [] -%}
+                    {%- set pref_exclude_states = [] -%}  {#-- Example: ['completed', 'completed_by_other', 'paused', 'not_my_turn', 'missed'] --#}
 
                     {%- set pref_exclude_nonrecurring_no_due_date = false -%}
 
@@ -188,7 +190,7 @@ views:
                       {%- set pref_exclude_states = pref_exclude_states + ['completed'] -%}
                     {%- endif -%}
                     {%- if pref_exclude_blocked -%}
-                      {%- for blocked_state in ['completed_by_other', 'not_my_turn', 'missed'] -%}
+                      {%- for blocked_state in ['completed_by_other', 'not_my_turn', 'paused', 'missed'] -%}
                         {%- if blocked_state not in pref_exclude_states -%}
                           {%- set pref_exclude_states = pref_exclude_states + [blocked_state] -%}
                         {%- endif -%}
@@ -386,13 +388,15 @@ views:
                                 {%- elif chore_state == 'claimed' -%}
                                   {%- set state_priority = 4 -%}
                                 {%- elif chore_state == 'completed' -%}
+                                  {%- set state_priority = 6 -%}
+                                {%- elif chore_state == 'paused' -%}
                                   {%- set state_priority = 5 -%}
                                 {%- elif chore_state == 'completed_by_other' -%}
-                                  {%- set state_priority = 6 -%}
-                                {%- elif chore_state == 'not_my_turn' -%}
                                   {%- set state_priority = 7 -%}
-                                {%- elif chore_state == 'missed' -%}
+                                {%- elif chore_state == 'not_my_turn' -%}
                                   {%- set state_priority = 8 -%}
+                                {%- elif chore_state == 'missed' -%}
+                                  {%- set state_priority = 9 -%}
                                 {%- else -%}
                                   {%- set state_priority = 50 -%}
                                 {%- endif -%}
@@ -462,7 +466,7 @@ views:
                               'orange' if raw_state == 'due' else
                               'purple' if raw_state == 'claimed' else
                               'green' if raw_state == 'completed' else
-                              'disabled' if raw_state in ['waiting', 'completed_by_other', 'not_my_turn'] else
+                              'disabled' if raw_state in ['waiting', 'completed_by_other', 'not_my_turn', 'paused'] else
                               'primary'
                             ) -%}
                             {{

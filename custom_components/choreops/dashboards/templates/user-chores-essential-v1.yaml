@@ -82,6 +82,7 @@ views:
                     {%- set todays_completed = (state_attr(total_sensor, 'chore_stat_approved_today') | int(default=0)) if total_sensor else 0 -%}
                     {%- set overdue_now = (state_attr(total_sensor, 'chore_stat_current_overdue') | int(default=0)) if total_sensor else 0 -%}
                     {%- set due_today_open = (state_attr(total_sensor, 'chore_stat_current_due_today') | int(default=0)) if total_sensor else 0 -%}
+                    {%- set chores_paused = state_attr(dashboard_helper, 'chores_paused') | bool(false) -%}
 
                     {#-- 4. Build Display - essentials minimal --#}
                     {%- set p_icon = points_icon | default('mdi:star', true) -%}
@@ -112,7 +113,8 @@ views:
                     {%- set left_col =
                       "<div style='text-align: left; flex-grow: 1; min-width: 0;'>"
                       ~ "<div style='font-size: 18px; font-weight: 600; margin-bottom: 8px; line-height: 1.2;'>👋 " ~ ui.get('welcome', 'err-welcome') ~ ", " ~ name ~ "!</div>"
-                      ~ "<div style='font-size: 12px; color: var(--secondary-text-color); display: flex; flex-direction: column; gap: 5px; line-height: 1.15;'>"
+                      ~ ("<div style='display: flex; flex-wrap: wrap; gap: 10px 18px;'><span style='display: inline-flex; align-items: center; white-space: nowrap; color: var(--warning-color);'><ha-icon icon='mdi:pause-circle-outline' style='width: 14px; height: 14px; margin-right: 5px; transform: translateY(-1px);'></ha-icon><b style='margin-left: 4px; color: var(--primary-text-color);'>" ~ ui.get('chores_are_paused', 'err-chores_are_paused') ~ "</b></span></div>" if chores_paused else
+                      "<div style='font-size: 12px; color: var(--secondary-text-color); display: flex; flex-direction: column; gap: 5px; line-height: 1.15;'>"
                       ~ "<div style='display: flex; flex-wrap: wrap; gap: 10px 18px;'>"
                       ~ "<span style='display: inline-flex; align-items: center; white-space: nowrap; color: " ~ ('var(--error-color)' if overdue_now > 0 else 'var(--secondary-text-color)') ~ ";'><ha-icon icon='mdi:alert-octagon-outline' style='width: 14px; height: 14px; margin-right: 5px; transform: translateY(-1px);'></ha-icon>" ~ ui.get('overdue', 'err-overdue') ~ ": <b style='margin-left: 4px; color: " ~ ('var(--error-color)' if overdue_now > 0 else 'var(--primary-text-color)') ~ ";'>" ~ overdue_now ~ "</b></span>"
                       ~ "<span style='display: inline-flex; align-items: center; white-space: nowrap; color: " ~ ('var(--warning-color)' if due_today_open > 0 else 'var(--secondary-text-color)') ~ ";'><ha-icon icon='mdi:calendar-clock' style='width: 14px; height: 14px; margin-right: 5px; transform: translateY(-1px);'></ha-icon>" ~ ui.get('due_today', 'err-due_today') ~ ": <b style='margin-left: 4px; color: " ~ ('var(--warning-color)' if due_today_open > 0 else 'var(--primary-text-color)') ~ ";'>" ~ due_today_open ~ "</b></span>"
@@ -205,7 +207,7 @@ views:
 
                   {%- set pref_exclude_completed = false -%}
 
-                  {%- set pref_exclude_states = [] -%}  {#-- Example: ['completed', 'completed_by_other', 'not_my_turn', 'missed'] --#}
+                  {%- set pref_exclude_states = [] -%}  {#-- Example: ['completed', 'completed_by_other', 'paused', 'not_my_turn', 'missed'] --#}
 
                   {%- set pref_exclude_nonrecurring_no_due_date = false -%}
 
@@ -461,7 +463,7 @@ views:
                             {%- set sorted_buttons = sorted_list | map('last') | list -%}
                             {%- set ns.sorted_groups = ns.sorted_groups + [{'id': group.id, 'name': group.name, 'buttons': sorted_buttons, 'icon': group.icon}] -%}
                           {%- elif pref_sort_within_groups == 'by_state_and_date' -%}
-                            {#-- Actionability sort: overdue, due, pending, waiting, claimed, completed, completed_by_other, not_my_turn, missed --#}
+                            {#-- Actionability sort: overdue, due, pending, waiting, claimed, paused, completed, completed_by_other, not_my_turn, missed --#}
                             {%- set ns.temp_list = [] -%}
                             {%- for eid in group.buttons -%}
                               {%- set chore_state = states(eid) | lower -%}
@@ -476,13 +478,15 @@ views:
                               {%- elif chore_state == 'claimed' -%}
                                 {%- set state_priority = 4 -%}
                               {%- elif chore_state in ['completed', 'approved'] -%}
-                                {%- set state_priority = 5 -%}
-                              {%- elif chore_state == 'completed_by_other' -%}
                                 {%- set state_priority = 6 -%}
-                              {%- elif chore_state == 'not_my_turn' -%}
+                              {%- elif chore_state == 'completed_by_other' -%}
                                 {%- set state_priority = 7 -%}
-                              {%- elif chore_state == 'missed' -%}
+                              {%- elif chore_state == 'paused' -%}
+                                {%- set state_priority = 5 -%}
+                              {%- elif chore_state == 'not_my_turn' -%}
                                 {%- set state_priority = 8 -%}
+                              {%- elif chore_state == 'missed' -%}
+                                {%- set state_priority = 9 -%}
                               {%- else -%}
                                 {%- set state_priority = 50 -%}
                               {%- endif -%}
@@ -672,6 +676,7 @@ views:
                                   'missed': ui.get('missed', 'err-missed'),
                                   'completed_by_other': ui.get('completed_by_other', 'err-completed_by_other'),
                                   'not_my_turn': ui.get('not_my_turn', 'err-not_my_turn'),
+                                  'paused': ui.get('paused', 'err-paused'),
                                   'already_approved': ui.get('completed', 'err-completed'),
                                   'pending_claim': ui.get('claimed', 'err-claimed'),
                                   'missed_locked': ui.get('missed_locked', 'err-missed_locked'),
@@ -680,6 +685,7 @@ views:
                                   'blocked_pending_claim': ui.get('claimed', 'err-claimed'),
                                   'blocked_waiting_window': ui.get('waiting', 'err-waiting'),
                                   'blocked_not_my_turn': ui.get('not_my_turn', 'err-not_my_turn'),
+                                  'blocked_paused': ui.get('paused', 'err-paused'),
                                   'blocked_missed_locked': ui.get('missed_locked', 'err-missed_locked'),
                                   'steal_available': ui.get('steal_available', 'err-steal_available')
                                 }) | tojson ~ "; const rawState = entity.state; let status = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); const claimMode = entity.attributes.claim_mode || null; if (claimMode === 'steal_available') status = 'steal_available'; else if (entity.attributes.can_claim === false && claimMode && !['completed', 'completed_in_part'].includes(status)) status = claimMode; const value = entity.attributes.due_date || entity.attributes.due_window_start; const dateText = value ? new Date(value).toLocaleString(undefined, {month:'short', day:'numeric', hour:'numeric', minute:'2-digit'}) : '--'; const statusLabel = statusMap[status] || status; const dueLabel = " ~ (ui.get('date', 'err-date') | tojson) ~ "; return `<b>${String(statusLabel).toUpperCase()}</b> • ${dueLabel}: ${dateText}`; ]]]",

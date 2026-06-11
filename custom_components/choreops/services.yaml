@@ -131,6 +131,45 @@ disapprove_chore:
       selector:
         text:
 
+pause_user_chores:
+  name: "Pause User's Chores"
+  description: "Pause or resume chore processing for a user. While paused, no overdue or missed stats accumulate and rotation advances past this user."
+  fields:
+    config_entry_id:
+      name: "Config Entry ID (Optional)"
+      description: "Use this if you have more than one ChoreOps setup. It targets one specific setup."
+      required: false
+      example: "abc123def456"
+      selector:
+        text:
+    config_entry_title:
+      name: "Config Entry Name (Optional)"
+      description: "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID."
+      required: false
+      example: "Family Chores"
+      selector:
+        text:
+    user_name:
+      name: "User Name"
+      description: "Name of the user whose chores to pause or resume."
+      required: true
+      example: "Sarah"
+      selector:
+        text:
+    paused:
+      name: "Paused"
+      description: "True to pause chores, False to resume."
+      required: false
+      default: true
+      selector:
+        boolean:
+    paused_until:
+      name: "Paused Until"
+      description: "Optional return date. If set, chores auto-resume at midnight after this date."
+      required: false
+      selector:
+        datetime:
+
 redeem_reward:
   name: "Redeem Reward"
   description: "An assignee redeems a reward, marking it as 'pending' for approver review."

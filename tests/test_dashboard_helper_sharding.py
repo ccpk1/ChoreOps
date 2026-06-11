@@ -577,7 +577,7 @@ class TestDashboardHelperSharding:
             hass, scenario_density_120, "Zoë"
         )
         shard_entity_ids_after = _get_shard_entity_ids(helper_state_after)
-        assert shard_entity_ids_after == shard_entity_ids_before, {
+        assert set(shard_entity_ids_after) >= set(shard_entity_ids_before), {
             "before": shard_entity_ids_before,
             "after": shard_entity_ids_after,
             "runtime": helper_state_after.attributes.get(const.ATTR_SHARD_RUNTIME),

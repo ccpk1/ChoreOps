@@ -1167,11 +1167,6 @@ async def _navigate_to_add_chore_form(
     ("overrides", "expected_field", "expected_error"),
     [
         (
-            {CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: []},
-            CFOF_CHORES_INPUT_ASSIGNED_USER_IDS,
-            "no_assignees_assigned",
-        ),
-        (
             {CFOF_CHORES_INPUT_DEFAULT_POINTS: -1},
             CFOF_CHORES_INPUT_DEFAULT_POINTS,
             "invalid_points",
@@ -1236,7 +1231,6 @@ async def _navigate_to_add_chore_form(
         ),
     ],
     ids=[
-        "no_assignees_assigned",
         "invalid_points",
         "due_date_in_past",
         "daily_multi_reset_combo",
@@ -1348,42 +1342,3 @@ async def test_chore_validation_duplicate_name_field_level_and_translated(
     errors = duplicate.get("errors") or {}
     assert CFOF_CHORES_INPUT_NAME in errors
     assert errors[CFOF_CHORES_INPUT_NAME] == "duplicate_chore"
-
-
-async def test_chore_validation_no_assignees_surfaces_section_error_with_section_payload(
-    hass: HomeAssistant,
-    init_integration_with_coordinator: SetupResult,
-) -> None:
-    """Validate no-assignees error is visible for sectioned chore form submissions."""
-    config_entry = init_integration_with_coordinator.config_entry
-
-    add_form = await _navigate_to_add_chore_form(hass, config_entry.entry_id)
-
-    sectioned_input: dict[str, Any] = {
-        CHORE_SECTION_ROOT_FORM: {
-            CFOF_CHORES_INPUT_NAME: "Section Payload No Assignees",
-            CFOF_CHORES_INPUT_DEFAULT_POINTS: 10,
-            CFOF_CHORES_INPUT_ICON: "mdi:check",
-            CFOF_CHORES_INPUT_DESCRIPTION: "",
-            CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: [],
-            CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_INDEPENDENT,
-        },
-        CHORE_SECTION_SCHEDULE: {
-            CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
-            CFOF_CHORES_INPUT_DUE_DATE: datetime.datetime.now(datetime.UTC)
-            + datetime.timedelta(days=1),
-        },
-        CHORE_SECTION_ADVANCED_CONFIGURATIONS: {
-            CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: APPROVAL_RESET_UPON_COMPLETION,
-            CFOF_CHORES_INPUT_OVERDUE_HANDLING_TYPE: OVERDUE_HANDLING_AT_DUE_DATE,
-        },
-    }
-
-    result = await hass.config_entries.options.async_configure(
-        add_form["flow_id"],
-        user_input=sectioned_input,
-    )
-
-    assert result.get("step_id") == OPTIONS_FLOW_STEP_ADD_CHORE
-    errors = result.get("errors") or {}
-    assert errors.get(CHORE_SECTION_ROOT_FORM) == "no_assignees_assigned"

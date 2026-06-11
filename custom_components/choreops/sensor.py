@@ -5250,6 +5250,12 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
             "language": dashboard_language,
             "gamification_enabled": gamification_enabled,
             "chore_workflow_enabled": chore_workflow_enabled,
+            "chores_paused": bool(
+                assignee_info.get(const.DATA_USER_CHORES_PAUSED, False)
+            ),
+            "chores_paused_until": assignee_info.get(
+                const.DATA_USER_CHORES_PAUSED_UNTIL
+            ),
             const.ATTR_SHARD_RUNTIME: shard_runtime,
         }
 

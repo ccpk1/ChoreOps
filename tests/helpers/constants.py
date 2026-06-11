@@ -342,6 +342,7 @@ from custom_components.choreops.const import (
     CHORE_STATE_MISSED,  # v0.5.0
     CHORE_STATE_NOT_MY_TURN,  # v0.5.0
     CHORE_STATE_OVERDUE,
+    CHORE_STATE_PAUSED,  # user-chore-pause
     CHORE_STATE_PENDING,
     CHORE_STATE_UNKNOWN,
     CHORE_STATE_WAITING,  # v0.5.0
@@ -352,6 +353,7 @@ from custom_components.choreops.const import (
     CHORE_CLAIM_MODE_BLOCKED_COMPLETED_BY_OTHER,
     CHORE_CLAIM_MODE_BLOCKED_MISSED_LOCKED,
     CHORE_CLAIM_MODE_BLOCKED_NOT_MY_TURN,
+    CHORE_CLAIM_MODE_BLOCKED_PAUSED,  # user-chore-pause
     CHORE_CLAIM_MODE_BLOCKED_PENDING_CLAIM,
     CHORE_CLAIM_MODE_BLOCKED_WAITING_WINDOW,
     CHORE_CLAIM_MODE_CLAIMABLE,
@@ -560,9 +562,12 @@ from custom_components.choreops.const import (
     SERVICE_SET_ROTATION_TURN,  # v0.5.0
     SERVICE_RESET_ROTATION,  # v0.5.0
     SERVICE_OPEN_ROTATION_CYCLE,  # v0.5.0
+    SERVICE_PAUSE_USER_CHORES,  # user-chore-pause
     # =========================================================================
     # SERVICE FIELD NAMES (for service call payloads)
     # =========================================================================
+    SERVICE_FIELD_CHORES_PAUSED,  # user-chore-pause
+    SERVICE_FIELD_CHORES_PAUSED_UNTIL,  # user-chore-pause
     SERVICE_FIELD_USER_NAME,
     SERVICE_FIELD_USER_ID,
     SERVICE_FIELD_APPROVER_NAME,

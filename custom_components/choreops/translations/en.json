@@ -113,13 +113,17 @@
               "can_approve": "Can approve",
               "can_manage": "Can manage",
               "associated_user_ids": "Associated users",
-              "notif_approve_click_url": "Approval notification tap URL"
+              "notif_approve_click_url": "Approval notification tap URL",
+              "chores_paused": "Pause chores",
+              "chores_paused_until": "Paused until"
             },
             "data_description": {
               "can_approve": "Allows approval and disapproval actions.",
               "can_manage": "Allows management actions that require elevated permissions.",
               "associated_user_ids": "Users this approver/admin supervises for approval actions.",
-              "notif_approve_click_url": "Optional URL for approval notifications. Overrides the general notification tap URL when approving chores or rewards."
+              "notif_approve_click_url": "Optional URL for approval notifications. Overrides the general notification tap URL when approving chores or rewards.",
+              "chores_paused": "Pauses chore processing. No overdue or missed stats accumulate.",
+              "chores_paused_until": "Optional return date. If set, chores auto-resume at midnight after this date."
             }
           }
         }
@@ -607,13 +611,17 @@
               "can_approve": "Can approve",
               "can_manage": "Can manage",
               "associated_user_ids": "Associated users",
-              "notif_approve_click_url": "Approval notification tap URL"
+              "notif_approve_click_url": "Approval notification tap URL",
+              "chores_paused": "Pause chores",
+              "chores_paused_until": "Paused until"
             },
             "data_description": {
               "can_approve": "Allows approval and disapproval actions.",
               "can_manage": "Allows management actions that require elevated permissions.",
               "associated_user_ids": "Users this approver/admin supervises for approval actions.",
-              "notif_approve_click_url": "Optional URL for approval notifications. Overrides the general notification tap URL when approving chores or rewards."
+              "notif_approve_click_url": "Optional URL for approval notifications. Overrides the general notification tap URL when approving chores or rewards.",
+              "chores_paused": "Pauses chore processing. No overdue or missed stats accumulate.",
+              "chores_paused_until": "Optional return date. If set, chores auto-resume at midnight after this date."
             }
           }
         }
@@ -1043,13 +1051,17 @@
               "can_approve": "Can approve",
               "can_manage": "Can manage",
               "associated_user_ids": "Associated users",
-              "notif_approve_click_url": "Approval notification tap URL"
+              "notif_approve_click_url": "Approval notification tap URL",
+              "chores_paused": "Pause chores",
+              "chores_paused_until": "Paused until"
             },
             "data_description": {
               "can_approve": "Allows approval and disapproval actions.",
               "can_manage": "Allows management actions that require elevated permissions.",
               "associated_user_ids": "Users this approver/admin supervises for approval actions.",
-              "notif_approve_click_url": "Optional URL for approval notifications. Overrides the general notification tap URL when approving chores or rewards."
+              "notif_approve_click_url": "Optional URL for approval notifications. Overrides the general notification tap URL when approving chores or rewards.",
+              "chores_paused": "Pauses chore processing. No overdue or missed stats accumulate.",
+              "chores_paused_until": "Optional return date. If set, chores auto-resume at midnight after this date."
             }
           }
         }
@@ -2249,6 +2261,37 @@
         }
       }
     },
+    "pause_user_chores": {
+      "name": "Pause User's Chores",
+      "description": "Pause or resume chore processing for a user.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Config Entry ID (Optional)",
+          "description": "Use this if you have more than one ChoreOps setup. It targets one specific setup.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Config Entry Name (Optional)",
+          "description": "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID.",
+          "example": "Family Chores"
+        },
+        "user_name": {
+          "name": "User Name",
+          "description": "Name of the user whose chores to pause or resume.",
+          "example": "Sarah"
+        },
+        "paused": {
+          "name": "Paused",
+          "description": "True to pause chores, False to resume.",
+          "example": "true"
+        },
+        "paused_until": {
+          "name": "Paused Until",
+          "description": "Optional return date. If set, chores auto-resume at midnight after this date.",
+          "example": "2026-06-10T00:00:00+00:00"
+        }
+      }
+    },
     "redeem_reward": {
       "name": "Redeem Reward",
       "description": "An approver redeems a reward for an assignee, deducting points.",
@@ -3225,7 +3268,8 @@
           "completed_by_other": "Completed by Other",
           "waiting": "Waiting (Due Window Not Open)",
           "not_my_turn": "Not My Turn (Rotation)",
-          "missed": "Missed (Locked)"
+          "missed": "Missed (Locked)",
+          "paused": "Paused"
         },
         "state_attributes": {
           "purpose": {
@@ -3472,7 +3516,8 @@
               "blocked_pending_claim": "Pending claim",
               "blocked_waiting_window": "Waiting for due window",
               "blocked_not_my_turn": "Not your turn",
-              "blocked_missed_locked": "Missed and locked"
+              "blocked_missed_locked": "Missed and locked",
+              "blocked_paused": "Chores are paused for this user"
             }
           },
           "turn_user_name": {
@@ -5389,6 +5434,9 @@
     },
     "notif_message_chore_missed": {
       "message": "{assignee_name} missed the chore: {chore_name}"
+    },
+    "chore_paused": {
+      "message": "Chore processing is currently paused for this user."
     }
   }
 }
