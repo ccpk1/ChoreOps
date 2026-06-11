@@ -664,20 +664,9 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
                 const.CFOF_USERS_INPUT_ENABLE_GAMIFICATION,
                 False,
             )
-
-            has_usage_context = any(
-                user_input.get(key)
-                for key in (
-                    const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS,
-                    const.CFOF_USERS_INPUT_CAN_APPROVE,
-                    const.CFOF_USERS_INPUT_CAN_MANAGE,
-                    const.CFOF_USERS_INPUT_ENABLE_CHORE_WORKFLOW,
-                    const.CFOF_USERS_INPUT_ENABLE_GAMIFICATION,
-                )
-            )
             user_input.setdefault(
                 const.CFOF_USERS_INPUT_CAN_BE_ASSIGNED,
-                not has_usage_context,
+                True,
             )
 
             errors = fh.validate_users_inputs(
