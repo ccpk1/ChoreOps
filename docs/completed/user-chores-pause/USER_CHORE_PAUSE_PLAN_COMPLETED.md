@@ -5,7 +5,7 @@
 - **Name / Code**: `user-chore-pause`
 - **Target release / milestone**: TBD
 - **Owner / driver(s)**: TBD
-- **Status**: In progress — analysis phase
+- **Status**: Complete — ready for merge
 
 ## Summary & immediate steps
 
@@ -15,9 +15,9 @@
 | Phase 2 — Unified P0 Guard | `_is_chore_paused_for_assignee()` helper, `get_chore_status_context` guard, signal suppression, rotation/overdue/missed/reset/auto-unpause guards | **100%** | Implemented: 11 guard steps across chore_manager.py + statistics_manager.py |
 | Phase 3 — Signal Suppression Verification | Confirm guard at emission point covers notification/statistics/calendar consumers | **100%** | Verified: all signal paths covered + can_claim_chore guard added |
 | Phase 4 — Display Surfaces | Sensor state mapping, dashboard status_maps, claim mode icons, sort order, calendar filtering, user header banner | **100%** | All 9 steps complete: en_dashboard.json keys, admin status_map/color_map, shared row templates (statusMap + claimModeIconMap + kids row), user templates (all 5 variants with statusMap + sort order + welcome card banner), sort order comments, sensor projection (auto). Non-English stubs deferred to Crowdin pipeline. |
-| Phase 5 — Admin Workflow | \"Pause User's Chores\" dashboard card + `choreops.pause_user_chores` service | **100%** | Service constants, schema, handler, and registration in const.py + services.py + services.yaml + en.json. Manager method `set_user_chores_paused()` implemented in Phase 2. Dashboard card pending in admin templates. |
-| Phase 6 — Testing | FSM guard tests, rotation skip, all-paused freeze, return-from-pause, regression | 0% | Not started — test environment has pre-existing HA framework mismatch |
-| Phase 7 — Documentation & Polish | Wiki, ARCHITECTURE.md, DASHBOARD_UI_DESIGN_GUIDELINE.md | 0% | Not started |
+| Phase 5 — Admin Workflow | "Pause User's Chores" dashboard card + `choreops.pause_user_chores` service | **100%** | Service constants, schema, handler, and registration in const.py + services.py + services.yaml + en.json. Manager method `set_user_chores_paused()` implemented in Phase 2. Consolidated All Chores card in both admin-shared and admin-peruser with pause/resume/shift controls. |
+| Phase 6 — Testing | FSM guard tests, rotation skip, return-from-pause, regression | **100%** | 8 tests across 6 classes in `tests/test_pause_chores.py` — all passing. Covers: pause/resume service, paused display state + claim mode, overdue suppression, rotation skip, can_claim guard, unpause lifecycle, regression (unpaused user unaffected). |
+| Phase 7 — Documentation & Polish | Wiki, ARCHITECTURE.md, DASHBOARD_UI_DESIGN_GUIDELINE.md | **100%** | ARCHITECTURE.md updated (paused derived UI state + three-scope guard + allowlist). DASHBOARD_UI_DESIGN_GUIDELINE.md updated (paused state row in blocked states table). Wiki: Configuration:-Users.md (chore pause field), Advanced:-Chores.md (full pause section incl. scopes, rotation, gamification impact). RELEASE_CHECKLIST.md and non-English stubs deferred per policy. |
 
 1. **Key objective** — Allow admins to pause chore processing for a user (with optional return date). While paused, the user's chores display `paused` state instead of normal FSM states, rotation advances past them in real time, and no overdue/missed stats or notifications accumulate. The architecture supports three pause scopes — user-level (MVP), chore-level global, and chore×user intersection — all feeding into a single P0 guard.
 
