@@ -19,7 +19,7 @@
 | Phase 5a – Dashboard templates | Status maps, icons, sort order, i18n (choreops-dashboards)    | 0%         | 9 template files + 12+ translation files touched                     |
 | Phase 5b – Docs & wiki         | 9 documentation files across 3 repos                          | 0%         | Wiki, architecture, design guide, release checklist                  |
 
-1. **Key objective** – Introduce a `rotation_primary_backup` completion criteria where the first assigned user is always the primary (permanent turn-holder default), and designated backups can claim only when: (a) an approver manually sets the turn to them via `set_rotation_turn`, or (b) the chore becomes overdue with `allow_steal` enabled, opening it to all backups. After every completion, the turn always resets to the primary.
+1. **Key objective** – Introduce a `rotation_primary_backup` completion criteria where the first assigned user is always the primary (permanent turn-holder default). Backups see `standby_backup` state and can claim based on the `backup_access` field: `anytime` (claim immediately), `on_overdue` (claim after due date), or `manual_only` (admin must intervene). Backup activation also occurs when the primary is paused or when an admin uses `set_rotation_turn`. After every completion, the turn always resets to the primary.
 
 2. **Summary of recent work** – Strategic analysis completed 2026-06-05. All design decisions captured (see Decisions section). 90%+ code reuse from existing rotation infrastructure confirmed.
 
@@ -29,6 +29,7 @@
    - `standby_backup` is a new derived UI state — must be added to `CHORE_UI_ASSIGNEE_STATES` and all state-allowlist frozensets that need to include it.
    - Reset-boundary force-to-primary must not interfere with `rotation_cycle_override` (open cycle) or manual turn overrides that are mid-cycle.
    - Notification wording for backup activation must not confuse users — backup should understand they are helping, not taking over permanently.
+   - **Pause coexistence**: The user chore pause feature (shipped v0.5.0+) adds `paused`/`blocked_paused` states, `_is_chore_paused_for_assignee()` helper, and `_advance_rotation_past_paused_assignee()` method. Primary-backup's reset-boundary force-to-primary is the only surface needing explicit pause awareness. See Phase 2 key issues for the full coexistence audit.
 
 5. **References**
    - [ARCHITECTURE.md](../ARCHITECTURE.md) — Data model, storage, coordinator pattern
@@ -42,17 +43,38 @@
 6. **Decisions & completion check**
    - **Decisions captured**:
      - D-1: Accountability stays with turn-holder (existing rotation model). Backup turn-holders are not penalized with missed/overdue when chore opens to them on overdue.
-     - D-2: Both manual failover (`set_rotation_turn`) AND overdue failover (`allow_steal`) are supported.
+     - D-2: Backup claim gating uses the `backup_access` field — three modes: `anytime` (immediate), `on_overdue` (after due date), `manual_only` (admin intervention required).
      - D-3: Primary is implicit — `assigned_user_ids[0]`. No explicit `primary_assignee_id` field. Guard rails via documentation and validation.
-     - D-4: MVP opens to ALL backups on overdue (like `allow_steal`). Smart rotation among backups deferred to future.
+     - D-4: `backup_access` field is independent of `overdue_handling`. Claim gating and penalty behavior are separate dimensions. Smart rotation among backups deferred to future.
+     - D-5: Administrative controls reuse existing services — no new backend endpoints. `update_chore` (reorder assignees) changes the primary. `set_rotation_turn` assigns turn to a backup. `open_rotation_cycle` (already registered as `choreops.open_rotation_cycle`) lifts the standby lock for one cycle. Template-only changes: button labels and one new "Open to All Backups" button.
      - G-3/T-4: New derived UI state `standby_backup` for backups who are not the active turn-holder (replaces `not_my_turn` for this criteria only).
      - T-1: Manual turn override does NOT survive approval reset — turn always snaps back to primary at reset boundary.
      - T-5: If no backups are designated (single assignee), the chore operates gracefully. Does NOT auto-convert to `independent`.
-     - O-1: "User unavailable" auto-failover deferred.
+     - O-1: "User paused" auto-failover — already implemented via `_advance_rotation_past_paused_assignee()`. Manual turn override deferred.
      - O-2: MVP notification leverages existing steal/due notification infrastructure with narrow wording adjustments.
      - O-3: Dashboard "Backup Duty" filter deferred to follow-up (dashboard template change).
      - O-4: Primary completion rate badge deferred; documented as known gap.
    - **Completion confirmation**: `[ ]` All follow-up items completed (architecture updates, cleanup, documentation, etc.) before requesting owner approval to mark initiative done.
+
+## Implementation traps (code-verified 2026-06-11)
+
+These were discovered during a detailed audit of the actual code against the plan's assumptions. They must be accounted for during implementation.
+
+### Trap 1: `_advance_rotation` dispatches by `method`, not `completion_criteria`
+
+The plan originally described inserting a `completion_criteria == ROTATION_PRIMARY_BACKUP` early-return before the method dispatch. But the actual method at `chore_manager.py:5113` translates criteria to method inside the `if method == "auto"` block and then dispatches by the resulting `method` value. The primary-backup handler must go **inside** the `"auto"` block as a `elif completion_criteria == ROTATION_PRIMARY_BACKUP` that sets `new_assignee_id = assigned[0]` directly. Phase 2 Step 1 has been updated to reflect this.
+
+### Trap 2: `backup_access.on_overdue` with no due date locks backups out permanently
+
+The P3 resolver gates the overdue window on `due_date is not None and now > due_date`. If a primary-backup chore uses `backup_access = on_overdue` but has no explicit due date (e.g., a daily recurring chore where the due date is computed at runtime), the backup **can never claim** because the overdue window never opens — `standby_backup` is enforced forever. This must be validated against in `data_builders.py`: when `completion_criteria == ROTATION_PRIMARY_BACKUP` and `backup_access == BACKUP_ACCESS_ON_OVERDUE`, require a due date.
+
+### Trap 3: P0 pause guard beats P3 `standby_backup` (correct but subtle)
+
+The pause P0 guard at `chore_manager.py:4129` runs BEFORE `resolve_assignee_chore_state()`. A paused backup sees **`paused`**, not `standby_backup`. This is correct — pause is a stronger administrative state — but it also means: if a backup is paused and later unpaused, they will immediately see `standby_backup` (or the appropriate state for their position in the rotation). If the admin expected them to become the active turn-holder on unpause, they need to check the rotation position first. Document this in the wiki.
+
+### Trap 4: Primary paused → backup becomes active (intentional, must document)
+
+This is the expected behavior per CRIT-2: when the primary is paused, `_advance_rotation_past_paused_assignee()` (line 5854) advances the turn past them in real time, and the next reset boundary's force-to-primary skips them (per the updated Phase 2 Step 2). The backup sees the chore as a **normal required chore** — with due dates, notifications, overdue penalties, and point earnings — just as if they were the primary. This is the desired behavior but must be clearly documented: pausing the primary is the mechanism for activating backups.
 
 ## Tracking expectations
 
@@ -117,7 +139,7 @@
   | P3 sub-branch placement is safe | New branch inside `is_rotation_mode()` block, BEFORE generic `not_my_turn` return at line 696-705 | ✅ Correct — primary_backup returns `standby_backup`, simple/smart continue to `not_my_turn` |
   | Force-to-primary at reset boundary doesn't break rotation signals | `_advance_rotation` captures `previous_assignee_id` BEFORE modifying `rotation_current_assignee_id` (line ~4968 before ~5028) | ✅ Correct — signal payload has correct previous |
   | No-conflict with `rotation_cycle_override` | `_is_rotation_open_claim_cycle` covers primary_backup via `is_rotation_mode()` | ✅ Correct |
-  | `steal_available` claim mode triggers for primary_backup | `get_chore_status_context` checks `ChoreEngine.is_rotation_mode()` at line ~4133 | ✅ Correct after step 1.3 |
+  | `backup_available` claim mode triggers for primary_backup | `get_chore_status_context` resolves via `claim_error_to_claim_mode` mapping from sentinel | ✅ Correct after Phase 2 Step 4 |
   | Completion criteria display label auto-resolves in dashboards | `ui.get(completion_type_key, ...)` where key comes from entity attribute | ✅ Correct — only translation key needed, no template logic |
   | Single-assignee primary-backup doesn't crash | P3 returns `standby_backup` for `assignee_id != current_turn`. With 1 assignee, primary IS turn holder, so condition never true. | ✅ Correct — no standby_backup shown for solo primary |
 
@@ -148,18 +170,18 @@
 
   | Doc | What to add |
   |-----|------------|
-  | `choreops-wiki/Configuration:-Chores.md` | New "Rotation — Primary & Backup" subsection under Completion Criteria, explaining implicit primary, manual failover, overdue steal, and accountability model |
+  | `choreops-wiki/Configuration:-Chores.md` | New "Rotation — Primary & Backup" subsection under Completion Criteria, explaining implicit primary, backup_access modes, pause interaction, and accountability model |
   | `choreops-wiki/Advanced:-Chores.md` | New section or subsection covering primary-backup: when to use, how backup activation works, rotation comparison table, known limitations |
   | `choreops-wiki/Configuration:-Users.md` | Note that for primary-backup chores, first assigned user in list is the primary |
   | `choreops/docs/ARCHITECTURE.md` | Add `standby_backup` to the derived UI state listing if `CHORE_UI_ASSIGNEE_STATES` is documented there |
   | `choreops/docs/DEVELOPMENT_STANDARDS.md` | No change needed — pattern is identical to existing rotation criteria |
-  | `choreops/docs/DASHBOARD_UI_DESIGN_GUIDELINE.md` | Add `standby_backup` to the state color reference table (~line 53 area, shared badge color section) |
+  | `choreops/docs/DASHBOARD_UI_DESIGN_GUIDELINE.md` | Add `standby_backup`, `backup_available`, `blocked_standby_backup` to the blocked/exception states table |
   | `choreops/docs/QUALITY_REFERENCE.md` | No change needed unless new quality rule is affected |
   | `choreops-dashboards/translations/en_dashboard.json` | 3 new i18n keys (already in Phase 5a) |
   | `choreops-wiki/_Sidebar.md` | May need link update if new wiki page is created |
 
 - **Key issues**
-  - CRIT-1 through CRIT-6 are **mandatory pre-merge requirements**. Missing any of these would cause runtime bugs: `can_claim_chore` would not build `other_assignee_states` for primary-backup chores, breaking single-claimer blocking; `_remove_name_from_ownership_list` would not clear ownership fields correctly; due date lookups would use wrong storage path.
+  - CRIT-1 through CRIT-8 are **mandatory pre-merge requirements**. Missing any of these would cause runtime bugs: `can_claim_chore` would not build `other_assignee_states` for primary-backup chores, breaking single-claimer blocking; `_remove_name_from_ownership_list` would not clear ownership fields correctly; due date lookups would use wrong storage path.
   - The `choreops-wiki` repo is a separate repository — wiki updates must be coordinated with the integration release.
   - reset-boundary ordering (item D) is a subtle but important refinement from the initial plan.
 
@@ -207,13 +229,34 @@
 
   6. `[ ]` **Add validation guard** in `custom_components/choreops/data_builders.py` — the existing `validate_chore_data()` or criteria-transition handler in `_handle_criteria_transition()` (~line 5063) must include `COMPLETION_CRITERIA_ROTATION_PRIMARY_BACKUP` in its "requires ≥2 assignees" check (it already checks rotation types via `new_is_rotation` which will pick up the new criteria via `is_rotation_mode()`).
 
-  7. `[ ]` **Add `standby_backup` claim mode constant** in `custom_components/choreops/const.py` (~line 1926, after `CHORE_CLAIM_MODE_BLOCKED_NOT_MY_TURN`):
+  7. `[ ]` **Add `standby_backup` claim mode constants** in `custom_components/choreops/const.py` (~line 1926, after `CHORE_CLAIM_MODE_BLOCKED_NOT_MY_TURN`):
      ```python
      CHORE_CLAIM_MODE_BLOCKED_STANDBY_BACKUP: Final = "blocked_standby_backup"
+     CHORE_CLAIM_MODE_BACKUP_AVAILABLE: Final = "backup_available"
      ```
-     Add to `CHORE_CLAIM_MODES` frozenset.
+     Add both to `CHORE_CLAIM_MODES` frozenset.
 
-  8. `[ ]` **CRIT-1: Add to `can_claim_chore` `other_assignee_states` check** in `custom_components/choreops/managers/chore_manager.py` (~line 674-679). The existing tuple must include `COMPLETION_CRITERIA_ROTATION_PRIMARY_BACKUP` so the single-claimer blocking logic builds the `other_assignee_states` dict for primary-backup chores:
+     **Icons** (verified MDI 7.x):
+     - `blocked_standby_backup`: `mdi:shield-account-outline` — "you're a backup, can't claim"
+     - `backup_available`: `mdi:shield-check-outline` — "you're a backup, can claim anytime"
+
+  8. `[ ]` **Add `backup_access` storage field and constants** in `custom_components/choreops/const.py`:
+     ```python
+     DATA_CHORE_BACKUP_ACCESS: Final = "backup_access"
+     BACKUP_ACCESS_ANYTIME: Final = "anytime"
+     BACKUP_ACCESS_ON_OVERDUE: Final = "on_overdue"
+     BACKUP_ACCESS_MANUAL_ONLY: Final = "manual_only"
+     BACKUP_ACCESS_OPTIONS: Final = [
+         {"value": BACKUP_ACCESS_ANYTIME, "label": "backup_access_anytime"},
+         {"value": BACKUP_ACCESS_ON_OVERDUE, "label": "backup_access_on_overdue"},
+         {"value": BACKUP_ACCESS_MANUAL_ONLY, "label": "backup_access_manual_only"},
+     ]
+     ```
+     Add to `UserData` TypedDict in `type_defs.py` (as `NotRequired[str]`).
+
+     **Options flow behavior**: `build_chore()` always sets `backup_access = "anytime"` as a default. In `_handle_criteria_transition()`, when transitioning TO `rotation_primary_backup`, ensure it exists (default to `"anytime"`). When transitioning AWAY, leave it (harmless). The field always shows in the options flow; when the criteria is NOT primary-backup, display a label like "N/A — only applies to Rotation — Primary & Backup" since HA options flow doesn't support dynamic field visibility.
+
+  9. `[ ]` **CRIT-1: Add to `can_claim_chore` `other_assignee_states` check** in `custom_components/choreops/managers/chore_manager.py` (~line 674-679). The existing tuple must include `COMPLETION_CRITERIA_ROTATION_PRIMARY_BACKUP` so the single-claimer blocking logic builds the `other_assignee_states` dict for primary-backup chores:
      ```python
      if completion_criteria in (
          const.COMPLETION_CRITERIA_SHARED_FIRST,
@@ -305,17 +348,28 @@
 
 - **Steps / detailed work items**
 
-  1. `[ ]` **Modify `_advance_rotation()`** in `custom_components/choreops/managers/chore_manager.py` (~line 4946-5037). After determining rotation type, add early-return for primary-backup:
-     ```python
-     # Primary-backup: always reset to primary (first assigned assignee)
-     if completion_criteria == const.COMPLETION_CRITERIA_ROTATION_PRIMARY_BACKUP:
-         new_assignee_id = assigned_assignees[0] if assigned_assignees else None
-         # Skip smart/simple calculation — always snap to primary
-         # (method stays "auto" for signal payload consistency)
-     ```
-     This replaces the simple/smart branch for this criteria. The rest of the method (override clear, signal payload construction) remains unchanged.
+  1. `[ ]` **Modify `_advance_rotation()`** in `custom_components/choreops/managers/chore_manager.py` (~line 5113, inside the `if method == "auto"` dispatch block). Add primary-backup as a new criteria-to-method dispatch BEFORE the simple/smart translation, and set `new_assignee_id` directly to `assigned[0]`:
 
-  2. `[ ]` **Add reset-boundary force-to-primary** in `_transition_chore_state()` in `custom_components/choreops/managers/chore_manager.py` (~line 4540-4550). **Placement refined by verification pass**: force-to-primary runs AFTER `_advance_rotation` (so signal captures correct `previous_assignee_id`) but still within the `if new_state == CHORE_STATE_PENDING and reset_approval_period:` scope. This handles the "nobody completed, midnight passes" case where a manual turn override from a previous cycle leaks into the new one:
+     **⚠️ TRAP**: The `_advance_rotation` method dispatches by `method` parameter, not `completion_criteria`. The `method == "auto"` block translates criteria to method. The primary-backup handler must be inserted HERE — inside the `"auto"` block — not as a standalone early-return before the method dispatch:
+
+     ```python
+     if method == "auto":
+         # Determine method from completion criteria
+         if completion_criteria == const.COMPLETION_CRITERIA_ROTATION_SIMPLE:
+             method = "simple"
+         elif completion_criteria == const.COMPLETION_CRITERIA_ROTATION_SMART:
+             method = "smart"
+         elif completion_criteria == const.COMPLETION_CRITERIA_ROTATION_PRIMARY_BACKUP:
+             new_assignee_id = assigned_assignees[0] if assigned_assignees else None
+             # Skip method dispatch — primary-backup always snaps to primary
+             # Fall through to the metadata update + signal payload below
+     ```
+     No need for a separate if/elif block after the dispatch — the value flows naturally into the metadata update at lines ~5162-5167.
+
+  2. `[ ]` **Add reset-boundary force-to-primary (pause-aware)** in `_transition_chore_state()` in `custom_components/choreops/managers/chore_manager.py` (~line 4677, after the existing `_advance_rotation` call). **Placement refined by verification pass**: force-to-primary runs AFTER `_advance_rotation` (so signal captures correct `previous_assignee_id`) but still within the `if new_state == CHORE_STATE_PENDING and reset_approval_period:` scope. This handles the "nobody completed, midnight passes" case where a manual turn override from a previous cycle leaks into the new one.
+
+     **Pause interaction (CRIT-2 from cross-analysis):** The force-to-primary must check whether the primary is paused using the existing `_is_chore_paused_for_assignee()` helper (see `chore_manager.py` line 4062). If the primary is paused, snap to the first non-paused backup. If ALL assignees are paused, freeze at current turn (do not change `rotation_current_assignee_id`).
+
      ```python
      if new_state == const.CHORE_STATE_PENDING and reset_approval_period:
          # Advance rotation (primary-backup sets new=primary within _advance_rotation)
@@ -325,45 +379,62 @@
              )
 
          # Primary-backup: force turn to primary at every reset boundary
-         # Runs after _advance_rotation so signal payload has correct previous_assignee_id
-         # Also covers the fallback case where nobody completed (completed_by_assignee_id is None)
+         # Pause-aware: skips paused primary, freezes if all paused
          if chore_info.get(const.DATA_CHORE_COMPLETION_CRITERIA) == \
                  const.COMPLETION_CRITERIA_ROTATION_PRIMARY_BACKUP:
              assigned = chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
              if assigned:
-                 chore_info[const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID] = assigned[0]
+                 target = assigned[0]
+                 if self._is_chore_paused_for_assignee(target, chore_id):
+                     # Primary paused — find first non-paused backup
+                     for candidate in assigned[1:]:
+                         if not self._is_chore_paused_for_assignee(candidate, chore_id):
+                             target = candidate
+                             break
+                     else:
+                         target = None  # All paused, freeze
+                 if target is not None:
+                     chore_info[const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID] = target
      ```
-     This ensures T-1: manual override does not survive reset. Even if an approver set turn to a backup yesterday, midnight/approval-reset snaps it back to primary.
+     This ensures T-1 and pause coexistence: manual override does not survive reset, and paused users are correctly handled.
 
-  3. `[ ]` **Modify `resolve_assignee_chore_state()` P3 block** in `custom_components/choreops/engines/chore_engine.py` (~line 676-710). For primary-backup chores, non-turn assignees with `allow_steal` that is NOT yet past due should return `standby_backup` instead of `not_my_turn`:
+  3. `[ ]` **Modify `resolve_assignee_chore_state()` P3 block** in `custom_components/choreops/engines/chore_engine.py` (~line 676-710). For primary-backup chores, non-turn assignees see `standby_backup`. Claim gating is controlled by the new `backup_access` field (see new Phase 1 step 17 below), NOT by `overdue_handling`:
+
      ```python
-     # Inside P3: if primary-backup and not turn-holder and steal not yet active
+     # Inside P3: if primary-backup and not turn-holder
      if (
          completion_criteria == const.COMPLETION_CRITERIA_ROTATION_PRIMARY_BACKUP
          and assignee_id != current_turn
          and not override
      ):
-         if overdue_handling == const.OVERDUE_HANDLING_AT_DUE_DATE_ALLOW_STEAL:
-             if due_date is not None and now > due_date:
-                 pass  # Fall through — steal window active, show as overdue
-             else:
-                 return (
-                     const.CHORE_STATE_STANDBY_BACKUP,
-                     const.CHORE_STATE_STANDBY_BACKUP,
-                 )
+         backup_access = chore_data.get(
+             const.DATA_CHORE_BACKUP_ACCESS, const.BACKUP_ACCESS_ANYTIME
+         )
+
+         if due_date is not None and now > due_date:
+             # Backups with anytime or on_overdue can claim when overdue
+             if backup_access in (
+                 const.BACKUP_ACCESS_ANYTIME,
+                 const.BACKUP_ACCESS_ON_OVERDUE,
+             ):
+                 pass  # Fall through — overdue, claimable, shows as "Backup needed"
+             else:  # manual_only
+                 return (const.CHORE_STATE_STANDBY_BACKUP, const.CHORE_STATE_STANDBY_BACKUP)
          else:
-             return (
-                 const.CHORE_STATE_STANDBY_BACKUP,
-                 const.CHORE_STATE_STANDBY_BACKUP,
-             )
+             # Not yet overdue — only anytime backups can claim
+             if backup_access == const.BACKUP_ACCESS_ANYTIME:
+                 return (const.CHORE_STATE_STANDBY_BACKUP, const.BACKUP_AVAILABLE_SENTINEL)
+             else:
+                 return (const.CHORE_STATE_STANDBY_BACKUP, const.CHORE_STATE_STANDBY_BACKUP)
      ```
-     This sits as a sub-branch inside the existing `is_rotation_mode()` check, before the generic `not_my_turn` returns. The existing `not_my_turn` path continues to handle `rotation_simple` and `rotation_smart`.
+
+     **Sentinels**: `BACKUP_AVAILABLE_SENTINEL` is a sentinel value used to signal "standby_backup state but claimable." In `get_chore_status_context()`, it maps to `claim_mode = CHORE_CLAIM_MODE_BACKUP_AVAILABLE` and `can_claim = True`. This allows the dashboard to show `mdi:shield-check-outline` ("you're a backup and can claim") vs `mdi:shield-account-outline` ("you're a backup and cannot claim").
 
   4. `[ ]` **Update `get_chore_status_context()` claim mode mapping** in `custom_components/choreops/managers/chore_manager.py` (~line 4114-4140). Add `standby_backup` to the `claim_error_to_claim_mode` mapping:
      ```python
      const.TRANS_KEY_ERROR_CHORE_STANDBY_BACKUP: const.CHORE_CLAIM_MODE_BLOCKED_STANDBY_BACKUP,
      ```
-     And add `steal_available` detection for primary-backup chores (same logic as rotation but also triggers for primary-backup criteria).
+     And map `BACKUP_AVAILABLE_SENTINEL` → `CHORE_CLAIM_MODE_BACKUP_AVAILABLE` with `can_claim = True`.
 
   5. `[ ]` **Update `_is_rotation_open_claim_cycle()`** — verify it already handles `rotation_primary_backup` via `is_rotation_mode()`. Since step 1.3 adds the criteria to `is_rotation_mode()`, no code change needed. But verify with a targeted test.
 
@@ -374,7 +445,14 @@
 - **Key issues**
   - **P3 ordering is critical**: The `standby_backup` check must happen inside the `is_rotation_mode()` block but BEFORE the generic `not_my_turn` return. If placed after, simple/smart rotation chores would also show `standby_backup`.
   - **`standby_backup` vs `not_my_turn` lock_reason**: Both use their state string as the lock reason (consistent with existing pattern). Sensors/UI use this for display logic.
-  - **Reset boundary ordering**: Force-to-primary must happen BEFORE `_advance_rotation` is called in `_transition_chore_state`, otherwise `_advance_rotation` would calculate the wrong "previous" assignee for signal payload.
+  - **Reset boundary ordering**: Force-to-primary must happen AFTER `_advance_rotation` is called in `_transition_chore_state`, so the signal payload captures the correct "previous" assignee.
+  - **Pause coexistence (v0.5.0+)**: The user chore pause feature shipped before primary-backup. Key surfaces already handled:
+    - P0 guard in `get_chore_status_context` (line 4129) is criteria-agnostic — returns `paused` for any criteria. No change needed for primary-backup. ✅
+    - `can_claim_chore` pause guard (line 3859) already blocks claims for paused users regardless of criteria. ✅
+    - `set_rotation_turn` pause guard (line 5290) already rejects setting turn to a paused user. ✅
+    - `_advance_rotation_past_paused_assignee()` (line 5854) handles rotation advance past paused turn-holders in real time. Since it uses `is_rotation_mode()`, it automatically covers primary-backup. ✅
+    - `_advance_rotation()` (line 5071) has NO internal pause skip loop. The cross-analysis (CRIT-1) incorrectly predicted one — the implementations are in separate methods and do not conflict. ✅
+    - The reset-boundary force-to-primary (Step 2 above) is the only location needing explicit pause awareness. ⚠️
 
 ---
 
@@ -391,6 +469,7 @@
      And under `entity.sensor.chore_status.state_attributes.claim_mode.state`:
      ```json
      "blocked_standby_backup": "You are a backup for this chore"
+     "backup_available": "Backup — you can claim this chore"
      ```
 
   2. `[ ]` **Add completion criteria label translation** in `custom_components/choreops/translations/en.json` under `config.step.chore_settings.data.completion_criteria.options`:
@@ -407,17 +486,17 @@
      "chore_standby_backup": "You are a backup for {chore_name}. The primary assignee has first responsibility."
      ```
 
-  4. `[ ]` **Review overdue/steal notification wording** in `custom_components/choreops/translations/en_notifications.json` (or wherever notification templates live). For primary-backup chores with `allow_steal`, when the chore becomes overdue and opens to backups, the notification to backups should use wording like:
+  4. `[ ]` **Add dedicated backup-needed notification** in `custom_components/choreops/translations/en_notifications.json`. When a primary-backup chore with `backup_access` of `anytime` or `on_overdue` becomes overdue, notify all backups:
      - Title: "Backup needed: {chore_name}"
      - Message: "{primary_name} hasn't completed {chore_name}. It's now available for you to claim."
-     This requires a new notification template key scoped to primary-backup overdue.
+     This is a new notification template key (not reusing the `allow_steal` notification).
 
   5. `[ ]` **Add `can_claim_error` translation** for `standby_backup` so the UI shows an appropriate reason when a backup tries to claim before their turn is active or steal window is open.
 
   6. `[ ]` **Update `services.yaml`** if any new service parameters are needed for primary-backup chores. Initial assessment: none — `set_rotation_turn` and `open_rotation_cycle` already work.
 
 - **Key issues**
-  - Notification template scoping: Need to decide whether primary-backup overdue notifications use the same template as rotation `allow_steal` or a dedicated template. Dedicated template is cleaner but adds a template key. Shared template with conditional wording is simpler but harder to maintain.
+  - Notification template scoping: A dedicated backup-needed notification template is the right approach (not sharing with rotation `allow_steal`). The backup relationship is different from the steal window concept.
   - `standby_backup` vs `not_my_turn` icon differentiation: Consider a distinct icon (`mdi:shield-account-outline` vs `mdi:account-cancel`) so dashboards can visually distinguish "you're a backup" from "it's not your turn in the rotation."
 
 ---
@@ -432,9 +511,11 @@
 
   2. `[ ]` **Test: Primary always sees chore as claimable** — Primary (assignee[0]) should see `pending`/`due`/`waiting` (never `standby_backup`) regardless of turn state.
 
-  3. `[ ]` **Test: Backup sees `standby_backup` before steal window** — Backup (assignee[1]) with `allow_steal` enabled should see `standby_backup` before due date, then `overdue` (claimable) after due date.
+  3. `[ ]` **Test: Backup with `backup_access.anytime` can claim immediately** — Backup (assignee[1]) should see `standby_backup` state with `backup_available` claim mode. Can claim at any time. No `overdue` required.
 
-  4. `[ ]` **Test: Backup sees `standby_backup` without steal** — Backup with `at_due_date` (no steal) should always see `standby_backup` and never be able to claim (unless turn manually set).
+  4. `[ ]` **Test: Backup with `backup_access.on_overdue` must wait** — Backup sees `standby_backup` with `blocked_standby_backup` claim mode before due date. After due date, sees `overdue` (claimable).
+
+  4a. `[ ]` **Test: Backup with `backup_access.manual_only` can never claim directly** — Backup always sees `standby_backup` with `blocked_standby_backup`. Only admin `set_rotation_turn` or pause can activate.
 
   5. `[ ]` **Test: Manual turn override (`set_rotation_turn`)** — Approver sets turn to backup. Backup should now see `pending`/`due` (not `standby_backup`). Primary should now see `standby_backup`.
 
@@ -451,6 +532,10 @@
   11. `[ ]` **Test: Dashboard `due_today` filter** — `standby_backup` chores should NOT count toward the backup's due-today summary.
 
   12. `[ ]` **Test: Regression — existing rotation types unaffected** — Run existing `TestRotationSimpleChores` and `TestRotationSmartChores` to confirm no regressions.
+
+  13. `[ ]` **Test: Primary paused → backup becomes active** — Pause the primary. Verify backup sees normal `pending`/`due`/`waiting` state on the chore, not `standby_backup`.
+
+  14. `[ ]` **Test: Backup paused → sees `paused` not `standby_backup`** — Pause a backup. Verify they see `paused` state, not `standby_backup` (P0 guard beats P3 standby).
 
 - **Key issues**
   - Test fixtures: Reuse `scenario_shared` from existing rotation tests. May need a new scenario YAML fixture for primary-backup with specific overdue handling configuration.
@@ -469,9 +554,15 @@
   | File | What changes |
   |------|-------------|
   | `translations/en_dashboard.json` | 3 new translation keys |
-  | `templates/admin-shared-v1.yaml` | status_map, status_color_map entries |
-  | `templates/admin-peruser-v1.yaml` | status_map, status_color_map entries |
+  | `templates/admin-shared-v1.yaml` | status_map, status_color_map + sort comment |
+  | `templates/admin-peruser-v1.yaml` | status_map, status_color_map + sort comment |
   | `templates/shared/button_card_template_chore_row_v1.yaml` | statusMap, claimModeIconMap, stealAccent detection |
+  | `templates/shared/button_card_template_chore_row_kids_v1.yaml` | Blocked states check, color logic, badge icon |
+  | `templates/user-chores-essential-v1.yaml` | statusMap, sort order, pref_exclude_states comment |
+  | `templates/user-chores-lite-v1.yaml` | statusMap (via shared), tile_color disabled check, blocked states check |
+  | `templates/user-chores-standard-v1.yaml` | statusMap (via shared row template), sort order |
+  | `templates/user-gamification-premier-v1.yaml` | statusMap (via shared row template), sort order |
+  | `templates/user-kidschores-classic-v1.yaml` | state_map (own independent map) |
   | (vendored copies in `custom_components/choreops/dashboards/`) | Mirror of above via `sync_dashboard_assets.py` |
 
 - **Steps / detailed work items**
@@ -491,22 +582,27 @@
      And in the blocked claim-mode section (~line 1480, after `'blocked_not_my_turn'`):
      ```yaml
      'blocked_standby_backup': ui.get('standby_backup', 'err-standby_backup'),
+     'backup_available': ui.get('standby_backup', 'err-standby_backup'),
      ```
 
   3. `[ ]` **Update `status_color_map` in admin-shared-v1.yaml** (~line 1524-1529, after `'not_my_turn'` and `'blocked_not_my_turn'` entries):
      ```yaml
      'standby_backup': 'var(--disabled-text-color)',
      'blocked_standby_backup': 'var(--disabled-text-color)',
+     'backup_available': 'var(--primary-color)',
      ```
-     Same color as `not_my_turn` — both are inactive/blocked states shown with muted styling.
+     `backup_available` uses primary-color to signal actionability (like `claimable`), while `standby_backup`/`blocked_standby_backup` stay muted.
 
   4. `[ ]` **Apply identical changes to admin-peruser-v1.yaml** — `status_map` at ~line 1404/1412, `status_color_map` at ~line 1456/1461. Same entries as steps 2-3.
 
   5. `[ ]` **Update shared `button_card_template_chore_row_v1.yaml`** — this is the most critical file as it's used by ALL user-facing chore row cards:
      - **`statusMap`** (~line 149): Add `standby_backup: i18n('standby_backup', 'err-standby_backup'),` and `blocked_standby_backup: i18n('standby_backup', 'err-standby_backup'),` after the `blocked_not_my_turn` entry.
-     - **`claimModeIconMap`** (~line 199): Add `blocked_standby_backup: 'mdi:shield-account-outline',` after the `blocked_not_my_turn` entry.
-     - **`stealAccent` background-color detection** (~line 16): The existing logic checks `claimMode === 'steal_available'` — this already works for primary-backup because `steal_available` is set by the same code path. No change needed.
-     - **`border-left` color** (~line 80): Same — `steal_available` check already covers primary-backup overdue. No change needed.
+     - **`claimModeIconMap`** (~line 199): Add entries for the new backup claim modes:
+       ```yaml
+       blocked_standby_backup: 'mdi:shield-account-outline',   # Can't claim
+       backup_available: 'mdi:shield-check-outline',           # Can claim anytime
+       ```
+     - **`stealAccent` background-color detection** (~line 16): No change needed for primary-backup — the `steal_available` check is rotation-specific.
 
   6. `[ ]` **Update `user-chores-essential-v1.yaml`** — multiple locations:
      - **`pref_exclude_states` comment** (~line 208): Add `standby_backup` to the example list so users know they can filter it out:
@@ -545,6 +641,23 @@
   - **No classic templates**: The `*-kidschores-classic.yaml` templates use a different architecture (markdown-based, not button-card). They read `completion_criteria` attribute for display but use a `state_map` that maps criteria values to display strings. Adding `"rotation_primary_backup": "Rotation - Primary & Backup"` to that map may be needed if those templates are still supported. Check with product owner.
   - **Sync contract**: After canonical edits in `choreops-dashboards/`, the sync script must produce byte-identical vendored copies. Any drift breaks the parity contract (per DEVELOPMENT_STANDARDS.md §1.3).
 
+  10. `[ ]` **Update admin dashboard rotation controls** — In both `admin-shared-v1.yaml` and `admin-peruser-v1.yaml`, the per-chore rotation controls need conditionally different labels for primary-backup chores. Zero new services needed — all three actions use existing service calls:
+
+      **No backend work**. The services already exist:
+      - `choreops.update_chore` with reordered `assigned_user_names` = changing primary
+      - `choreops.set_rotation_turn` = assigning turn to a backup
+      - `choreops.open_rotation_cycle` (registered at `services.py:3320`) = opening to all backups
+
+      **Template-only changes** (conditional on `completion_criteria == "rotation_primary_backup"`):
+
+      | Current button | Primary-backup label | Service call |
+      |---------------|---------------------|--------------|
+      | "Move to Front" | **"Make Primary"** | `choreops.update_chore` with reordered names |
+      | "Set Turn" | **"Assign Turn"** | `choreops.set_rotation_turn` |
+      | *(no button)* | **"Open to All Backups"** | `choreops.open_rotation_cycle` |
+
+      The third button ("Open to All Backups") is a new addition — it lifts the `standby_backup` restriction for one cycle for all backups, first claimer wins. The cycle override auto-clears at the next approval reset.
+
 ### Phase 5b – Documentation & Wiki Updates
 
 - **Goal**: Update all user-facing and developer-facing documentation across the `choreops` repo, `choreops-wiki` repo, and `choreops-dashboards` repo.
@@ -553,7 +666,7 @@
 
   | # | Doc | Repo | What to add |
   |---|-----|------|------------|
-  | DOC-1 | `Configuration:-Chores.md` | `choreops-wiki` | New "Rotation — Primary & Backup" subsection under Completion Criteria. Explain: implicit primary (first assigned user), two backup activation paths (manual `set_rotation_turn` + overdue `allow_steal`), accountability model (turn-holder gets missed/overdue stats), standalone backup disabling (auto-clears turn override at reset boundary). |
+  | DOC-1 | `Configuration:-Chores.md` | `choreops-wiki` | New "Rotation — Primary & Backup" subsection under Completion Criteria. Explain: implicit primary (first assigned user), three backup_access modes (anytime/on_overdue/manual_only), pause interaction, accountability model (turn-holder gets missed/overdue stats). |
   | DOC-2 | `Advanced:-Chores.md` | `choreops-wiki` | New section or subsection: when primary-backup is appropriate (single-owner chores needing fallback), how it differs from standard rotation (always snaps to primary, backups see `standby_backup` not `not_my_turn`), rotation comparison table. |
   | DOC-3 | `Configuration:-Users.md` | `choreops-wiki` | Note: for primary-backup chores, the first user in the assigned list is always the primary. Order matters. |
   | DOC-4 | `ARCHITECTURE.md` | `choreops` | Add `standby_backup` to derived UI state documentation (alongside `not_my_turn`, `waiting`, `due`, etc.). The state listing is in the const.py section reference. |
@@ -643,7 +756,7 @@
 
 - **Follow-up tasks for future initiatives**:
   - "User unavailable" auto-failover: auto-call `set_rotation_turn` to first backup when primary marked unavailable.
-  - Smart rotation among backups: `calculate_next_turn_smart(backups_only_list, ...)` when primary is unavailable for extended period.
+  - Smart rotation among backups: `calculate_next_turn_smart(backups_only_list, ...)` when primary is paused for extended period.
   - Dashboard "Backup Duty" filter section.
   - Primary completion rate badge/achievement.
   - `standby_backup` icon differentiation (translation-based icon support).
