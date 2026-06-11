@@ -4,7 +4,7 @@
   "_comment_assignee_footer": "═════════════════════════════════════════════════════════════════════════════════",
   "chore_approved_assignee": {
     "title": "🎉 Godkendt pligt!",
-    "message": "{chore_name} godkendt! Du har optjent {points} point"
+    "message": "{chore_name} godkendt! Du har opnået {points} {points_label}"
   },
   "chore_disapproved_assignee": {
     "title": "↩️ Opgave returneret",
@@ -12,11 +12,11 @@
   },
   "chore_overdue_assignee": {
     "title": "⏰ Forfalden pligt",
-    "message": "{chore_name} er for sent! Færdiggør den nu for at optjene {points} point"
+    "message": "{chore_name} er for sent! Færdiggør den nu for at optjene {points} {points_label}"
   },
   "chore_overdue_steal_available": {
     "title": "⚡ Huslige pligter",
-    "message": "{chore_name} er for sent og kan stjæles! Fuldfør den først for at optjene {points} point"
+    "message": "{chore_name} er for sent og kan stjæles! Fuldfør den først for at optjene {points} {points_label}"
   },
   "chore_missed_assignee": {
     "title": "😔 Opgave udløbet",
@@ -24,11 +24,11 @@
   },
   "chore_due_reminder_assignee": {
     "title": "⏰ Påmindelse om huslige pligter",
-    "message": "{chore_name} forfalder om {minutes} minutter! Værd {points} point"
+    "message": "{chore_name} forfalder om {minutes} minutter! Værdien er {points} {points_label}"
   },
   "chore_due_window_assignee": {
     "title": "🎯 Huslige pligter skal udføres nu",
-    "message": "{chore_name} skal nu afleveres! Færdiggør inden for {hours} time(r) for at optjene {points} point"
+    "message": "{chore_name} forfalder nu! Færdiggør inden for {hours} time(r) for at optjene {points} {points_label}"
   },
   "reward_approved_assignee": {
     "title": "🎉 Belønning godkendt!",
@@ -52,15 +52,15 @@
   },
   "penalty_applied_assignee": {
     "title": "⚠️ Straf pålagt",
-    "message": "{penalty_name}: {points} point fratrukket. Lad os komme tilbage på sporet!"
+    "message": "{penalty_name}: {points} {points_label} fratrukket. Lad os komme tilbage på sporet!"
   },
   "bonus_applied_assignee": {
     "title": "⭐ Bonus anvendt!",
-    "message": "{bonus_name}: Du har optjent {points} bonuspoint! Godt gået"
+    "message": "{bonus_name}: Du har optjent {points} bonus {points_label}! Godt gået"
   },
   "multiplier_changed_assignee": {
     "title": "⚖️ Multiplikator opdateret",
-    "message": "Din pointmultiplikator er ændret fra {old_multiplier}x til {new_multiplier}x"
+    "message": "Din {points_label} multiplikator er ændret fra {old_multiplier}x til {new_multiplier}x"
   },
   "_comment_approver_section": "═════════════════════════════════════════════════════════════════════════════════",
   "_comment_approver_desc": "GODKENDELSESMEDDELELSER: Informative, tredjepersons, handlingsrettede. Format: '{assignee_name}: Handling'. INGEN 'ChoreOps:' præfiks.",
@@ -79,11 +79,11 @@
   },
   "pending_chores_approver": {
     "title": "📋 {assignee_name}: {count} Afventer",
-    "message": "{count} pligter afventer gennemgang. Seneste: {latest_chore} (+{points} point)"
+    "message": "{count} pligter afventer gennemgang. Seneste: {latest_chore} (+{points} {points_label})"
   },
   "reward_claimed_approver": {
     "title": "🎁 {assignee_name}: Belønningsanmodning",
-    "message": "{assignee_name} anmodede om {reward_name} for {points} point"
+    "message": "{assignee_name} anmodede om {reward_name} for {points} {points_label}"
   },
   "reward_reminder_approver": {
     "title": "⏰ {assignee_name}: Belønning afventer",
@@ -103,7 +103,7 @@
   },
   "multiplier_changed_approver": {
     "title": "⚖️ {assignee_name}: Multiplikator opdateret",
-    "message": "{assignee_name}s pointmultiplikator er ændret fra {old_multiplier}x til {new_multiplier}x"
+    "message": "{assignee_name}s {points_label} multiplikator ændret fra {old_multiplier}x til {new_multiplier}x"
   },
   "_comment_system_section": "═════════════════════════════════════════════════════════════════════════════════",
   "_comment_system_desc": "SYSTEM-/ADMIN-MEDDELELSER: Datahåndteringshandlinger",

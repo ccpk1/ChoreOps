@@ -81,13 +81,15 @@
               "name": "Navn",
               "ha_user_id": "Hjemmeassistent-bruger",
               "dashboard_language": "Sprog",
-              "mobile_notify_service": "Notifikationer"
+              "mobile_notify_service": "Notifikationer",
+              "notif_click_url": "URL til tryk på notifikationen"
             },
             "data_description": {
               "name": "Unikt navn for denne brugerprofil.",
               "ha_user_id": "Valgfrit: Link denne profil til en Home Assistant-bruger. Hvis kiosktilstand er deaktiveret, afhænger handlinger for krav og indløsning af delte enheder af dette link.",
               "dashboard_language": "Sprog, der bruges til dashboardindhold og meddelelser.",
-              "mobile_notify_service": "Vælg notifikationstjeneste, eller lad feltet stå tomt for at deaktivere notifikationer."
+              "mobile_notify_service": "Vælg notifikationstjeneste, eller lad feltet stå tomt for at deaktivere notifikationer.",
+              "notif_click_url": "Valgfri URL, der skal åbnes, når der trykkes på en notifikation. Lad feltet stå tomt for standardadfærd."
             }
           },
           "section_system_usage": {
@@ -110,12 +112,18 @@
             "data": {
               "can_approve": "Kan godkende",
               "can_manage": "Kan administrere",
-              "associated_user_ids": "Tilknyttede brugere"
+              "associated_user_ids": "Tilknyttede brugere",
+              "notif_approve_click_url": "URL til tryk på godkendelsesmeddelelse",
+              "chores_paused": "Sæt pligter på pause",
+              "chores_paused_until": "Pause indtil"
             },
             "data_description": {
               "can_approve": "Tillader godkendelses- og afvisningshandlinger.",
               "can_manage": "Tillader administrationshandlinger, der kræver forhøjede tilladelser.",
-              "associated_user_ids": "Brugere, som denne godkender/administrator overvåger, i forbindelse med godkendelseshandlinger."
+              "associated_user_ids": "Brugere, som denne godkender/administrator overvåger, i forbindelse med godkendelseshandlinger.",
+              "notif_approve_click_url": "Valgfri URL til godkendelsesmeddelelser. Tilsidesætter den generelle URL til tryk på meddelelser ved godkendelse af pligter eller belønninger.",
+              "chores_paused": "Sætter opgaver på pause. Der akkumuleres ingen statistikker for forsinkede eller mistede opgaver.",
+              "chores_paused_until": "Valgfri returdato. Hvis angivet, genoptages opgaver automatisk ved midnat efter denne dato."
             }
           }
         }
@@ -483,6 +491,8 @@
       "invalid_reward_count": "Ugyldigt antal belønninger",
       "invalid_reward_name": "Ugyldigt belønningsnavn",
       "invalid_reward_cost": "Belønningsomkostningerne skal være nul eller større med op til 2 decimaler",
+      "invalid_reward_assigned_users": "En eller flere tildelte brugere er ikke gyldige",
+      "mixed_reward_assignment_sentinel": "Kan ikke blande 'alle brugere' med specifikke brugere",
       "invalid_bonus": "Ugyldig bonus",
       "invalid_bonus_count": "Ugyldigt bonusantal",
       "invalid_bonus_name": "Ugyldigt bonusnavn",
@@ -569,13 +579,15 @@
               "name": "Navn",
               "ha_user_id": "Hjemmeassistent-bruger",
               "dashboard_language": "Sprog",
-              "mobile_notify_service": "Notifikationer"
+              "mobile_notify_service": "Notifikationer",
+              "notif_click_url": "URL til tryk på notifikationen"
             },
             "data_description": {
               "name": "Unikt navn for denne brugerprofil.",
               "ha_user_id": "Valgfrit: Link denne profil til en Home Assistant-bruger. Hvis kiosktilstand er deaktiveret, afhænger handlinger for krav og indløsning af delte enheder af dette link.",
               "dashboard_language": "Sprog, der bruges til dashboardindhold og meddelelser.",
-              "mobile_notify_service": "Vælg notifikationstjeneste, eller lad feltet stå tomt for at deaktivere notifikationer."
+              "mobile_notify_service": "Vælg notifikationstjeneste, eller lad feltet stå tomt for at deaktivere notifikationer.",
+              "notif_click_url": "Valgfri URL, der skal åbnes, når der trykkes på en notifikation. Lad feltet stå tomt for standardadfærd."
             }
           },
           "section_system_usage": {
@@ -598,12 +610,18 @@
             "data": {
               "can_approve": "Kan godkende",
               "can_manage": "Kan administrere",
-              "associated_user_ids": "Tilknyttede brugere"
+              "associated_user_ids": "Tilknyttede brugere",
+              "notif_approve_click_url": "URL til tryk på godkendelsesmeddelelse",
+              "chores_paused": "Sæt pligter på pause",
+              "chores_paused_until": "Pause indtil"
             },
             "data_description": {
               "can_approve": "Tillader godkendelses- og afvisningshandlinger.",
               "can_manage": "Tillader administrationshandlinger, der kræver forhøjede tilladelser.",
-              "associated_user_ids": "Brugere, som denne godkender/administrator overvåger, i forbindelse med godkendelseshandlinger."
+              "associated_user_ids": "Brugere, som denne godkender/administrator overvåger, i forbindelse med godkendelseshandlinger.",
+              "notif_approve_click_url": "Valgfri URL til godkendelsesmeddelelser. Tilsidesætter den generelle URL til tryk på meddelelser ved godkendelse af pligter eller belønninger.",
+              "chores_paused": "Sætter opgaver på pause. Der akkumuleres ingen statistikker for forsinkede eller mistede opgaver.",
+              "chores_paused_until": "Valgfri returdato. Hvis angivet, genoptages opgaver automatisk ved midnat efter denne dato."
             }
           }
         }
@@ -926,7 +944,8 @@
           "cost": "Belønningsomkostninger",
           "description": "Beskrivelse (valgfrit)",
           "reward_labels": "Belønningsetiketter",
-          "icon": "Ikon (mdi:xxx)"
+          "icon": "Ikon (mdi:xxx)",
+          "assigned_user_ids": "Tildelt til"
         }
       },
       "add_penalty": {
@@ -1000,13 +1019,15 @@
               "name": "Navn",
               "ha_user_id": "Hjemmeassistent-bruger",
               "dashboard_language": "Sprog",
-              "mobile_notify_service": "Notifikationer"
+              "mobile_notify_service": "Notifikationer",
+              "notif_click_url": "URL til tryk på notifikationen"
             },
             "data_description": {
               "name": "Unikt navn for denne brugerprofil.",
               "ha_user_id": "Valgfrit: Link denne profil til en Home Assistant-bruger. Hvis kiosktilstand er deaktiveret, afhænger handlinger for krav og indløsning af delte enheder af dette link.",
               "dashboard_language": "Sprog, der bruges til dashboardindhold og meddelelser.",
-              "mobile_notify_service": "Vælg notifikationstjeneste, eller lad feltet stå tomt for at deaktivere notifikationer."
+              "mobile_notify_service": "Vælg notifikationstjeneste, eller lad feltet stå tomt for at deaktivere notifikationer.",
+              "notif_click_url": "Valgfri URL, der skal åbnes, når der trykkes på en notifikation. Lad feltet stå tomt for standardadfærd."
             }
           },
           "section_system_usage": {
@@ -1029,12 +1050,18 @@
             "data": {
               "can_approve": "Kan godkende",
               "can_manage": "Kan administrere",
-              "associated_user_ids": "Tilknyttede brugere"
+              "associated_user_ids": "Tilknyttede brugere",
+              "notif_approve_click_url": "URL til tryk på godkendelsesmeddelelse",
+              "chores_paused": "Sæt pligter på pause",
+              "chores_paused_until": "Pause indtil"
             },
             "data_description": {
               "can_approve": "Tillader godkendelses- og afvisningshandlinger.",
               "can_manage": "Tillader administrationshandlinger, der kræver forhøjede tilladelser.",
-              "associated_user_ids": "Brugere, som denne godkender/administrator overvåger, i forbindelse med godkendelseshandlinger."
+              "associated_user_ids": "Brugere, som denne godkender/administrator overvåger, i forbindelse med godkendelseshandlinger.",
+              "notif_approve_click_url": "Valgfri URL til godkendelsesmeddelelser. Tilsidesætter den generelle URL til tryk på meddelelser ved godkendelse af pligter eller belønninger.",
+              "chores_paused": "Sætter opgaver på pause. Der akkumuleres ingen statistikker for forsinkede eller mistede opgaver.",
+              "chores_paused_until": "Valgfri returdato. Hvis angivet, genoptages opgaver automatisk ved midnat efter denne dato."
             }
           }
         }
@@ -1385,7 +1412,8 @@
           "cost": "Belønningsomkostninger",
           "description": "Beskrivelse (valgfrit)",
           "reward_labels": "Belønningsetiketter",
-          "icon": "Ikon (mdi:xxx)"
+          "icon": "Ikon (mdi:xxx)",
+          "assigned_user_ids": "Tildelt til"
         }
       },
       "edit_penalty": {
@@ -1633,6 +1661,7 @@
         "title": "Generelle muligheder",
         "description": "Administrer generelle indstillinger for ChoreOps-integrationen.\n\n ℹ️ [Læs mere om generelle indstillinger]({documentation_url})",
         "data": {
+          "dashboard_points_precision": "Præcision i dashboardpunkter",
           "default_chore_points": "Standardpoint pr. opgave",
           "points_adjust_values": "Værdier for knap til manuel justering af punkter",
           "update_interval": "Opdateringsinterval",
@@ -1649,6 +1678,7 @@
           "backup_action_selection": "Sikkerhedskopieringshandlinger"
         },
         "data_description": {
+          "dashboard_points_precision": "Vælg, hvordan punkter vises på tværs af understøttede dashboards. Dette ændrer kun dashboardformateringen og ændrer ikke gemte punktværdier eller beregninger.",
           "default_chore_points": "Standardpointværdi brugt til nye opgaver, når brugerdefinerede point ikke er angivet.",
           "points_adjust_values": "Liste over værdier for knapperne til manuel punktjustering. Hver værdi adskilt af '|'.",
           "update_interval": "Interval i minutter for opdatering af ChoreOps' interne tilstand.",
@@ -1948,6 +1978,14 @@
         "return_to_menu": "↩️ Tilbage til hovedmenuen"
       }
     },
+    "dashboard_points_precision": {
+      "options": {
+        "fixed_0": "Kun hele tal",
+        "adaptive": "Adaptiv (vis kun decimaler når det er nødvendigt)",
+        "fixed_1": "Altid 1 decimal",
+        "fixed_2": "Altid 2 decimaler"
+      }
+    },
     "select_backup_to_delete": {
       "options": {
         "cancel": "↩️ Annuller (gå tilbage til backupmenuen)"
@@ -2223,6 +2261,37 @@
         }
       }
     },
+    "pause_user_chores": {
+      "name": "Sæt brugerens pligter på pause",
+      "description": "Sæt en brugers pligtbehandling på pause eller genoptag den.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Konfigurationsindgangs-ID (valgfrit)",
+          "description": "Brug dette, hvis du har mere end én ChoreOps-opsætning. Den er rettet mod én specifik opsætning.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Navn på konfigurationspost (valgfrit)",
+          "description": "Brug dette, hvis du har mere end én ChoreOps-opsætning, og de hver især har unikke navne. Hvis navnene gentages, skal du bruge Config Entry ID.",
+          "example": "Familiepligter"
+        },
+        "user_name": {
+          "name": "Brugernavn",
+          "description": "Navn på den bruger, hvis opgaver skal sættes på pause eller genoptages.",
+          "example": "Sara"
+        },
+        "paused": {
+          "name": "Pausesat",
+          "description": "Sandt for at sætte pligter på pause, Falsk for at genoptage dem.",
+          "example": "ægte"
+        },
+        "paused_until": {
+          "name": "Pause indtil",
+          "description": "Valgfri returdato. Hvis angivet, genoptages opgaver automatisk ved midnat efter denne dato.",
+          "example": "2026-06-10T00:00:00+00:00"
+        }
+      }
+    },
     "redeem_reward": {
       "name": "Indløs belønning",
       "description": "En godkender indløser en belønning for en tildelt person og trækker point fra.",
@@ -2461,6 +2530,11 @@
           "name": "Etiketter",
           "description": "Etiketter til gruppering af belønninger.",
           "example": "['weekend', 'speciel']"
+        },
+        "assigned_user_names": {
+          "name": "Tildelt til",
+          "description": "Brugervisningsnavne tildelt denne belønning. Brug [\"*\"] for alle brugere. Vis en tom liste for ikke at tildele til nogen brugere.",
+          "example": "['Zoë', 'Max!']"
         }
       }
     },
@@ -2507,6 +2581,11 @@
           "name": "Etiketter",
           "description": "Opdaterede etiketter.",
           "example": "['præmie', 'special']"
+        },
+        "assigned_user_names": {
+          "name": "Tildelt til",
+          "description": "Brugernavne, der er tildelt denne belønning. Brug [\"*\"] for alle brugere. Send en tom liste for at fjerne alle tildelte brugere. Undlad at lade aktuelle tildelinger være uændrede.",
+          "example": "['Zoë', 'Max!']"
         }
       }
     },
@@ -2557,7 +2636,7 @@
         },
         "assigned_user_names": {
           "name": "Tildelt til",
-          "description": "Liste over navne på tildelte personer, som denne opgave skal tildeles.",
+          "description": "Liste over navne på tildelte personer, som denne opgave skal tildeles. Brug [\"*\"] for alle brugere, der kan tildeles. Giv en tom liste for at oprette uden tildelte personer.",
           "example": "['Emma', 'Jack']"
         },
         "points": {
@@ -2663,7 +2742,7 @@
         },
         "assigned_user_names": {
           "name": "Tildelt til",
-          "description": "Ny liste over navne på tildelte personer, som denne opgave skal tildeles.",
+          "description": "Ny liste over navne på tildelte personer, som denne opgave skal tildeles. Brug [\"*\"] for alle brugere, der kan tildeles. Send en tom liste for at fjerne alle tildelte brugere. Undlad at lade aktuelle tildelinger være uændrede.",
           "example": "['Emma', 'Jack']"
         },
         "points": {
@@ -2735,6 +2814,11 @@
           "name": "Forskydning af påmindelse",
           "description": "Ny forskydning af påmindelse om forfald. Varighed før forfaldsdato for afsendelse af påmindelsesbesked. Format: '30m', '1t', '1d 6t 30m' osv. Brug '0' for at deaktivere.",
           "example": "30m"
+        },
+        "assignment_action": {
+          "name": "Tildelingshandling",
+          "description": "Sådan håndteres listen assigned_user_names. 'replace' angiver listen direkte (standard, bagudkompatibel). 'add' tilføjer de anførte brugere til eksisterende tildelte. 'remove' fjerner de anførte brugere fra eksisterende tildelte.",
+          "example": "tilføje"
         }
       }
     },
@@ -3096,6 +3180,11 @@
           "name": "Spring ikke-tilbagevendende pligter over",
           "description": "Aktiver dette for at lade engangsopgaver være uændrede i stedet for at flytte deres forfaldsdato til grænsen.",
           "example": "falsk"
+        },
+        "allow_long_recurrences": {
+          "name": "Tillad lange gentagelser",
+          "description": "Tillad omplanlægning af månedlige, kvartalsvise, årlige og andre gentagelser med lang intervaller. Standardindstillingen er falsk for at forhindre utilsigtede store spring.",
+          "example": "ægte"
         }
       }
     },
@@ -3179,7 +3268,8 @@
           "completed_by_other": "Udfyldt af Anden",
           "waiting": "Venter (frist ikke åben)",
           "not_my_turn": "Ikke min tur (rotation)",
-          "missed": "Mistet (Låst)"
+          "missed": "Mistet (Låst)",
+          "paused": "Pausesat"
         },
         "state_attributes": {
           "purpose": {
@@ -3426,7 +3516,8 @@
               "blocked_pending_claim": "Afventende krav",
               "blocked_waiting_window": "Venter på forfaldsfrist",
               "blocked_not_my_turn": "Ikke din tur",
-              "blocked_missed_locked": "Mistet og låst"
+              "blocked_missed_locked": "Mistet og låst",
+              "blocked_paused": "Huslige pligter er sat på pause for denne bruger"
             }
           },
           "turn_user_name": {
@@ -4740,8 +4831,14 @@
           "core_sensors": {
             "name": "Kernesensorer"
           },
+          "dashboard_config": {
+            "name": "Dashboardkonfiguration"
+          },
           "dashboard_helpers": {
             "name": "Dashboard-hjælpere"
+          },
+          "shard_runtime": {
+            "name": "Kørselstid for pligtliste"
           },
           "chores_by_label": {
             "name": "Huslige pligter efter label"
@@ -4751,6 +4848,29 @@
           },
           "language": {
             "name": "Sprog"
+          }
+        }
+      },
+      "assignee_dashboard_chore_list_helper_sensor": {
+        "name": "Liste over opgaver i brugergrænseflade-dashboard {shard_index}",
+        "state_attributes": {
+          "purpose": {
+            "name": "Formål",
+            "state": {
+              "purpose_dashboard_chore_shard_helper": "Viser én opgaveliste på dashboardet, når en brugers fulde opgaveliste er for stor til hovedhjælperen."
+            }
+          },
+          "chores": {
+            "name": "Huslige pligter"
+          },
+          "shard_index": {
+            "name": "Nummer på pligtliste"
+          },
+          "shard_count": {
+            "name": "Samlede opgaver"
+          },
+          "helper_contract_version": {
+            "name": "Hjælpekontraktversion"
           }
         }
       }
@@ -5314,6 +5434,9 @@
     },
     "notif_message_chore_missed": {
       "message": "{assignee_name} missede opgaven: {chore_name}"
+    },
+    "chore_paused": {
+      "message": "Behandling af huslige pligter er i øjeblikket sat på pause for denne bruger."
     }
   }
 }

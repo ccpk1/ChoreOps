@@ -4,7 +4,7 @@
   "_comment_assignee_footer": "══════════════════════════════════════════════════════════════════",
   "chore_approved_assignee": {
     "title": "¡Tarea aprobada!",
-    "message": "¡{chore_name} aprobado! Has ganado {points} puntos."
+    "message": "{chore_name} ¡Aprobado! Has ganado {points} {points_label}"
   },
   "chore_disapproved_assignee": {
     "title": "↩️ Tarea devuelta",
@@ -12,11 +12,11 @@
   },
   "chore_overdue_assignee": {
     "title": "⏰ Tarea atrasada",
-    "message": "¡{chore_name} está atrasado! Complétalo ahora para ganar {points} puntos."
+    "message": "{chore_name} ¡Está vencido! Complétalo ahora para ganar {points} {points_label}"
   },
   "chore_overdue_steal_available": {
     "title": "⚡ Alerta de tareas",
-    "message": "¡{chore_name} está vencido y listo para robar! Complétalo primero para ganar {points} puntos."
+    "message": "{chore_name} está vencido y disponible para robar. Complétalo primero para ganar {points} {points_label}"
   },
   "chore_missed_assignee": {
     "title": "😔 Tarea expirada",
@@ -24,11 +24,11 @@
   },
   "chore_due_reminder_assignee": {
     "title": "⏰ Recordatorio de tareas",
-    "message": "¡{chore_name} se entrega en {minutes} minutos! Vale {points} puntos"
+    "message": "{chore_name} vence en {minutes} minutos. Vale {points} {points_label}"
   },
   "chore_due_window_assignee": {
     "title": "🎯 Tarea pendiente",
-    "message": "¡{chore_name} ya está disponible! Complétalo en {hours} hora(s) para ganar {points} puntos."
+    "message": "{chore_name} ¡Ya vence! Complétalo en {hours} hora(s) para ganar {points} {points_label}"
   },
   "reward_approved_assignee": {
     "title": "🎉 ¡Recompensa aprobada!",
@@ -52,15 +52,15 @@
   },
   "penalty_applied_assignee": {
     "title": "⚠️ Sanción aplicada",
-    "message": "{penalty_name}: {points} puntos deducidos. ¡A por todas!"
+    "message": "{penalty_name}: {points} {points_label} deducido. ¡Volvamos al tema!"
   },
   "bonus_applied_assignee": {
     "title": "⭐ ¡Bono aplicado!",
-    "message": "{bonus_name}: ¡Ganaste {points} puntos extra! ¡Buen trabajo!"
+    "message": "{bonus_name}: ¡Has ganado {points} bono {points_label}! ¡Buen trabajo!"
   },
   "multiplier_changed_assignee": {
     "title": "⚖️ Multiplicador actualizado",
-    "message": "Tu multiplicador de puntos cambió de {old_multiplier}x a {new_multiplier}x"
+    "message": "Tu multiplicador {points_label} cambió de {old_multiplier}x a {new_multiplier}x"
   },
   "_comment_approver_section": "══════════════════════════════════════════════════════════════════",
   "_comment_approver_desc": "NOTIFICACIONES DEL APROBADOR: Informativas, en tercera persona, con instrucciones. Formato: '{assignee_name}: Acción'. Sin prefijo 'ChoreOps:'.",
@@ -79,11 +79,11 @@
   },
   "pending_chores_approver": {
     "title": "📋 {assignee_name}: {count} Pendiente",
-    "message": "{count} tareas pendientes de revisión. Últimas: {latest_chore} (+{points} pts)"
+    "message": "{count} tareas pendientes de revisión. Últimas: {latest_chore} (+{points} {points_label})"
   },
   "reward_claimed_approver": {
     "title": "🎁 {assignee_name}: Solicitud de recompensa",
-    "message": "{assignee_name} solicitó {reward_name} por {points} puntos"
+    "message": "{assignee_name} solicitó {reward_name} para {points} {points_label}"
   },
   "reward_reminder_approver": {
     "title": "⏰ {assignee_name}: Recompensa pendiente",
@@ -103,7 +103,7 @@
   },
   "multiplier_changed_approver": {
     "title": "⚖️ {assignee_name}: Multiplicador actualizado",
-    "message": "El multiplicador de puntos de {assignee_name}cambió de {old_multiplier}x a {new_multiplier}x"
+    "message": "{assignee_name}'s {points_label} multiplier changed from {old_multiplier}x to {new_multiplier}x"
   },
   "_comment_system_section": "══════════════════════════════════════════════════════════════════",
   "_comment_system_desc": "NOTIFICACIONES DE SISTEMA/ADMINISTRADOR: Operaciones de gestión de datos",

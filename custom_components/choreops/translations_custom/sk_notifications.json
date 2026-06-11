@@ -4,7 +4,7 @@
   "_comment_assignee_footer": "══════════════════════════════════════════════════════════════════════════",
   "chore_approved_assignee": {
     "title": "🎉 Domáca úloha schválená!",
-    "message": "{chore_name} schválená! Získali ste {points} bodov"
+    "message": "{chore_name} schválené! Získali ste {points} {points_label}"
   },
   "chore_disapproved_assignee": {
     "title": "↩️ Vrátená práca",
@@ -12,11 +12,11 @@
   },
   "chore_overdue_assignee": {
     "title": "⏰ Domáca práca po termíne",
-    "message": "{chore_name} je oneskorené! Dokončite ho teraz a získajte {points} bodov"
+    "message": "{chore_name} je už naplánované! Dokončite ho teraz a získajte {points} {points_label}"
   },
   "chore_overdue_steal_available": {
     "title": "⚡ Upozornenie na domáce práce",
-    "message": "{chore_name} je po termíne a je k dispozícii na ukradnutie! Najprv ho dokončite a získajte {points} bodov"
+    "message": "{chore_name} je po termíne a je k dispozícii na ukradnutie! Najprv ho dokončite a získajte {points} {points_label}"
   },
   "chore_missed_assignee": {
     "title": "😔 Platnosť úlohy vypršala",
@@ -24,11 +24,11 @@
   },
   "chore_due_reminder_assignee": {
     "title": "⏰ Pripomienka domácich prác",
-    "message": "{chore_name} je splatné o {minutes} minút! Hodnota {points} bodov"
+    "message": "{chore_name} je splatné o {minutes} minút! Hodnota {points} {points_label}"
   },
   "chore_due_window_assignee": {
     "title": "🎯 Domáca úloha teraz na splatenie",
-    "message": "Termín {chore_name} je teraz! Dokončite do {hours} hodiny a získajte {points} bodov"
+    "message": "{chore_name} je teraz splatné! Dokončite do {hours} hodiny a získajte {points} {points_label}"
   },
   "reward_approved_assignee": {
     "title": "🎉 Odmena schválená!",
@@ -52,15 +52,15 @@
   },
   "penalty_applied_assignee": {
     "title": "⚠️ Uplatnená pokuta",
-    "message": "{penalty_name}: Odpočítané {points} body. Vráťme sa na správnu cestu!"
+    "message": "{penalty_name}: {points} {points_label} odpočítané. Vráťme sa na správnu cestu!"
   },
   "bonus_applied_assignee": {
     "title": "⭐ Bonus bol uplatnený!",
-    "message": "{bonus_name}: Získali ste {points} bonusových bodov! Skvelá práca"
+    "message": "{bonus_name}: Získali ste bonus {points} {points_label}! Skvelá práca"
   },
   "multiplier_changed_assignee": {
     "title": "⚖️ Aktualizovaný multiplikátor",
-    "message": "Váš násobiteľ bodov sa zmenil z {old_multiplier}x na {new_multiplier}x"
+    "message": "Váš multiplikátor {points_label} sa zmenil z {old_multiplier}x na {new_multiplier}x"
   },
   "_comment_approver_section": "══════════════════════════════════════════════════════════════════════════",
   "_comment_approver_desc": "OZNÁMENIA SCHVÁĽOVATEĽA: Informatívne, v tretej osobe, akčné. Formát: '{assignee_name}: Akcia'. BEZ predpony 'ChoreOps:'.",
@@ -79,11 +79,11 @@
   },
   "pending_chores_approver": {
     "title": "📋 {assignee_name}: {count} Čaká sa",
-    "message": "{count} domácich úloh čakajúcich na kontrolu. Najnovšie: {latest_chore} (+{points} bodov)"
+    "message": "{count} domáce práce čakajúce na kontrolu. Najnovšie: {latest_chore} (+{points} {points_label})"
   },
   "reward_claimed_approver": {
     "title": "🎁 {assignee_name}: Žiadosť o odmenu",
-    "message": "{assignee_name} požadoval {reward_name} za {points} bodov"
+    "message": "{assignee_name} požiadal o {reward_name} pre {points} {points_label}"
   },
   "reward_reminder_approver": {
     "title": "⏰ {assignee_name}: Odmena čaká na vyplatenie",
@@ -103,7 +103,7 @@
   },
   "multiplier_changed_approver": {
     "title": "⚖️ {assignee_name}: Multiplikátor bol aktualizovaný",
-    "message": "Násobiteľ bodov hráča {assignee_name}sa zmenil z {old_multiplier}x na {new_multiplier}x"
+    "message": "{assignee_name}'s {points_label} multiplier changed from {old_multiplier}x to {new_multiplier}x"
   },
   "_comment_system_section": "══════════════════════════════════════════════════════════════════════════",
   "_comment_system_desc": "SYSTÉMOVÉ/ADMINISTRÁTORSKÉ OZNÁMENIA: Operácie správy údajov",

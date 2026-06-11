@@ -4,7 +4,7 @@
   "_comment_assignee_footer": "═════════════════════════════════════════════════════════════════",
   "chore_approved_assignee": {
     "title": "🎉 Klusje goedgekeurd!",
-    "message": "{chore_name} goedgekeurd! Je hebt {points} punten verdiend!"
+    "message": "{chore_name} goedgekeurd! Je hebt {points} {points_label} verdiend"
   },
   "chore_disapproved_assignee": {
     "title": "↩️ Werkzaamheden teruggegeven",
@@ -12,11 +12,11 @@
   },
   "chore_overdue_assignee": {
     "title": "⏰ Klus die al lang had moeten worden uitgevoerd",
-    "message": "{chore_name} is te laat! Voltooi het nu om {points} punten te verdienen!"
+    "message": "{chore_name} is te laat! Voltooi het nu om {points} te verdienen {points_label}"
   },
   "chore_overdue_steal_available": {
     "title": "⚡ Huishoudelijke taken-melding",
-    "message": "{chore_name} is te laat en kan gestolen worden! Voltooi het eerst om {points} punten te verdienen!"
+    "message": "{chore_name} is te laat en kan gestolen worden! Voltooi het eerst om {points} te verdienen. {points_label}"
   },
   "chore_missed_assignee": {
     "title": "😔 Taak verlopen",
@@ -24,11 +24,11 @@
   },
   "chore_due_reminder_assignee": {
     "title": "⏰ Herinnering aan huishoudelijke taken",
-    "message": "{chore_name} moet binnen {minutes} minuten ingeleverd worden! Waard {points} punten"
+    "message": "{chore_name} moet over {minutes} minuten betaald worden! Waarde {points} {points_label}"
   },
   "chore_due_window_assignee": {
     "title": "🎯 Klus die nu af moet",
-    "message": "{chore_name} moet nu ingeleverd worden! Voltooi binnen {hours} uur om {points} punten te verdienen."
+    "message": "{chore_name} moet nu ingeleverd worden! Voltooi binnen {hours} uur om {points} te verdienen {points_label}"
   },
   "reward_approved_assignee": {
     "title": "🎉 Beloning goedgekeurd!",
@@ -52,15 +52,15 @@
   },
   "penalty_applied_assignee": {
     "title": "⚠️ Straf opgelegd",
-    "message": "{penalty_name}: {points} punten afgetrokken. Laten we weer op het goede spoor komen!"
+    "message": "{penalty_name}: {points} {points_label} afgetrokken. Laten we weer verder gaan!"
   },
   "bonus_applied_assignee": {
     "title": "⭐ Bonus toegepast!",
-    "message": "{bonus_name}: Je hebt {points} bonuspunten verdiend! Goed gedaan!"
+    "message": "{bonus_name}: Je hebt {points} bonus {points_label}verdiend! Goed gedaan!"
   },
   "multiplier_changed_assignee": {
     "title": "⚖️ Vermenigvuldiger bijgewerkt",
-    "message": "Je puntenvermenigvuldiger is veranderd van {old_multiplier}x naar {new_multiplier}x"
+    "message": "Je {points_label} -vermenigvuldiger is veranderd van {old_multiplier}x naar {new_multiplier}x"
   },
   "_comment_approver_section": "═════════════════════════════════════════════════════════════════",
   "_comment_approver_desc": "MELDINGEN VAN GOEDKEURERS: Informatief, in de derde persoon, uitvoerbaar. Formaat: '{assignee_name}: Actie'. GEEN 'ChoreOps:'-voorvoegsel.",
@@ -79,11 +79,11 @@
   },
   "pending_chores_approver": {
     "title": "📋 {assignee_name}: {count} In afwachting",
-    "message": "{count} klusjes die nog beoordeeld moeten worden. Laatste: {latest_chore} (+{points} punten)"
+    "message": "{count} taken die nog beoordeeld moeten worden. Laatste: {latest_chore} (+{points} {points_label})"
   },
   "reward_claimed_approver": {
     "title": "🎁 {assignee_name}: Beloningsverzoek",
-    "message": "{assignee_name} heeft {reward_name} aangevraagd voor {points} punten"
+    "message": "{assignee_name} heeft {reward_name} aangevraagd voor {points} {points_label}"
   },
   "reward_reminder_approver": {
     "title": "⏰ {assignee_name}: Beloning in afwachting",
@@ -103,7 +103,7 @@
   },
   "multiplier_changed_approver": {
     "title": "⚖️ {assignee_name}: Vermenigvuldiger bijgewerkt",
-    "message": "De puntenvermenigvuldiger van {assignee_name}is veranderd van {old_multiplier}x naar {new_multiplier}x"
+    "message": "{assignee_name}'s {points_label} multiplier changed from {old_multiplier}x to {new_multiplier}x"
   },
   "_comment_system_section": "═════════════════════════════════════════════════════════════════",
   "_comment_system_desc": "SYSTEEM-/BEHEERMELDINGEN: Gegevensbeheerbewerkingen",

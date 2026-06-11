@@ -81,13 +81,15 @@
               "name": "Nimi",
               "ha_user_id": "Kotiavustaja-käyttäjä",
               "dashboard_language": "Kieli",
-              "mobile_notify_service": "Ilmoitukset"
+              "mobile_notify_service": "Ilmoitukset",
+              "notif_click_url": "Ilmoitusnapautuksen URL-osoite"
             },
             "data_description": {
               "name": "Tämän käyttäjäprofiilin yksilöllinen nimi.",
               "ha_user_id": "Valinnainen: Linkitä tämä profiili Home Assistant -käyttäjään. Jos kioskitila on poistettu käytöstä, jaetun laitteen lunastustoiminnot edellyttävät tätä linkkiä.",
               "dashboard_language": "Kojelaudan sisällössä ja ilmoituksissa käytetty kieli.",
-              "mobile_notify_service": "Valitse ilmoituspalvelu tai jätä tyhjäksi poistaaksesi ilmoitukset käytöstä."
+              "mobile_notify_service": "Valitse ilmoituspalvelu tai jätä tyhjäksi poistaaksesi ilmoitukset käytöstä.",
+              "notif_click_url": "Valinnainen URL-osoite, joka avataan ilmoitusta napautettaessa. Jätä tyhjäksi oletusarvoista toimintaa varten."
             }
           },
           "section_system_usage": {
@@ -110,12 +112,18 @@
             "data": {
               "can_approve": "Voi hyväksyä",
               "can_manage": "Voi hallita",
-              "associated_user_ids": "Liittyvät käyttäjät"
+              "associated_user_ids": "Liittyvät käyttäjät",
+              "notif_approve_click_url": "Hyväksymisilmoituksen napautusosoite",
+              "chores_paused": "Keskeytä askareita",
+              "chores_paused_until": "Tauko, kunnes"
             },
             "data_description": {
               "can_approve": "Sallii hyväksymis- ja hylkäystoiminnot.",
               "can_manage": "Sallii hallintatoiminnot, jotka vaativat laajennettuja käyttöoikeuksia.",
-              "associated_user_ids": "Käyttäjät, joita tämä hyväksyjä/ylläpitäjä valvoo hyväksyntätoimien osalta."
+              "associated_user_ids": "Käyttäjät, joita tämä hyväksyjä/ylläpitäjä valvoo hyväksyntätoimien osalta.",
+              "notif_approve_click_url": "Valinnainen URL-osoite hyväksymisilmoituksille. Korvaa yleisen ilmoitusnapautuksen URL-osoitteen, kun hyväksytään askareita tai palkintoja.",
+              "chores_paused": "Keskeyttää tehtävien käsittelyn. Myöhässä olevia tai puuttuvia tilastoja ei kerry.",
+              "chores_paused_until": "Valinnainen palautuspäivämäärä. Jos asetettu, tehtävät jatkuvat automaattisesti keskiyöllä tämän päivämäärän jälkeen."
             }
           }
         }
@@ -483,6 +491,8 @@
       "invalid_reward_count": "Virheellinen palkintojen määrä",
       "invalid_reward_name": "Virheellinen palkinnon nimi",
       "invalid_reward_cost": "Palkkion hinnan on oltava nolla tai suurempi, enintään kahden desimaalin tarkkuudella.",
+      "invalid_reward_assigned_users": "Yksi tai useampi määritetty käyttäjä ei ole kelvollinen",
+      "mixed_reward_assignment_sentinel": "Kaikkia käyttäjiä ei voi yhdistää tiettyihin käyttäjiin",
       "invalid_bonus": "Virheellinen bonus",
       "invalid_bonus_count": "Virheellinen bonusten määrä",
       "invalid_bonus_name": "Virheellinen bonuksen nimi",
@@ -569,13 +579,15 @@
               "name": "Nimi",
               "ha_user_id": "Kotiavustaja-käyttäjä",
               "dashboard_language": "Kieli",
-              "mobile_notify_service": "Ilmoitukset"
+              "mobile_notify_service": "Ilmoitukset",
+              "notif_click_url": "Ilmoitusnapautuksen URL-osoite"
             },
             "data_description": {
               "name": "Tämän käyttäjäprofiilin yksilöllinen nimi.",
               "ha_user_id": "Valinnainen: Linkitä tämä profiili Home Assistant -käyttäjään. Jos kioskitila on poistettu käytöstä, jaetun laitteen lunastustoiminnot edellyttävät tätä linkkiä.",
               "dashboard_language": "Kojelaudan sisällössä ja ilmoituksissa käytetty kieli.",
-              "mobile_notify_service": "Valitse ilmoituspalvelu tai jätä tyhjäksi poistaaksesi ilmoitukset käytöstä."
+              "mobile_notify_service": "Valitse ilmoituspalvelu tai jätä tyhjäksi poistaaksesi ilmoitukset käytöstä.",
+              "notif_click_url": "Valinnainen URL-osoite, joka avataan ilmoitusta napautettaessa. Jätä tyhjäksi oletusarvoista toimintaa varten."
             }
           },
           "section_system_usage": {
@@ -598,12 +610,18 @@
             "data": {
               "can_approve": "Voi hyväksyä",
               "can_manage": "Voi hallita",
-              "associated_user_ids": "Liittyvät käyttäjät"
+              "associated_user_ids": "Liittyvät käyttäjät",
+              "notif_approve_click_url": "Hyväksymisilmoituksen napautusosoite",
+              "chores_paused": "Keskeytä askareita",
+              "chores_paused_until": "Tauko, kunnes"
             },
             "data_description": {
               "can_approve": "Sallii hyväksymis- ja hylkäystoiminnot.",
               "can_manage": "Sallii hallintatoiminnot, jotka vaativat laajennettuja käyttöoikeuksia.",
-              "associated_user_ids": "Käyttäjät, joita tämä hyväksyjä/ylläpitäjä valvoo hyväksyntätoimien osalta."
+              "associated_user_ids": "Käyttäjät, joita tämä hyväksyjä/ylläpitäjä valvoo hyväksyntätoimien osalta.",
+              "notif_approve_click_url": "Valinnainen URL-osoite hyväksymisilmoituksille. Korvaa yleisen ilmoitusnapautuksen URL-osoitteen, kun hyväksytään askareita tai palkintoja.",
+              "chores_paused": "Keskeyttää tehtävien käsittelyn. Myöhässä olevia tai puuttuvia tilastoja ei kerry.",
+              "chores_paused_until": "Valinnainen palautuspäivämäärä. Jos asetettu, tehtävät jatkuvat automaattisesti keskiyöllä tämän päivämäärän jälkeen."
             }
           }
         }
@@ -926,7 +944,8 @@
           "cost": "Palkkion hinta",
           "description": "Kuvaus (valinnainen)",
           "reward_labels": "Palkintotarrat",
-          "icon": "Kuvake (mdi:xxx)"
+          "icon": "Kuvake (mdi:xxx)",
+          "assigned_user_ids": "Määrätty"
         }
       },
       "add_penalty": {
@@ -1000,13 +1019,15 @@
               "name": "Nimi",
               "ha_user_id": "Kotiavustaja-käyttäjä",
               "dashboard_language": "Kieli",
-              "mobile_notify_service": "Ilmoitukset"
+              "mobile_notify_service": "Ilmoitukset",
+              "notif_click_url": "Ilmoitusnapautuksen URL-osoite"
             },
             "data_description": {
               "name": "Tämän käyttäjäprofiilin yksilöllinen nimi.",
               "ha_user_id": "Valinnainen: Linkitä tämä profiili Home Assistant -käyttäjään. Jos kioskitila on poistettu käytöstä, jaetun laitteen lunastustoiminnot edellyttävät tätä linkkiä.",
               "dashboard_language": "Kojelaudan sisällössä ja ilmoituksissa käytetty kieli.",
-              "mobile_notify_service": "Valitse ilmoituspalvelu tai jätä tyhjäksi poistaaksesi ilmoitukset käytöstä."
+              "mobile_notify_service": "Valitse ilmoituspalvelu tai jätä tyhjäksi poistaaksesi ilmoitukset käytöstä.",
+              "notif_click_url": "Valinnainen URL-osoite, joka avataan ilmoitusta napautettaessa. Jätä tyhjäksi oletusarvoista toimintaa varten."
             }
           },
           "section_system_usage": {
@@ -1029,12 +1050,18 @@
             "data": {
               "can_approve": "Voi hyväksyä",
               "can_manage": "Voi hallita",
-              "associated_user_ids": "Liittyvät käyttäjät"
+              "associated_user_ids": "Liittyvät käyttäjät",
+              "notif_approve_click_url": "Hyväksymisilmoituksen napautusosoite",
+              "chores_paused": "Keskeytä askareita",
+              "chores_paused_until": "Tauko, kunnes"
             },
             "data_description": {
               "can_approve": "Sallii hyväksymis- ja hylkäystoiminnot.",
               "can_manage": "Sallii hallintatoiminnot, jotka vaativat laajennettuja käyttöoikeuksia.",
-              "associated_user_ids": "Käyttäjät, joita tämä hyväksyjä/ylläpitäjä valvoo hyväksyntätoimien osalta."
+              "associated_user_ids": "Käyttäjät, joita tämä hyväksyjä/ylläpitäjä valvoo hyväksyntätoimien osalta.",
+              "notif_approve_click_url": "Valinnainen URL-osoite hyväksymisilmoituksille. Korvaa yleisen ilmoitusnapautuksen URL-osoitteen, kun hyväksytään askareita tai palkintoja.",
+              "chores_paused": "Keskeyttää tehtävien käsittelyn. Myöhässä olevia tai puuttuvia tilastoja ei kerry.",
+              "chores_paused_until": "Valinnainen palautuspäivämäärä. Jos asetettu, tehtävät jatkuvat automaattisesti keskiyöllä tämän päivämäärän jälkeen."
             }
           }
         }
@@ -1385,7 +1412,8 @@
           "cost": "Palkkion hinta",
           "description": "Kuvaus (valinnainen)",
           "reward_labels": "Palkintotarrat",
-          "icon": "Kuvake (mdi:xxx)"
+          "icon": "Kuvake (mdi:xxx)",
+          "assigned_user_ids": "Määrätty"
         }
       },
       "edit_penalty": {
@@ -1633,6 +1661,7 @@
         "title": "Yleiset asetukset",
         "description": "Hallitse ChoreOps-integraation yleisiä asetuksia.\n\n ℹ️ [Lisätietoja yleisistä asetuksista]({documentation_url})",
         "data": {
+          "dashboard_points_precision": "Kojelaudan pisteiden tarkkuus",
           "default_chore_points": "Oletuspisteet per työtehtävä",
           "points_adjust_values": "Manuaalisten pisteiden säätöpainikkeiden arvot",
           "update_interval": "Päivitysväli",
@@ -1649,6 +1678,7 @@
           "backup_action_selection": "Varmuuskopiointitoiminnot"
         },
         "data_description": {
+          "dashboard_points_precision": "Valitse, miten pisteet näytetään tuetuissa kojelaudoissa. Tämä muuttaa vain kojelaudan muotoilua eikä muuta tallennettuja pistearvoja tai laskelmia.",
           "default_chore_points": "Uusille töille käytetään oletuspistearvoa, kun mukautettuja pisteitä ei ole määritetty.",
           "points_adjust_values": "Luettelo manuaalisten pisteiden säätöpainikkeiden arvoista. Arvot erotetaan merkillä '|'.",
           "update_interval": "ChoreOpsin sisäisen tilan päivitysväli minuutteina.",
@@ -1948,6 +1978,14 @@
         "return_to_menu": "↩️ Palaa päävalikkoon"
       }
     },
+    "dashboard_points_precision": {
+      "options": {
+        "fixed_0": "Vain kokonaisluvut",
+        "adaptive": "Adaptiivinen (näytä desimaalit vain tarvittaessa)",
+        "fixed_1": "Aina yksi desimaali",
+        "fixed_2": "Aina kaksi desimaalia"
+      }
+    },
     "select_backup_to_delete": {
       "options": {
         "cancel": "↩️ Peruuta (palaa varmuuskopiovalikkoon)"
@@ -2223,6 +2261,37 @@
         }
       }
     },
+    "pause_user_chores": {
+      "name": "Keskeytä käyttäjän askareita",
+      "description": "Keskeytä tai jatka käyttäjän työtehtävien käsittelyä.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Konfiguraatiomerkinnän tunnus (valinnainen)",
+          "description": "Käytä tätä, jos sinulla on useampi kuin yksi ChoreOps-kokoonpano. Se kohdistuu yhteen tiettyyn kokoonpanoon.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Konfiguraatiomerkinnän nimi (valinnainen)",
+          "description": "Käytä tätä, jos sinulla on useampi kuin yksi ChoreOps-asetus ja niillä jokaisella on yksilölliset nimet. Jos nimet toistuvat, käytä määritysmerkinnän tunnusta.",
+          "example": "Perheen askareita"
+        },
+        "user_name": {
+          "name": "Käyttäjänimi",
+          "description": "Käyttäjän nimi, jonka tehtäviä haluat keskeyttää tai jatkaa.",
+          "example": "Saara"
+        },
+        "paused": {
+          "name": "Keskeytetty",
+          "description": "Tosi keskeyttääksesi askareita, Epätosi jatkaaksesi.",
+          "example": "totta"
+        },
+        "paused_until": {
+          "name": "Keskeytetty, kunnes",
+          "description": "Valinnainen palautuspäivämäärä. Jos asetettu, tehtävät jatkuvat automaattisesti keskiyöllä tämän päivämäärän jälkeen.",
+          "example": "2026-06-10T00:00:00+00:00"
+        }
+      }
+    },
     "redeem_reward": {
       "name": "Lunasta palkinto",
       "description": "Hyväksyjä lunastaa palkkion vastuuhenkilölle vähentäen pisteitä.",
@@ -2461,6 +2530,11 @@
           "name": "Tarrat",
           "description": "Palkintojen ryhmittelyyn tarkoitetut tunnisteet.",
           "example": "['viikonloppu', 'erikoinen']"
+        },
+        "assigned_user_names": {
+          "name": "Määrätty",
+          "description": "Tälle palkinnolle on määritetty käyttäjien näyttönimet. Käytä [\"*\"] kaikille käyttäjille. Jos et halua käyttäjiä, anna tyhjä lista.",
+          "example": "['Zoë', 'Max!']"
         }
       }
     },
@@ -2507,6 +2581,11 @@
           "name": "Tarrat",
           "description": "Päivitetyt tunnisteet.",
           "example": "['premium', 'erikoinen']"
+        },
+        "assigned_user_names": {
+          "name": "Määrätty",
+          "description": "Tälle palkinnolle määritetyt käyttäjien näyttönimet. Käytä [\"*\"] kaikille käyttäjille. Poista kaikki määritetyt käyttäjät antamalla tyhjä lista. Jätä pois, jos haluat nykyiset määritykset ennalleen.",
+          "example": "['Zoë', 'Max!']"
         }
       }
     },
@@ -2557,7 +2636,7 @@
         },
         "assigned_user_names": {
           "name": "Määrätty",
-          "description": "Luettelo vastuuhenkilöistä, joille tämä työ annetaan.",
+          "description": "Luettelo vastuuhenkilöistä, joille tämä työ annetaan. Käytä [\"*\"] kaikille luovutettaville käyttäjille. Anna tyhjä lista, jos haluat luoda listan ilman vastuuhenkilöitä.",
           "example": "['Emma', 'Jack']"
         },
         "points": {
@@ -2663,7 +2742,7 @@
         },
         "assigned_user_names": {
           "name": "Määrätty",
-          "description": "Uusi luettelo vastuuhenkilöistä, joille tämä tehtävä annetaan.",
+          "description": "Uusi lista vastuuhenkilöistä, joille tämä työ annetaan. Käytä [\"*\"] kaikille luovutettaville käyttäjille. Anna tyhjä lista poistaaksesi kaikki luovutetut käyttäjät. Jätä pois, jos haluat nykyiset siirrot ennalleen.",
           "example": "['Emma', 'Jack']"
         },
         "points": {
@@ -2735,6 +2814,11 @@
           "name": "Eräpäivämuistutuksen siirtymä",
           "description": "Uusi eräpäivän muistutusviive. Aika ennen eräpäivää, jolloin muistutus lähetetään. Muoto: '30 min', '1 h', '1 pv 6 h 30 min' jne. Käytä '0' poistaaksesi sen käytöstä.",
           "example": "30 metriä"
+        },
+        "assignment_action": {
+          "name": "Tehtävätoiminto",
+          "description": "Kuinka käsitellä assigned_user_names-luetteloa. 'replace' asettaa luettelon suoraan (oletus, taaksepäin yhteensopiva). 'add' liittää luetellut käyttäjät olemassa oleviin vastuuhenkilöihin. 'remove' poistaa luetellut käyttäjät olemassa olevista vastuuhenkilöistä.",
+          "example": "lisätä"
         }
       }
     },
@@ -3096,6 +3180,11 @@
           "name": "Ohita kertaluonteiset askareet",
           "description": "Ota tämä käyttöön, jos haluat jättää ei-toistuvat tehtävät ennalleen sen sijaan, että niiden määräpäivä siirrettäisiin rajaan.",
           "example": "väärä"
+        },
+        "allow_long_recurrences": {
+          "name": "Salli pitkät toistot",
+          "description": "Salli kuukausittaisten, neljännesvuosittaisten, vuosittaisten ja muiden pitkän aikavälin toistumisten uudelleenajoitus. Oletusarvo on false, jotta vältetään vahingossa tapahtuvat suuret hypyt.",
+          "example": "totta"
         }
       }
     },
@@ -3179,7 +3268,8 @@
           "completed_by_other": "Muun suorittama",
           "waiting": "Odotetaan (eräaika ei ole auki)",
           "not_my_turn": "Ei minun vuoroni (kierto)",
-          "missed": "Menetetty (lukittu)"
+          "missed": "Menetetty (lukittu)",
+          "paused": "Keskeytetty"
         },
         "state_attributes": {
           "purpose": {
@@ -3426,7 +3516,8 @@
               "blocked_pending_claim": "Odottava vaatimus",
               "blocked_waiting_window": "Odotetaan eräpäivää",
               "blocked_not_my_turn": "Ei sinun vuorosi",
-              "blocked_missed_locked": "Kadonnut ja lukittu"
+              "blocked_missed_locked": "Kadonnut ja lukittu",
+              "blocked_paused": "Askareita on keskeytetty tälle käyttäjälle"
             }
           },
           "turn_user_name": {
@@ -4740,8 +4831,14 @@
           "core_sensors": {
             "name": "Ydinanturit"
           },
+          "dashboard_config": {
+            "name": "Kojelaudan konfigurointi"
+          },
           "dashboard_helpers": {
             "name": "Kojelaudan apuohjelmat"
+          },
+          "shard_runtime": {
+            "name": "Työlistan suoritusaikainen"
           },
           "chores_by_label": {
             "name": "Kotityöt merkin mukaan"
@@ -4751,6 +4848,29 @@
           },
           "language": {
             "name": "Kieli"
+          }
+        }
+      },
+      "assignee_dashboard_chore_list_helper_sensor": {
+        "name": "Käyttöliittymän kojelaudan tehtävälista {shard_index}",
+        "state_attributes": {
+          "purpose": {
+            "name": "Tarkoitus",
+            "state": {
+              "purpose_dashboard_chore_shard_helper": "Tarjoaa yhden työlistan kojelaudalle, kun käyttäjän koko työlista on liian suuri pääapulle"
+            }
+          },
+          "chores": {
+            "name": "Kotityöt"
+          },
+          "shard_index": {
+            "name": "Työlistan numero"
+          },
+          "shard_count": {
+            "name": "Yhteensä kotitehtävälistoja"
+          },
+          "helper_contract_version": {
+            "name": "Avustajasopimuksen versio"
           }
         }
       }
@@ -5314,6 +5434,9 @@
     },
     "notif_message_chore_missed": {
       "message": "{assignee_name} jätti tehtävän väliin: {chore_name}"
+    },
+    "chore_paused": {
+      "message": "Työn käsittely on tällä hetkellä keskeytetty tällä käyttäjällä."
     }
   }
 }

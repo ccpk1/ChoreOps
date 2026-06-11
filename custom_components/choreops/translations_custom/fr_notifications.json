@@ -4,7 +4,7 @@
   "_comment_assignee_footer": "══════════════════════════════════════════════════════════════",
   "chore_approved_assignee": {
     "title": "🎉 Tâches approuvées !",
-    "message": "{chore_name} approuvé! Vous avez gagné des points {points}"
+    "message": "{chore_name} approuvé ! Vous avez gagné {points} {points_label}"
   },
   "chore_disapproved_assignee": {
     "title": "↩️ La tâche est revenue",
@@ -12,11 +12,11 @@
   },
   "chore_overdue_assignee": {
     "title": "⏰ Tâche ménagère en retard",
-    "message": "{chore_name} est en retard ! Terminez-le maintenant pour gagner {points} points"
+    "message": "{chore_name} est en retard ! Terminez-le maintenant pour gagner {points} {points_label}"
   },
   "chore_overdue_steal_available": {
     "title": "Alerte tâches",
-    "message": "{chore_name} est en retard et disponible pour être volé ! Terminez-le en premier pour gagner {points} points"
+    "message": "{chore_name} est en retard et disponible pour être volé ! Terminez-le d'abord pour gagner {points} {points_label}"
   },
   "chore_missed_assignee": {
     "title": "😔 Tâche expirée",
@@ -24,11 +24,11 @@
   },
   "chore_due_reminder_assignee": {
     "title": "⏰ Rappel des tâches ménagères",
-    "message": "{chore_name} doit être terminée avant {minutes} minutes ! Vaut {points} points"
+    "message": "{chore_name} est dû dans {minutes} minutes ! Valeur {points} {points_label}"
   },
   "chore_due_window_assignee": {
     "title": "🎯 Tâches ménagères à faire maintenant",
-    "message": "{chore_name} est maintenant à faire ! Terminez-la dans un délai de {hours} heure(s) pour gagner {points} points"
+    "message": "{chore_name} est maintenant dû ! Terminez-le dans un délai de {hours} heure(s) pour gagner {points} {points_label}"
   },
   "reward_approved_assignee": {
     "title": "🎉 Récompense approuvée !",
@@ -52,15 +52,15 @@
   },
   "penalty_applied_assignee": {
     "title": "⚠️ Pénalité appliquée",
-    "message": "{penalty_name}: {points} points déduits. Reprenons le fil !"
+    "message": "{penalty_name}: {points} {points_label} déduit. Reprenons le fil !"
   },
   "bonus_applied_assignee": {
     "title": "⭐ Bonus appliqué !",
-    "message": "{bonus_name}: Vous avez gagné {points} points bonus ! Bravo !"
+    "message": "{bonus_name}: Vous avez gagné {points} bonus {points_label}! Bravo !"
   },
   "multiplier_changed_assignee": {
     "title": "⚖️ Multiplicateur mis à jour",
-    "message": "Votre multiplicateur de points est passé de {old_multiplier}x à {new_multiplier}x"
+    "message": "Votre multiplicateur {points_label} est passé de {old_multiplier}x à {new_multiplier}x"
   },
   "_comment_approver_section": "══════════════════════════════════════════════════════════════",
   "_comment_approver_desc": "NOTIFICATIONS DES APPROUVEURS : Informatives, à la troisième personne, exploitables. Format : « {assignee_name} : Action ». Sans préfixe « ChoreOps : ».",
@@ -79,11 +79,11 @@
   },
   "pending_chores_approver": {
     "title": "📋 {assignee_name}: {count} En attente",
-    "message": "{count} tâches en attente de révision. Dernière: {latest_chore} (+{points} pts)"
+    "message": "{count} chores awaiting review. Latest: {latest_chore} (+{points} {points_label})"
   },
   "reward_claimed_approver": {
     "title": "🎁 {assignee_name}: Demande de récompense",
-    "message": "{assignee_name} a demandé {reward_name} pour {points} points"
+    "message": "{assignee_name} a demandé {reward_name} pour {points} {points_label}"
   },
   "reward_reminder_approver": {
     "title": "⏰ {assignee_name}: Récompense en attente",
@@ -103,7 +103,7 @@
   },
   "multiplier_changed_approver": {
     "title": "⚖️ {assignee_name}: Multiplicateur mis à jour",
-    "message": "Le multiplicateur de points de {assignee_name}est passé de {old_multiplier}x à {new_multiplier}x"
+    "message": "{assignee_name}'s {points_label} multiplier changed from {old_multiplier}x to {new_multiplier}x"
   },
   "_comment_system_section": "══════════════════════════════════════════════════════════════",
   "_comment_system_desc": "NOTIFICATIONS SYSTÈME/ADMINISTRATEUR : Opérations de gestion des données",

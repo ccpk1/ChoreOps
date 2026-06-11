@@ -81,13 +81,15 @@
               "name": "Namn",
               "ha_user_id": "Hemassistent-användare",
               "dashboard_language": "Språk",
-              "mobile_notify_service": "Aviseringar"
+              "mobile_notify_service": "Aviseringar",
+              "notif_click_url": "URL för aviseringstryck"
             },
             "data_description": {
               "name": "Unikt namn för denna användarprofil.",
               "ha_user_id": "Valfritt: Länka den här profilen till en Home Assistant-användare. Om kioskläget är inaktiverat är anspråk och inlösen av delade enheter beroende av den här länken.",
               "dashboard_language": "Språk som används för instrumentpanelsinnehåll och aviseringar.",
-              "mobile_notify_service": "Välj aviseringstjänst eller lämna tomt för att inaktivera aviseringar."
+              "mobile_notify_service": "Välj aviseringstjänst eller lämna tomt för att inaktivera aviseringar.",
+              "notif_click_url": "Valfri URL som ska öppnas när avisering trycks på. Lämna tomt för standardbeteende."
             }
           },
           "section_system_usage": {
@@ -110,12 +112,18 @@
             "data": {
               "can_approve": "Kan godkänna",
               "can_manage": "Kan hantera",
-              "associated_user_ids": "Associerade användare"
+              "associated_user_ids": "Associerade användare",
+              "notif_approve_click_url": "Tryck på URL för godkännandemeddelande",
+              "chores_paused": "Pausa sysslor",
+              "chores_paused_until": "Pausad tills"
             },
             "data_description": {
               "can_approve": "Tillåter godkännande- och avvisningsåtgärder.",
               "can_manage": "Tillåter hanteringsåtgärder som kräver utökade behörigheter.",
-              "associated_user_ids": "Användare som denna godkännare/administratör övervakar för godkännandeåtgärder."
+              "associated_user_ids": "Användare som denna godkännare/administratör övervakar för godkännandeåtgärder.",
+              "notif_approve_click_url": "Valfri URL för godkännandemeddelanden. Åsidosätter den allmänna URL:en för aviseringar vid godkännande av sysslor eller belöningar.",
+              "chores_paused": "Pausar sysslobearbetningen. Ingen statistik för försenade eller missade uppgifter ackumuleras.",
+              "chores_paused_until": "Valfritt återlämningsdatum. Om det är inställt återupptas sysslor automatiskt vid midnatt efter detta datum."
             }
           }
         }
@@ -483,6 +491,8 @@
       "invalid_reward_count": "Ogiltigt antal belöningar",
       "invalid_reward_name": "Ogiltigt belöningsnamn",
       "invalid_reward_cost": "Belöningskostnaden måste vara noll eller större med upp till två decimaler",
+      "invalid_reward_assigned_users": "En eller flera tilldelade användare är ogiltiga",
+      "mixed_reward_assignment_sentinel": "Kan inte blanda \"alla användare\" med specifika användare",
       "invalid_bonus": "Ogiltig bonus",
       "invalid_bonus_count": "Ogiltigt bonusantal",
       "invalid_bonus_name": "Ogiltigt bonusnamn",
@@ -569,13 +579,15 @@
               "name": "Namn",
               "ha_user_id": "Hemassistent-användare",
               "dashboard_language": "Språk",
-              "mobile_notify_service": "Aviseringar"
+              "mobile_notify_service": "Aviseringar",
+              "notif_click_url": "URL för aviseringstryck"
             },
             "data_description": {
               "name": "Unikt namn för denna användarprofil.",
               "ha_user_id": "Valfritt: Länka den här profilen till en Home Assistant-användare. Om kioskläget är inaktiverat är anspråk och inlösen av delade enheter beroende av den här länken.",
               "dashboard_language": "Språk som används för instrumentpanelsinnehåll och aviseringar.",
-              "mobile_notify_service": "Välj aviseringstjänst eller lämna tomt för att inaktivera aviseringar."
+              "mobile_notify_service": "Välj aviseringstjänst eller lämna tomt för att inaktivera aviseringar.",
+              "notif_click_url": "Valfri URL som ska öppnas när avisering trycks på. Lämna tomt för standardbeteende."
             }
           },
           "section_system_usage": {
@@ -598,12 +610,18 @@
             "data": {
               "can_approve": "Kan godkänna",
               "can_manage": "Kan hantera",
-              "associated_user_ids": "Associerade användare"
+              "associated_user_ids": "Associerade användare",
+              "notif_approve_click_url": "Tryck på URL för godkännandemeddelande",
+              "chores_paused": "Pausa sysslor",
+              "chores_paused_until": "Pausad tills"
             },
             "data_description": {
               "can_approve": "Tillåter godkännande- och avvisningsåtgärder.",
               "can_manage": "Tillåter hanteringsåtgärder som kräver utökade behörigheter.",
-              "associated_user_ids": "Användare som denna godkännare/administratör övervakar för godkännandeåtgärder."
+              "associated_user_ids": "Användare som denna godkännare/administratör övervakar för godkännandeåtgärder.",
+              "notif_approve_click_url": "Valfri URL för godkännandemeddelanden. Åsidosätter den allmänna URL:en för aviseringar vid godkännande av sysslor eller belöningar.",
+              "chores_paused": "Pausar sysslobearbetningen. Ingen statistik för försenade eller missade uppgifter ackumuleras.",
+              "chores_paused_until": "Valfritt återlämningsdatum. Om det är inställt återupptas sysslor automatiskt vid midnatt efter detta datum."
             }
           }
         }
@@ -926,7 +944,8 @@
           "cost": "Belöningskostnad",
           "description": "Beskrivning (valfritt)",
           "reward_labels": "Belöningsetiketter",
-          "icon": "Ikon (mdi:xxx)"
+          "icon": "Ikon (mdi:xxx)",
+          "assigned_user_ids": "Tilldelad till"
         }
       },
       "add_penalty": {
@@ -1000,13 +1019,15 @@
               "name": "Namn",
               "ha_user_id": "Hemassistent-användare",
               "dashboard_language": "Språk",
-              "mobile_notify_service": "Aviseringar"
+              "mobile_notify_service": "Aviseringar",
+              "notif_click_url": "URL för aviseringstryck"
             },
             "data_description": {
               "name": "Unikt namn för denna användarprofil.",
               "ha_user_id": "Valfritt: Länka den här profilen till en Home Assistant-användare. Om kioskläget är inaktiverat är anspråk och inlösen av delade enheter beroende av den här länken.",
               "dashboard_language": "Språk som används för instrumentpanelsinnehåll och aviseringar.",
-              "mobile_notify_service": "Välj aviseringstjänst eller lämna tomt för att inaktivera aviseringar."
+              "mobile_notify_service": "Välj aviseringstjänst eller lämna tomt för att inaktivera aviseringar.",
+              "notif_click_url": "Valfri URL som ska öppnas när avisering trycks på. Lämna tomt för standardbeteende."
             }
           },
           "section_system_usage": {
@@ -1029,12 +1050,18 @@
             "data": {
               "can_approve": "Kan godkänna",
               "can_manage": "Kan hantera",
-              "associated_user_ids": "Associerade användare"
+              "associated_user_ids": "Associerade användare",
+              "notif_approve_click_url": "Tryck på URL för godkännandemeddelande",
+              "chores_paused": "Pausa sysslor",
+              "chores_paused_until": "Pausad tills"
             },
             "data_description": {
               "can_approve": "Tillåter godkännande- och avvisningsåtgärder.",
               "can_manage": "Tillåter hanteringsåtgärder som kräver utökade behörigheter.",
-              "associated_user_ids": "Användare som denna godkännare/administratör övervakar för godkännandeåtgärder."
+              "associated_user_ids": "Användare som denna godkännare/administratör övervakar för godkännandeåtgärder.",
+              "notif_approve_click_url": "Valfri URL för godkännandemeddelanden. Åsidosätter den allmänna URL:en för aviseringar vid godkännande av sysslor eller belöningar.",
+              "chores_paused": "Pausar sysslobearbetningen. Ingen statistik för försenade eller missade uppgifter ackumuleras.",
+              "chores_paused_until": "Valfritt återlämningsdatum. Om det är inställt återupptas sysslor automatiskt vid midnatt efter detta datum."
             }
           }
         }
@@ -1385,7 +1412,8 @@
           "cost": "Belöningskostnad",
           "description": "Beskrivning (valfritt)",
           "reward_labels": "Belöningsetiketter",
-          "icon": "Ikon (mdi:xxx)"
+          "icon": "Ikon (mdi:xxx)",
+          "assigned_user_ids": "Tilldelad till"
         }
       },
       "edit_penalty": {
@@ -1633,6 +1661,7 @@
         "title": "Allmänna alternativ",
         "description": "Hantera allmänna inställningar för ChoreOps-integrationen.\n\n ℹ️ [Läs mer om allmänna alternativ]({documentation_url})",
         "data": {
+          "dashboard_points_precision": "Precision i instrumentpanelens poäng",
           "default_chore_points": "Standardpoäng per syssla",
           "points_adjust_values": "Värden på knappen för manuell punktjustering",
           "update_interval": "Uppdateringsintervall",
@@ -1649,6 +1678,7 @@
           "backup_action_selection": "Säkerhetskopieringsåtgärder"
         },
         "data_description": {
+          "dashboard_points_precision": "Välj hur punkter visas på alla instrumentpaneler som stöds. Detta ändrar endast instrumentpanelens formatering och ändrar inte lagrade punktvärden eller beräkningar.",
           "default_chore_points": "Standardpoängvärde som används för nya sysslor när anpassade poäng inte anges.",
           "points_adjust_values": "Lista med värden för knapparna för manuell punktjustering. Varje värde separeras med '|'.",
           "update_interval": "Intervall i minuter för uppdatering av ChoreOps interna tillstånd.",
@@ -1948,6 +1978,14 @@
         "return_to_menu": "↩️ Återgå till huvudmenyn"
       }
     },
+    "dashboard_points_precision": {
+      "options": {
+        "fixed_0": "Endast heltal",
+        "adaptive": "Adaptiv (visa decimaler endast vid behov)",
+        "fixed_1": "Alltid 1 decimal",
+        "fixed_2": "Alltid 2 decimaler"
+      }
+    },
     "select_backup_to_delete": {
       "options": {
         "cancel": "↩️ Avbryt (återgå till säkerhetskopieringsmenyn)"
@@ -2223,6 +2261,37 @@
         }
       }
     },
+    "pause_user_chores": {
+      "name": "Pausa användarens sysslor",
+      "description": "Pausa eller återuppta sysslobearbetning för en användare.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Konfigurationspost-ID (valfritt)",
+          "description": "Använd detta om du har mer än en ChoreOps-inställning. Den riktar sig mot en specifik inställning.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Konfigurationspostnamn (valfritt)",
+          "description": "Använd detta om du har fler än en ChoreOps-konfiguration och de har unika namn. Om namnen upprepas, använd Config Entry ID.",
+          "example": "Familjesysslor"
+        },
+        "user_name": {
+          "name": "Användarnamn",
+          "description": "Namn på användaren vars sysslor ska pausas eller återupptas.",
+          "example": "Sara"
+        },
+        "paused": {
+          "name": "Pausad",
+          "description": "Sant för att pausa sysslor, Falskt för att återuppta.",
+          "example": "sann"
+        },
+        "paused_until": {
+          "name": "Pausad tills",
+          "description": "Valfritt återlämningsdatum. Om det är inställt återupptas sysslor automatiskt vid midnatt efter detta datum.",
+          "example": "2026-06-10T00:00:00+00:00"
+        }
+      }
+    },
     "redeem_reward": {
       "name": "Lös in belöning",
       "description": "En godkännare löser in en belöning för en tilldelad person och drar av poäng.",
@@ -2461,6 +2530,11 @@
           "name": "Etiketter",
           "description": "Etiketter för gruppering av belöningar.",
           "example": "['helg', 'special']"
+        },
+        "assigned_user_names": {
+          "name": "Tilldelad till",
+          "description": "Användarens visningsnamn har tilldelats denna belöning. Använd [\"*\"] för alla användare. Skicka en tom lista för att inte tilldela några användare.",
+          "example": "['Zoë', 'Max!']"
         }
       }
     },
@@ -2507,6 +2581,11 @@
           "name": "Etiketter",
           "description": "Uppdaterade etiketter.",
           "example": "['premium', 'special']"
+        },
+        "assigned_user_names": {
+          "name": "Tilldelad till",
+          "description": "Användarnamn som är tilldelade denna belöning. Använd [\"*\"] för alla användare. Skicka en tom lista för att ta bort alla tilldelade användare. Utelämna att lämna nuvarande tilldelningar oförändrade.",
+          "example": "['Zoë', 'Max!']"
         }
       }
     },
@@ -2557,7 +2636,7 @@
         },
         "assigned_user_names": {
           "name": "Tilldelad till",
-          "description": "Lista över namn på tilldelade att tilldela denna syssla till.",
+          "description": "Lista över tilldelade personer att tilldela denna syssla till. Använd [\"*\"] för alla tilldelade användare. Skicka en tom lista för att skapa utan tilldelade personer.",
           "example": "['Emma', 'Jack']"
         },
         "points": {
@@ -2663,7 +2742,7 @@
         },
         "assigned_user_names": {
           "name": "Tilldelad till",
-          "description": "Ny lista med namn på tilldelade att tilldela denna syssla till.",
+          "description": "Ny lista med namn på tilldelade att tilldela denna syssla till. Använd [\"*\"] för alla tilldelade användare. Skicka en tom lista för att ta bort alla tilldelade användare. Utelämna att lämna nuvarande tilldelningar oförändrade.",
           "example": "['Emma', 'Jack']"
         },
         "points": {
@@ -2735,6 +2814,11 @@
           "name": "Förskjutning av förfallna påminnelser",
           "description": "Ny förskjutning för förfallodatum för påminnelse. Tid före förfallodatum för att skicka påminnelsemeddelande. Format: '30m', '1h', '1d 6h 30m', etc. Använd '0' för att inaktivera.",
           "example": "30m"
+        },
+        "assignment_action": {
+          "name": "Tilldelningsåtgärd",
+          "description": "Hur man hanterar listan assigned_user_names. 'replace' ställer in listan direkt (standard, bakåtkompatibel). 'add' lägger till de listade användarna till befintliga tilldelade. 'remove' tar bort de listade användarna från befintliga tilldelade.",
+          "example": "tillägga"
         }
       }
     },
@@ -3096,6 +3180,11 @@
           "name": "Hoppa över icke-återkommande sysslor",
           "description": "Aktivera detta för att lämna engångssysslor oförändrade istället för att flytta deras förfallodatum till gränsen.",
           "example": "falsk"
+        },
+        "allow_long_recurrences": {
+          "name": "Tillåt långa upprepningar",
+          "description": "Tillåt omplanering av månatliga, kvartalsvisa, årliga och andra långtidsintervall. Standardvärdet är falskt för att förhindra oavsiktliga stora hopp.",
+          "example": "sann"
         }
       }
     },
@@ -3179,7 +3268,8 @@
           "completed_by_other": "Slutförd av Annan",
           "waiting": "Väntar (förfallofönstret är inte öppet)",
           "not_my_turn": "Inte min tur (rotation)",
-          "missed": "Missad (Låst)"
+          "missed": "Missad (Låst)",
+          "paused": "Pausad"
         },
         "state_attributes": {
           "purpose": {
@@ -3426,7 +3516,8 @@
               "blocked_pending_claim": "Väntande anspråk",
               "blocked_waiting_window": "Väntar på förfallofönstret",
               "blocked_not_my_turn": "Inte din tur",
-              "blocked_missed_locked": "Missad och låst"
+              "blocked_missed_locked": "Missad och låst",
+              "blocked_paused": "Sysslor är pausade för den här användaren"
             }
           },
           "turn_user_name": {
@@ -4740,8 +4831,14 @@
           "core_sensors": {
             "name": "Kärnsensorer"
           },
+          "dashboard_config": {
+            "name": "Instrumentpanelskonfiguration"
+          },
           "dashboard_helpers": {
             "name": "Instrumentpanelshjälpare"
+          },
+          "shard_runtime": {
+            "name": "Körtid för sysslolista"
           },
           "chores_by_label": {
             "name": "Sysslor efter etikett"
@@ -4751,6 +4848,29 @@
           },
           "language": {
             "name": "Språk"
+          }
+        }
+      },
+      "assignee_dashboard_chore_list_helper_sensor": {
+        "name": "Lista över sysslor i UI-instrumentpanelen {shard_index}",
+        "state_attributes": {
+          "purpose": {
+            "name": "Ändamål",
+            "state": {
+              "purpose_dashboard_chore_shard_helper": "Tillhandahåller en lista över sysslor för visning på instrumentpanelen när en användares fullständiga sysslor är för lång för huvudhjälparen."
+            }
+          },
+          "chores": {
+            "name": "Sysslor"
+          },
+          "shard_index": {
+            "name": "Nummer på sysslolista"
+          },
+          "shard_count": {
+            "name": "Totalt antal sysslor"
+          },
+          "helper_contract_version": {
+            "name": "Hjälpkontraktsversion"
           }
         }
       }
@@ -5314,6 +5434,9 @@
     },
     "notif_message_chore_missed": {
       "message": "{assignee_name} missade sysslan: {chore_name}"
+    },
+    "chore_paused": {
+      "message": "Bearbetningen av sysslor är för närvarande pausad för den här användaren."
     }
   }
 }
