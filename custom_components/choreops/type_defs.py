@@ -819,7 +819,7 @@ class ScheduleConfig(TypedDict, total=False):
 # Collection Type Aliases (for coordinator data properties)
 # =============================================================================
 
-AssigneesCollection = dict[AssigneeId, AssigneeData]
+AssigneesCollection = dict[AssigneeId, UserData]
 UsersCollection = dict[UserId, UserData]
 ApproversCollection = dict[ApproverId, UserData]
 ChoresCollection = dict[ChoreId, ChoreData]
