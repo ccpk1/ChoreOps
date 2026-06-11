@@ -1,0 +1,142 @@
+{
+  "_comment_assignee_section": "══════════════════════════════════════════════════════════════",
+  "_comment_assignee_desc": "NOTIFICĂRI PENTRU PERSOANE DESIGNATE: Ton încurajator, la persoana a doua, cu emoji-uri, gamificat. FĂRĂ prefixul „ChoreOps:”.",
+  "_comment_assignee_footer": "══════════════════════════════════════════════════════════════",
+  "chore_approved_assignee": {
+    "title": "🎉 Treburi casnice aprobate!",
+    "message": "{chore_name} aprobat! Ai câștigat {points} {points_label}"
+  },
+  "chore_disapproved_assignee": {
+    "title": "↩️ Treabă returnată",
+    "message": "{chore_name} necesită mai multă muncă."
+  },
+  "chore_overdue_assignee": {
+    "title": "⏰ Treabă restantă",
+    "message": "{chore_name} este întârziat! Completează-l acum pentru a câștiga {points} {points_label}"
+  },
+  "chore_overdue_steal_available": {
+    "title": "⚡ Alertă de treburi casnice",
+    "message": "{chore_name} este întârziat și disponibil pentru furt! Completează-l mai întâi pentru a câștiga {points} {points_label}"
+  },
+  "chore_missed_assignee": {
+    "title": "😔 Treaba a expirat",
+    "message": "{chore_name} a expirat fără a fi finalizat."
+  },
+  "chore_due_reminder_assignee": {
+    "title": "⏰ Memento treburi casnice",
+    "message": "{chore_name} se plătește în {minutes} minute! Valoare {points} {points_label}"
+  },
+  "chore_due_window_assignee": {
+    "title": "🎯 Treabă acum scadentă",
+    "message": "{chore_name} este acum scadent! Finalizați în {hours} oră (ore) pentru a câștiga {points} {points_label}"
+  },
+  "reward_approved_assignee": {
+    "title": "🎉 Recompensă aprobată!",
+    "message": "{reward_name} aprobat!"
+  },
+  "reward_disapproved_assignee": {
+    "title": "💭 Cerere de recompensă returnată",
+    "message": "{reward_name} nu a fost aprobat de data aceasta."
+  },
+  "badge_earned_assignee": {
+    "title": "🥇 Insignă câștigată!",
+    "message": "Ai câștigat insigna {badge_name}!"
+  },
+  "achievement_earned_assignee": {
+    "title": "🏆 Realizare obținută!",
+    "message": "Ai câștigat {achievement_name}! Continuă treaba bună!"
+  },
+  "challenge_completed_assignee": {
+    "title": "🏁 Provocare finalizată!",
+    "message": "Ai terminat {challenge_name}! Continuă treaba bună!"
+  },
+  "penalty_applied_assignee": {
+    "title": "⚠️ Penalizare aplicată",
+    "message": "{penalty_name}: {points} {points_label} s-a dedus. Să revenim pe drumul cel bun!"
+  },
+  "bonus_applied_assignee": {
+    "title": "⭐ Bonus aplicat!",
+    "message": "{bonus_name}: Ai câștigat bonusul {points} {points_label}! Bravo!"
+  },
+  "multiplier_changed_assignee": {
+    "title": "⚖️ Multiplicator actualizat",
+    "message": "Multiplicatorul {points_label} s-a modificat de la {old_multiplier}x la {new_multiplier}x"
+  },
+  "_comment_approver_section": "══════════════════════════════════════════════════════════════",
+  "_comment_approver_desc": "NOTIFICĂRI DE LA APROBATOR: Informative, la persoana a treia, acționabile. Format: „{assignee_name}: Acțiune”. FĂRĂ prefixul „ChoreOps:”.",
+  "_comment_approver_footer": "══════════════════════════════════════════════════════════════",
+  "chore_claimed_approver": {
+    "title": "✋ {assignee_name}: Treabă revendicată",
+    "message": "{assignee_name} a revendicat {chore_name}"
+  },
+  "chore_reminder_approver": {
+    "title": "⏰ {assignee_name}: Este necesară aprobarea",
+    "message": "Memento: {chore_name} revendicat de {assignee_name} așteaptă recenzia ta"
+  },
+  "chore_overdue_approver": {
+    "title": "⚠️ {assignee_name}: Treabă restantă",
+    "message": "Sarcina {assignee_name} {chore_name} este restantă (scadent: {due_date})"
+  },
+  "pending_chores_approver": {
+    "title": "📋 {assignee_name}: {count} În așteptare",
+    "message": "{count} treburi casnice care așteaptă revizuire. Cele mai recente: {latest_chore} (+{points} {points_label})"
+  },
+  "reward_claimed_approver": {
+    "title": "🎁 {assignee_name}: Cerere de recompensă",
+    "message": "{assignee_name} a solicitat {reward_name} pentru {points} {points_label}"
+  },
+  "reward_reminder_approver": {
+    "title": "⏰ {assignee_name}: Recompensă în așteptare",
+    "message": "Memento: {reward_name} solicitat de {assignee_name} așteaptă aprobarea dumneavoastră"
+  },
+  "badge_earned_approver": {
+    "title": "🥇 {assignee_name}: Insignă câștigată",
+    "message": "{assignee_name} a câștigat insigna {badge_name}!"
+  },
+  "achievement_earned_approver": {
+    "title": "🏆 {assignee_name}: Realizare",
+    "message": "{assignee_name} câștigat {achievement_name}"
+  },
+  "challenge_completed_approver": {
+    "title": "🏁 {assignee_name}: Provocare finalizată",
+    "message": "{assignee_name} finalizat {challenge_name}"
+  },
+  "multiplier_changed_approver": {
+    "title": "⚖️ {assignee_name}: Multiplicator actualizat",
+    "message": "Multiplicatorul {assignee_name}al lui {points_label} s-a modificat de la {old_multiplier}x la {new_multiplier}x"
+  },
+  "_comment_system_section": "══════════════════════════════════════════════════════════════",
+  "_comment_system_desc": "NOTIFICARE SISTEM/ADMINISTRATOR: Operațiuni de gestionare a datelor",
+  "_comment_system_footer": "══════════════════════════════════════════════════════════════",
+  "data_reset": {
+    "title": "🔄 ChoreOps: Resetare date",
+    "message": "Datele de sistem au fost resetate"
+  },
+  "data_reset_global": {
+    "title": "🔄 ChoreOps: Resetare completă",
+    "message": "Toate datele sistemului au fost resetate la valorile implicite"
+  },
+  "data_reset_assignee": {
+    "title": "🔄 ChoreOps: Resetare persoană desemnată",
+    "message": "Resetare date pentru {assignee_name}"
+  },
+  "data_reset_item_type": {
+    "title": "🔄 ChoreOps: {item_type} Resetare",
+    "message": "Toate datele {item_type} au fost resetate"
+  },
+  "data_reset_item": {
+    "title": "🔄 ChoreOps: Resetare obiect",
+    "message": "{item_type} '{item_name}' a fost resetat"
+  },
+  "_comment_actions_section": "═════════════════════════════════════════════════════════════",
+  "_comment_actions_desc": "BUTOANE DE ACȚIUNE PENTRU NOTIFICARE: Limbaj mai blând și mai încurajator",
+  "_comment_actions_footer": "═════════════════════════════════════════════════════════════",
+  "actions": {
+    "approve": "✅ Aprobați",
+    "claim": "✋ Am reușit!",
+    "complete": "✅ Complet",
+    "disapprove": "↩️ Dezaprob",
+    "remind_30": "⏰ Reamintire în 30 de minute",
+    "skip": "⏭️ Sari peste"
+  }
+}

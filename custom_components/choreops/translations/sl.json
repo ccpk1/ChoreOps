@@ -81,13 +81,15 @@
               "name": "Ime",
               "ha_user_id": "Home Assistant uporabnik",
               "dashboard_language": "Jezik",
-              "mobile_notify_service": "Obvestila"
+              "mobile_notify_service": "Obvestila",
+              "notif_click_url": "URL za obvestila z dotikom"
             },
             "data_description": {
               "name": "Edinstveno ime za ta uporabniški profil.",
               "ha_user_id": "Izbirno: Povežite ta profil z uporabnikom storitve Home Assistant. Če je način kioska onemogočen, so dejanja prevzema in unovčenja v skupni napravi odvisna od te povezave.",
               "dashboard_language": "Jezik, ki se uporablja za vsebino in obvestila nadzorne plošče.",
-              "mobile_notify_service": "Izberite storitev obveščanja ali pustite prazno, da obvestila onemogočite."
+              "mobile_notify_service": "Izberite storitev obveščanja ali pustite prazno, da obvestila onemogočite.",
+              "notif_click_url": "Neobvezen URL, ki se odpre ob dotiku obvestila. Za privzeto delovanje pustite polje prazno."
             }
           },
           "section_system_usage": {
@@ -110,12 +112,18 @@
             "data": {
               "can_approve": "Lahko odobri",
               "can_manage": "Lahko upravlja",
-              "associated_user_ids": "Povezani uporabniki"
+              "associated_user_ids": "Povezani uporabniki",
+              "notif_approve_click_url": "URL za obvestilo o odobritvi",
+              "chores_paused": "Začasno ustavi opravila",
+              "chores_paused_until": "Začasno ustavljeno do"
             },
             "data_description": {
               "can_approve": "Omogoča dejanja odobritve in zavrnitve.",
               "can_manage": "Omogoča dejanja upravljanja, ki zahtevajo povišana dovoljenja.",
-              "associated_user_ids": "Uporabniki, ki jih ta odobritelj/skrbnik nadzira glede dejanj odobritve."
+              "associated_user_ids": "Uporabniki, ki jih ta odobritelj/skrbnik nadzira glede dejanj odobritve.",
+              "notif_approve_click_url": "Neobvezen URL za obvestila o odobritvi. Preglasi splošni URL za obvestila ob odobritvi opravil ali nagrad.",
+              "chores_paused": "Začasno ustavi obdelavo opravil. Zamujene ali zamujene statistike se ne kopičijo.",
+              "chores_paused_until": "Neobvezen datum vrnitve. Če je nastavljen, se opravila samodejno nadaljujejo ob polnoči po tem datumu."
             }
           }
         }
@@ -483,6 +491,8 @@
       "invalid_reward_count": "Neveljavno število nagrad",
       "invalid_reward_name": "Neveljavno ime nagrade",
       "invalid_reward_cost": "Stroški nagrade morajo biti nič ali večji, zaokroženi na največ dve decimalni mesti.",
+      "invalid_reward_assigned_users": "Eden ali več dodeljenih uporabnikov ni veljavnih",
+      "mixed_reward_assignment_sentinel": "»Vsi uporabniki« niso mogoči z določenimi uporabniki",
       "invalid_bonus": "Neveljaven bonus",
       "invalid_bonus_count": "Neveljavno število bonusov",
       "invalid_bonus_name": "Neveljavno ime bonusa",
@@ -569,13 +579,15 @@
               "name": "Ime",
               "ha_user_id": "Home Assistant uporabnik",
               "dashboard_language": "Jezik",
-              "mobile_notify_service": "Obvestila"
+              "mobile_notify_service": "Obvestila",
+              "notif_click_url": "URL za obvestila z dotikom"
             },
             "data_description": {
               "name": "Edinstveno ime za ta uporabniški profil.",
               "ha_user_id": "Izbirno: Povežite ta profil z uporabnikom storitve Home Assistant. Če je način kioska onemogočen, so dejanja prevzema in unovčenja v skupni napravi odvisna od te povezave.",
               "dashboard_language": "Jezik, ki se uporablja za vsebino in obvestila nadzorne plošče.",
-              "mobile_notify_service": "Izberite storitev obveščanja ali pustite prazno, da obvestila onemogočite."
+              "mobile_notify_service": "Izberite storitev obveščanja ali pustite prazno, da obvestila onemogočite.",
+              "notif_click_url": "Neobvezen URL, ki se odpre ob dotiku obvestila. Za privzeto delovanje pustite polje prazno."
             }
           },
           "section_system_usage": {
@@ -598,12 +610,18 @@
             "data": {
               "can_approve": "Lahko odobri",
               "can_manage": "Lahko upravlja",
-              "associated_user_ids": "Povezani uporabniki"
+              "associated_user_ids": "Povezani uporabniki",
+              "notif_approve_click_url": "URL za obvestilo o odobritvi",
+              "chores_paused": "Začasno ustavi opravila",
+              "chores_paused_until": "Začasno ustavljeno do"
             },
             "data_description": {
               "can_approve": "Omogoča dejanja odobritve in zavrnitve.",
               "can_manage": "Omogoča dejanja upravljanja, ki zahtevajo povišana dovoljenja.",
-              "associated_user_ids": "Uporabniki, ki jih ta odobritelj/skrbnik nadzira glede dejanj odobritve."
+              "associated_user_ids": "Uporabniki, ki jih ta odobritelj/skrbnik nadzira glede dejanj odobritve.",
+              "notif_approve_click_url": "Neobvezen URL za obvestila o odobritvi. Preglasi splošni URL za obvestila ob odobritvi opravil ali nagrad.",
+              "chores_paused": "Začasno ustavi obdelavo opravil. Zamujene ali zamujene statistike se ne kopičijo.",
+              "chores_paused_until": "Neobvezen datum vrnitve. Če je nastavljen, se opravila samodejno nadaljujejo ob polnoči po tem datumu."
             }
           }
         }
@@ -926,7 +944,8 @@
           "cost": "Stroški nagrade",
           "description": "Opis (neobvezno)",
           "reward_labels": "Oznake nagrad",
-          "icon": "Ikona (mdi:xxx)"
+          "icon": "Ikona (mdi:xxx)",
+          "assigned_user_ids": "Dodeljeno"
         }
       },
       "add_penalty": {
@@ -1000,13 +1019,15 @@
               "name": "Ime",
               "ha_user_id": "Home Assistant uporabnik",
               "dashboard_language": "Jezik",
-              "mobile_notify_service": "Obvestila"
+              "mobile_notify_service": "Obvestila",
+              "notif_click_url": "URL za obvestila z dotikom"
             },
             "data_description": {
               "name": "Edinstveno ime za ta uporabniški profil.",
               "ha_user_id": "Izbirno: Povežite ta profil z uporabnikom storitve Home Assistant. Če je način kioska onemogočen, so dejanja prevzema in unovčenja v skupni napravi odvisna od te povezave.",
               "dashboard_language": "Jezik, ki se uporablja za vsebino in obvestila nadzorne plošče.",
-              "mobile_notify_service": "Izberite storitev obveščanja ali pustite prazno, da obvestila onemogočite."
+              "mobile_notify_service": "Izberite storitev obveščanja ali pustite prazno, da obvestila onemogočite.",
+              "notif_click_url": "Neobvezen URL, ki se odpre ob dotiku obvestila. Za privzeto delovanje pustite polje prazno."
             }
           },
           "section_system_usage": {
@@ -1029,12 +1050,18 @@
             "data": {
               "can_approve": "Lahko odobri",
               "can_manage": "Lahko upravlja",
-              "associated_user_ids": "Povezani uporabniki"
+              "associated_user_ids": "Povezani uporabniki",
+              "notif_approve_click_url": "URL za obvestilo o odobritvi",
+              "chores_paused": "Začasno ustavi opravila",
+              "chores_paused_until": "Začasno ustavljeno do"
             },
             "data_description": {
               "can_approve": "Omogoča dejanja odobritve in zavrnitve.",
               "can_manage": "Omogoča dejanja upravljanja, ki zahtevajo povišana dovoljenja.",
-              "associated_user_ids": "Uporabniki, ki jih ta odobritelj/skrbnik nadzira glede dejanj odobritve."
+              "associated_user_ids": "Uporabniki, ki jih ta odobritelj/skrbnik nadzira glede dejanj odobritve.",
+              "notif_approve_click_url": "Neobvezen URL za obvestila o odobritvi. Preglasi splošni URL za obvestila ob odobritvi opravil ali nagrad.",
+              "chores_paused": "Začasno ustavi obdelavo opravil. Zamujene ali zamujene statistike se ne kopičijo.",
+              "chores_paused_until": "Neobvezen datum vrnitve. Če je nastavljen, se opravila samodejno nadaljujejo ob polnoči po tem datumu."
             }
           }
         }
@@ -1385,7 +1412,8 @@
           "cost": "Stroški nagrade",
           "description": "Opis (neobvezno)",
           "reward_labels": "Oznake nagrad",
-          "icon": "Ikona (mdi:xxx)"
+          "icon": "Ikona (mdi:xxx)",
+          "assigned_user_ids": "Dodeljeno"
         }
       },
       "edit_penalty": {
@@ -1633,6 +1661,7 @@
         "title": "Splošne možnosti",
         "description": "Upravljajte splošne nastavitve za integracijo ChoreOps.\n\n ℹ️ [Več o splošnih možnostih]({documentation_url})",
         "data": {
+          "dashboard_points_precision": "Natančnost točk na nadzorni plošči",
           "default_chore_points": "Privzete točke na opravilo",
           "points_adjust_values": "Vrednosti gumba za ročno prilagajanje točk",
           "update_interval": "Interval posodobitve",
@@ -1649,6 +1678,7 @@
           "backup_action_selection": "Varnostna dejanja"
         },
         "data_description": {
+          "dashboard_points_precision": "Izberite, kako so točke prikazane na podprtih nadzornih ploščah. S tem spremenite samo oblikovanje nadzorne plošče in ne shranjenih vrednosti točk ali izračunov.",
           "default_chore_points": "Privzeta vrednost točk, ki se uporablja za nova opravila, kadar točke po meri niso določene.",
           "points_adjust_values": "Seznam vrednosti za gumbe za ročno prilagajanje točk. Vsaka vrednost je ločena z '|'.",
           "update_interval": "Interval v minutah za posodabljanje notranjega stanja ChoreOps.",
@@ -1948,6 +1978,14 @@
         "return_to_menu": "↩️ Nazaj v glavni meni"
       }
     },
+    "dashboard_points_precision": {
+      "options": {
+        "fixed_0": "Samo cela števila",
+        "adaptive": "Prilagodljivo (decimalna mesta se prikažejo samo, kadar je to potrebno)",
+        "fixed_1": "Vedno 1 decimalno mesto",
+        "fixed_2": "Vedno 2 decimalni mesti"
+      }
+    },
     "select_backup_to_delete": {
       "options": {
         "cancel": "↩️ Prekliči (vrnitev v meni za varnostno kopiranje)"
@@ -2223,6 +2261,37 @@
         }
       }
     },
+    "pause_user_chores": {
+      "name": "Začasno ustavi uporabnikova opravila",
+      "description": "Začasno ustavite ali nadaljujte obdelavo opravil za uporabnika.",
+      "fields": {
+        "config_entry_id": {
+          "name": "ID vnosa konfiguracije (neobvezno)",
+          "description": "Uporabite to možnost, če imate več kot eno nastavitev ChoreOps. Cilja na eno specifično nastavitev.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Ime vnosa konfiguracije (neobvezno)",
+          "description": "Uporabite to možnost, če imate več kot eno nastavitev ChoreOps in ima vsaka edinstveno ime. Če se imena ponavljajo, uporabite ID vnosa konfiguracije.",
+          "example": "Družinska opravila"
+        },
+        "user_name": {
+          "name": "Uporabniško ime",
+          "description": "Ime uporabnika, čigar opravila naj se začasno ustavijo ali nadaljujejo.",
+          "example": "Sara"
+        },
+        "paused": {
+          "name": "Zaustavljeno",
+          "description": "True za začasno ustavitev opravil, False za nadaljevanje.",
+          "example": "res"
+        },
+        "paused_until": {
+          "name": "Zaustavljeno do",
+          "description": "Neobvezen datum vrnitve. Če je nastavljen, se opravila samodejno nadaljujejo ob polnoči po tem datumu.",
+          "example": "2026-06-10T00:00:00+00:00"
+        }
+      }
+    },
     "redeem_reward": {
       "name": "Unovči nagrado",
       "description": "Odobritelj unovči nagrado za prejemnika in mu odšteje točke.",
@@ -2461,6 +2530,11 @@
           "name": "Oznake",
           "description": "Oznake za združevanje nagrad.",
           "example": "['vikend', 'posebna ponudba']"
+        },
+        "assigned_user_names": {
+          "name": "Dodeljeno",
+          "description": "Prikazna imena uporabnikov, dodeljena tej nagradi. Za vse uporabnike uporabite [\"*\"]. Za dodelitev brez uporabnikov posredujte prazen seznam.",
+          "example": "['Zoë', 'Max!']"
         }
       }
     },
@@ -2507,6 +2581,11 @@
           "name": "Oznake",
           "description": "Posodobljene oznake.",
           "example": "['premium', 'posebno']"
+        },
+        "assigned_user_names": {
+          "name": "Dodeljeno",
+          "description": "Prikazna imena uporabnikov, dodeljena tej nagradi. Za vse uporabnike uporabite [\"*\"]. Za odstranitev vseh dodeljenih uporabnikov podajte prazen seznam. Izpustite, če želite trenutne dodelitve ostati nespremenjene.",
+          "example": "['Zoë', 'Max!']"
         }
       }
     },
@@ -2557,7 +2636,7 @@
         },
         "assigned_user_names": {
           "name": "Dodeljeno",
-          "description": "Seznam imen dodeljevalcev, ki jim želite dodeliti to opravilo.",
+          "description": "Seznam imen dodeljenih oseb, ki jim želite dodeliti to opravilo. Za vse dodelljive uporabnike uporabite [\"*\"]. Za ustvarjanje brez dodeljenih oseb posredujte prazen seznam.",
           "example": "['Emma', 'Jack']"
         },
         "points": {
@@ -2663,7 +2742,7 @@
         },
         "assigned_user_names": {
           "name": "Dodeljeno",
-          "description": "Nov seznam imen dodeljevalcev, ki jim želite dodeliti to opravilo.",
+          "description": "Nov seznam imen dodeljenih oseb, ki jim želite dodeliti to opravilo. Za vse dodelljive uporabnike uporabite [\"*\"]. Za odstranitev vseh dodeljenih uporabnikov uporabite prazen seznam. Izpustite seznam, če želite trenutne dodelitve ostati nespremenjene.",
           "example": "['Emma', 'Jack']"
         },
         "points": {
@@ -2735,6 +2814,11 @@
           "name": "Zamik opomnika za zapadlost",
           "description": "Nov odmik opomnika za zapadlost. Trajanje pred datumom zapadlosti za pošiljanje obvestila o opomniku. Oblika: '30 min', '1 ura', '1 dan 6 ur 30 min' itd. Za onemogočanje uporabite '0'.",
           "example": "30 m"
+        },
+        "assignment_action": {
+          "name": "Dejanje dodelitve",
+          "description": "Kako ravnati s seznamom assigned_user_names. »replace« nastavi seznam neposredno (privzeto, združljivo s prejšnjimi različicami). »add« doda navedene uporabnike obstoječim dodeljevalcem. »remove« odstrani navedene uporabnike iz obstoječih dodeljevalcev.",
+          "example": "dodaj"
         }
       }
     },
@@ -3096,6 +3180,11 @@
           "name": "Preskoči neponavljajoča se opravila",
           "description": "Omogočite to možnost, če želite, da se neponavljajoča se opravila ne spremenijo, namesto da se njihov rok premakne na mejo.",
           "example": "lažno"
+        },
+        "allow_long_recurrences": {
+          "name": "Dovoli dolge ponovitve",
+          "description": "Dovoli prerazporejanje mesečnih, četrtletnih, letnih in drugih ponovitev z dolgimi intervali. Privzeta vrednost je »false«, da se preprečijo nenamerni veliki skoki.",
+          "example": "res"
         }
       }
     },
@@ -3179,7 +3268,8 @@
           "completed_by_other": "Dokončal nekdo drug",
           "waiting": "Čakanje (okno za prijavo ni odprto)",
           "not_my_turn": "Nisem na vrsti (rotacija)",
-          "missed": "Zgrešeno (zaklenjeno)"
+          "missed": "Zgrešeno (zaklenjeno)",
+          "paused": "Zaustavljeno"
         },
         "state_attributes": {
           "purpose": {
@@ -3426,7 +3516,8 @@
               "blocked_pending_claim": "Zahtevek v teku",
               "blocked_waiting_window": "Čakanje na zapadli okvir",
               "blocked_not_my_turn": "Nisi na vrsti",
-              "blocked_missed_locked": "Zgrešeno in zaklenjeno"
+              "blocked_missed_locked": "Zgrešeno in zaklenjeno",
+              "blocked_paused": "Opravila so za tega uporabnika zaustavljena"
             }
           },
           "turn_user_name": {
@@ -4740,8 +4831,14 @@
           "core_sensors": {
             "name": "Osnovni senzorji"
           },
+          "dashboard_config": {
+            "name": "Konfiguracija nadzorne plošče"
+          },
           "dashboard_helpers": {
             "name": "Pomočniki nadzorne plošče"
+          },
+          "shard_runtime": {
+            "name": "Izvajanje seznama opravil"
           },
           "chores_by_label": {
             "name": "Opravila po založbi"
@@ -4751,6 +4848,29 @@
           },
           "language": {
             "name": "Jezik"
+          }
+        }
+      },
+      "assignee_dashboard_chore_list_helper_sensor": {
+        "name": "Seznam opravil nadzorne plošče uporabniškega vmesnika {shard_index}",
+        "state_attributes": {
+          "purpose": {
+            "name": "Namen",
+            "state": {
+              "purpose_dashboard_chore_shard_helper": "Zagotavlja en seznam opravil za prikaz na nadzorni plošči, ko je celoten seznam opravil uporabnika prevelik za glavnega pomočnika."
+            }
+          },
+          "chores": {
+            "name": "Opravila"
+          },
+          "shard_index": {
+            "name": "Številka seznama opravil"
+          },
+          "shard_count": {
+            "name": "Skupni seznami opravil"
+          },
+          "helper_contract_version": {
+            "name": "Različica pogodbe za pomočnike"
           }
         }
       }
@@ -5314,6 +5434,9 @@
     },
     "notif_message_chore_missed": {
       "message": "{assignee_name} zamudil opravilo: {chore_name}"
+    },
+    "chore_paused": {
+      "message": "Obdelava opravil je za tega uporabnika trenutno zaustavljena."
     }
   }
 }

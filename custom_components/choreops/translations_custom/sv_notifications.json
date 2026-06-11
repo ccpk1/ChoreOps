@@ -4,7 +4,7 @@
   "_comment_assignee_footer": "═════════════════════════════════════════════════════════════════════════════════",
   "chore_approved_assignee": {
     "title": "🎉 Godkänt för sysslor!",
-    "message": "{chore_name} godkänd! Du fick {points} poäng"
+    "message": "{chore_name} godkänt! Du fick {points} {points_label}"
   },
   "chore_disapproved_assignee": {
     "title": "↩️ Syssla återlämnad",
@@ -12,11 +12,11 @@
   },
   "chore_overdue_assignee": {
     "title": "⏰ Försenad syssla",
-    "message": "{chore_name} är försenad! Slutför den nu för att tjäna {points} poäng"
+    "message": "{chore_name} är försenad! Slutför den nu för att tjäna {points} {points_label}"
   },
   "chore_overdue_steal_available": {
     "title": "⚡ Sysslovarning",
-    "message": "{chore_name} är försenad och tillgänglig för stjälning! Slutför den först för att tjäna {points} poäng"
+    "message": "{chore_name} är försenad och tillgänglig för stjälning! Slutför den först för att tjäna {points} {points_label}"
   },
   "chore_missed_assignee": {
     "title": "😔 Syssla har löpt ut",
@@ -24,11 +24,11 @@
   },
   "chore_due_reminder_assignee": {
     "title": "⏰ Påminnelse om sysslor",
-    "message": "{chore_name} ska vara klar om {minutes} minuter! Värt {points} poäng"
+    "message": "{chore_name} förfaller om {minutes} minuter! Värt {points} {points_label}"
   },
   "chore_due_window_assignee": {
     "title": "🎯 Syssla ska vara klar nu",
-    "message": "{chore_name} är nu förfallet! Slutför inom {hours} timme(r) för att tjäna {points} poäng"
+    "message": "{chore_name} är nu förfallet! Slutför inom {hours} timme(r) för att tjäna {points} {points_label}"
   },
   "reward_approved_assignee": {
     "title": "🎉 Belöning godkänd!",
@@ -52,15 +52,15 @@
   },
   "penalty_applied_assignee": {
     "title": "⚠️ Straff tillämpad",
-    "message": "{penalty_name}: {points} poäng dragna. Nu kommer vi tillbaka på rätt spår!"
+    "message": "{penalty_name}: {points} {points_label} dragit av. Nu kommer vi tillbaka på rätt spår!"
   },
   "bonus_applied_assignee": {
     "title": "⭐ Bonus tillämpad!",
-    "message": "{bonus_name}: Du tjänade {points} bonuspoäng! Bra jobbat"
+    "message": "{bonus_name}: Du tjänade {points} bonus {points_label}! Bra jobbat"
   },
   "multiplier_changed_assignee": {
     "title": "⚖️ Multiplikator uppdaterad",
-    "message": "Din poängmultiplikator har ändrats från {old_multiplier}x till {new_multiplier}x"
+    "message": "Din {points_label} multiplikator har ändrats från {old_multiplier}x till {new_multiplier}x"
   },
   "_comment_approver_section": "═════════════════════════════════════════════════════════════════════════════════",
   "_comment_approver_desc": "GODKÄNNANDENUMMER: Informativa, tredjepersons, handlingsbara. Format: '{assignee_name}: Åtgärd'. INGET prefix 'ChoreOps:'.",
@@ -79,11 +79,11 @@
   },
   "pending_chores_approver": {
     "title": "📋 {assignee_name}: {count} Väntar",
-    "message": "{count} sysslor väntar på granskning. Senaste: {latest_chore} (+{points} poäng)"
+    "message": "{count} sysslor väntar på granskning. Senaste: {latest_chore} (+{points} {points_label})"
   },
   "reward_claimed_approver": {
     "title": "🎁 {assignee_name}: Belöningsförfrågan",
-    "message": "{assignee_name} begärde {reward_name} för {points} poäng"
+    "message": "{assignee_name} begärde {reward_name} för {points} {points_label}"
   },
   "reward_reminder_approver": {
     "title": "⏰ {assignee_name}: Belöning väntar",
@@ -103,7 +103,7 @@
   },
   "multiplier_changed_approver": {
     "title": "⚖️ {assignee_name}: Multiplikatorn uppdaterad",
-    "message": "{assignee_name}s poängmultiplikator ändrad från {old_multiplier}x till {new_multiplier}x"
+    "message": "{assignee_name}s multiplikator {points_label} har ändrats från {old_multiplier}x till {new_multiplier}x"
   },
   "_comment_system_section": "═════════════════════════════════════════════════════════════════════════════════",
   "_comment_system_desc": "SYSTEM-/ADMINISTRATIONSMEDDELANDEN: Datahanteringsåtgärder",

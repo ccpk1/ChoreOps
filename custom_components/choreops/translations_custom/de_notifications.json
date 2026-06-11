@@ -4,7 +4,7 @@
   "_comment_assignee_footer": "══════════════════════════════════════════════════════════════════",
   "chore_approved_assignee": {
     "title": "🎉 Aufgabe genehmigt!",
-    "message": "{chore_name} genehmigt! Du hast {points} Punkte verdient"
+    "message": "{chore_name} genehmigt! Du hast {points} {points_label} erhalten"
   },
   "chore_disapproved_assignee": {
     "title": "↩️ Aufgabe zurückgegeben",
@@ -12,11 +12,11 @@
   },
   "chore_overdue_assignee": {
     "title": "⏰ Aufgabe überfällig",
-    "message": "{chore_name} ist überfällig! Schließe sie jetzt ab, um {points} Punkte zu erhalten"
+    "message": "{chore_name} ist überfällig! Schließe es jetzt ab, um {points} {points_label} zu erhalten."
   },
   "chore_overdue_steal_available": {
     "title": "⚡ Aufgabenalarm",
-    "message": "{chore_name} ist überfällig und kann gestohlen werden! Schließe sie als Erste* ab, um {points} Punkte zu erhalten"
+    "message": "{chore_name} ist überfällig und kann gestohlen werden! Schließe es zuerst ab, um {points} {points_label} zu erhalten."
   },
   "chore_missed_assignee": {
     "title": "😔 Aufgabe abgelaufen",
@@ -24,11 +24,11 @@
   },
   "chore_due_reminder_assignee": {
     "title": "⏰ Erinnerung an die Aufgabe",
-    "message": "{chore_name} ist in {minutes} Minuten fällig! Wert: {points} Punkte"
+    "message": "{chore_name} ist in {minutes} Minuten fällig! Wert {points} {points_label}"
   },
   "chore_due_window_assignee": {
     "title": "🎯 Aufgabe jetzt fällig",
-    "message": "{chore_name} ist jetzt fällig! Schließe sie innerhalb von {hours} Stunde(n) ab, um {points} Punkte zu erhalten"
+    "message": "{chore_name} ist jetzt fällig! Schließe es innerhalb von {hours} Stunden ab, um {points} {points_label} zu erhalten."
   },
   "reward_approved_assignee": {
     "title": "🎉 Belohnung genehmigt!",
@@ -52,15 +52,15 @@
   },
   "penalty_applied_assignee": {
     "title": "⚠️ Strafe verhängt",
-    "message": "{penalty_name}: {points} Punkte abgezogen. Lass uns wieder auf Kurs kommen!"
+    "message": "{penalty_name}: {points} {points_label} abgezogen. Zurück zum Thema!"
   },
   "bonus_applied_assignee": {
     "title": "⭐ Bonus angewendet!",
-    "message": "{bonus_name}: Du hast {points} Bonuspunkte verdient! Super gemacht"
+    "message": "{bonus_name}: Du hast einen Bonus von {points} {points_label}erhalten! Super gemacht!"
   },
   "multiplier_changed_assignee": {
     "title": "⚖️ Multiplikator aktualisiert",
-    "message": "Dein Punktemultiplikator hat sich von {old_multiplier}x auf {new_multiplier}x geändert"
+    "message": "Ihr {points_label} Multiplikator hat sich von {old_multiplier}x auf {new_multiplier}x geändert."
   },
   "_comment_approver_section": "══════════════════════════════════════════════════════════════════",
   "_comment_approver_desc": "BENACHRICHTIGUNGEN FÜR GENEHMIGER: Informativ, in der dritten Person, handlungsauffordernd. Format: '{assignee_name}: Aktion'. Ohne das Präfix 'ChoreOps:'.",
@@ -79,11 +79,11 @@
   },
   "pending_chores_approver": {
     "title": "📋 {assignee_name}: {count} Ausstehend",
-    "message": "{count} Aufgaben, die noch überprüft werden müssen. Aktuell: {latest_chore} (+{points} Punkte)"
+    "message": "{count} Aufgaben, die noch überprüft werden müssen. Aktuell: {latest_chore} (+{points} {points_label})"
   },
   "reward_claimed_approver": {
     "title": "🎁 {assignee_name}: Belohnungsanfrage",
-    "message": "{assignee_name} hat {reward_name} für {points} Punkte angefordert"
+    "message": "{assignee_name} hat {reward_name} für {points} {points_label} angefordert."
   },
   "reward_reminder_approver": {
     "title": "⏰ {assignee_name}: Belohnung ausstehend",
@@ -103,7 +103,7 @@
   },
   "multiplier_changed_approver": {
     "title": "⚖️ {assignee_name}: Multiplikator aktualisiert",
-    "message": "Der Punktemultiplikator von {assignee_name} wurde von {old_multiplier}x auf {new_multiplier}x geändert"
+    "message": "Der Multiplikator von {assignee_name}für {points_label} wurde von {old_multiplier}x auf {new_multiplier}x geändert."
   },
   "_comment_system_section": "══════════════════════════════════════════════════════════════════",
   "_comment_system_desc": "SYSTEM-/ADMINISTRATOR-BENACHRICHTIGUNGEN: Datenverwaltungsvorgänge",

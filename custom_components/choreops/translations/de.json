@@ -81,13 +81,15 @@
               "name": "Name",
               "ha_user_id": "Home Assistant Benutzer",
               "dashboard_language": "Sprache",
-              "mobile_notify_service": "Benachrichtigungen"
+              "mobile_notify_service": "Benachrichtigungen",
+              "notif_click_url": "URL für Benachrichtigungs-Tipp"
             },
             "data_description": {
               "name": "Eindeutiger Name für dieses Benutzerprofil.",
               "ha_user_id": "Optional: Verknüpfen Sie dieses Profil mit einem Home Assistant-Benutzer. Wenn der Kioskmodus deaktiviert ist, basieren Aktionen zum Beanspruchen und Einlösen von gemeinsam genutzten Geräten auf dieser Verknüpfung.",
               "dashboard_language": "Sprache, die für Dashboard-Inhalte und Benachrichtigungen verwendet wird.",
-              "mobile_notify_service": "Wähle einen Benachrichtigungsdienst aus oder lass das Feld leer, um Benachrichtigungen zu deaktivieren."
+              "mobile_notify_service": "Wähle einen Benachrichtigungsdienst aus oder lass das Feld leer, um Benachrichtigungen zu deaktivieren.",
+              "notif_click_url": "Optionale URL, die beim Antippen der Benachrichtigung geöffnet wird. Für das Standardverhalten leer lassen."
             }
           },
           "section_system_usage": {
@@ -110,12 +112,18 @@
             "data": {
               "can_approve": "Kann genehmigen",
               "can_manage": "Kann verwalten",
-              "associated_user_ids": "Zugehörige Benutzer"
+              "associated_user_ids": "Zugehörige Benutzer",
+              "notif_approve_click_url": "URL für Genehmigungsbenachrichtigung",
+              "chores_paused": "Hausarbeiten pausieren",
+              "chores_paused_until": "Angehalten bis"
             },
             "data_description": {
               "can_approve": "Ermöglicht Genehmigungs- und Ablehnungsmaßnahmen.",
               "can_manage": "Ermöglicht Managementaktionen, die erhöhte Berechtigungen erfordern.",
-              "associated_user_ids": "Benutzer, die von diesem Genehmiger/Administrator für Genehmigungsvorgänge überwacht werden."
+              "associated_user_ids": "Benutzer, die von diesem Genehmiger/Administrator für Genehmigungsvorgänge überwacht werden.",
+              "notif_approve_click_url": "Optionale URL für Genehmigungsbenachrichtigungen. Überschreibt die allgemeine Benachrichtigungs-URL beim Genehmigen von Aufgaben oder Belohnungen.",
+              "chores_paused": "Die Verarbeitung von Aufgaben wird unterbrochen. Es sammeln sich keine überfälligen oder verpassten Statistiken an.",
+              "chores_paused_until": "Optionales Rückkehrdatum. Falls festgelegt, werden die Aufgaben automatisch um Mitternacht nach diesem Datum fortgesetzt."
             }
           }
         }
@@ -483,6 +491,8 @@
       "invalid_reward_count": "Ungültige Anzahl von Belohnungen",
       "invalid_reward_name": "Ungültiger Belohnungsname",
       "invalid_reward_cost": "Die Kosten der Belohnung müssen null oder höher sein (mit maximal zwei Dezimalstellen).",
+      "invalid_reward_assigned_users": "Mindestens ein zugewiesener Benutzer ist ungültig.",
+      "mixed_reward_assignment_sentinel": "„Alle Benutzer“ und „Bestimmte Benutzer“ können nicht vermischt werden.",
       "invalid_bonus": "Ungültiger Bonus",
       "invalid_bonus_count": "Ungültige Anzahl von Boni",
       "invalid_bonus_name": "Ungültiger Bonusname",
@@ -569,13 +579,15 @@
               "name": "Name",
               "ha_user_id": "Home Assistant Benutzer",
               "dashboard_language": "Sprache",
-              "mobile_notify_service": "Benachrichtigungen"
+              "mobile_notify_service": "Benachrichtigungen",
+              "notif_click_url": "URL für Benachrichtigungs-Tipp"
             },
             "data_description": {
               "name": "Eindeutiger Name für dieses Benutzerprofil.",
               "ha_user_id": "Optional: Verknüpfen Sie dieses Profil mit einem Home Assistant-Benutzer. Wenn der Kioskmodus deaktiviert ist, basieren Aktionen zum Beanspruchen und Einlösen von gemeinsam genutzten Geräten auf dieser Verknüpfung.",
               "dashboard_language": "Sprache, die für Dashboard-Inhalte und Benachrichtigungen verwendet wird.",
-              "mobile_notify_service": "Wählen Sie einen Benachrichtigungsdienst aus oder lassen Sie das Feld leer, um Benachrichtigungen zu deaktivieren."
+              "mobile_notify_service": "Wählen Sie einen Benachrichtigungsdienst aus oder lassen Sie das Feld leer, um Benachrichtigungen zu deaktivieren.",
+              "notif_click_url": "Optionale URL, die beim Antippen der Benachrichtigung geöffnet wird. Für das Standardverhalten leer lassen."
             }
           },
           "section_system_usage": {
@@ -598,12 +610,18 @@
             "data": {
               "can_approve": "Kann zustimmen",
               "can_manage": "Kann ich bewältigen",
-              "associated_user_ids": "Zugehörige Benutzer"
+              "associated_user_ids": "Zugehörige Benutzer",
+              "notif_approve_click_url": "URL für Genehmigungsbenachrichtigung",
+              "chores_paused": "Hausarbeiten pausieren",
+              "chores_paused_until": "Angehalten bis"
             },
             "data_description": {
               "can_approve": "Ermöglicht Genehmigungs- und Ablehnungsmaßnahmen.",
               "can_manage": "Ermöglicht Managementaktionen, die erhöhte Berechtigungen erfordern.",
-              "associated_user_ids": "Benutzer, die von diesem Genehmiger/Administrator für Genehmigungsvorgänge überwacht werden."
+              "associated_user_ids": "Benutzer, die von diesem Genehmiger/Administrator für Genehmigungsvorgänge überwacht werden.",
+              "notif_approve_click_url": "Optionale URL für Genehmigungsbenachrichtigungen. Überschreibt die allgemeine Benachrichtigungs-URL beim Genehmigen von Aufgaben oder Belohnungen.",
+              "chores_paused": "Die Verarbeitung von Aufgaben wird unterbrochen. Es sammeln sich keine überfälligen oder verpassten Statistiken an.",
+              "chores_paused_until": "Optionales Rückkehrdatum. Falls festgelegt, werden die Aufgaben automatisch um Mitternacht nach diesem Datum fortgesetzt."
             }
           }
         }
@@ -926,7 +944,8 @@
           "cost": "Kosten der Belohnung",
           "description": "Beschreibung (optional)",
           "reward_labels": "Belohnungsetiketten",
-          "icon": "Symbol (mdi:xxx)"
+          "icon": "Symbol (mdi:xxx)",
+          "assigned_user_ids": "Zugewiesen an"
         }
       },
       "add_penalty": {
@@ -1000,13 +1019,15 @@
               "name": "Name",
               "ha_user_id": "Home Assistant Benutzer",
               "dashboard_language": "Sprache",
-              "mobile_notify_service": "Benachrichtigungen"
+              "mobile_notify_service": "Benachrichtigungen",
+              "notif_click_url": "URL für Benachrichtigungs-Tipp"
             },
             "data_description": {
               "name": "Eindeutiger Name für dieses Benutzerprofil.",
               "ha_user_id": "Optional: Verknüpfen Sie dieses Profil mit einem Home Assistant-Benutzer. Wenn der Kioskmodus deaktiviert ist, basieren Aktionen zum Beanspruchen und Einlösen von gemeinsam genutzten Geräten auf dieser Verknüpfung.",
               "dashboard_language": "Sprache, die für Dashboard-Inhalte und Benachrichtigungen verwendet wird.",
-              "mobile_notify_service": "Wählen Sie einen Benachrichtigungsdienst aus oder lassen Sie das Feld leer, um Benachrichtigungen zu deaktivieren."
+              "mobile_notify_service": "Wählen Sie einen Benachrichtigungsdienst aus oder lassen Sie das Feld leer, um Benachrichtigungen zu deaktivieren.",
+              "notif_click_url": "Optionale URL, die beim Antippen der Benachrichtigung geöffnet wird. Für das Standardverhalten leer lassen."
             }
           },
           "section_system_usage": {
@@ -1029,12 +1050,18 @@
             "data": {
               "can_approve": "Kann genehmigen",
               "can_manage": "Kann ich bewältigen?",
-              "associated_user_ids": "Zugehörige Benutzer"
+              "associated_user_ids": "Zugehörige Benutzer",
+              "notif_approve_click_url": "URL für Genehmigungsbenachrichtigung",
+              "chores_paused": "Hausarbeiten pausieren",
+              "chores_paused_until": "Angehalten bis"
             },
             "data_description": {
               "can_approve": "Ermöglicht Genehmigungs- und Ablehnungsmaßnahmen.",
               "can_manage": "Ermöglicht Managementaktionen, die erhöhte Berechtigungen erfordern.",
-              "associated_user_ids": "Benutzer, die von diesem Genehmiger/Administrator für Genehmigungsvorgänge überwacht werden."
+              "associated_user_ids": "Benutzer, die von diesem Genehmiger/Administrator für Genehmigungsvorgänge überwacht werden.",
+              "notif_approve_click_url": "Optionale URL für Genehmigungsbenachrichtigungen. Überschreibt die allgemeine Benachrichtigungs-URL beim Genehmigen von Aufgaben oder Belohnungen.",
+              "chores_paused": "Die Verarbeitung von Aufgaben wird unterbrochen. Es sammeln sich keine überfälligen oder verpassten Statistiken an.",
+              "chores_paused_until": "Optionales Rückkehrdatum. Falls festgelegt, werden die Aufgaben automatisch um Mitternacht nach diesem Datum fortgesetzt."
             }
           }
         }
@@ -1385,7 +1412,8 @@
           "cost": "Kosten der Belohnung",
           "description": "Beschreibung (optional)",
           "reward_labels": "Belohnungsetiketten",
-          "icon": "Symbol (mdi:xxx)"
+          "icon": "Symbol (mdi:xxx)",
+          "assigned_user_ids": "Zugewiesen an"
         }
       },
       "edit_penalty": {
@@ -1633,6 +1661,7 @@
         "title": "Allgemeine Optionen",
         "description": "Allgemeine Einstellungen für die ChoreOps-Integration verwalten.\n\n ℹ️ [Mehr über allgemeine Optionen erfahren]({documentation_url})",
         "data": {
+          "dashboard_points_precision": "Dashboard-Punkte-Präzision",
           "default_chore_points": "Standardpunkte pro Aufgabe",
           "points_adjust_values": "Manuelle Punkte-Anpassungswerte",
           "update_interval": "Aktualisierungsintervall",
@@ -1649,6 +1678,7 @@
           "backup_action_selection": "Sicherungsaktionen"
         },
         "data_description": {
+          "dashboard_points_precision": "Wählen Sie aus, wie die Punkte in den unterstützten Dashboards angezeigt werden. Dies ändert nur die Dashboard-Formatierung und nicht die gespeicherten Punktwerte oder Berechnungen.",
           "default_chore_points": "Standardpunktwert, der für neue Aufgaben verwendet wird, wenn keine benutzerdefinierten Punkte angegeben werden.",
           "points_adjust_values": "Liste von Werten für die Schaltflächen zur manuellen Punkteanpassung. Jeden Wert durch '|' trennen..",
           "update_interval": "Intervall in Minuten für die Aktualisierung des internen Status von ChoreOps.",
@@ -1948,6 +1978,14 @@
         "return_to_menu": "↩️ Zurück zum Hauptmenü"
       }
     },
+    "dashboard_points_precision": {
+      "options": {
+        "fixed_0": "Nur ganze Zahlen",
+        "adaptive": "Adaptiv (Dezimalstellen nur bei Bedarf anzeigen)",
+        "fixed_1": "Immer auf eine Dezimalstelle gerundet",
+        "fixed_2": "Immer auf 2 Dezimalstellen gerundet"
+      }
+    },
     "select_backup_to_delete": {
       "options": {
         "cancel": "↩️ Abbrechen (zurück zum Backup-Menü)"
@@ -2223,6 +2261,37 @@
         }
       }
     },
+    "pause_user_chores": {
+      "name": "Aufgaben des Benutzers pausieren",
+      "description": "Aufgabenverarbeitung für einen Benutzer pausieren oder fortsetzen.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Konfigurationseintrags-ID (optional)",
+          "description": "Verwenden Sie diese Option, wenn Sie mehrere ChoreOps-Setups haben. Sie ist auf ein bestimmtes Setup ausgerichtet.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Name des Konfigurationseintrags (optional)",
+          "description": "Verwenden Sie diese Option, wenn Sie mehrere ChoreOps-Setups mit jeweils eindeutigen Namen haben. Bei sich wiederholenden Namen verwenden Sie die Konfigurationseintrags-ID.",
+          "example": "Familienaufgaben"
+        },
+        "user_name": {
+          "name": "Benutzername",
+          "description": "Name des Benutzers, dessen Aufgaben pausiert oder fortgesetzt werden sollen.",
+          "example": "Sarah"
+        },
+        "paused": {
+          "name": "Angehalten",
+          "description": "Wahr, um Aufgaben zu pausieren, Falsch, um sie fortzusetzen.",
+          "example": "WAHR"
+        },
+        "paused_until": {
+          "name": "Angehalten bis",
+          "description": "Optionales Rückkehrdatum. Falls festgelegt, werden die Aufgaben automatisch um Mitternacht nach diesem Datum fortgesetzt.",
+          "example": "2026-06-10T00:00:00+00:00"
+        }
+      }
+    },
     "redeem_reward": {
       "name": "Belohnung einlösen",
       "description": "Ein Genehmiger löst eine Prämie für einen Beauftragten ein und zieht dabei Punkte ab.",
@@ -2461,6 +2530,11 @@
           "name": "Etiketten",
           "description": "Etiketten zur Gruppierung von Belohnungen.",
           "example": "['Wochenende', 'Spezial']"
+        },
+        "assigned_user_names": {
+          "name": "Zugewiesen an",
+          "description": "Benutzeranzeigennamen, die dieser Belohnung zugewiesen werden. Verwenden Sie [\"*\"] für alle Benutzer. Übergeben Sie eine leere Liste, um die Belohnung keinem Benutzer zuzuweisen.",
+          "example": "['Zoë', 'Max!']"
         }
       }
     },
@@ -2507,6 +2581,11 @@
           "name": "Etiketten",
           "description": "Aktualisierte Etiketten.",
           "example": "['Premium', 'Spezial']"
+        },
+        "assigned_user_names": {
+          "name": "Zugewiesen an",
+          "description": "Benutzernamen, die dieser Belohnung zugewiesen sind. Verwenden Sie [\"*\"] für alle Benutzer. Übergeben Sie eine leere Liste, um alle zugewiesenen Benutzer zu entfernen. Lassen Sie die Angabe weg, um die aktuellen Zuweisungen beizubehalten.",
+          "example": "['Zoë', 'Max!']"
         }
       }
     },
@@ -2557,7 +2636,7 @@
         },
         "assigned_user_names": {
           "name": "Zugewiesen an",
-          "description": "Liste der Namen derjenigen, denen diese Aufgabe zugewiesen werden soll.",
+          "description": "Liste der Namen derjenigen, denen diese Aufgabe zugewiesen werden soll. Verwenden Sie [\"*\"] für alle zuweisbaren Benutzer. Übergeben Sie eine leere Liste, um die Aufgabe ohne Zuweisungen zu erstellen.",
           "example": "['Emma', 'Jack']"
         },
         "points": {
@@ -2663,7 +2742,7 @@
         },
         "assigned_user_names": {
           "name": "Zugewiesen an",
-          "description": "Neue Liste der Namen derjenigen, denen diese Aufgabe zugewiesen werden soll.",
+          "description": "Neue Liste der Bearbeiter für diese Aufgabe. Verwenden Sie [\"*\"] für alle bearbeitern Benutzer. Übergeben Sie eine leere Liste, um alle bearbeitern Benutzer zu entfernen. Lassen Sie die Liste weg, um die aktuellen Bearbeiter zu belassen.",
           "example": "['Emma', 'Jack']"
         },
         "points": {
@@ -2735,6 +2814,11 @@
           "name": "Fälligkeitserinnerung Verrechnung",
           "description": "Neuer Erinnerungs-Offset. Dauer vor dem Fälligkeitsdatum, bis eine Erinnerung versendet wird. Format: '30m', '1h', '1d 6h 30m' usw. '0' zum Deaktivieren verwenden.",
           "example": "30 m"
+        },
+        "assignment_action": {
+          "name": "Zuweisungsaktion",
+          "description": "So wird die Liste „assigned_user_names“ verarbeitet: „replace“ setzt die Liste direkt (Standard, abwärtskompatibel). „add“ fügt die aufgelisteten Benutzer bestehenden Bearbeitern hinzu. „remove“ entfernt die aufgelisteten Benutzer aus bestehenden Bearbeitern.",
+          "example": "hinzufügen"
         }
       }
     },
@@ -3096,6 +3180,11 @@
           "name": "Nicht wiederkehrende Aufgaben überspringen",
           "description": "Aktivieren Sie diese Option, damit einmalige Aufgaben unverändert bleiben, anstatt deren Fälligkeitsdatum in den Bereich zu verschieben.",
           "example": "FALSCH"
+        },
+        "allow_long_recurrences": {
+          "name": "Lange Wiederholungen zulassen",
+          "description": "Ermöglicht die Neuplanung monatlicher, vierteljährlicher, jährlicher und anderer langintervalliger Wiederholungen. Standardmäßig deaktiviert, um versehentliche große Zeitsprünge zu vermeiden.",
+          "example": "WAHR"
         }
       }
     },
@@ -3179,7 +3268,8 @@
           "completed_by_other": "Ausgefüllt von Anderen",
           "waiting": "Warten (Terminfenster nicht geöffnet)",
           "not_my_turn": "Nicht meine Runde (Rotation)",
-          "missed": "Verpasst (gesperrt)"
+          "missed": "Verpasst (gesperrt)",
+          "paused": "Angehalten"
         },
         "state_attributes": {
           "purpose": {
@@ -3426,7 +3516,8 @@
               "blocked_pending_claim": "Anhängiger Anspruch",
               "blocked_waiting_window": "Warten auf das Fälligkeitsfenster",
               "blocked_not_my_turn": "Du bist nicht dran.",
-              "blocked_missed_locked": "Verpasst und gesperrt"
+              "blocked_missed_locked": "Verpasst und gesperrt",
+              "blocked_paused": "Die Aufgaben für diesen Benutzer sind pausiert."
             }
           },
           "turn_user_name": {
@@ -4740,8 +4831,14 @@
           "core_sensors": {
             "name": "Kernsensoren"
           },
+          "dashboard_config": {
+            "name": "Dashboard-Konfiguration"
+          },
           "dashboard_helpers": {
             "name": "Dashboard-Helfer"
+          },
+          "shard_runtime": {
+            "name": "Laufzeit der Aufgabenliste"
           },
           "chores_by_label": {
             "name": "Aufgaben nach Label"
@@ -4751,6 +4848,29 @@
           },
           "language": {
             "name": "Sprache"
+          }
+        }
+      },
+      "assignee_dashboard_chore_list_helper_sensor": {
+        "name": "Aufgabenliste im UI-Dashboard {shard_index}",
+        "state_attributes": {
+          "purpose": {
+            "name": "Zweck",
+            "state": {
+              "purpose_dashboard_chore_shard_helper": "Bietet eine Aufgabenliste für die Anzeige im Dashboard, wenn die vollständige Aufgabenliste eines Benutzers zu groß für den Hauptassistenten ist."
+            }
+          },
+          "chores": {
+            "name": "Aufgaben"
+          },
+          "shard_index": {
+            "name": "Aufgabenliste Nummer"
+          },
+          "shard_count": {
+            "name": "Vollständige Aufgabenlisten"
+          },
+          "helper_contract_version": {
+            "name": "Helfervertragsversion"
           }
         }
       }
@@ -5314,6 +5434,9 @@
     },
     "notif_message_chore_missed": {
       "message": "{assignee_name} hat die Aufgabe verpasst: {chore_name}"
+    },
+    "chore_paused": {
+      "message": "Die Aufgabenverarbeitung ist für diesen Benutzer derzeit pausiert."
     }
   }
 }

@@ -81,13 +81,15 @@
               "name": "Naam",
               "ha_user_id": "Home Assistant-gebruiker",
               "dashboard_language": "Taal",
-              "mobile_notify_service": "Meldingen"
+              "mobile_notify_service": "Meldingen",
+              "notif_click_url": "Meldingstabblad-URL"
             },
             "data_description": {
               "name": "Unieke naam voor dit gebruikersprofiel.",
               "ha_user_id": "Optioneel: Koppel dit profiel aan een Home Assistant-gebruiker. Als de kioskmodus is uitgeschakeld, zijn het claimen en inwisselen van gedeelde apparaten afhankelijk van deze koppeling.",
               "dashboard_language": "De taal die wordt gebruikt voor de inhoud van het dashboard en meldingen.",
-              "mobile_notify_service": "Selecteer de notificatieservice of laat het veld leeg om notificaties uit te schakelen."
+              "mobile_notify_service": "Selecteer de notificatieservice of laat het veld leeg om notificaties uit te schakelen.",
+              "notif_click_url": "Optionele URL die wordt geopend wanneer op de melding wordt getikt. Laat dit veld leeg voor de standaardinstelling."
             }
           },
           "section_system_usage": {
@@ -110,12 +112,18 @@
             "data": {
               "can_approve": "Kan goedkeuren",
               "can_manage": "Kan het aan",
-              "associated_user_ids": "Gerelateerde gebruikers"
+              "associated_user_ids": "Gerelateerde gebruikers",
+              "notif_approve_click_url": "Tik op de URL voor de goedkeuringsmelding.",
+              "chores_paused": "Pauzeer de klusjes",
+              "chores_paused_until": "Gepauzeerd tot"
             },
             "data_description": {
               "can_approve": "Maakt goedkeurings- en afkeuringsacties mogelijk.",
               "can_manage": "Hiermee kunnen beheertaken worden uitgevoerd waarvoor verhoogde machtigingen vereist zijn.",
-              "associated_user_ids": "Gebruikers die onder toezicht staan van deze goedkeurder/beheerder voor goedkeuringsacties."
+              "associated_user_ids": "Gebruikers die onder toezicht staan van deze goedkeurder/beheerder voor goedkeuringsacties.",
+              "notif_approve_click_url": "Optionele URL voor goedkeuringsmeldingen. Deze overschrijft de algemene meldings-URL bij het goedkeuren van taken of beloningen.",
+              "chores_paused": "Pauzeert de verwerking van taken. Er worden geen achterstallige of gemiste statistieken bijgehouden.",
+              "chores_paused_until": "Optionele terugkeerdatum. Indien ingesteld, worden de klusjes na deze datum automatisch hervat om middernacht."
             }
           }
         }
@@ -483,6 +491,8 @@
       "invalid_reward_count": "Ongeldig aantal beloningen",
       "invalid_reward_name": "Ongeldige beloningsnaam",
       "invalid_reward_cost": "De beloningskosten moeten nul of groter zijn, tot maximaal twee decimalen nauwkeurig.",
+      "invalid_reward_assigned_users": "Een of meer toegewezen gebruikers zijn ongeldig.",
+      "mixed_reward_assignment_sentinel": "Het is niet mogelijk om 'alle gebruikers' te combineren met specifieke gebruikers.",
       "invalid_bonus": "Ongeldige bonus",
       "invalid_bonus_count": "Ongeldig bonusaantal",
       "invalid_bonus_name": "Ongeldige bonusnaam",
@@ -569,13 +579,15 @@
               "name": "Naam",
               "ha_user_id": "Home Assistant-gebruiker",
               "dashboard_language": "Taal",
-              "mobile_notify_service": "Meldingen"
+              "mobile_notify_service": "Meldingen",
+              "notif_click_url": "Meldingstabblad-URL"
             },
             "data_description": {
               "name": "Unieke naam voor dit gebruikersprofiel.",
               "ha_user_id": "Optioneel: Koppel dit profiel aan een Home Assistant-gebruiker. Als de kioskmodus is uitgeschakeld, zijn het claimen en inwisselen van gedeelde apparaten afhankelijk van deze koppeling.",
               "dashboard_language": "De taal die wordt gebruikt voor de inhoud van het dashboard en meldingen.",
-              "mobile_notify_service": "Selecteer de notificatieservice of laat het veld leeg om notificaties uit te schakelen."
+              "mobile_notify_service": "Selecteer de notificatieservice of laat het veld leeg om notificaties uit te schakelen.",
+              "notif_click_url": "Optionele URL die wordt geopend wanneer op de melding wordt getikt. Laat dit veld leeg voor de standaardinstelling."
             }
           },
           "section_system_usage": {
@@ -598,12 +610,18 @@
             "data": {
               "can_approve": "Kan goedkeuren",
               "can_manage": "Kan het aan",
-              "associated_user_ids": "Gerelateerde gebruikers"
+              "associated_user_ids": "Gerelateerde gebruikers",
+              "notif_approve_click_url": "Tik op de URL voor de goedkeuringsmelding.",
+              "chores_paused": "Pauzeer de klusjes",
+              "chores_paused_until": "Gepauzeerd tot"
             },
             "data_description": {
               "can_approve": "Maakt goedkeurings- en afkeuringsacties mogelijk.",
               "can_manage": "Hiermee kunnen beheertaken worden uitgevoerd waarvoor verhoogde machtigingen vereist zijn.",
-              "associated_user_ids": "Gebruikers die onder toezicht staan van deze goedkeurder/beheerder voor goedkeuringsacties."
+              "associated_user_ids": "Gebruikers die onder toezicht staan van deze goedkeurder/beheerder voor goedkeuringsacties.",
+              "notif_approve_click_url": "Optionele URL voor goedkeuringsmeldingen. Deze overschrijft de algemene meldings-URL bij het goedkeuren van taken of beloningen.",
+              "chores_paused": "Pauzeert de verwerking van taken. Er worden geen achterstallige of gemiste statistieken bijgehouden.",
+              "chores_paused_until": "Optionele terugkeerdatum. Indien ingesteld, worden de klusjes na deze datum automatisch hervat om middernacht."
             }
           }
         }
@@ -926,7 +944,8 @@
           "cost": "Beloningskosten",
           "description": "Beschrijving (optioneel)",
           "reward_labels": "Beloningslabels",
-          "icon": "Pictogram (mdi:xxx)"
+          "icon": "Pictogram (mdi:xxx)",
+          "assigned_user_ids": "Toegewezen aan"
         }
       },
       "add_penalty": {
@@ -1000,13 +1019,15 @@
               "name": "Naam",
               "ha_user_id": "Home Assistant-gebruiker",
               "dashboard_language": "Taal",
-              "mobile_notify_service": "Meldingen"
+              "mobile_notify_service": "Meldingen",
+              "notif_click_url": "Meldingstabblad-URL"
             },
             "data_description": {
               "name": "Unieke naam voor dit gebruikersprofiel.",
               "ha_user_id": "Optioneel: Koppel dit profiel aan een Home Assistant-gebruiker. Als de kioskmodus is uitgeschakeld, zijn het claimen en inwisselen van gedeelde apparaten afhankelijk van deze koppeling.",
               "dashboard_language": "De taal die wordt gebruikt voor de inhoud van het dashboard en meldingen.",
-              "mobile_notify_service": "Selecteer de notificatieservice of laat het veld leeg om notificaties uit te schakelen."
+              "mobile_notify_service": "Selecteer de notificatieservice of laat het veld leeg om notificaties uit te schakelen.",
+              "notif_click_url": "Optionele URL die wordt geopend wanneer op de melding wordt getikt. Laat dit veld leeg voor de standaardinstelling."
             }
           },
           "section_system_usage": {
@@ -1029,12 +1050,18 @@
             "data": {
               "can_approve": "Kan goedkeuren",
               "can_manage": "Kan het aan",
-              "associated_user_ids": "Gerelateerde gebruikers"
+              "associated_user_ids": "Gerelateerde gebruikers",
+              "notif_approve_click_url": "Tik op de URL voor de goedkeuringsmelding.",
+              "chores_paused": "Pauzeer de klusjes",
+              "chores_paused_until": "Gepauzeerd tot"
             },
             "data_description": {
               "can_approve": "Maakt goedkeurings- en afkeuringsacties mogelijk.",
               "can_manage": "Hiermee kunnen beheertaken worden uitgevoerd waarvoor verhoogde machtigingen vereist zijn.",
-              "associated_user_ids": "Gebruikers die onder toezicht staan van deze goedkeurder/beheerder voor goedkeuringsacties."
+              "associated_user_ids": "Gebruikers die onder toezicht staan van deze goedkeurder/beheerder voor goedkeuringsacties.",
+              "notif_approve_click_url": "Optionele URL voor goedkeuringsmeldingen. Deze overschrijft de algemene meldings-URL bij het goedkeuren van taken of beloningen.",
+              "chores_paused": "Pauzeert de verwerking van taken. Er worden geen achterstallige of gemiste statistieken bijgehouden.",
+              "chores_paused_until": "Optionele terugkeerdatum. Indien ingesteld, worden de klusjes na deze datum automatisch hervat om middernacht."
             }
           }
         }
@@ -1385,7 +1412,8 @@
           "cost": "Beloningskosten",
           "description": "Beschrijving (optioneel)",
           "reward_labels": "Beloningslabels",
-          "icon": "Pictogram (mdi:xxx)"
+          "icon": "Pictogram (mdi:xxx)",
+          "assigned_user_ids": "Toegewezen aan"
         }
       },
       "edit_penalty": {
@@ -1633,6 +1661,7 @@
         "title": "Algemene opties",
         "description": "Beheer de algemene instellingen voor de ChoreOps-integratie.\n\n ℹ️ [Meer informatie over algemene opties]({documentation_url})",
         "data": {
+          "dashboard_points_precision": "Dashboardpunten Precisie",
           "default_chore_points": "Standaardpunten per taak",
           "points_adjust_values": "Handmatige puntaanpassingsknopwaarden",
           "update_interval": "Update-interval",
@@ -1649,6 +1678,7 @@
           "backup_action_selection": "Back-upacties"
         },
         "data_description": {
+          "dashboard_points_precision": "Kies hoe punten worden weergegeven op ondersteunde dashboards. Dit wijzigt alleen de dashboardopmaak en heeft geen invloed op opgeslagen puntwaarden of berekeningen.",
           "default_chore_points": "Standaardpuntenwaarde die wordt gebruikt voor nieuwe taken wanneer geen aangepaste punten zijn opgegeven.",
           "points_adjust_values": "Lijst met waarden voor de knoppen voor handmatige puntafstelling. Elke waarde wordt gescheiden door een '|'.",
           "update_interval": "Interval in minuten voor het bijwerken van de interne status van ChoreOps.",
@@ -1948,6 +1978,14 @@
         "return_to_menu": "↩️ Terug naar het hoofdmenu"
       }
     },
+    "dashboard_points_precision": {
+      "options": {
+        "fixed_0": "Alleen hele getallen",
+        "adaptive": "Adaptief (toon decimalen alleen wanneer nodig)",
+        "fixed_1": "Altijd 1 decimaal",
+        "fixed_2": "Altijd 2 decimalen"
+      }
+    },
     "select_backup_to_delete": {
       "options": {
         "cancel": "↩️ Annuleren (terug naar het back-upmenu)"
@@ -2223,6 +2261,37 @@
         }
       }
     },
+    "pause_user_chores": {
+      "name": "Pauzeer de taken van de gebruiker",
+      "description": "De verwerking van taken voor een gebruiker pauzeren of hervatten.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Configuratie-item-ID (optioneel)",
+          "description": "Gebruik dit als u meer dan één ChoreOps-configuratie hebt. Het is gericht op één specifieke configuratie.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Configuratie-itemnaam (optioneel)",
+          "description": "Gebruik dit als u meer dan één ChoreOps-configuratie hebt en deze elk een unieke naam hebben. Als de namen zich herhalen, gebruik dan de configuratie-item-ID.",
+          "example": "Huishoudelijke klusjes"
+        },
+        "user_name": {
+          "name": "Gebruikersnaam",
+          "description": "Naam van de gebruiker wiens taken moeten worden gepauzeerd of hervat.",
+          "example": "Sarah"
+        },
+        "paused": {
+          "name": "Gepauzeerd",
+          "description": "Het is waar om klusjes te pauzeren, onwaar om ze te hervatten.",
+          "example": "WAAR"
+        },
+        "paused_until": {
+          "name": "Gepauzeerd tot",
+          "description": "Optionele terugkeerdatum. Indien ingesteld, worden de klusjes na deze datum automatisch hervat om middernacht.",
+          "example": "2026-06-10T00:00:00+00:00"
+        }
+      }
+    },
     "redeem_reward": {
       "name": "Verzilver beloning",
       "description": "Een goedkeurder verzilvert een beloning voor een toegewezen persoon door punten af te trekken.",
@@ -2461,6 +2530,11 @@
           "name": "Labels",
           "description": "Labels voor het groeperen van beloningen.",
           "example": "['weekend', 'speciaal']"
+        },
+        "assigned_user_names": {
+          "name": "Toegewezen aan",
+          "description": "Gebruikersnamen die aan deze beloning zijn toegewezen. Gebruik [\"*\"] voor alle gebruikers. Geef een lege lijst door om de beloning aan geen enkele gebruiker toe te wijzen.",
+          "example": "['Zoë', 'Max!']"
         }
       }
     },
@@ -2507,6 +2581,11 @@
           "name": "Labels",
           "description": "Labels bijgewerkt.",
           "example": "['premium', 'speciaal']"
+        },
+        "assigned_user_names": {
+          "name": "Toegewezen aan",
+          "description": "Gebruikersnamen die aan deze beloning zijn toegewezen. Gebruik [\"*\"] voor alle gebruikers. Geef een lege lijst door om alle toegewezen gebruikers te verwijderen. Laat dit weg om de huidige toewijzingen ongewijzigd te laten.",
+          "example": "['Zoë', 'Max!']"
         }
       }
     },
@@ -2557,7 +2636,7 @@
         },
         "assigned_user_names": {
           "name": "Toegewezen aan",
-          "description": "Lijst met namen van degenen aan wie deze taak moet worden toegewezen.",
+          "description": "Lijst met namen van personen aan wie deze taak moet worden toegewezen. Gebruik [\"*\"] voor alle gebruikers aan wie de taak kan worden toegewezen. Geef een lege lijst door om een lijst zonder toegewezen personen te maken.",
           "example": "['Emma', 'Jack']"
         },
         "points": {
@@ -2663,7 +2742,7 @@
         },
         "assigned_user_names": {
           "name": "Toegewezen aan",
-          "description": "Nieuwe lijst met namen van personen aan wie deze taak moet worden toegewezen.",
+          "description": "Nieuwe lijst met namen van personen aan wie deze taak moet worden toegewezen. Gebruik [\"*\"] voor alle gebruikers aan wie de taak kan worden toegewezen. Geef een lege lijst door om alle toegewezen gebruikers te verwijderen. Laat dit veld weg om de huidige toewijzingen ongewijzigd te laten.",
           "example": "['Emma', 'Jack']"
         },
         "points": {
@@ -2735,6 +2814,11 @@
           "name": "Vervaldatum herinnering verrekening",
           "description": "Nieuwe herinneringsvertraging. De tijdsduur vóór de vervaldatum waarop de herinneringsmelding moet worden verzonden. Formaat: '30m', '1h', '1d 6h 30m', enz. Gebruik '0' om uit te schakelen.",
           "example": "30m"
+        },
+        "assignment_action": {
+          "name": "Toewijzingsactie",
+          "description": "Hoe om te gaan met de lijst assigned_user_names. 'replace' stelt de lijst direct in (standaard, achterwaarts compatibel). 'add' voegt de vermelde gebruikers toe aan de bestaande lijst met toegewezen gebruikers. 'remove' verwijdert de vermelde gebruikers uit de bestaande lijst met toegewezen gebruikers.",
+          "example": "toevoegen"
         }
       }
     },
@@ -3096,6 +3180,11 @@
           "name": "Sla eenmalige klusjes over",
           "description": "Schakel deze optie in om eenmalige taken ongewijzigd te laten in plaats van hun vervaldatum naar de uiterste datum te verplaatsen.",
           "example": "onjuist"
+        },
+        "allow_long_recurrences": {
+          "name": "Sta lange herhalingen toe",
+          "description": "Sta het opnieuw inplannen van maandelijkse, driemaandelijkse, jaarlijkse en andere terugkerende gebeurtenissen met langere tussenpozen toe. Standaard is dit uitgeschakeld om onbedoelde grote sprongen te voorkomen.",
+          "example": "WAAR"
         }
       }
     },
@@ -3179,7 +3268,8 @@
           "completed_by_other": "Voltooid door anderen",
           "waiting": "Wachten (venster niet geopend)",
           "not_my_turn": "Niet mijn beurt (Rotatie)",
-          "missed": "Gemist (Vergrendeld)"
+          "missed": "Gemist (Vergrendeld)",
+          "paused": "Gepauzeerd"
         },
         "state_attributes": {
           "purpose": {
@@ -3426,7 +3516,8 @@
               "blocked_pending_claim": "Claim in behandeling",
               "blocked_waiting_window": "Wachten op de deadline",
               "blocked_not_my_turn": "Nu ben jij aan de beurt.",
-              "blocked_missed_locked": "Gemist en vergrendeld"
+              "blocked_missed_locked": "Gemist en vergrendeld",
+              "blocked_paused": "De taken voor deze gebruiker zijn gepauzeerd."
             }
           },
           "turn_user_name": {
@@ -4740,8 +4831,14 @@
           "core_sensors": {
             "name": "Kernsensoren"
           },
+          "dashboard_config": {
+            "name": "Dashboardconfiguratie"
+          },
           "dashboard_helpers": {
             "name": "Dashboard Helpers"
+          },
+          "shard_runtime": {
+            "name": "Uitvoeringstijd van de takenlijst"
           },
           "chores_by_label": {
             "name": "Taken per label"
@@ -4751,6 +4848,29 @@
           },
           "language": {
             "name": "Taal"
+          }
+        }
+      },
+      "assignee_dashboard_chore_list_helper_sensor": {
+        "name": "UI Dashboard Takenlijst {shard_index}",
+        "state_attributes": {
+          "purpose": {
+            "name": "Doel",
+            "state": {
+              "purpose_dashboard_chore_shard_helper": "Biedt één takenlijst voor weergave op het dashboard wanneer de volledige takenlijst van een gebruiker te groot is voor de hoofdhelper."
+            }
+          },
+          "chores": {
+            "name": "Klusjes"
+          },
+          "shard_index": {
+            "name": "Takenlijstnummer"
+          },
+          "shard_count": {
+            "name": "Complete takenlijst"
+          },
+          "helper_contract_version": {
+            "name": "Hulpcontractversie"
           }
         }
       }
@@ -5314,6 +5434,9 @@
     },
     "notif_message_chore_missed": {
       "message": "{assignee_name} heeft de klus gemist: {chore_name}"
+    },
+    "chore_paused": {
+      "message": "De taakverwerking is momenteel gepauzeerd voor deze gebruiker."
     }
   }
 }

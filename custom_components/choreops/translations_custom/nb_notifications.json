@@ -3,32 +3,32 @@
   "_comment_assignee_desc": "VARSLER TIL TILORDNERE: Spillbasert, andrepersons, oppmuntrende tone med emojier. INGEN «ChoreOps:»-prefiks.",
   "_comment_assignee_footer": "═════════════════════════════════════════════════════════════════════════════════════",
   "chore_approved_assignee": {
-    "title": "🎉 Godkjent husarbeid!",
-    "message": "{chore_name} godkjent! Du har tjent {points} poeng"
+    "title": "🎉 Godkjent gjøremål!",
+    "message": "{chore_name} godkjent! Du har oppnådd {points} {points_label}"
   },
   "chore_disapproved_assignee": {
-    "title": "↩️ Gjøremål returnert",
+    "title": "↩️ Gjøremål er ikke godkjent",
     "message": "{chore_name} trenger mer arbeid."
   },
   "chore_overdue_assignee": {
-    "title": "⏰ Forfalt husarbeid",
-    "message": "{chore_name} er for sent! Fullfør nå for å tjene {points} poeng"
+    "title": "⏰ Forfalt gjøremål",
+    "message": "{chore_name} er for sent ute! Fullfør nå for å tjene {points} {points_label}"
   },
   "chore_overdue_steal_available": {
     "title": "⚡ Varsel om husarbeid",
-    "message": "{chore_name} er for sent ute og kan stjeles! Fullfør først for å tjene {points} poeng"
+    "message": "{chore_name} er for sent ute og tilgjengelig for å stjele! Fullfør den først for å tjene {points} {points_label}"
   },
   "chore_missed_assignee": {
     "title": "😔 Gjøremål utløpt",
     "message": "{chore_name} utløp uten fullføring."
   },
   "chore_due_reminder_assignee": {
-    "title": "⏰ Påminnelse om husarbeid",
-    "message": "{chore_name} forfaller om {minutes} minutter! Verdt {points} poeng"
+    "title": "⏰ Påminnelse om gjøremål",
+    "message": "{chore_name} forfaller om {minutes} minutter! Verdt {points} {points_label}"
   },
   "chore_due_window_assignee": {
     "title": "🎯 Gjøremål forfaller nå",
-    "message": "{chore_name} forfaller nå! Fullfør innen {hours} time(r) for å tjene {points} poeng"
+    "message": "{chore_name} forfaller nå! Fullfør innen {hours} time(r) for å tjene {points} {points_label}"
   },
   "reward_approved_assignee": {
     "title": "🎉 Belønning godkjent!",
@@ -52,15 +52,15 @@
   },
   "penalty_applied_assignee": {
     "title": "⚠️ Straff ilagt",
-    "message": "{penalty_name}: {points} poeng trukket. La oss komme tilbake på sporet!"
+    "message": "{penalty_name}: {points} {points_label} trukket fra. La oss komme tilbake på sporet!"
   },
   "bonus_applied_assignee": {
     "title": "⭐ Bonus benyttet!",
-    "message": "{bonus_name}: Du har tjent {points} bonuspoeng! Bra jobbet"
+    "message": "{bonus_name}: Du har tjent {points} bonus {points_label}! Bra jobbet"
   },
   "multiplier_changed_assignee": {
     "title": "⚖️ Multiplikator oppdatert",
-    "message": "Poengmultiplikatoren din ble endret fra {old_multiplier}x til {new_multiplier}x"
+    "message": "Multiplikatoren din {points_label} er endret fra {old_multiplier}x til {new_multiplier}x"
   },
   "_comment_approver_section": "═════════════════════════════════════════════════════════════════════════════════════",
   "_comment_approver_desc": "GODKJENNERVARSLER: Informativ, tredjeperson, handlingsrettet. Format: '{assignee_name}: Handling'. INGEN 'ChoreOps:' prefiks.",
@@ -79,11 +79,11 @@
   },
   "pending_chores_approver": {
     "title": "📋 {assignee_name}: {count} Venter",
-    "message": "{count} gjøremål venter på gjennomgang. Siste: {latest_chore} (+{points} poeng)"
+    "message": "{count} gjøremål venter på gjennomgang. Siste: {latest_chore} (+{points} {points_label})"
   },
   "reward_claimed_approver": {
     "title": "🎁 {assignee_name}: Belønningsforespørsel",
-    "message": "{assignee_name} ba om {reward_name} for {points} poeng"
+    "message": "{assignee_name} ba om {reward_name} for {points} {points_label}"
   },
   "reward_reminder_approver": {
     "title": "⏰ {assignee_name}: Belønning venter",
@@ -103,7 +103,7 @@
   },
   "multiplier_changed_approver": {
     "title": "⚖️ {assignee_name}: Multiplikator oppdatert",
-    "message": "Poengmultiplikatoren for {assignee_name}er endret fra {old_multiplier}x til {new_multiplier}x"
+    "message": "{assignee_name}sin {points_label} multiplikator endret fra {old_multiplier}x til {new_multiplier}x"
   },
   "_comment_system_section": "═════════════════════════════════════════════════════════════════════════════════════",
   "_comment_system_desc": "SYSTEM-/ADMIN-VARSLER: Databehandlingsoperasjoner",

@@ -4,7 +4,7 @@
   "_comment_assignee_footer": "══════════════════════════════════════════════════════════════════",
   "chore_approved_assignee": {
     "title": "🎉 Zadanie zatwierdzone!",
-    "message": "{chore_name} zatwierdzono! Zdobyłeś {points} punktów"
+    "message": "{chore_name} zatwierdzono! Zdobyłeś {points} {points_label}"
   },
   "chore_disapproved_assignee": {
     "title": "↩️ Powrót do pracy",
@@ -12,11 +12,11 @@
   },
   "chore_overdue_assignee": {
     "title": "⏰ Zaległe obowiązki",
-    "message": "{chore_name} jest spóźnione! Wykonaj je teraz, aby zdobyć {points} punktów"
+    "message": "{chore_name} jest spóźnione! Wykonaj je teraz, aby zdobyć {points} {points_label}"
   },
   "chore_overdue_steal_available": {
     "title": "⚡ Alert o obowiązkach domowych",
-    "message": "{chore_name} jest przeterminowany i można go ukraść! Wykonaj go najpierw, aby zdobyć {points} punktów."
+    "message": "{chore_name} jest przeterminowany i dostępny do kradzieży! Ukończ go najpierw, aby zdobyć {points} {points_label}"
   },
   "chore_missed_assignee": {
     "title": "😔 Obowiązek wygasł",
@@ -24,11 +24,11 @@
   },
   "chore_due_reminder_assignee": {
     "title": "⏰ Przypomnienie o obowiązkach domowych",
-    "message": "{chore_name} jest należne za {minutes} minut! Wartość {points} punktów"
+    "message": "{chore_name} jest za {minutes} minut! Wartość {points} {points_label}"
   },
   "chore_due_window_assignee": {
     "title": "🎯 Obowiązek domowy do oddania teraz",
-    "message": "{chore_name} jest teraz należne! Wykonaj zadanie w ciągu {hours} godzin, aby zdobyć {points} punktów"
+    "message": "{chore_name} jest teraz należne! Wykonaj w ciągu {hours} godzin, aby zdobyć {points} {points_label}"
   },
   "reward_approved_assignee": {
     "title": "🎉 Nagroda zatwierdzona!",
@@ -52,15 +52,15 @@
   },
   "penalty_applied_assignee": {
     "title": "⚠️ Zastosowano karę",
-    "message": "{penalty_name}: {points} punktów odjętych. Wracamy na właściwe tory!"
+    "message": "{penalty_name}: {points} {points_label} odjęto. Wracamy na właściwe tory!"
   },
   "bonus_applied_assignee": {
     "title": "⭐ Bonus zastosowany!",
-    "message": "{bonus_name}: Zdobyłeś {points} punktów bonusowych! Świetna robota"
+    "message": "{bonus_name}: Zdobyłeś {points} bonus {points_label}! Świetna robota"
   },
   "multiplier_changed_assignee": {
     "title": "⚖️ Zaktualizowano mnożnik",
-    "message": "Twój mnożnik punktów zmienił się z {old_multiplier}x na {new_multiplier}x"
+    "message": "Twój mnożnik {points_label} zmienił się z {old_multiplier}x na {new_multiplier}x"
   },
   "_comment_approver_section": "══════════════════════════════════════════════════════════════════",
   "_comment_approver_desc": "POWIADOMIENIA DLA ZATWIERDZAJĄCYCH: informacyjne, w trzeciej osobie, z możliwością podjęcia działania. Format: „{assignee_name}: Działanie”. BRAK prefiksu „ChoreOps:”.",
@@ -79,11 +79,11 @@
   },
   "pending_chores_approver": {
     "title": "📋 {assignee_name}: {count} Oczekujące",
-    "message": "{count} zadań oczekujących na sprawdzenie. Ostatnie: {latest_chore} (+{points} pkt)"
+    "message": "{count} zadań oczekujących na sprawdzenie. Ostatnie: {latest_chore} (+{points} {points_label})"
   },
   "reward_claimed_approver": {
     "title": "🎁 {assignee_name}: Prośba o nagrodę",
-    "message": "{assignee_name} zażądał {reward_name} za {points} punktów"
+    "message": "{assignee_name} zażądał {reward_name} dla {points} {points_label}"
   },
   "reward_reminder_approver": {
     "title": "⏰ {assignee_name}: Nagroda w toku",
@@ -103,7 +103,7 @@
   },
   "multiplier_changed_approver": {
     "title": "⚖️ {assignee_name}: Zaktualizowano mnożnik",
-    "message": "Zmieniono mnożnik punktów {assignee_name}z {old_multiplier}x na {new_multiplier}x"
+    "message": "Zmieniono mnożnik {assignee_name} {points_label} z {old_multiplier}x na {new_multiplier}x"
   },
   "_comment_system_section": "══════════════════════════════════════════════════════════════════",
   "_comment_system_desc": "POWIADOMIENIA SYSTEMOWE/ADMINISTRACYJNE: Operacje zarządzania danymi",

@@ -4,7 +4,7 @@
   "_comment_assignee_footer": "══════════════════════════════════════════════════════════════",
   "chore_approved_assignee": {
     "title": "🎉 Tasques aprovades!",
-    "message": "{chore_name} aprovat! Has guanyat {points} punts"
+    "message": "{chore_name} aprovat! Has guanyat {points} {points_label}"
   },
   "chore_disapproved_assignee": {
     "title": "↩️ Tasca retornada",
@@ -12,11 +12,11 @@
   },
   "chore_overdue_assignee": {
     "title": "⏰ Tasca pendent",
-    "message": "{chore_name} està pendent! Completa-ho ara per guanyar {points} punts"
+    "message": "{chore_name} està pendent! Completa-ho ara per guanyar {points} {points_label}"
   },
   "chore_overdue_steal_available": {
     "title": "⚡ Alerta de tasques domèstiques",
-    "message": "{chore_name} està endarrerit i disponible per robar! Completa-ho primer per guanyar {points} punts"
+    "message": "{chore_name} està endarrerit i disponible per robar! Completa-ho primer per guanyar {points} {points_label}"
   },
   "chore_missed_assignee": {
     "title": "😔 Tasca caducada",
@@ -24,11 +24,11 @@
   },
   "chore_due_reminder_assignee": {
     "title": "⏰ Recordatori de tasques domèstiques",
-    "message": "{chore_name} s'ha de lliurar en {minutes} minuts! Val {points} punts"
+    "message": "{chore_name} es venç en {minutes} minuts! Val {points} {points_label}"
   },
   "chore_due_window_assignee": {
     "title": "🎯 Tasca pendent",
-    "message": "{chore_name} ja ha de ser entregat! Completa-ho en {hours} hora(es) per guanyar {points} punts"
+    "message": "{chore_name} ja ha de ser! Completa-ho en {hours} hora(es) per guanyar {points} {points_label}"
   },
   "reward_approved_assignee": {
     "title": "🎉 Recompensa aprovada!",
@@ -52,15 +52,15 @@
   },
   "penalty_applied_assignee": {
     "title": "⚠️ Penalització aplicada",
-    "message": "{penalty_name}: S'han deduït {points} punts. Tornem a la normalitat!"
+    "message": "{penalty_name}: {points} {points_label} deduït. Tornem al bon camí!"
   },
   "bonus_applied_assignee": {
     "title": "⭐ Bonificació aplicada!",
-    "message": "{bonus_name}: Has guanyat {points} punts extra! Bona feina."
+    "message": "{bonus_name}: Has guanyat la {points} de bonificació {points_label}! Bona feina."
   },
   "multiplier_changed_assignee": {
     "title": "⚖️ Multiplicador actualitzat",
-    "message": "El multiplicador de punts ha canviat de {old_multiplier}x a {new_multiplier}x"
+    "message": "El multiplicador {points_label} ha canviat de {old_multiplier}x a {new_multiplier}x"
   },
   "_comment_approver_section": "══════════════════════════════════════════════════════════════",
   "_comment_approver_desc": "NOTIFICACIONS DE L'APROVATOR: Informatives, en tercera persona, accionables. Format: '{assignee_name}: Acció'. NO hi ha el prefix 'ChoreOps:'.",
@@ -79,11 +79,11 @@
   },
   "pending_chores_approver": {
     "title": "📋 {assignee_name}: {count} Pendent",
-    "message": "{count} tasques pendents de revisió. Últimes: {latest_chore} (+{points} pts)"
+    "message": "{count} tasques pendents de revisió. Últimes: {latest_chore} (+{points} {points_label})"
   },
   "reward_claimed_approver": {
     "title": "🎁 {assignee_name}: Sol·licitud de recompensa",
-    "message": "{assignee_name} ha sol·licitat {reward_name} per a {points} punts"
+    "message": "{assignee_name} ha sol·licitat {reward_name} per a {points} {points_label}"
   },
   "reward_reminder_approver": {
     "title": "⏰ {assignee_name}: Recompensa pendent",
@@ -103,7 +103,7 @@
   },
   "multiplier_changed_approver": {
     "title": "⚖️ {assignee_name}: Multiplicador actualitzat",
-    "message": "El multiplicador de punts de {assignee_name}ha canviat de {old_multiplier}x a {new_multiplier}x"
+    "message": "El multiplicador {assignee_name}de {points_label} ha canviat de {old_multiplier}x a {new_multiplier}x"
   },
   "_comment_system_section": "══════════════════════════════════════════════════════════════",
   "_comment_system_desc": "NOTIFICACIONS DEL SISTEMA/ADMINISTRADOR: Operacions de gestió de dades",

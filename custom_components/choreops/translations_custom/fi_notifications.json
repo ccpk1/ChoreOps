@@ -4,7 +4,7 @@
   "_comment_assignee_footer": "════════════════════════════════════════════════════════════════════════════════════════",
   "chore_approved_assignee": {
     "title": "🎉 Kotityöt hyväksytty!",
-    "message": "{chore_name} hyväksytty! Ansaitsit {points} pistettä"
+    "message": "{chore_name} hyväksytty! Ansaitsit {points} {points_label}"
   },
   "chore_disapproved_assignee": {
     "title": "↩️ Kotityö palautettu",
@@ -12,11 +12,11 @@
   },
   "chore_overdue_assignee": {
     "title": "⏰ Myöhässä oleva kotityö",
-    "message": "{chore_name} on myöhässä! Suorita se nyt ansaitaksesi {points} pistettä"
+    "message": "{chore_name} on myöhässä! Suorita se nyt ansaitaksesi {points} {points_label}"
   },
   "chore_overdue_steal_available": {
     "title": "⚡ Kotiapuhälytys",
-    "message": "{chore_name} on myöhässä ja varastettavissa! Suorita se ensin ansaitaksesi {points} pistettä"
+    "message": "{chore_name} on myöhässä ja varastettavissa! Suorita se ensin ansaitaksesi {points} {points_label}"
   },
   "chore_missed_assignee": {
     "title": "😔 Työtehtävä vanhentunut",
@@ -24,11 +24,11 @@
   },
   "chore_due_reminder_assignee": {
     "title": "⏰ Kotitöiden muistutus",
-    "message": "{chore_name} erääntyy {minutes} minuutin kuluttua! Arvo {points} pistettä"
+    "message": "{chore_name} erääntyy {minutes} minuutin kuluttua! Arvo {points} {points_label}"
   },
   "chore_due_window_assignee": {
     "title": "🎯 Kotityön eräpäivä",
-    "message": "{chore_name} erääntyy! Suorita {hours} tunnin sisällä ansaitaksesi {points} pistettä"
+    "message": "{chore_name} erääntyy! Suorita {hours} tunnin sisällä ansaitaksesi {points} {points_label}"
   },
   "reward_approved_assignee": {
     "title": "🎉 Palkinto hyväksytty!",
@@ -52,15 +52,15 @@
   },
   "penalty_applied_assignee": {
     "title": "⚠️ Rangaistus sovellettu",
-    "message": "{penalty_name}: {points} pistettä vähennetty. Palataanpa raiteille!"
+    "message": "{penalty_name}: {points} {points_label} vähennetty. Palataanpa raiteille!"
   },
   "bonus_applied_assignee": {
     "title": "⭐ Bonus käytetty!",
-    "message": "{bonus_name}: Ansaitsit {points} bonuspistettä! Hienoa työtä!"
+    "message": "{bonus_name}: Ansaitsit {points} bonuksen {points_label}! Hienoa työtä!"
   },
   "multiplier_changed_assignee": {
     "title": "⚖️ Kerroin päivitetty",
-    "message": "Pistekerroin muuttui arvosta {old_multiplier}x arvoon {new_multiplier}x"
+    "message": "{points_label} kertoimesi muuttui arvosta {old_multiplier}x arvoon {new_multiplier}x"
   },
   "_comment_approver_section": "════════════════════════════════════════════════════════════════════════════════════════",
   "_comment_approver_desc": "HYVÄKSYJÄN ILMOITUKSET: Informatiiviset, kolmannen persoonan, toiminnalliset. Muoto: '{assignee_name}: Toiminta'. EI 'ChoreOps:'-etuliitettä.",
@@ -79,11 +79,11 @@
   },
   "pending_chores_approver": {
     "title": "📋 {assignee_name}: {count} Odottaa",
-    "message": "{count} tehtävää odottaa arviointia. Viimeisimmät: {latest_chore} (+{points} pistettä)"
+    "message": "{count} tehtävää odottaa arviointia. Viimeisin: {latest_chore} (+{points} {points_label})"
   },
   "reward_claimed_approver": {
     "title": "🎁 {assignee_name}: Palkintopyyntö",
-    "message": "{assignee_name} pyysi {reward_name} {points} pistettä"
+    "message": "{assignee_name} pyysi {reward_name} kohteelle {points} {points_label}"
   },
   "reward_reminder_approver": {
     "title": "⏰ {assignee_name}: Palkintoa odotetaan",
@@ -103,7 +103,7 @@
   },
   "multiplier_changed_approver": {
     "title": "⚖️ {assignee_name}: Kerroin päivitetty",
-    "message": "{assignee_name}:n pistekerroin muuttui arvosta {old_multiplier}x arvoon {new_multiplier}x"
+    "message": "{assignee_name}:n {points_label} kerroin muuttui arvosta {old_multiplier}x arvoon {new_multiplier}x"
   },
   "_comment_system_section": "════════════════════════════════════════════════════════════════════════════════════════",
   "_comment_system_desc": "JÄRJESTELMÄN/JÄRJESTELMÄNVALVOJAN ILMOITUKSET: Tiedonhallintatoiminnot",

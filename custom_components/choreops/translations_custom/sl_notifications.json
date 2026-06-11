@@ -4,7 +4,7 @@
   "_comment_assignee_footer": "══════════════════════════════════════════════════════════════════════════",
   "chore_approved_assignee": {
     "title": "🎉 Opravilo odobreno!",
-    "message": "{chore_name} odobreno! Zaslužili ste si {points} točk"
+    "message": "{chore_name} odobreno! Zaslužili ste si {points} {points_label}"
   },
   "chore_disapproved_assignee": {
     "title": "↩️ Opravilo vrnjeno",
@@ -12,11 +12,11 @@
   },
   "chore_overdue_assignee": {
     "title": "⏰ Opravilo je zamujeno",
-    "message": "{chore_name} je že v zamudi! Izpolnite ga zdaj in si prislužite {points} točk"
+    "message": "{chore_name} je že zapadel! Izpolnite ga zdaj in si prislužite {points} {points_label}"
   },
   "chore_overdue_steal_available": {
     "title": "⚡ Opozorilo o opravilih",
-    "message": "{chore_name} je zapadla in jo lahko ukradete! Najprej jo dokončajte, da zaslužite {points} točk"
+    "message": "{chore_name} je zapadla in jo lahko ukradete! Najprej jo dokončajte, da si prislužite {points} {points_label}"
   },
   "chore_missed_assignee": {
     "title": "😔 Opravilo je poteklo",
@@ -24,11 +24,11 @@
   },
   "chore_due_reminder_assignee": {
     "title": "⏰ Opomnik za opravila",
-    "message": "{chore_name} je zapadlo čez {minutes} minut! Vredno {points} točk"
+    "message": "{chore_name} je zapadlo čez {minutes} minut! Vredno {points} {points_label}"
   },
   "chore_due_window_assignee": {
     "title": "🎯 Opravilo čaka na izvedbo",
-    "message": "Rok za oddajo {chore_name} je zdaj! Izpolnite v {hours} urah in zaslužite {points} točk"
+    "message": "{chore_name} je zdaj rok! Izpolnite v {hours} uri in zaslužite {points} {points_label}"
   },
   "reward_approved_assignee": {
     "title": "🎉 Nagrada odobrena!",
@@ -52,15 +52,15 @@
   },
   "penalty_applied_assignee": {
     "title": "⚠️ Izrečena kazen",
-    "message": "{penalty_name}: {points} odbitih točk. Gremo nazaj na pravo pot!"
+    "message": "{penalty_name}: {points} {points_label} odšteto. Gremo nazaj na pravo pot!"
   },
   "bonus_applied_assignee": {
     "title": "⭐ Bonus je bil uporabljen!",
-    "message": "{bonus_name}: Prislužili ste si {points} bonus točk! Odlično opravljeno"
+    "message": "{bonus_name}: Prislužili ste si {points} bonus {points_label}! Odlično opravljeno"
   },
   "multiplier_changed_assignee": {
     "title": "⚖️ Množitelj posodobljen",
-    "message": "Vaš množitelj točk se je spremenil iz {old_multiplier}x na {new_multiplier}x"
+    "message": "Vaš množitelj {points_label} se je spremenil iz {old_multiplier}x na {new_multiplier}x"
   },
   "_comment_approver_section": "══════════════════════════════════════════════════════════════════════════",
   "_comment_approver_desc": "OBVESTILA ODOBRITELJA: Informativna, v tretji osebi, uporabna. Oblika: '{assignee_name}: Dejanje'. BREZ predpone 'ChoreOps:'.",
@@ -79,11 +79,11 @@
   },
   "pending_chores_approver": {
     "title": "📋 {assignee_name}: {count} V teku",
-    "message": "{count} opravil, ki čakajo na pregled. Zadnja: {latest_chore} (+{points} točk)"
+    "message": "{count} opravila, ki čakajo na pregled. Zadnja: {latest_chore} (+{points} {points_label})"
   },
   "reward_claimed_approver": {
     "title": "🎁 {assignee_name}: Zahteva za nagrado",
-    "message": "{assignee_name} je zahteval {reward_name} za {points} točk"
+    "message": "{assignee_name} zahteval {reward_name} za {points} {points_label}"
   },
   "reward_reminder_approver": {
     "title": "⏰ {assignee_name}: Nagrada čaka",
@@ -103,7 +103,7 @@
   },
   "multiplier_changed_approver": {
     "title": "⚖️ {assignee_name}: Množitelj posodobljen",
-    "message": "Množitelj točk igralca {assignee_name}se je spremenil iz {old_multiplier}x na {new_multiplier}x"
+    "message": "{assignee_name}'s {points_label} multiplier changed from {old_multiplier}x to {new_multiplier}x"
   },
   "_comment_system_section": "══════════════════════════════════════════════════════════════════════════",
   "_comment_system_desc": "OBVESTILA SISTEMA/ADMINIRANJA: Postopki upravljanja podatkov",

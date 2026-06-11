@@ -81,13 +81,15 @@
               "name": "Nom",
               "ha_user_id": "Utilisateur de Home Assistant",
               "dashboard_language": "Langue",
-              "mobile_notify_service": "Notifications"
+              "mobile_notify_service": "Notifications",
+              "notif_click_url": "URL de l'appui sur la notification"
             },
             "data_description": {
               "name": "Nom unique pour ce profil utilisateur.",
               "ha_user_id": "Facultatif : associez ce profil à un utilisateur Home Assistant. Si le mode kiosque est désactivé, les actions de revendication et d’utilisation d’appareils partagés dépendent de cette association.",
               "dashboard_language": "Langue utilisée pour le contenu du tableau de bord et les notifications.",
-              "mobile_notify_service": "Sélectionnez un service de notification ou laissez vide pour désactiver les notifications."
+              "mobile_notify_service": "Sélectionnez un service de notification ou laissez vide pour désactiver les notifications.",
+              "notif_click_url": "URL facultative à ouvrir lorsque l'utilisateur appuie sur la notification. Laisser vide pour le comportement par défaut."
             }
           },
           "section_system_usage": {
@@ -110,12 +112,18 @@
             "data": {
               "can_approve": "Peut approuver",
               "can_manage": "Peut gérer",
-              "associated_user_ids": "Utilisateurs associés"
+              "associated_user_ids": "Utilisateurs associés",
+              "notif_approve_click_url": "URL du bouton de notification d'approbation",
+              "chores_paused": "Pause pour les tâches ménagères",
+              "chores_paused_until": "En pause jusqu'à"
             },
             "data_description": {
               "can_approve": "Permet les actions d'approbation et de refus.",
               "can_manage": "Autorise la gestion d'actions demandant une permission élevé",
-              "associated_user_ids": "Utilisateurs supervisés par cet approbateur/administrateur pour les actions d'approbation."
+              "associated_user_ids": "Utilisateurs supervisés par cet approbateur/administrateur pour les actions d'approbation.",
+              "notif_approve_click_url": "URL facultative pour les notifications d'approbation. Remplace l'URL de notification générale lors de l'approbation de tâches ou de récompenses.",
+              "chores_paused": "Suspend le traitement des tâches. Aucune statistique de retard ou d'oubli ne s'accumule.",
+              "chores_paused_until": "Date de retour facultative. Si cette date est définie, les tâches reprennent automatiquement à minuit après cette date."
             }
           }
         }
@@ -483,6 +491,8 @@
       "invalid_reward_count": "Nombre de récompenses invalide",
       "invalid_reward_name": "Nom de récompense invalide",
       "invalid_reward_cost": "Le coût de la récompense doit être égal ou supérieur à zéro, avec jusqu'à deux décimales.",
+      "invalid_reward_assigned_users": "Un ou plusieurs utilisateurs assignés ne sont pas valides",
+      "mixed_reward_assignment_sentinel": "Impossible de mélanger « tous les utilisateurs » avec des utilisateurs spécifiques",
       "invalid_bonus": "Bonus invalide",
       "invalid_bonus_count": "Nombre de bonus invalide",
       "invalid_bonus_name": "Nom de bonus invalide",
@@ -569,13 +579,15 @@
               "name": "Nom",
               "ha_user_id": "Utilisateur de Home Assistant",
               "dashboard_language": "Langue",
-              "mobile_notify_service": "Notifications"
+              "mobile_notify_service": "Notifications",
+              "notif_click_url": "URL de l'appui sur la notification"
             },
             "data_description": {
               "name": "Nom unique pour ce profil utilisateur.",
               "ha_user_id": "Facultatif : associez ce profil à un utilisateur Home Assistant. Si le mode kiosque est désactivé, les actions de revendication et d’utilisation d’appareils partagés dépendent de cette association.",
               "dashboard_language": "Langue utilisée pour le contenu du tableau de bord et les notifications.",
-              "mobile_notify_service": "Sélectionnez un service de notification ou laissez vide pour désactiver les notifications."
+              "mobile_notify_service": "Sélectionnez un service de notification ou laissez vide pour désactiver les notifications.",
+              "notif_click_url": "URL facultative à ouvrir lorsque l'utilisateur appuie sur la notification. Laisser vide pour le comportement par défaut."
             }
           },
           "section_system_usage": {
@@ -598,12 +610,18 @@
             "data": {
               "can_approve": "Peut approuver",
               "can_manage": "Peut gérer",
-              "associated_user_ids": "Utilisateurs associés"
+              "associated_user_ids": "Utilisateurs associés",
+              "notif_approve_click_url": "URL du bouton de notification d'approbation",
+              "chores_paused": "Pause pour les tâches ménagères",
+              "chores_paused_until": "En pause jusqu'à"
             },
             "data_description": {
               "can_approve": "Permet les actions d'approbation et de désapprobation.",
               "can_manage": "Autorise les actions de gestion nécessitant des autorisations élevées.",
-              "associated_user_ids": "Utilisateurs supervisés par cet approbateur/administrateur pour les actions d'approbation."
+              "associated_user_ids": "Utilisateurs supervisés par cet approbateur/administrateur pour les actions d'approbation.",
+              "notif_approve_click_url": "URL facultative pour les notifications d'approbation. Remplace l'URL de notification générale lors de l'approbation de tâches ou de récompenses.",
+              "chores_paused": "Suspend le traitement des tâches. Aucune statistique de retard ou d'oubli ne s'accumule.",
+              "chores_paused_until": "Date de retour facultative. Si cette date est définie, les tâches reprennent automatiquement à minuit après cette date."
             }
           }
         }
@@ -926,7 +944,8 @@
           "cost": "Coût de la récompense",
           "description": "Description (facultatif)",
           "reward_labels": "Étiquettes de récompense",
-          "icon": "Icône (mdi:xxx)"
+          "icon": "Icône (mdi:xxx)",
+          "assigned_user_ids": "Affecté à"
         }
       },
       "add_penalty": {
@@ -1000,13 +1019,15 @@
               "name": "Nom",
               "ha_user_id": "Utilisateur de Home Assistant",
               "dashboard_language": "Langue",
-              "mobile_notify_service": "Notifications"
+              "mobile_notify_service": "Notifications",
+              "notif_click_url": "URL de l'appui sur la notification"
             },
             "data_description": {
               "name": "Nom unique pour ce profil utilisateur.",
               "ha_user_id": "Facultatif : associez ce profil à un utilisateur Home Assistant. Si le mode kiosque est désactivé, les actions de revendication et d’utilisation d’appareils partagés dépendent de cette association.",
               "dashboard_language": "Langue utilisée pour le contenu du tableau de bord et les notifications.",
-              "mobile_notify_service": "Sélectionnez un service de notification ou laissez vide pour désactiver les notifications."
+              "mobile_notify_service": "Sélectionnez un service de notification ou laissez vide pour désactiver les notifications.",
+              "notif_click_url": "URL facultative à ouvrir lorsque l'utilisateur appuie sur la notification. Laisser vide pour le comportement par défaut."
             }
           },
           "section_system_usage": {
@@ -1029,12 +1050,18 @@
             "data": {
               "can_approve": "Peut approuver",
               "can_manage": "Peut gérer",
-              "associated_user_ids": "Utilisateurs associés"
+              "associated_user_ids": "Utilisateurs associés",
+              "notif_approve_click_url": "URL du bouton de notification d'approbation",
+              "chores_paused": "Pause pour les tâches ménagères",
+              "chores_paused_until": "En pause jusqu'à"
             },
             "data_description": {
               "can_approve": "Permet les actions d'approbation et de désapprobation.",
               "can_manage": "Autorise les actions de gestion nécessitant des autorisations élevées.",
-              "associated_user_ids": "Utilisateurs supervisés par cet approbateur/administrateur pour les actions d'approbation."
+              "associated_user_ids": "Utilisateurs supervisés par cet approbateur/administrateur pour les actions d'approbation.",
+              "notif_approve_click_url": "URL facultative pour les notifications d'approbation. Remplace l'URL de notification générale lors de l'approbation de tâches ou de récompenses.",
+              "chores_paused": "Suspend le traitement des tâches. Aucune statistique de retard ou d'oubli ne s'accumule.",
+              "chores_paused_until": "Date de retour facultative. Si cette date est définie, les tâches reprennent automatiquement à minuit après cette date."
             }
           }
         }
@@ -1385,7 +1412,8 @@
           "cost": "Coût de la récompense",
           "description": "Description (facultatif)",
           "reward_labels": "Étiquettes de récompense",
-          "icon": "Icône (mdi:xxx)"
+          "icon": "Icône (mdi:xxx)",
+          "assigned_user_ids": "Affecté à"
         }
       },
       "edit_penalty": {
@@ -1633,6 +1661,7 @@
         "title": "Options générales",
         "description": "Gérez les paramètres généraux de l'intégration ChoreOps.\n\n ℹ️ [En savoir plus sur les options générales]({documentation_url})",
         "data": {
+          "dashboard_points_precision": "Précision des points du tableau de bord",
           "default_chore_points": "Points par défaut par tâche",
           "points_adjust_values": "Valeurs du bouton de réglage manuel des points",
           "update_interval": "Intervalle de mise à jour",
@@ -1649,6 +1678,7 @@
           "backup_action_selection": "Actions de sauvegarde"
         },
         "data_description": {
+          "dashboard_points_precision": "Choisissez le mode d'affichage des points sur les tableaux de bord compatibles. Cela modifie uniquement la mise en forme du tableau de bord et n'affecte ni les valeurs des points enregistrés ni les calculs.",
           "default_chore_points": "Valeur de points par défaut utilisée pour les nouvelles tâches lorsque les points personnalisés ne sont pas spécifiés.",
           "points_adjust_values": "Liste des valeurs des boutons de réglage manuel des points. Chaque valeur est séparée par '|'.",
           "update_interval": "Intervalle en minutes pour la mise à jour de l'état interne de ChoreOps.",
@@ -1948,6 +1978,14 @@
         "return_to_menu": "↩️ Retour au menu principal"
       }
     },
+    "dashboard_points_precision": {
+      "options": {
+        "fixed_0": "Nombres entiers uniquement",
+        "adaptive": "Adaptatif (n'affiche les décimales que lorsque cela est nécessaire)",
+        "fixed_1": "Toujours une décimale.",
+        "fixed_2": "Toujours deux décimales."
+      }
+    },
     "select_backup_to_delete": {
       "options": {
         "cancel": "↩️ Annuler (retour au menu de sauvegarde)"
@@ -2223,6 +2261,37 @@
         }
       }
     },
+    "pause_user_chores": {
+      "name": "Mettre en pause les tâches de l'utilisateur",
+      "description": "Mettre en pause ou reprendre le traitement des tâches pour un utilisateur.",
+      "fields": {
+        "config_entry_id": {
+          "name": "ID de l'entrée de configuration (facultatif)",
+          "description": "Utilisez cette option si vous avez plusieurs configurations ChoreOps. Elle cible une configuration spécifique.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Nom de l'entrée de configuration (facultatif)",
+          "description": "Utilisez cette option si vous avez plusieurs configurations ChoreOps et que chacune possède un nom unique. Si des noms se répètent, utilisez l'ID d'entrée de configuration.",
+          "example": "Tâches familiales"
+        },
+        "user_name": {
+          "name": "Nom d'utilisateur",
+          "description": "Nom de l'utilisateur dont les tâches doivent être mises en pause ou reprises.",
+          "example": "Sarah"
+        },
+        "paused": {
+          "name": "En pause",
+          "description": "Vrai pour interrompre les tâches, faux pour les reprendre.",
+          "example": "vrai"
+        },
+        "paused_until": {
+          "name": "En pause jusqu'à",
+          "description": "Date de retour facultative. Si cette date est définie, les tâches reprennent automatiquement à minuit après cette date.",
+          "example": "2026-06-10T00:00:00+00:00"
+        }
+      }
+    },
     "redeem_reward": {
       "name": "Échanger une récompense",
       "description": "Un approbateur attribue une récompense à un bénéficiaire, en déduisant des points.",
@@ -2461,6 +2530,11 @@
           "name": "Étiquettes",
           "description": "Étiquettes pour le regroupement des récompenses.",
           "example": "['week-end', 'spécial']"
+        },
+        "assigned_user_names": {
+          "name": "Affecté à",
+          "description": "Noms d'affichage des utilisateurs associés à cette récompense. Utilisez [\"*\"] pour tous les utilisateurs. Indiquez une liste vide pour ne l'attribuer à aucun utilisateur.",
+          "example": "['Zoë', 'Max !']"
         }
       }
     },
@@ -2507,6 +2581,11 @@
           "name": "Étiquettes",
           "description": "Étiquettes mises à jour.",
           "example": "['premium', 'spécial']"
+        },
+        "assigned_user_names": {
+          "name": "Affecté à",
+          "description": "Noms d'affichage des utilisateurs associés à cette récompense. Utilisez [\"*\"] pour tous les utilisateurs. Indiquez une liste vide pour supprimer tous les utilisateurs associés. Omettez cette option pour conserver les attributions actuelles.",
+          "example": "['Zoë', 'Max !']"
         }
       }
     },
@@ -2557,7 +2636,7 @@
         },
         "assigned_user_names": {
           "name": "Affecté à",
-          "description": "Liste des noms des personnes auxquelles confier cette tâche.",
+          "description": "Liste des personnes auxquelles assigner cette tâche. Utilisez [\"*\"] pour tous les utilisateurs assignables. Indiquez une liste vide pour créer une liste sans personnes assignées.",
           "example": "['Emma', 'Jack']"
         },
         "points": {
@@ -2663,7 +2742,7 @@
         },
         "assigned_user_names": {
           "name": "Affecté à",
-          "description": "Nouvelle liste des personnes auxquelles confier cette tâche.",
+          "description": "Nouvelle liste des personnes auxquelles attribuer cette tâche. Utilisez [\"*\"] pour tous les utilisateurs pouvant être affectés. Indiquez une liste vide pour supprimer tous les utilisateurs affectés. Omettez cette option pour conserver les affectations actuelles.",
           "example": "['Emma', 'Jack']"
         },
         "points": {
@@ -2735,6 +2814,11 @@
           "name": "Compensation du rappel d'échéance",
           "description": "Nouveau délai avant l'envoi du rappel. Durée avant la date d'échéance pour l'envoi de la notification de rappel. Format : « 30 min », « 1 h », « 1 j 6 h 30 min », etc. Utilisez « 0 » pour désactiver.",
           "example": "30 m"
+        },
+        "assignment_action": {
+          "name": "Action d'affectation",
+          "description": "Comment gérer la liste assigned_user_names ? « replace » définit directement la liste (comportement par défaut, rétrocompatible). « add » ajoute les utilisateurs listés aux personnes assignées. « remove » supprime les utilisateurs listés des personnes assignées.",
+          "example": "ajouter"
         }
       }
     },
@@ -3096,6 +3180,11 @@
           "name": "Évitez les tâches non récurrentes",
           "description": "Activez cette option pour que les tâches non récurrentes restent inchangées au lieu de déplacer leur date d'échéance à la limite.",
           "example": "Faux"
+        },
+        "allow_long_recurrences": {
+          "name": "Autoriser les longues récurrences",
+          "description": "Autoriser la reprogrammation des échéances mensuelles, trimestrielles, annuelles et autres échéances longues. Par défaut, la valeur est « false » afin d’éviter les changements brusques et accidentels.",
+          "example": "vrai"
         }
       }
     },
@@ -3179,7 +3268,8 @@
           "completed_by_other": "Réalisé par d'autres",
           "waiting": "En attente (fenêtre fermée)",
           "not_my_turn": "Ce n'est pas mon tour (rotation)",
-          "missed": "Manqué (Verrouillé)"
+          "missed": "Manqué (Verrouillé)",
+          "paused": "En pause"
         },
         "state_attributes": {
           "purpose": {
@@ -3426,7 +3516,8 @@
               "blocked_pending_claim": "Réclamation en cours",
               "blocked_waiting_window": "En attente de l'échéance",
               "blocked_not_my_turn": "À votre tour",
-              "blocked_missed_locked": "Manqué et verrouillé"
+              "blocked_missed_locked": "Manqué et verrouillé",
+              "blocked_paused": "Les tâches sont suspendues pour cet utilisateur."
             }
           },
           "turn_user_name": {
@@ -4740,8 +4831,14 @@
           "core_sensors": {
             "name": "Capteurs essentiels"
           },
+          "dashboard_config": {
+            "name": "Configuration du tableau de bord"
+          },
           "dashboard_helpers": {
             "name": "Assistants de tableau de bord"
+          },
+          "shard_runtime": {
+            "name": "Durée de la liste des tâches"
           },
           "chores_by_label": {
             "name": "Tâches par étiquette"
@@ -4751,6 +4848,29 @@
           },
           "language": {
             "name": "Langue"
+          }
+        }
+      },
+      "assignee_dashboard_chore_list_helper_sensor": {
+        "name": "Liste des tâches du tableau de bord de l'interface utilisateur {shard_index}",
+        "state_attributes": {
+          "purpose": {
+            "name": "But",
+            "state": {
+              "purpose_dashboard_chore_shard_helper": "Fournit une liste de tâches à afficher sur le tableau de bord lorsque la liste complète des tâches de l'utilisateur est trop volumineuse pour l'assistant principal."
+            }
+          },
+          "chores": {
+            "name": "Tâches"
+          },
+          "shard_index": {
+            "name": "Numéro de la liste des tâches"
+          },
+          "shard_count": {
+            "name": "Listes complètes des tâches ménagères"
+          },
+          "helper_contract_version": {
+            "name": "Version du contrat d'assistance"
           }
         }
       }
@@ -5314,6 +5434,9 @@
     },
     "notif_message_chore_missed": {
       "message": "{assignee_name} a raté la corvée : {chore_name}"
+    },
+    "chore_paused": {
+      "message": "Le traitement des tâches est actuellement suspendu pour cet utilisateur."
     }
   }
 }
