@@ -657,6 +657,7 @@ CFOF_CHORES_INPUT_DESCRIPTION: Final = "chore_description"
 CFOF_CHORES_INPUT_DUE_DATE: Final = "due_date"
 CFOF_CHORES_INPUT_ICON: Final = "icon"
 CFOF_CHORES_INPUT_COMPLETION_CRITERIA: Final = "completion_criteria"
+CFOF_CHORES_INPUT_STANDBY_CLAIM_MODE: Final = "standby_claim_mode"
 CFOF_CHORES_INPUT_LABELS: Final = "chore_labels"
 CFOF_CHORES_INPUT_NAME: Final = "name"
 CFOF_CHORES_INPUT_NOTIFY_ON_APPROVAL: Final = "notify_on_approval"
@@ -1448,7 +1449,21 @@ DATA_CHORE_COMPLETION_CRITERIA: Final = "completion_criteria"
 DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID: Final = (
     "rotation_current_assignee_id"  # UUID of current turn holder
 )
-DATA_CHORE_ROTATION_CYCLE_OVERRIDE: Final = "rotation_cycle_override"  # Boolean: temp allow any assignee to claim (cleared on advancement)
+DATA_CHORE_ROTATION_CYCLE_OVERRIDE: Final = "rotation_cycle_override"
+
+# Primary-standby fields
+DATA_CHORE_STANDBY_CLAIM_MODE: Final = "standby_claim_mode"
+STANDBY_CLAIM_MODE_ANYTIME: Final = "anytime"
+STANDBY_CLAIM_MODE_ON_OVERDUE: Final = "on_overdue"
+STANDBY_CLAIM_MODE_MANUAL_ONLY: Final = "manual_only"
+STANDBY_CLAIM_MODE_OPTIONS: Final = [
+    {"value": STANDBY_CLAIM_MODE_ANYTIME, "label": "anytime"},
+    {"value": STANDBY_CLAIM_MODE_ON_OVERDUE, "label": "on_overdue"},
+    {
+        "value": STANDBY_CLAIM_MODE_MANUAL_ONLY,
+        "label": "manual_only",
+    },
+]  # Boolean: temp allow any assignee to claim (cleared on advancement)
 
 DATA_CHORE_PER_ASSIGNEE_DUE_DATES: Final = "per_assignee_due_dates"
 DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS: Final = "per_assignee_applicable_days"
@@ -1465,8 +1480,13 @@ COMPLETION_CRITERIA_SHARED_FIRST: Final = "shared_first"
 # Rotation modes
 COMPLETION_CRITERIA_ROTATION_SIMPLE: Final = "rotation_simple"
 COMPLETION_CRITERIA_ROTATION_SMART: Final = "rotation_smart"
+COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY: Final = "rotation_primary_standby"
 COMPLETION_CRITERIA_OPTIONS: Final = [
     {"value": COMPLETION_CRITERIA_INDEPENDENT, "label": "independent"},
+    {
+        "value": COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY,
+        "label": "rotation_primary_standby",
+    },
     {"value": COMPLETION_CRITERIA_SHARED, "label": "shared_all"},
     {"value": COMPLETION_CRITERIA_SHARED_FIRST, "label": "shared_first"},
     {"value": COMPLETION_CRITERIA_ROTATION_SIMPLE, "label": "rotation_simple"},
@@ -1562,6 +1582,7 @@ CHORE_APPROVAL_ORIGIN_AUTO_RESET: Final = "auto_reset"
 CHORE_OVERDUE_EVENT_MESSAGE_TYPE: Final = "overdue_message_type"
 CHORE_OVERDUE_NOTIFICATION_TYPE_DEFAULT: Final = "default"
 CHORE_OVERDUE_NOTIFICATION_TYPE_STEAL_AVAILABLE: Final = "steal_available"
+CHORE_OVERDUE_NOTIFICATION_TYPE_STANDBY_NEEDED: Final = "standby_needed"
 
 DATA_CHORE_STATE: Final = "state"
 DATA_CHORE_TIMESTAMP: Final = "timestamp"
@@ -1863,6 +1884,7 @@ CHORE_STATE_COMPLETED_BY_OTHER: Final = "completed_by_other"
 CHORE_STATE_DUE: Final = "due"
 CHORE_STATE_WAITING: Final = "waiting"
 CHORE_STATE_NOT_MY_TURN: Final = "not_my_turn"
+CHORE_STATE_STANDBY: Final = "standby"
 CHORE_STATE_PAUSED: Final = "paused"
 
 # Allowlists by state contract surface
@@ -1902,6 +1924,7 @@ CHORE_UI_ASSIGNEE_STATES: Final[frozenset[str]] = frozenset(
         CHORE_STATE_OVERDUE,
         CHORE_STATE_MISSED,
         CHORE_STATE_NOT_MY_TURN,
+        CHORE_STATE_STANDBY,
         CHORE_STATE_PAUSED,
         CHORE_STATE_COMPLETED,
         CHORE_STATE_COMPLETED_BY_OTHER,
@@ -1931,6 +1954,8 @@ CHORE_CLAIM_MODE_BLOCKED_ALREADY_APPROVED: Final = "blocked_already_approved"
 CHORE_CLAIM_MODE_BLOCKED_PENDING_CLAIM: Final = "blocked_pending_claim"
 CHORE_CLAIM_MODE_BLOCKED_WAITING_WINDOW: Final = "blocked_waiting_window"
 CHORE_CLAIM_MODE_BLOCKED_NOT_MY_TURN: Final = "blocked_not_my_turn"
+CHORE_CLAIM_MODE_BLOCKED_STANDBY: Final = "blocked_standby"
+CHORE_CLAIM_MODE_STANDBY_AVAILABLE: Final = "standby_available"
 CHORE_CLAIM_MODE_BLOCKED_MISSED_LOCKED: Final = "blocked_missed_locked"
 CHORE_CLAIM_MODE_BLOCKED_PAUSED: Final = "blocked_paused"
 
@@ -1943,6 +1968,8 @@ CHORE_CLAIM_MODES: Final[frozenset[str]] = frozenset(
         CHORE_CLAIM_MODE_BLOCKED_PENDING_CLAIM,
         CHORE_CLAIM_MODE_BLOCKED_WAITING_WINDOW,
         CHORE_CLAIM_MODE_BLOCKED_NOT_MY_TURN,
+        CHORE_CLAIM_MODE_BLOCKED_STANDBY,
+        CHORE_CLAIM_MODE_STANDBY_AVAILABLE,
         CHORE_CLAIM_MODE_BLOCKED_MISSED_LOCKED,
         CHORE_CLAIM_MODE_BLOCKED_PAUSED,
     }
@@ -2108,6 +2135,12 @@ TRANS_KEY_NOTIF_MESSAGE_CHORE_OVERDUE_ASSIGNEE: Final = (
 )
 TRANS_KEY_NOTIF_MESSAGE_CHORE_OVERDUE_STEAL_AVAILABLE: Final = (
     "notification_message_chore_overdue_steal_available"
+)
+TRANS_KEY_NOTIF_TITLE_CHORE_STANDBY_NEEDED: Final = (
+    "notification_title_chore_standby_needed"
+)
+TRANS_KEY_NOTIF_MESSAGE_CHORE_STANDBY_NEEDED: Final = (
+    "notification_message_chore_standby_needed"
 )
 
 TRANS_KEY_NOTIF_TITLE_CHORE_MISSED_ASSIGNEE: Final = (
@@ -2889,6 +2922,7 @@ SERVICE_FIELD_CHORE_CRUD_CUSTOM_INTERVAL: Final = "custom_interval"
 SERVICE_FIELD_CHORE_CRUD_CUSTOM_INTERVAL_UNIT: Final = "custom_interval_unit"
 SERVICE_FIELD_CHORE_CRUD_APPLICABLE_DAYS: Final = "applicable_days"
 SERVICE_FIELD_CHORE_CRUD_COMPLETION_CRITERIA: Final = "completion_criteria"
+SERVICE_FIELD_CHORE_CRUD_STANDBY_CLAIM_MODE: Final = "standby_claim_mode"
 SERVICE_FIELD_CHORE_CRUD_APPROVAL_RESET: Final = "approval_reset_type"
 SERVICE_FIELD_CHORE_CRUD_PENDING_CLAIMS: Final = "pending_claims"
 SERVICE_FIELD_CHORE_CRUD_OVERDUE_HANDLING: Final = "overdue_handling"
@@ -3189,8 +3223,9 @@ TRANS_KEY_ERROR_CHORE_PENDING_CLAIM: Final = (
 TRANS_KEY_ERROR_CHORE_WAITING: Final = (
     "chore_waiting"  # Chore cannot be claimed before due window opens
 )
-TRANS_KEY_ERROR_CHORE_NOT_MY_TURN: Final = (
-    "chore_not_my_turn"  # Chore is rotation-locked to another assignee
+TRANS_KEY_ERROR_CHORE_NOT_MY_TURN: Final = "chore_not_my_turn"
+TRANS_KEY_ERROR_CHORE_STANDBY: Final = (
+    "chore_standby"  # Chore is rotation-locked to another assignee
 )
 TRANS_KEY_ERROR_CHORE_MISSED_LOCKED: Final = (
     "chore_missed_locked"  # Chore was missed and is now locked
@@ -3662,10 +3697,14 @@ TRANS_KEY_FLOW_HELPERS_APPROVAL_RESET_TYPE: Final = "approval_reset_type"
 TRANS_KEY_FLOW_HELPERS_ASSIGNED_USER_IDS: Final = "assigned_user_ids"
 TRANS_KEY_FLOW_HELPERS_CHORE_NOTIFICATIONS: Final = "chore_notifications"
 TRANS_KEY_FLOW_HELPERS_COMPLETION_CRITERIA: Final = "completion_criteria"
+TRANS_KEY_FLOW_HELPERS_STANDBY_CLAIM_MODE: Final = "standby_claim_mode"
 TRANS_KEY_FLOW_HELPERS_ASSOCIATED_USER_IDS: Final = "associated_user_ids"
 TRANS_KEY_FLOW_HELPERS_CUSTOM_INTERVAL_UNIT: Final = "custom_interval_unit"
 TRANS_KEY_FLOW_HELPERS_OVERDUE_HANDLING_TYPE: Final = "overdue_handling_type"
 TRANS_KEY_FLOW_HELPERS_RECURRING_FREQUENCY: Final = "recurring_frequency"
+TRANS_KEY_COMPLETION_CRITERIA_PRIMARY_STANDBY: Final = (
+    "completion_criteria_primary_standby"
+)
 
 # Sensor Translation Keys
 TRANS_KEY_SENSOR_ACHIEVEMENT_PROGRESS_SENSOR: Final = (

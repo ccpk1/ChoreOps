@@ -719,28 +719,10 @@ class ChoreManager(BaseManager):
             now=dt_util.now(),
         )
 
-        # For single-claimer modes (SHARED_FIRST + ROTATION_*), collect
-        # other assignees' states for blocking check.
-        completion_criteria = chore_data.get(
-            const.DATA_CHORE_COMPLETION_CRITERIA,
-            const.COMPLETION_CRITERIA_INDEPENDENT,
+        # Build other assignee states for single-claimer blocking
+        other_assignee_states = self._build_other_assignee_states(
+            chore_data, assignee_id, chore_id
         )
-        other_assignee_states = None
-        if completion_criteria in (
-            const.COMPLETION_CRITERIA_SHARED_FIRST,
-            const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
-            const.COMPLETION_CRITERIA_ROTATION_SMART,
-        ):
-            assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
-            other_assignee_states = {}
-            for other_assignee_id in assigned_assignees:
-                if other_assignee_id != assignee_id and other_assignee_id:
-                    other_assignee_states[other_assignee_id] = (
-                        self._derive_boundary_assignee_state(
-                            other_assignee_id,
-                            chore_id,
-                        )
-                    )
 
         # Delegate validation to engine (stateless pure logic with FSM state)
         can_claim, error_key = ChoreEngine.can_claim_chore(
@@ -2167,7 +2149,34 @@ class ChoreManager(BaseManager):
             self._update_global_state(chore_id)
 
             overdue_message_type = const.CHORE_OVERDUE_NOTIFICATION_TYPE_DEFAULT
+
+            # Primary-standby: notify standbys when chore becomes overdue
+            # See Phase 3 decision matrix for full scenario breakdown.
             if (
+                chore_data.get(const.DATA_CHORE_COMPLETION_CRITERIA)
+                == const.COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY
+                and chore_data.get(const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID)
+                != assignee_id
+            ):
+                standby_claim_mode = chore_data.get(
+                    const.DATA_CHORE_STANDBY_CLAIM_MODE,
+                    const.STANDBY_CLAIM_MODE_ANYTIME,
+                )
+                if standby_claim_mode in (
+                    const.STANDBY_CLAIM_MODE_ANYTIME,
+                    const.STANDBY_CLAIM_MODE_ON_OVERDUE,
+                ):
+                    # Rows 2, 4: standby can claim — notify with standby_needed
+                    overdue_message_type = (
+                        const.CHORE_OVERDUE_NOTIFICATION_TYPE_STANDBY_NEEDED
+                    )
+                else:
+                    # Row 6: manual_only — standby can't claim even when overdue
+                    # Skip signal entirely (don't send default overdue msg)
+                    marked_count += 1
+                    continue
+
+            elif (
                 ChoreEngine.is_rotation_mode(chore_data)
                 and overdue_handling == const.OVERDUE_HANDLING_AT_DUE_DATE_ALLOW_STEAL
                 and chore_data.get(const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID)
@@ -2502,6 +2511,27 @@ class ChoreManager(BaseManager):
         if self.chore_is_approved_in_period(assignee_id, chore_id):
             return const.CHORE_STATE_APPROVED
         return const.CHORE_STATE_PENDING
+
+    def _build_other_assignee_states(
+        self,
+        chore_data: ChoreData | dict[str, Any],
+        assignee_id: str,
+        chore_id: str,
+    ) -> dict[str, str] | None:
+        """Build other_assignee_states dict for single-claimer blocking.
+
+        Returns None for non-single-claimer modes (INDEPENDENT, SHARED).
+        """
+        if not ChoreEngine.is_single_claimer_mode(chore_data):
+            return None
+        assigned = chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
+        states: dict[str, str] = {}
+        for other_id in assigned:
+            if other_id != assignee_id and other_id:
+                states[other_id] = self._derive_boundary_assignee_state(
+                    other_id, chore_id
+                )
+        return states
 
     def _build_boundary_reset_plan(
         self,
@@ -3867,28 +3897,10 @@ class ChoreManager(BaseManager):
         # Determine if this is a multi-claim mode
         allow_multiple_claims = self._chore_allows_multiple_claims(chore_id)
 
-        # For single-claimer modes (SHARED_FIRST + ROTATION_*), collect
-        # other assignees' states for blocking check.
-        completion_criteria = chore_data.get(
-            const.DATA_CHORE_COMPLETION_CRITERIA,
-            const.COMPLETION_CRITERIA_INDEPENDENT,
+        # Build other assignee states for single-claimer blocking
+        other_assignee_states = self._build_other_assignee_states(
+            chore_data, assignee_id, chore_id
         )
-        other_assignee_states = None
-        if completion_criteria in (
-            const.COMPLETION_CRITERIA_SHARED_FIRST,
-            const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
-            const.COMPLETION_CRITERIA_ROTATION_SMART,
-        ):
-            assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
-            other_assignee_states = {}
-            for other_assignee_id in assigned_assignees:
-                if other_assignee_id != assignee_id and other_assignee_id:
-                    other_assignee_states[other_assignee_id] = (
-                        self._derive_boundary_assignee_state(
-                            other_assignee_id,
-                            chore_id,
-                        )
-                    )
 
         # Check 1: pending claim blocks new claims (unless multi-claim allowed)
         # For MULTI modes, re-claiming is allowed even with a pending claim
@@ -4171,31 +4183,24 @@ class ChoreManager(BaseManager):
             due_window_start=due_window_start,
         )
 
-        assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
-
         # Per-user context contract (Option A): assignee state can expose personal
         # lifecycle/blocker states only and must never emit aggregate partial
         # states like approved_in_part/claimed_in_part.
         if display_state == const.CHORE_STATE_APPROVED:
             display_state = const.CHORE_STATE_COMPLETED
 
-        other_assignee_states = None
+        other_assignee_states = self._build_other_assignee_states(
+            chore_data, assignee_id, chore_id
+        )
         is_completed_by_other = False
-        if ChoreEngine.is_single_claimer_mode(chore_data):
-            other_assignee_states = {}
-            for other_assignee_id in assigned_assignees:
-                if other_assignee_id != assignee_id and other_assignee_id:
-                    other_state = self._derive_boundary_assignee_state(
-                        other_assignee_id,
-                        chore_id,
-                    )
-                    other_assignee_states[other_assignee_id] = other_state
-                    if other_state in (
-                        const.CHORE_STATE_CLAIMED,
-                        const.CHORE_STATE_APPROVED,
-                    ):
-                        is_completed_by_other = True
-                        break
+        if other_assignee_states:
+            for other_state in other_assignee_states.values():
+                if other_state in (
+                    const.CHORE_STATE_CLAIMED,
+                    const.CHORE_STATE_APPROVED,
+                ):
+                    is_completed_by_other = True
+                    break
 
         can_claim, claim_error = ChoreEngine.can_claim_chore(
             assignee_chore_data=assignee_chore_data,
@@ -4246,6 +4251,7 @@ class ChoreManager(BaseManager):
             const.TRANS_KEY_ERROR_CHORE_WAITING: const.CHORE_CLAIM_MODE_BLOCKED_WAITING_WINDOW,
             const.TRANS_KEY_ERROR_CHORE_NOT_MY_TURN: const.CHORE_CLAIM_MODE_BLOCKED_NOT_MY_TURN,
             const.TRANS_KEY_ERROR_CHORE_MISSED_LOCKED: const.CHORE_CLAIM_MODE_BLOCKED_MISSED_LOCKED,
+            const.TRANS_KEY_ERROR_CHORE_STANDBY: const.CHORE_CLAIM_MODE_BLOCKED_STANDBY,
         }
 
         claim_mode: str
@@ -4263,6 +4269,8 @@ class ChoreManager(BaseManager):
             )
             if is_steal_available:
                 claim_mode = const.CHORE_CLAIM_MODE_STEAL_AVAILABLE
+            elif display_state == const.CHORE_STATE_STANDBY:
+                claim_mode = const.CHORE_CLAIM_MODE_STANDBY_AVAILABLE
         else:
             claim_mode = (
                 claim_error_to_claim_mode.get(
@@ -4324,6 +4332,7 @@ class ChoreManager(BaseManager):
             const.CHORE_STATE_COMPLETED,
             const.CHORE_STATE_COMPLETED_BY_OTHER,
             const.CHORE_STATE_NOT_MY_TURN,
+            const.CHORE_STATE_STANDBY,
             const.CHORE_STATE_OVERDUE,
             const.CHORE_STATE_MISSED,
             const.CHORE_STATE_PAUSED,
@@ -4335,6 +4344,7 @@ class ChoreManager(BaseManager):
             const.CHORE_CLAIM_MODE_BLOCKED_ALREADY_APPROVED,
             const.CHORE_CLAIM_MODE_BLOCKED_PENDING_CLAIM,
             const.CHORE_CLAIM_MODE_BLOCKED_NOT_MY_TURN,
+            const.CHORE_CLAIM_MODE_BLOCKED_STANDBY,
             const.CHORE_CLAIM_MODE_BLOCKED_MISSED_LOCKED,
             const.CHORE_CLAIM_MODE_BLOCKED_PAUSED,
         ):
@@ -4675,6 +4685,33 @@ class ChoreManager(BaseManager):
                     chore_id, completed_by_assignee_id, method="auto"
                 )
 
+            # Primary-standby: force turn to primary at every reset boundary
+            # Runs AFTER _advance_rotation so signal captures correct previous
+            # Pause-aware: skips paused primary, freezes if all paused (G-5)
+            if (
+                chore_info.get(const.DATA_CHORE_COMPLETION_CRITERIA)
+                == const.COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY
+            ):
+                assigned = chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
+                if assigned:
+                    target: str | None = assigned[0]
+                    if target is not None and self._is_chore_paused_for_assignee(
+                        target, chore_id
+                    ):
+                        # Primary paused — find first non-paused standby
+                        for candidate in assigned[1:]:
+                            if not self._is_chore_paused_for_assignee(
+                                candidate, chore_id
+                            ):
+                                target = candidate
+                                break
+                        else:
+                            target = None  # All paused, freeze
+                    if target is not None:
+                        chore_info[const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID] = (
+                            target
+                        )
+
         # Persist and emit (per DEVELOPMENT_STANDARDS.md § 5.3)
         if persist:
             self._coordinator._persist()
@@ -4956,6 +4993,7 @@ class ChoreManager(BaseManager):
             const.COMPLETION_CRITERIA_SHARED_FIRST,
             const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
             const.COMPLETION_CRITERIA_ROTATION_SMART,
+            const.COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY,
         ):
             chore_data_dict = cast("dict[str, Any]", chore_data)
             for field in ownership_fields:
@@ -5115,6 +5153,13 @@ class ChoreManager(BaseManager):
                 method = "simple"
             elif completion_criteria == const.COMPLETION_CRITERIA_ROTATION_SMART:
                 method = "smart"
+            elif (
+                completion_criteria
+                == const.COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY
+            ):
+                # Primary-standby: always snaps to primary (index 0)
+                # new_assignee_id is set directly — no method dispatch needed
+                new_assignee_id = assigned_assignees[0] if assigned_assignees else None
 
         if method == "simple":
             # Simple rotation: round-robin by list index
@@ -5855,7 +5900,7 @@ class ChoreManager(BaseManager):
         """Advance rotation turn past a paused assignee for all rotation chores.
 
         Called in real time when a user is paused, not deferred to midnight.
-        Handles all rotation types (simple, smart, primary_backup) and all
+        Handles all rotation types (simple, smart, primary_standby) and all
         overdue handling types (at_midnight, at_due_date, overdue_until_complete).
 
         Scans all rotation chores where this user is the current turn-holder
@@ -5910,6 +5955,40 @@ class ChoreManager(BaseManager):
                 advanced_count,
             )
 
+    def _snap_rotation_back_to_primary(self, unpaused_user_id: str) -> None:
+        """Snap primary-standby chores back to primary when they unpause.
+
+        For each primary-standby chore where the unpaused user is the primary
+        (assigned_assignees[0]) but is NOT the current turn-holder, snap the
+        turn back to them in real time (G-5).
+        """
+        chores_data = self._coordinator._data.get(const.DATA_CHORES, {})
+        snapped_count = 0
+        for chore_id, chore_info in chores_data.items():
+            criteria = chore_info.get(const.DATA_CHORE_COMPLETION_CRITERIA)
+            if criteria != const.COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY:
+                continue
+            assigned = chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
+            if not assigned or assigned[0] != unpaused_user_id:
+                continue  # Not the primary for this chore
+            current_turn = chore_info.get(const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID)
+            if current_turn == unpaused_user_id:
+                continue  # Already the turn-holder
+            chore_info[const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID] = unpaused_user_id
+            snapped_count += 1
+            const.LOGGER.debug(
+                "Primary-standby snap: chore=%s turn=%s → primary=%s on unpause",
+                chore_id,
+                current_turn,
+                unpaused_user_id,
+            )
+        if snapped_count:
+            const.LOGGER.info(
+                "Snapped %d primary-standby chore(s) to primary %s on unpause",
+                snapped_count,
+                unpaused_user_id,
+            )
+
     async def set_user_chores_paused(
         self,
         assignee_id: str,
@@ -5942,8 +6021,11 @@ class ChoreManager(BaseManager):
             user_data.pop(const.DATA_USER_CHORES_PAUSED_UNTIL, None)
 
         # If pausing: advance rotation past this user in real time
+        # If unpausing: snap primary-standby chores back to primary (G-5)
         if paused:
             self._advance_rotation_past_paused_assignee(assignee_id)
+        else:
+            self._snap_rotation_back_to_primary(assignee_id)
 
         self.coordinator._persist_and_update()
         self.emit(const.SIGNAL_SUFFIX_USER_UPDATED, user_id=assignee_id)

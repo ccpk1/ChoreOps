@@ -1403,6 +1403,7 @@ def validate_chore_data(
             const.COMPLETION_CRITERIA_SHARED_FIRST,
             const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
             const.COMPLETION_CRITERIA_ROTATION_SMART,
+            const.COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY,
         )
 
     def _validate_due_date_value(raw_value: Any) -> str | None:
@@ -1877,6 +1878,11 @@ def build_chore(
                 const.DATA_CHORE_COMPLETION_CRITERIA,
                 const.COMPLETION_CRITERIA_INDEPENDENT,
             ),
+            # Primary-standby fields
+            const.DATA_CHORE_STANDBY_CLAIM_MODE: get_field(
+                const.DATA_CHORE_STANDBY_CLAIM_MODE,
+                const.STANDBY_CLAIM_MODE_ANYTIME,
+            ),
             # Rotation tracking (v0.5.0 Chore Logic)
             const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID: get_field(
                 const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID,
@@ -1889,6 +1895,7 @@ def build_chore(
                         in (
                             const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
                             const.COMPLETION_CRITERIA_ROTATION_SMART,
+                            const.COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY,
                         )
                     )
                     else None
@@ -1948,6 +1955,8 @@ _CHORE_DATA_RESET_PRESERVE_FIELDS: frozenset[str] = frozenset(
         const.DATA_CHORE_AUTO_APPROVE,
         # Completion criteria
         const.DATA_CHORE_COMPLETION_CRITERIA,
+        # Primary-standby fields
+        const.DATA_CHORE_STANDBY_CLAIM_MODE,
     }
 )
 

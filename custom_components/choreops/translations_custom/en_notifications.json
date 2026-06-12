@@ -138,5 +138,9 @@
     "disapprove": "↩️ Disapprove",
     "remind_30": "⏰ Remind in 30m",
     "skip": "⏭️ Skip"
+  },
+  "chore_standby_needed": {
+    "title": "🫲 Standby Requested",
+    "message": "{primary_name}'s chore {chore_name} is overdue! Claim it now to earn {points} {points_label}"
   }
 }

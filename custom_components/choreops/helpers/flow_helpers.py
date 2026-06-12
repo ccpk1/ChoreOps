@@ -728,6 +728,7 @@ CHORE_ROOT_FORM_FIELDS = (
     const.CFOF_CHORES_INPUT_DEFAULT_POINTS,
     const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS,
     const.CFOF_CHORES_INPUT_COMPLETION_CRITERIA,
+    const.CFOF_CHORES_INPUT_STANDBY_CLAIM_MODE,
 )
 
 CHORE_SCHEDULE_FIELDS = (
@@ -918,6 +919,22 @@ def build_chore_schema(
                     "list[selector.SelectOptionDict]", const.COMPLETION_CRITERIA_OPTIONS
                 ),
                 translation_key=const.TRANS_KEY_FLOW_HELPERS_COMPLETION_CRITERIA,
+                mode=selector.SelectSelectorMode.DROPDOWN,
+            )
+        ),
+        vol.Required(
+            const.CFOF_CHORES_INPUT_STANDBY_CLAIM_MODE,
+            default=default.get(
+                const.CFOF_CHORES_INPUT_STANDBY_CLAIM_MODE,
+                const.STANDBY_CLAIM_MODE_ANYTIME,
+            ),
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=cast(
+                    "list[selector.SelectOptionDict]",
+                    const.STANDBY_CLAIM_MODE_OPTIONS,
+                ),
+                translation_key=const.TRANS_KEY_FLOW_HELPERS_STANDBY_CLAIM_MODE,
                 mode=selector.SelectSelectorMode.DROPDOWN,
             )
         ),
@@ -1483,6 +1500,11 @@ def transform_chore_cfof_to_data(
             const.DEFAULT_POINTS,
         ),
         const.DATA_CHORE_COMPLETION_CRITERIA: completion_criteria,
+        const.DATA_CHORE_STANDBY_CLAIM_MODE: _resolve_form_or_existing(
+            const.CFOF_CHORES_INPUT_STANDBY_CLAIM_MODE,
+            const.DATA_CHORE_STANDBY_CLAIM_MODE,
+            const.STANDBY_CLAIM_MODE_ANYTIME,
+        ),
         const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES: per_assignee_due_dates,
         const.DATA_CHORE_APPROVAL_RESET_TYPE: _resolve_form_or_existing(
             const.CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE,

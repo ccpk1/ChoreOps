@@ -1258,17 +1258,29 @@ create_chore:
             - "sun"
     completion_criteria:
       name: "Completion Criteria"
-      description: "How the chore is completed when multiple assignees are assigned: independent, shared_first, shared_all, rotation_simple, or rotation_smart."
+      description: "How the chore is completed when multiple assignees are assigned: independent, shared_first, shared_all, rotation_simple, rotation_smart, or rotation_primary_standby."
       example: "independent"
       required: false
       selector:
         select:
           options:
             - "independent"
+            - "rotation_primary_standby"
             - "shared_all"
             - "shared_first"
             - "rotation_simple"
             - "rotation_smart"
+    standby_claim_mode:
+      name: "Standby Claim Mode"
+      description: "Controls when standbys can claim this chore (anytime, on_overdue, manual_only). Only applies to Primary & Standby completion criteria."
+      example: "anytime"
+      required: false
+      selector:
+        select:
+          options:
+            - "anytime"
+            - "on_overdue"
+            - "manual_only"
     approval_reset_type:
       name: "Approval Reset Type"
       description: "When the chore resets for re-completion."
@@ -1527,6 +1539,17 @@ update_chore:
             - "at_due_date_clear_and_mark_missed"
             - "at_due_date_mark_missed_and_lock"
             - "at_due_date_allow_steal"
+    standby_claim_mode:
+      name: "Standby Claim Mode"
+      description: "Controls when standbys can claim this chore (anytime, on_overdue, manual_only). Only applies to Primary & Standby completion criteria."
+      example: "anytime"
+      required: false
+      selector:
+        select:
+          options:
+            - "anytime"
+            - "on_overdue"
+            - "manual_only"
     chore_claim_lock_until_window:
       name: "Lock Claim Until Window Opens"
       description: "If enabled, assignees cannot claim this chore before the due window begins."
@@ -1598,7 +1621,7 @@ delete_chore:
 
 set_rotation_turn:
   name: "Set Rotation Turn"
-  description: "Manually assign the current turn to a specific assignee in a rotation chore. Only works for rotation chores (rotation_simple or rotation_smart). Use either ID or name for identification."
+  description: "Manually assign the current turn to a specific assignee in a rotation chore. Only works for rotation chores (rotation_simple, rotation_smart, or rotation_primary_standby). Use either ID or name for identification."
   fields:
     config_entry_id:
       name: "Config Entry ID (Optional)"
@@ -1645,7 +1668,7 @@ set_rotation_turn:
 
 reset_rotation:
   name: "Reset Rotation"
-  description: "Reset rotation turn to the first assigned assignee. Only works for rotation chores (rotation_simple or rotation_smart). Use either ID or name for identification."
+  description: "Reset rotation turn to the first assigned assignee. Only works for rotation chores (rotation_simple, rotation_smart, or rotation_primary_standby). Use either ID or name for identification."
   fields:
     config_entry_id:
       name: "Config Entry ID (Optional)"

@@ -2861,6 +2861,14 @@ class NotificationManager(BaseManager):
             const.CHORE_OVERDUE_NOTIFICATION_TYPE_DEFAULT,
         )
         assignee_message_key = const.TRANS_KEY_NOTIF_MESSAGE_CHORE_OVERDUE_ASSIGNEE
+        title_key = const.TRANS_KEY_NOTIF_TITLE_CHORE_OVERDUE_ASSIGNEE
+        message_data: dict[str, Any] = {
+            "assignee_name": assignee_name,
+            "chore_name": chore_name,
+            "due_date": formatted_due_date,
+            "points": chore_points,
+        }
+
         if (
             overdue_message_type
             == const.CHORE_OVERDUE_NOTIFICATION_TYPE_STEAL_AVAILABLE
@@ -2868,18 +2876,27 @@ class NotificationManager(BaseManager):
             assignee_message_key = (
                 const.TRANS_KEY_NOTIF_MESSAGE_CHORE_OVERDUE_STEAL_AVAILABLE
             )
+        elif (
+            overdue_message_type == const.CHORE_OVERDUE_NOTIFICATION_TYPE_STANDBY_NEEDED
+        ):
+            title_key = const.TRANS_KEY_NOTIF_TITLE_CHORE_STANDBY_NEEDED
+            assignee_message_key = const.TRANS_KEY_NOTIF_MESSAGE_CHORE_STANDBY_NEEDED
+            # Resolve primary name for standby-needed message template
+            primary_name = None
+            if chore_info:
+                assigned = chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
+                if assigned:
+                    primary_data = self.coordinator.assignees_data.get(assigned[0])
+                    if primary_data:
+                        primary_name = primary_data.get(const.DATA_USER_NAME)
+            message_data["primary_name"] = primary_name or "Primary"
 
         # Notify assignee with claim action (using tag for smart replacement)
         await self.notify_assignee_translated(
             target_assignee_id,
-            title_key=const.TRANS_KEY_NOTIF_TITLE_CHORE_OVERDUE_ASSIGNEE,
+            title_key=title_key,
             message_key=assignee_message_key,
-            message_data={
-                "assignee_name": assignee_name,
-                "chore_name": chore_name,
-                "due_date": formatted_due_date,
-                "points": chore_points,
-            },
+            message_data=message_data,
             actions=self.build_claim_action(
                 target_assignee_id, chore_id, self.entry_id
             ),

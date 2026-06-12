@@ -217,6 +217,7 @@ def _service_uses_chore_level_due_date(chore_data: dict[str, Any]) -> bool:
         const.COMPLETION_CRITERIA_SHARED_FIRST,
         const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
         const.COMPLETION_CRITERIA_ROTATION_SMART,
+        const.COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY,
     )
 
 
@@ -743,10 +744,17 @@ _CHORE_FREQUENCY_VALUES = [
 
 _COMPLETION_CRITERIA_VALUES = [
     const.COMPLETION_CRITERIA_INDEPENDENT,
+    const.COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY,
     const.COMPLETION_CRITERIA_SHARED,
     const.COMPLETION_CRITERIA_SHARED_FIRST,
     const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
     const.COMPLETION_CRITERIA_ROTATION_SMART,
+]
+
+_STANDBY_CLAIM_MODE_VALUES = [
+    const.STANDBY_CLAIM_MODE_ANYTIME,
+    const.STANDBY_CLAIM_MODE_ON_OVERDUE,
+    const.STANDBY_CLAIM_MODE_MANUAL_ONLY,
 ]
 
 _APPROVAL_RESET_VALUES = [
@@ -820,6 +828,9 @@ CREATE_CHORE_SCHEMA = vol.Schema(
             ),
             vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_COMPLETION_CRITERIA): vol.In(
                 _COMPLETION_CRITERIA_VALUES
+            ),
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_STANDBY_CLAIM_MODE): vol.In(
+                _STANDBY_CLAIM_MODE_VALUES
             ),
             vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_APPROVAL_RESET): vol.In(
                 _APPROVAL_RESET_VALUES
@@ -903,6 +914,9 @@ UPDATE_CHORE_SCHEMA = vol.Schema(
             ),
             vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_OVERDUE_HANDLING): vol.In(
                 _OVERDUE_HANDLING_VALUES
+            ),
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_STANDBY_CLAIM_MODE): vol.In(
+                _STANDBY_CLAIM_MODE_VALUES
             ),
             vol.Optional(
                 const.SERVICE_FIELD_CHORE_CRUD_CLAIM_LOCK_UNTIL_WINDOW
