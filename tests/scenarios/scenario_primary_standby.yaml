@@ -1,0 +1,93 @@
+# Test Scenario: PRIMARY & STANDBY (rotation_primary_standby)
+# =============================================================================
+# Focused on primary-standby chore testing. 2 assignees, 1 approver.
+#
+# Contents:
+#   - 1 approver: Mom
+#   - 2 assignees: Zoë (slug: zoe), Max (slug: max)
+#   - 4 chores: primary-standby with each claim_mode variant
+#
+# Use case: Testing primary-standby FSM states, turn management, edge cases
+#
+# Chore matrix:
+#   "Daily Chore (anytime)"      — standby_claim_mode=anytime,    daily, due window
+#   "Weekly Chore (on_overdue)"  — standby_claim_mode=on_overdue, weekly, has due_date
+#   "Daily Chore (manual_only)"  — standby_claim_mode=manual_only,daily
+#   "Solo Chore (single)"        — standby_claim_mode=anytime,    1 assignee only
+# =============================================================================
+
+# System settings
+system:
+  points_label: "Points"
+  points_icon: "mdi:star"
+
+# Assignees (2 assignees for primary-standby testing)
+assignees:
+  - name: "Zoë"
+    ha_user: "assignee1"
+    dashboard_language: "en"
+    mobile_notify_service: ""
+
+  - name: "Max!"
+    ha_user: "assignee2"
+    dashboard_language: "en"
+    mobile_notify_service: ""
+
+# Approvers (1 approver can approve all)
+approvers:
+  - name: "Môm Astrid Stârblüm"
+    ha_user: "approver1"
+    assignees: ["Zoë", "Max!"]
+    mobile_notify_service: ""
+
+# Chores (4 primary-standby chores)
+chores:
+  # ==========================================================================
+  # PRIMARY-STANDBY: anytime (standby can claim immediately)
+  # ==========================================================================
+  - name: "Daily Chore (anytime)"
+    assigned_to: ["Zoë", "Max!"]
+    points: 10.0
+    icon: "mdi:broom"
+    completion_criteria: "rotation_primary_standby"
+    recurring_frequency: "daily"
+    auto_approve: false
+    standby_claim_mode: "anytime"
+    due_window_offset: "1h"
+
+  # ==========================================================================
+  # PRIMARY-STANDBY: on_overdue (standby can claim after due date)
+  # ==========================================================================
+  - name: "Weekly Chore (on_overdue)"
+    assigned_to: ["Zoë", "Max!"]
+    points: 20.0
+    icon: "mdi:calendar-check"
+    completion_criteria: "rotation_primary_standby"
+    recurring_frequency: "weekly"
+    auto_approve: false
+    standby_claim_mode: "on_overdue"
+    due_date: "+7d12:00"
+
+  # ==========================================================================
+  # PRIMARY-STANDBY: manual_only (admin must assign turn)
+  # ==========================================================================
+  - name: "Daily Chore (manual_only)"
+    assigned_to: ["Zoë", "Max!"]
+    points: 5.0
+    icon: "mdi:handcuffs"
+    completion_criteria: "rotation_primary_standby"
+    recurring_frequency: "daily"
+    auto_approve: false
+    standby_claim_mode: "manual_only"
+
+  # ==========================================================================
+  # PRIMARY-STANDBY: single assignee (primary only, no standbys)
+  # ==========================================================================
+  - name: "Solo Chore (single)"
+    assigned_to: ["Zoë"]
+    points: 8.0
+    icon: "mdi:account"
+    completion_criteria: "rotation_primary_standby"
+    recurring_frequency: "daily"
+    auto_approve: false
+    standby_claim_mode: "anytime"

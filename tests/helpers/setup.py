@@ -497,6 +497,10 @@ async def _configure_chore_step(
         user_input[const.CFOF_CHORES_INPUT_CUSTOM_INTERVAL_UNIT] = chore_config[
             "custom_interval_unit"
         ]
+    if "standby_claim_mode" in chore_config:
+        user_input[const.CFOF_CHORES_INPUT_STANDBY_CLAIM_MODE] = chore_config[
+            "standby_claim_mode"
+        ]
     # NOTE: daily_multi_times is NOT supported in config_flow schema.
     # It's handled via options_flow helper step (async_step_chores_daily_multi).
     # Post-setup injection happens in setup_scenario() after all chores are created.
