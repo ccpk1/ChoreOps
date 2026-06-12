@@ -190,8 +190,10 @@ See [NOTICE](NOTICE) for project attribution and fork/modification notice.
 
 ---
 
-### Disclaimer
+### Disclaimers
 
 This project is not affiliated with or endorsed by any official entity. Use at your own risk.
+
+AI-Assisted Development: In today’s age, leveraging AI is one of the few ways a maintainer can realistically build, thoroughly test, and actively support a truly complex, high-quality open-source project. But to be clear, this integration isn't just blindly "vibe coded." While AI acts as a significant force multiplier for the workflow, human oversight dictates the architecture. Every commit is strictly audited, backed by extensive tests, and measured against rigorous Home Assistant development standards to ensure long-term stability.
 
 ---
