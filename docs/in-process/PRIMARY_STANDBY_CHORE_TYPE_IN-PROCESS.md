@@ -5,7 +5,7 @@
 - **Name / Code**: `rotation_primary_standby` — Primary & Standby Chore Type
 - **Target release / milestone**: 1.1.0
 - **Owner / driver(s)**: TBD
-- **Status**: Phases 5c and 5d complete — all dashboard and service changes delivered
+- **Status**: All phases complete — implementation, testing, and dashboard templates delivered. Remaining: Phase 5b (docs & wiki). All code gaps (G-1 through G-7) verified fixed in actual code.
 
 ## Summary & immediate steps
 
@@ -26,17 +26,18 @@
 
 1. **Key objective** – Introduce a `rotation_primary_standby` completion criteria where the first assigned user is always the primary (permanent turn-holder default). Backups see `standby` state and can claim based on the `standby_claim_mode` field: `anytime` (claim immediately), `on_overdue` (claim after due date), or `manual_only` (admin must intervene). Backup activation also occurs when the primary is paused or when an admin uses `set_rotation_turn`. After every completion, the turn always resets to the primary.
 
-2. **Summary of recent work** – Phases 0–5d complete. Core implementation, config flow, services, notifications, testing, dashboard templates (including rotation actions, reschedule filters, and smart resume) all delivered. `rotation_cycle_override` lifecycle fixed across reset/set_turn/assignment-change paths. 22/22 rotation tests passing, zero regressions. Remaining work: Phase 5b (docs & wiki) and 3 critical gaps (G-1, G-2, G-4). See gaps table below.
+2. **Summary of recent work** – Phases 0–5d complete. All code gaps (G-1 through G-7) verified fixed in the actual codebase (see evidence below). Remaining: Phase 5b (docs & wiki).
 
-3. **Next steps (short term)** – Phase 5b: Wiki documentation, architecture updates, release checklist sign-off. Then resolve remaining gaps before marking initiative complete.
+3. **Next steps (short term)** – Phase 5b: Wiki documentation, architecture updates, release checklist sign-off.
 
 4. **Risks / blockers**
    - `standby` is a new derived UI state — must be added to `CHORE_UI_ASSIGNEE_STATES` and all state-allowlist frozensets that need to include it.
    - Reset-boundary force-to-primary must not interfere with `rotation_cycle_override` (open cycle) or manual turn overrides that are mid-cycle.
    - Notification wording for standby activation must not confuse users — backup should understand they are helping, not taking over permanently.
    - **Pause coexistence**: The user chore pause feature (shipped v0.5.0+) adds `paused`/`blocked_paused` states, `_is_chore_paused_for_assignee()` helper, and `_advance_rotation_past_paused_assignee()` method. Primary-backup's reset-boundary force-to-primary is the only surface needing explicit pause awareness. See Phase 2 key issues for the full coexistence audit.
-   - **G-1 (CRITICAL)**: `can_claim_chore` FSM blocking in `chore_engine.py:469` does not recognize `standby`. Without this fix, all standbys can claim at any time regardless of `standby_claim_mode`.
-   - **G-4**: Backup-needed notifications are not wired through the overdue processing infrastructure. Backups get no notification when the chore becomes overdue and claimable.
+   - **G-1 (RESOLVED)**: `can_claim_chore` FSM — verified fixed at `chore_engine.py:473-477`
+   - **G-2 (RESOLVED)**: Hardcoded tuples — all 3 sites use `_build_other_assignee_states()` helper which delegates to `is_single_claimer_mode()`
+   - **G-4 (RESOLVED)**: Standby-needed notification — wired at `chore_manager.py:2169`, handler at `notification_manager.py:2880`
    - **`allow_steal` incompatibility**: Primary-backup chores intentionally block `allow_steal` (`OVERDUE_HANDLING_AT_DUE_DATE_ALLOW_STEAL`). The `standby_claim_mode` field controls claim gating for standbys — `allow_steal` would silently conflict because the P3 primary-standby branch intercepts before the steal check. Validation in `data_builders.py` already rejects this combo. See Decision D-6.
 
 ## Phase 5c: Reschedule chore types filter

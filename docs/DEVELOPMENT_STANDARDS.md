@@ -190,12 +190,18 @@ vol.Required(const.CFOF_USERS_INPUT_NAME, default=name): str
 - **`ATTR_*`**: Entity state attributes. e.g., `ATTR_ASSIGNEE_NAME`, `ATTR_CHORE_POINTS`.
 - **`SERVICE_*`**: Service action names. e.g., `SERVICE_CLAIM_CHORE`.
 - **`SERVICE_FIELD_*`**: Service input field names. e.g., `SERVICE_FIELD_REWARD_NAME`.
+  - Reschedule toggles: `SERVICE_FIELD_RESCHEDULE_INDEPENDENT`, `SERVICE_FIELD_RESCHEDULE_PRIMARY_STANDBY`, `SERVICE_FIELD_RESCHEDULE_SHARED`
+  - Unpause action: `SERVICE_FIELD_UNPAUSE_ACTION`
 
 #### Specialized Logic Patterns
 
 - **`CHORE_STATE_*`**: Lifecycle states for chores (e.g., `CHORE_STATE_CLAIMED`, `CHORE_STATE_OVERDUE`).
 - **`CHORE_CLAIM_MODE_*`**: Interaction taxonomy for claim gating and UX reason display
   (e.g., `CHORE_CLAIM_MODE_CLAIMABLE`, `CHORE_CLAIM_MODE_BLOCKED_NOT_MY_TURN`).
+- **`STANDBY_CLAIM_MODE_*`**: Claim gating for primary-standby chores
+  (e.g., `STANDBY_CLAIM_MODE_ANYTIME`, `STANDBY_CLAIM_MODE_ON_OVERDUE`).
+- **`UNPAUSE_ACTION_*`**: Optional shift actions when unpausing a user
+  (e.g., `UNPAUSE_ACTION_UNPAUSE`, `UNPAUSE_ACTION_SHIFT_INDEPENDENT`).
 - **`BADGE_*`**: Constants for badge logic, including `BADGE_TYPE_*`, `BADGE_STATE_*`, and `BADGE_RESET_SCHEDULE_*`.
 - **`FREQUENCY_*`**: Recurrence options (e.g., `FREQUENCY_DAILY`, `FREQUENCY_CUSTOM`).
 - **`PERIOD_*`**: Time period definitions (e.g., `PERIOD_DAY_END`, `PERIOD_ALL_TIME`).

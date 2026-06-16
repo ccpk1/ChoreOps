@@ -251,6 +251,14 @@ choreops-claimed-color: "#A957FA"
 - Non-active users show `not_my_turn` blocked presentation
 - Always show current turn holder in secondary text
 
+### Admin All Chores section actions
+
+The All Chores card in admin templates combines pause, resume, and reschedule actions in a single expandable section with state-dependent layouts:
+
+- **Pause section**: Shown when chores are active. Pause button + "Pause Until" button, followed by a 3-button reschedule layout (Shift Independent, Shift Indep & Primary, Shift All).
+- **Resume section**: Shown when chores are paused. Full-width Resume button (green, full opacity), followed by a centered "Resume & Reschedule Past-Due" divider, then 3 resume-shift buttons (green, subdued — 14% border / 5% background tint) with "Past: Now" subtitle.
+- **Section headers**: Use centered text without uppercase transformation for subsections (resume actions), left-aligned uppercase with trailing divider for primary sections (pause control, reschedule actions).
+
 ## UI modifiers and badges
 
 | Modifier type   | Description                                    | Standard hex | Lovelace CSS variable        | Icon                          | Placement                            |
