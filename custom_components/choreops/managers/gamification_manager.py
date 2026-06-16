@@ -23,12 +23,14 @@ from datetime import date, datetime, timedelta
 from typing import TYPE_CHECKING, Any, cast
 
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers.start import async_at_started
 
 from .. import const, data_builders as db
 from ..engines.gamification_engine import GamificationEngine
 from ..helpers import entity_helpers as eh
 from ..helpers.entity_helpers import get_item_id_by_name, remove_entities_by_item_id
 from ..utils.dt_utils import (
+    HELPER_RETURN_DATETIME_LOCAL,
     dt_add_interval,
     dt_next_schedule,
     dt_now_utc_iso,
@@ -155,6 +157,18 @@ class GamificationManager(BaseManager):
             self._schedule_evaluation()
 
         self.coordinator.config_entry.async_on_unload(self._cancel_eval_timer)
+
+        # Streak correctness on startup: re-derive every streak from current
+        # chore data once HA has finished starting, so a streak broken while HA
+        # was down is reset without waiting for the next completion or midnight
+        # rollover. Fires immediately if HA is already started. Preferred over a
+        # hardcoded timer, which would race against data-load timing.
+        self.coordinator.config_entry.async_on_unload(
+            async_at_started(
+                self.hass,
+                lambda _hass: self.recalculate_all_badges(),
+            )
+        )
 
         const.LOGGER.debug(
             "GamificationManager initialized with %s second debounce",
@@ -2767,12 +2781,35 @@ class GamificationManager(BaseManager):
 
         return runtime_context
 
+    def _streak_alive(self, last_value: Any) -> bool:
+        """Return True if a streak's last activity keeps it alive today.
+
+        A streak is only updated on completion; there is no midnight job that
+        decays it when a day is fully missed. So a streak whose last completion
+        is older than yesterday has actually been broken. Uses an inclusive
+        "today or yesterday" window so a streak completed yesterday is not
+        prematurely zeroed at the start of today.
+
+        Fails OPEN (returns True) on any missing value or parse failure, so a
+        valid streak is never wrongly zeroed over bad/absent data.
+        """
+        if not last_value:
+            return True
+        local_dt = dt_parse(last_value, return_type=HELPER_RETURN_DATETIME_LOCAL)
+        if not isinstance(local_dt, datetime):
+            return True
+        return local_dt.date() >= dt_today_local() - timedelta(days=1)
+
     def _get_tracked_current_streak(
         self,
         assignee_id: str,
         tracked_chores: list[str],
     ) -> int:
-        """Return current streak from assignee chore data for tracked chores."""
+        """Return current streak from assignee chore data for tracked chores.
+
+        A chore's stored streak only counts if it was last completed today or
+        yesterday; a fully missed day breaks the streak (see _streak_alive).
+        """
         assignee_data = cast(
             "dict[str, Any]",
             self.coordinator.assignees_data.get(assignee_id, {}),
@@ -2782,24 +2819,30 @@ class GamificationManager(BaseManager):
             assignee_data.get(const.DATA_USER_CHORE_DATA, {}),
         )
 
+        def _effective(chore_entry: dict[str, Any]) -> int:
+            streak = int(chore_entry.get(const.DATA_USER_CHORE_DATA_CURRENT_STREAK, 0))
+            if streak <= 0:
+                return 0
+            if not self._streak_alive(
+                chore_entry.get(const.DATA_USER_CHORE_DATA_LAST_COMPLETED)
+            ):
+                return 0
+            return streak
+
         if tracked_chores:
-            streak_values: list[int] = []
-            for chore_id in tracked_chores:
-                chore_entry = cast(
-                    "dict[str, Any]", assignee_chore_data.get(chore_id, {})
-                )
-                streak_values.append(
-                    int(chore_entry.get(const.DATA_USER_CHORE_DATA_CURRENT_STREAK, 0))
-                )
-            return max(streak_values, default=0)
+            return max(
+                (
+                    _effective(
+                        cast("dict[str, Any]", assignee_chore_data.get(chore_id, {}))
+                    )
+                    for chore_id in tracked_chores
+                ),
+                default=0,
+            )
 
         return max(
             (
-                int(
-                    cast("dict[str, Any]", chore_entry).get(
-                        const.DATA_USER_CHORE_DATA_CURRENT_STREAK, 0
-                    )
-                )
+                _effective(cast("dict[str, Any]", chore_entry))
                 for chore_entry in assignee_chore_data.values()
                 if isinstance(chore_entry, dict)
             ),

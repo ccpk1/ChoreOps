@@ -734,16 +734,15 @@ class TestEvaluateAchievement:
         assert result["criteria_met"] is False
 
     def test_streak_achievement(self) -> None:
-        """STREAK achievement evaluation uses current_streak from tracking."""
+        """STREAK achievement uses the freshly tracked streak, not a stored peak.
+
+        The streak comes from ``tracked_current_streak`` (derived fresh from chore
+        data each evaluation). A stale persisted high-water-mark must NOT satisfy
+        the achievement on its own -- that was the monotonic-streak bug.
+        """
+        # A fresh tracked streak that meets the threshold -> achievement met.
         context = make_context()
-        # Add achievement progress with streak tracking
-        context["achievement_progress"] = {
-            "achieve-123": {
-                context["assignee_id"]: {
-                    const.DATA_USER_CURRENT_STREAK: 5,
-                }
-            }
-        }
+        context["tracked_current_streak"] = 5
         achievement = make_achievement(
             target_type=const.ACHIEVEMENT_TYPE_STREAK,
             target_value=5,
@@ -752,6 +751,23 @@ class TestEvaluateAchievement:
         result = GamificationEngine.evaluate_achievement(context, achievement)
 
         assert result["criteria_met"] is True
+
+        # A high stored peak with no live tracked streak must NOT satisfy it.
+        stale_context = make_context()
+        stale_context["tracked_current_streak"] = 0
+        stale_context["achievement_progress"] = {
+            "achieve-123": {
+                stale_context["assignee_id"]: {
+                    const.DATA_USER_CURRENT_STREAK: 5,
+                }
+            }
+        }
+
+        stale_result = GamificationEngine.evaluate_achievement(
+            stale_context, achievement
+        )
+
+        assert stale_result["criteria_met"] is False
 
     def test_total_achievement_badge_award_count_extension(self) -> None:
         """TOTAL achievement can map to badge award_count source when configured."""
