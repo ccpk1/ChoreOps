@@ -2283,7 +2283,7 @@
     },
     "pause_user_chores": {
       "name": "Pause User's Chores",
-      "description": "Pause or resume chore processing for a user.",
+      "description": "Pause or unpause chore processing for a user. When unpausing, unpause_action controls whether past-due chores are rescheduled to prevent immediate overdue transitions.",
       "fields": {
         "config_entry_id": {
           "name": "Config Entry ID (Optional)",
@@ -2309,6 +2309,11 @@
           "name": "Paused Until",
           "description": "Optional return date. If set, chores auto-resume at midnight after this date.",
           "example": "2026-06-10T00:00:00+00:00"
+        },
+        "unpause_action": {
+          "name": "Unpause Action",
+          "description": "Only applies when paused=false. Controls whether past-due chores are rescheduled during unpause. Default: unpause (no reschedule).",
+          "example": "unpause_shift_independent"
         }
       }
     },

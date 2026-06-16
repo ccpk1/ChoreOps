@@ -6010,6 +6010,7 @@ class ChoreManager(BaseManager):
         assignee_id: str,
         paused: bool,
         paused_until: str | None = None,
+        unpause_action: str = "unpause",
     ) -> None:
         """Set chore pause flag and advance rotation if pausing.
 
@@ -6018,10 +6019,15 @@ class ChoreManager(BaseManager):
         and advances the turn to the next available non-paused assignee
         in real time (not waiting for midnight).
 
+        If UNPAUSING with an unpause_action other than 'unpause', also
+        reschedules past-due chores to prevent immediate overdue transitions.
+
         Args:
-            assignee_id: Internal ID of the user to pause/resume
-            paused: True to pause, False to resume
-            paused_until: Optional UTC ISO datetime for auto-resume
+            assignee_id: Internal ID of the user to pause/unpause
+            paused: True to pause, False to unpause
+            paused_until: Optional UTC ISO datetime for auto-unpause
+            unpause_action: 'unpause', 'unpause_shift_independent',
+                'unpause_shift_all_primary', or 'unpause_shift_all'
         """
         user_data = self._coordinator._data.get(const.DATA_USERS, {}).get(assignee_id)
         if user_data is None:
@@ -6042,6 +6048,35 @@ class ChoreManager(BaseManager):
             self._advance_rotation_past_paused_assignee(assignee_id)
         else:
             self._snap_rotation_back_to_primary(assignee_id)
+
+        # Smart unpause: reschedule past-due chores if requested
+        if not paused and unpause_action != "unpause":
+            unpause_map = {
+                "unpause_shift_independent": {
+                    "reschedule_independent": True,
+                    "reschedule_primary_standby": False,
+                    "reschedule_shared": False,
+                },
+                "unpause_shift_all_primary": {
+                    "reschedule_independent": True,
+                    "reschedule_primary_standby": True,
+                    "reschedule_shared": False,
+                },
+                "unpause_shift_all": {
+                    "reschedule_independent": True,
+                    "reschedule_primary_standby": True,
+                    "reschedule_shared": True,
+                },
+            }
+            flags = unpause_map.get(unpause_action)
+            if flags:
+                await self.reschedule_chores_after(
+                    dt_util.utcnow(),
+                    assignee_ids=[assignee_id],
+                    reschedule_independent=flags["reschedule_independent"],
+                    reschedule_primary_standby=flags["reschedule_primary_standby"],
+                    reschedule_shared=flags["reschedule_shared"],
+                )
 
         self.coordinator._persist_and_update()
         self.emit(const.SIGNAL_SUFFIX_USER_UPDATED, user_id=assignee_id)

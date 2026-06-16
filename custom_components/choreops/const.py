@@ -2902,6 +2902,19 @@ SERVICE_FIELD_CHORE_ID: Final = "chore_id"
 SERVICE_FIELD_CHORE_NAMES: Final = "chore_names"
 SERVICE_FIELD_CHORES_PAUSED: Final = "paused"
 SERVICE_FIELD_CHORES_PAUSED_UNTIL: Final = "paused_until"
+SERVICE_FIELD_UNPAUSE_ACTION: Final = "unpause_action"
+UNPAUSE_ACTION_UNPAUSE: Final = "unpause"
+UNPAUSE_ACTION_SHIFT_INDEPENDENT: Final = "unpause_shift_independent"
+UNPAUSE_ACTION_SHIFT_ALL_PRIMARY: Final = "unpause_shift_all_primary"
+UNPAUSE_ACTION_SHIFT_ALL: Final = "unpause_shift_all"
+UNPAUSE_ACTION_VALUES: Final = frozenset(
+    {
+        UNPAUSE_ACTION_UNPAUSE,
+        UNPAUSE_ACTION_SHIFT_INDEPENDENT,
+        UNPAUSE_ACTION_SHIFT_ALL_PRIMARY,
+        UNPAUSE_ACTION_SHIFT_ALL,
+    }
+)
 SERVICE_FIELD_CHORE_IDS: Final = "chore_ids"
 SERVICE_FIELD_AFTER: Final = "after"
 SERVICE_FIELD_RESCHEDULE_SHARED: Final = "reschedule_shared"

@@ -2450,12 +2450,14 @@ views:
                   {%- set all_chores_label = (ui.get('paused', 'err-paused')) if all_chores_is_paused else (total_chore_count ~ " " ~ ui.get('total', 'err-total') ~ " · " ~ due_chore_count ~ " " ~ ui.get('due', 'err-due')) -%}
                   {#-- Build sub-cards --#}
                   {%- set all_chores_date_label = all_chores_date_display if all_chores_has_date else ui.get('no_date_set', 'err-no_date_set') -%}
+                  {%- set all_chores_now_label = ui.get('past_prefix', 'err-past_prefix') ~ ": " ~ ui.get('now', 'err-now') -%}
                   {%- set all_chores_arrow_date_display = ("→ " ~ (as_timestamp(all_chores_date_val) | timestamp_custom('%a, %b %d %I:%M %p', true))) if all_chores_has_date else '' -%}
                   {%- set all_chores_arrow_date_label = all_chores_arrow_date_display if all_chores_has_date else ui.get('no_date_set', 'err-no_date_set') -%}
                   {%- set all_chores_shared_style = {'card': [{'height': '48px'}, {'padding': '6px 12px'}, {'border-radius': '10px'}, {'box-shadow': 'none'}, {'border': '1px solid var(--divider-color)'}, {'border': '1px solid color-mix(in srgb, var(--primary-color) 18%, var(--divider-color))'}, {'background-color': 'color-mix(in srgb, var(--primary-color) 6%, var(--card-background-color))'}], 'grid': [{'grid-template-areas': '"i n" "i l"'}, {'grid-template-columns': '24px 1fr'}, {'grid-template-rows': '1fr auto'}, {'column-gap': '8px'}, {'row-gap': '1px'}, {'align-items': 'center'}], 'icon': [{'width': '20px'}, {'height': '20px'}, {'color': 'var(--primary-color)'}], 'name': [{'justify-self': 'start'}, {'text-align': 'left'}, {'font-size': '12px'}, {'font-weight': '600'}, {'line-height': '1.2'}, {'color': 'var(--primary-text-color)'}], 'label': [{'justify-self': 'start'}, {'font-size': '10px'}, {'color': 'var(--secondary-text-color)'}]} -%}
                   {%- set all_chores_push_card = {'card': {'type': 'custom:button-card', 'show_name': True, 'show_icon': True, 'show_label': True, 'show_state': False, 'icon': 'mdi:calendar-sync-outline', 'name': ui.get('shift_independent', 'err-shift_independent'), 'label': all_chores_date_label, 'tap_action': ({'action': 'call-service', 'service': 'choreops.reschedule_chores_after', 'data': {'config_entry_id': integration_entry_id, 'user_names': [selected_user_name], 'after': all_chores_date_val, 'reschedule_independent': true, 'reschedule_primary_standby': false, 'reschedule_shared': false}}) if all_chores_has_date else {'action': 'none'}, 'styles': all_chores_shared_style}} -%}
                   {%- set all_chores_push_primary_card = {'card': {'type': 'custom:button-card', 'show_name': True, 'show_icon': True, 'show_label': True, 'show_state': False, 'icon': 'mdi:calendar-sync-outline', 'name': ui.get('shift_independent_primary', 'err-shift_independent_primary'), 'label': all_chores_date_label, 'tap_action': ({'action': 'call-service', 'service': 'choreops.reschedule_chores_after', 'data': {'config_entry_id': integration_entry_id, 'user_names': [selected_user_name], 'after': all_chores_date_val, 'reschedule_independent': true, 'reschedule_primary_standby': true, 'reschedule_shared': false}}) if all_chores_has_date else {'action': 'none'}, 'styles': all_chores_shared_style}} -%}
                   {%- set all_chores_push_all_card = {'card': {'type': 'custom:button-card', 'show_name': True, 'show_icon': True, 'show_label': True, 'show_state': False, 'icon': 'mdi:calendar-refresh', 'name': ui.get('shift_all', 'err-shift_all'), 'label': all_chores_date_label, 'tap_action': ({'action': 'call-service', 'service': 'choreops.reschedule_chores_after', 'data': {'config_entry_id': integration_entry_id, 'user_names': [selected_user_name], 'after': all_chores_date_val, 'reschedule_independent': true, 'reschedule_primary_standby': true, 'reschedule_shared': true}}) if all_chores_has_date else {'action': 'none'}, 'styles': all_chores_shared_style}} -%}
+                  {%- set resume_shift_style = {'card': [{'height': '48px'}, {'padding': '6px 12px'}, {'border-radius': '10px'}, {'box-shadow': 'none'}, {'border': '1px solid var(--divider-color)'}, {'border': '1px solid color-mix(in srgb, var(--success-color) 14%, var(--divider-color))'}, {'background-color': 'color-mix(in srgb, var(--success-color) 5%, var(--card-background-color))'}], 'grid': [{'grid-template-areas': '"i n" "i l"'}, {'grid-template-columns': '24px 1fr'}, {'grid-template-rows': '1fr auto'}, {'column-gap': '8px'}, {'row-gap': '1px'}, {'align-items': 'center'}], 'icon': [{'width': '20px'}, {'height': '20px'}, {'color': 'var(--success-color)'}], 'name': [{'justify-self': 'start'}, {'text-align': 'left'}, {'font-size': '12px'}, {'font-weight': '600'}, {'line-height': '1.2'}, {'color': 'var(--primary-text-color)'}], 'label': [{'justify-self': 'start'}, {'font-size': '10px'}, {'font-weight': '700'}, {'color': 'var(--secondary-text-color)'}]} -%}
                   {%- set all_chores_pick_card = {'card': {'type': 'custom:button-card', 'entity': dashboard_date_helper if all_chores_date_helper else selected_dashboard_helper, 'icon': 'mdi:calendar-search', 'show_name': False, 'show_icon': True, 'tap_action': {'action': 'more-info'} if all_chores_date_helper else {'action': 'none'}, 'styles': {'card': [{'width': '32px'}, {'height': '32px'}, {'border-radius': '8px'}, {'box-shadow': 'none'}, {'border': '1px solid var(--divider-color)'}, {'background-color': 'var(--card-background-color)'}], 'icon': [{'width': '16px'}, {'color': 'var(--primary-color)'}]}}} -%}
                   {#-- Structural Layout Sections per State --#}
                   {%- if all_chores_expanded and not all_chores_is_paused -%}
@@ -2465,10 +2467,13 @@ views:
                     {%- set all_chores_grid_template = '"i n l controls" "div_pause div_pause div_pause div_pause" "pause_btn pause_btn until_btn until_btn" "div_sched div_sched div_sched div_sched" "push_btn push_btn push_primary_btn push_primary_btn" "push_all_btn push_all_btn push_all_btn push_all_btn"' -%}
                     {%- set all_chores_grid_rows = 'min-content auto auto auto auto auto' -%}
                   {%- elif all_chores_expanded and all_chores_is_paused -%}
-                    {%- set all_chores_pause_card = {'card': {'type': 'custom:button-card', 'show_name': True, 'show_icon': True, 'show_label': True, 'show_state': False, 'icon': 'mdi:play-circle-outline', 'name': ui.get('resume', 'err-resume'), 'label': all_chores_paused_display, 'tap_action': {'action': 'call-service', 'service': 'choreops.pause_user_chores', 'data': {'config_entry_id': integration_entry_id, 'user_name': selected_user_name, 'paused': 'false'}}, 'styles': {'card': [{'height': '48px'}, {'padding': '6px 14px'}, {'border-radius': '10px'}, {'box-shadow': 'none'}, {'border': '1px solid color-mix(in srgb, var(--success-color) 18%, var(--divider-color))'}, {'background-color': 'color-mix(in srgb, var(--success-color) 8%, var(--card-background-color))'}], 'grid': [{'grid-template-areas': '"i n l"'}, {'grid-template-columns': '24px 1fr auto'}, {'column-gap': '8px'}, {'align-items': 'center'}], 'icon': [{'width': '20px'}, {'height': '20px'}, {'color': 'var(--success-color)'}], 'name': [{'justify-self': 'start'}, {'font-size': '13px'}, {'font-weight': '700'}], 'label': [{'justify-self': 'end'}, {'font-size': '11px'}, {'color': 'var(--secondary-text-color)'}]}}} -%}
+                    {%- set all_chores_resume_card = {'card': {'type': 'custom:button-card', 'show_name': True, 'show_icon': True, 'show_label': True, 'show_state': False, 'icon': 'mdi:play-circle-outline', 'name': ui.get('resume', 'err-resume'), 'label': all_chores_paused_display, 'tap_action': {'action': 'call-service', 'service': 'choreops.pause_user_chores', 'data': {'config_entry_id': integration_entry_id, 'user_name': selected_user_name, 'paused': 'false'}}, 'styles': {'card': [{'height': '48px'}, {'padding': '6px 14px'}, {'border-radius': '10px'}, {'box-shadow': 'none'}, {'border': '1px solid color-mix(in srgb, var(--success-color) 18%, var(--divider-color))'}, {'background-color': 'color-mix(in srgb, var(--success-color) 8%, var(--card-background-color))'}], 'grid': [{'grid-template-areas': '"i n l"'}, {'grid-template-columns': '24px 1fr auto'}, {'column-gap': '8px'}, {'align-items': 'center'}], 'icon': [{'width': '20px'}, {'height': '20px'}, {'color': 'var(--success-color)'}], 'name': [{'justify-self': 'start'}, {'font-size': '13px'}, {'font-weight': '700'}], 'label': [{'justify-self': 'end'}, {'font-size': '11px'}, {'color': 'var(--secondary-text-color)'}]}}} -%}
+                    {%- set resume_shift_independent_card = {'card': {'type': 'custom:button-card', 'show_name': True, 'show_icon': True, 'show_label': True, 'show_state': False, 'icon': 'mdi:calendar-sync-outline', 'name': ui.get('resume_shift_independent', 'err-resume_shift_independent'), 'label': all_chores_now_label, 'tap_action': ({'action': 'call-service', 'service': 'choreops.pause_user_chores', 'data': {'config_entry_id': integration_entry_id, 'user_name': selected_user_name, 'paused': 'false', 'unpause_action': 'unpause_shift_independent'}}) if all_chores_has_date else {'action': 'none'}, 'styles': resume_shift_style}} -%}
+                    {%- set resume_shift_primary_card = {'card': {'type': 'custom:button-card', 'show_name': True, 'show_icon': True, 'show_label': True, 'show_state': False, 'icon': 'mdi:calendar-sync-outline', 'name': ui.get('resume_shift_independent_primary', 'err-resume_shift_independent_primary'), 'label': all_chores_now_label, 'tap_action': ({'action': 'call-service', 'service': 'choreops.pause_user_chores', 'data': {'config_entry_id': integration_entry_id, 'user_name': selected_user_name, 'paused': 'false', 'unpause_action': 'unpause_shift_all_primary'}}) if all_chores_has_date else {'action': 'none'}, 'styles': resume_shift_style}} -%}
+                    {%- set resume_shift_all_card = {'card': {'type': 'custom:button-card', 'show_name': True, 'show_icon': True, 'show_label': True, 'show_state': False, 'icon': 'mdi:calendar-refresh', 'name': ui.get('resume_shift_all', 'err-resume_shift_all'), 'label': all_chores_now_label, 'tap_action': ({'action': 'call-service', 'service': 'choreops.pause_user_chores', 'data': {'config_entry_id': integration_entry_id, 'user_name': selected_user_name, 'paused': 'false', 'unpause_action': 'unpause_shift_all'}}) if all_chores_has_date else {'action': 'none'}, 'styles': resume_shift_style}} -%}
                     {%- set all_chores_until_card = "" -%}
-                    {%- set all_chores_grid_template = '"i n l controls" "div_pause div_pause div_pause div_pause" "pause_btn pause_btn pause_btn pause_btn" "div_sched div_sched div_sched div_sched" "push_btn push_btn push_primary_btn push_primary_btn" "push_all_btn push_all_btn push_all_btn push_all_btn"' -%}
-                    {%- set all_chores_grid_rows = 'min-content auto auto auto auto auto' -%}
+                    {%- set all_chores_grid_template = '"i n l controls" "div_pause div_pause div_pause div_pause" "resume_btn resume_btn resume_btn resume_btn" "div_resume div_resume div_resume div_resume" "resume_push_btn resume_push_btn resume_push_primary_btn resume_push_primary_btn" "resume_push_all_btn resume_push_all_btn resume_push_all_btn resume_push_all_btn" "div_sched div_sched div_sched div_sched" "push_btn push_btn push_primary_btn push_primary_btn" "push_all_btn push_all_btn push_all_btn push_all_btn"' -%}
+                    {%- set all_chores_grid_rows = 'min-content auto auto auto auto auto auto auto auto' -%}
                   {%- else -%}
                     {%- set all_chores_pause_card = "" -%}
                     {%- set all_chores_until_card = "" -%}
@@ -2526,6 +2531,10 @@ views:
                         'push_btn': all_chores_push_card if (all_chores_expanded and all_chores_push_card is mapping) else "",
                         'push_primary_btn': all_chores_push_primary_card if (all_chores_expanded and all_chores_push_primary_card is mapping) else "",
                         'push_all_btn': all_chores_push_all_card if (all_chores_expanded and all_chores_push_all_card is mapping) else "",
+                        'resume_btn': all_chores_resume_card if (all_chores_expanded and all_chores_resume_card is mapping) else "",
+                        'div_resume': "<div style='display:flex;align-items:center;justify-content:center;gap:4px;margin-top:4px;'><span style='font-size:11px;font-weight:600;letter-spacing:0.3px;color:var(--secondary-text-color);white-space:nowrap;'>" ~ ui.get('resume_actions_section', 'err-resume_actions_section') ~ "</span></div>" if (all_chores_expanded and all_chores_is_paused) else "",
+                        'resume_push_btn': resume_shift_independent_card if (all_chores_expanded and all_chores_is_paused and resume_shift_independent_card is mapping) else "",
+                        'resume_push_primary_btn': resume_shift_primary_card if (all_chores_expanded and all_chores_is_paused and resume_shift_primary_card is mapping) else "",
                                               },
                       'styles': {
                         'card': [
@@ -2590,6 +2599,32 @@ views:
                             {'justify-self': 'stretch'},
                             {'align-self': 'stretch'},
                             {'padding-left': '10px'}
+                          ],
+                          'resume_btn': [
+                            {'grid-column': 'span 4'},
+                            {'justify-self': 'stretch'},
+                            {'align-self': 'stretch'}
+                          ],
+                          'div_resume': [
+                            {'grid-column': 'span 4'},
+                            {'justify-self': 'stretch'},
+                            {'align-self': 'stretch'}
+                          ],
+                          'resume_push_btn': [
+                            {'grid-column': 'span 2'},
+                            {'justify-self': 'stretch'},
+                            {'align-self': 'stretch'}
+                          ],
+                          'resume_push_primary_btn': [
+                            {'grid-column': 'span 2'},
+                            {'justify-self': 'stretch'},
+                            {'align-self': 'stretch'},
+                            {'padding-left': '10px'}
+                          ],
+                          'resume_push_all_btn': [
+                            {'grid-column': 'span 4'},
+                            {'justify-self': 'stretch'},
+                            {'align-self': 'stretch'}
                           ],
                           'push_btn': [
                             {'grid-column': 'span 2'},

@@ -653,6 +653,10 @@ PAUSE_USER_CHORES_SCHEMA = vol.Schema(
             vol.Optional(const.SERVICE_FIELD_CHORES_PAUSED_UNTIL): vol.Any(
                 cv.datetime, None
             ),
+            vol.Optional(
+                const.SERVICE_FIELD_UNPAUSE_ACTION,
+                default=const.UNPAUSE_ACTION_UNPAUSE,
+            ): vol.In(const.UNPAUSE_ACTION_VALUES),
         }
     )
 )
@@ -3692,7 +3696,7 @@ def async_setup_services(hass: HomeAssistant):
     async def handle_pause_user_chores(call: ServiceCall) -> None:
         """Handle pause_user_chores service call.
 
-        Pause or resume chore processing for a user. While paused,
+        Pause or unpause chore processing for a user. While paused,
         no overdue/missed stats accumulate and rotation advances past
         this user.
 
@@ -3731,12 +3735,20 @@ def async_setup_services(hass: HomeAssistant):
             assignee_id=assignee_id,
             paused=paused,
             paused_until=paused_until,
+            unpause_action=call.data.get(
+                const.SERVICE_FIELD_UNPAUSE_ACTION,
+                const.UNPAUSE_ACTION_UNPAUSE,
+            ),
         )
 
         const.LOGGER.info(
-            "Pause User Chores: user=%s paused=%s",
+            "Pause User Chores: user=%s paused=%s unpause_action=%s",
             user_name,
             paused,
+            call.data.get(
+                const.SERVICE_FIELD_UNPAUSE_ACTION,
+                const.UNPAUSE_ACTION_UNPAUSE,
+            ),
         )
 
         await coordinator.async_request_refresh()
