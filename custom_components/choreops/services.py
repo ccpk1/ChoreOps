@@ -601,6 +601,14 @@ RESCHEDULE_CHORES_AFTER_SCHEMA = vol.Schema(
                 cv.ensure_list, [cv.string]
             ),
             vol.Optional(
+                const.SERVICE_FIELD_RESCHEDULE_INDEPENDENT,
+                default=True,
+            ): cv.boolean,
+            vol.Optional(
+                const.SERVICE_FIELD_RESCHEDULE_PRIMARY_STANDBY,
+                default=True,
+            ): cv.boolean,
+            vol.Optional(
                 const.SERVICE_FIELD_RESCHEDULE_SHARED,
                 default=False,
             ): cv.boolean,
@@ -2338,6 +2346,12 @@ def async_setup_services(hass: HomeAssistant):
             after_dt,
             chore_ids=chore_ids,
             assignee_ids=user_ids,
+            reschedule_independent=bool(
+                call.data.get(const.SERVICE_FIELD_RESCHEDULE_INDEPENDENT, True)
+            ),
+            reschedule_primary_standby=bool(
+                call.data.get(const.SERVICE_FIELD_RESCHEDULE_PRIMARY_STANDBY, True)
+            ),
             reschedule_shared=bool(
                 call.data.get(const.SERVICE_FIELD_RESCHEDULE_SHARED, False)
             ),

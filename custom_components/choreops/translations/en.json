@@ -3166,7 +3166,7 @@
     },
     "reschedule_chores_after": {
       "name": "Reschedule Chores After",
-      "description": "Reschedule one or more chores so their next due date falls after the specified date and time. Recurring chores advance to the next scheduled occurrence after the boundary. Non-recurring chores due on or before the boundary move to the boundary unless skip_non_recurring is enabled. Shared chores are skipped unless reschedule_shared is enabled.",
+      "description": "Reschedule chore due dates so they fall after the specified date. Three independent toggles control which chore types are rescheduled: reschedule_independent (default true), reschedule_primary_standby (default true), reschedule_shared (default false).",
       "fields": {
         "config_entry_id": {
           "name": "Config Entry ID (Optional)",
@@ -3199,9 +3199,19 @@
           "name": "User Names",
           "description": "Optional list of assignee names to limit independent chore updates when user_ids are not provided."
         },
+        "reschedule_independent": {
+          "name": "Reschedule Independent Chores",
+          "description": "Include independent (per-assignee due date) chores. Default true.",
+          "example": "true"
+        },
+        "reschedule_primary_standby": {
+          "name": "Reschedule Primary & Standby",
+          "description": "Include primary-standby chores. Default true.",
+          "example": "true"
+        },
         "reschedule_shared": {
           "name": "Reschedule Shared Chores",
-          "description": "Enable this to allow shared and rotation chores to be rescheduled. This affects all assignees on those chores.",
+          "description": "Include shared and rotation (simple/smart) chores. This affects all assignees on those chores. Default false.",
           "example": "false"
         },
         "skip_non_recurring": {

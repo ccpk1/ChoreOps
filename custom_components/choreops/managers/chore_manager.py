@@ -6368,6 +6368,8 @@ class ChoreManager(BaseManager):
         *,
         chore_ids: list[str] | None = None,
         assignee_ids: list[str] | None = None,
+        reschedule_independent: bool = True,
+        reschedule_primary_standby: bool = True,
         reschedule_shared: bool = False,
         skip_non_recurring: bool = False,
         allow_long_recurrences: bool = False,
@@ -6424,7 +6426,22 @@ class ChoreManager(BaseManager):
                 ):
                     continue
 
-                if not reschedule_shared:
+                # Three independent toggles control which chore types are included
+                is_primary_standby = (
+                    chore_info.get(const.DATA_CHORE_COMPLETION_CRITERIA)
+                    == const.COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY
+                )
+                if is_primary_standby:
+                    if not reschedule_primary_standby and not reschedule_shared:
+                        skipped.append(
+                            {
+                                "chore_id": chore_id,
+                                "chore_name": chore_name,
+                                "reason": "primary_standby_not_enabled",
+                            }
+                        )
+                        continue
+                elif not reschedule_shared:
                     skipped.append(
                         {
                             "chore_id": chore_id,
@@ -6524,6 +6541,16 @@ class ChoreManager(BaseManager):
                         "new_due_date": next_due_dt.isoformat(),
                         "affected_user_ids": assigned_assignee_ids,
                         "shared": True,
+                    }
+                )
+                continue
+
+            if not reschedule_independent:
+                skipped.append(
+                    {
+                        "chore_id": chore_id,
+                        "chore_name": chore_name,
+                        "reason": "independent_not_enabled",
                     }
                 )
                 continue

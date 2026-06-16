@@ -21,6 +21,8 @@
 | Phase 4 – Testing              | Rotation FSM tests, boundary tests, regression                | ✅ 100%    | 10 tests in new file `test_rotation_primary_standby.py`. Covers: primary always claimable, standby state visibility, anytime/manual_only/on_overdue claim modes, set_rotation_turn override, turn-reset after approval, single-assignee edge case, due-today exclusion, pause activation. 22/22 rotation tests pass with zero regressions. |
 | Phase 5a – Dashboard templates | Status maps, icons, layout, i18n (choreops-dashboards) | ✅ 100%    | Restructured rotation action layout: full-width Move to Front/Primary bar + 3-column temp actions (Activate/Set Turn, Activate All, Reset). Reactive standby indicator via Jinja2 `chore_attrs`. Activate All icon `mdi:account-multiple-plus-outline`. Reset icon `mdi:restore`, primary color. Amber warning text for active cycle. Horizontal `"i n"` layout for permanent action. `rotation_cycle_override` lifecycle fixed: cleared on reset, set_turn, and assignment changes. Translation keys `activate_all`, `all_standby_active` added. |
 | Phase 5b – Docs & wiki         | 9 documentation files across 3 repos                          | 0%         | Wiki, architecture, design guide, release checklist                  |
+| Phase 5c – Reschedule chore types filter | Add per-chore-type reschedule toggles; add "Shift Indep & Primary" dashboard card | ✅ 100%    | Three independent toggles: `reschedule_independent` (default true), `reschedule_primary_standby` (default true), `reschedule_shared` (default false). Dashboard 3-button layout with explicit toggle payloads. `push_primary_btn` slot with 10px left padding, `push_all_btn` full-width span-4. |
+| Phase 5d – Smart resume options | Add `resume_action` param to `pause_user_chores`; add resume option buttons to All Chores card | 0%         | Single backend call with 4 resume actions. Internally delegates to `reschedule_chores_after` with appropriate flags. See §Phase 5d below. |
 
 1. **Key objective** – Introduce a `rotation_primary_standby` completion criteria where the first assigned user is always the primary (permanent turn-holder default). Backups see `standby` state and can claim based on the `standby_claim_mode` field: `anytime` (claim immediately), `on_overdue` (claim after due date), or `manual_only` (admin must intervene). Backup activation also occurs when the primary is paused or when an admin uses `set_rotation_turn`. After every completion, the turn always resets to the primary.
 
@@ -36,6 +38,112 @@
    - **G-1 (CRITICAL)**: `can_claim_chore` FSM blocking in `chore_engine.py:469` does not recognize `standby`. Without this fix, all standbys can claim at any time regardless of `standby_claim_mode`.
    - **G-4**: Backup-needed notifications are not wired through the overdue processing infrastructure. Backups get no notification when the chore becomes overdue and claimable.
    - **`allow_steal` incompatibility**: Primary-backup chores intentionally block `allow_steal` (`OVERDUE_HANDLING_AT_DUE_DATE_ALLOW_STEAL`). The `standby_claim_mode` field controls claim gating for standbys — `allow_steal` would silently conflict because the P3 primary-standby branch intercepts before the steal check. Validation in `data_builders.py` already rejects this combo. See Decision D-6.
+
+## Phase 5c: Reschedule chore types filter
+
+### Objective
+Add granular control to the `reschedule_chores_after` service so admins can target independent-only, independent + primary-standby, or all chore types — without using the blunt "Shift All" option.
+
+### Design
+
+**Service change**: Add an optional `reschedule_primary_standby` boolean param (default `false`) to `RESCHEDULE_CHORES_AFTER_SCHEMA`.
+
+**Chore filtering logic** (in `chore_manager.reschedule_chores_after()`):
+- `reschedule_shared=false` (default) → only independent chores as before
+- `reschedule_shared=true` → all chore-level-due-date types (existing behavior)
+- `reschedule_primary_standby=true` → include `rotation_primary_standby` chores alongside independent ones
+
+When both `reschedule_primary_standby=true` and `reschedule_shared=false` (the new middle option):
+- Independent chores → shift per-assignee due dates (existing path)
+- Primary-standby chores → shift single `due_date` (same shared-group path, but only for this criteria)
+- Shared/rotation-simple/rotation-smart → skipped
+
+| Param combo | Chores affected |
+|---|---|
+| `reschedule_shared=false` (default) | `independent` only |
+| `reschedule_primary_standby=true` | `independent` + `rotation_primary_standby` |
+| `reschedule_shared=true` | All chore-level-due-date types (shared, rotation, primary-standby) |
+
+**Dashboard layout** (All Chores section):
+```
+[Shift Independent] [Shift Indep & Primary]    ← 2-column
+[              Shift All (incl shared)         ]    ← full-width
+```
+
+**Translations**: New key `shift_independent_primary`.
+
+### Files to touch
+- `const.py` — `SERVICE_FIELD_RESCHEDULE_PRIMARY_STANDBY` constant
+- `services.py` — add param to schema, pass to manager
+- `managers/chore_manager.py` — filter logic change in `reschedule_chores_after()`
+- `translations/en.json` — service field description
+- `services.yaml` — field definition
+- `translations/en_dashboard.json` — `shift_independent_primary` key
+- `admin-peruser-v1.yaml`, `admin-shared-v1.yaml` — third card in All Chores section
+
+## Phase 5d: Smart resume options
+
+### Objective
+Prevent notification storms when unpausing a user whose chores have past-due dates. Provide granular resume options that match the chore-type filtering from Phase 5c — all within a single backend service call.
+
+### Design
+
+**Service change**: Add an optional `resume_action` string param to `PAUSE_USER_CHORES_SCHEMA` and `set_user_chores_paused()`. Valid values mirror Phase 5c's filtering model.
+
+**`resume_action` values:**
+
+| Value | Behavior | What happens |
+|---|---|---|
+| `unpause` | Just unpause (current) | Clears pause flag, snaps primary-standby turn back. No state or date changes. Past-due chores go overdue at next midnight. |
+| `unpause_shift_independent` | Unpause + shift past-due independent | Clear flag → internally call `reschedule_chores_after(user_ids=[this_user], after=now, reschedule_shared=false, reschedule_primary_standby=false)` |
+| `unpause_shift_all_primary` | Unpause + shift past-due independent + primary-standby | Clear flag → internally call `reschedule_chores_after(user_ids=[this_user], after=now, reschedule_shared=false, reschedule_primary_standby=true)` |
+| `unpause_shift_all` | Unpause + shift ALL past-due chores | Clear flag → internally call `reschedule_chores_after(user_ids=[this_user], after=now, reschedule_shared=true)` |
+
+**Why this works**: `reschedule_chores_after` already filters chores by `due_date <= after` (line 6448-6456 in chore_manager.py). Chores with due dates in the future are skipped with reason `already_after_boundary`. Chores with no due date are skipped with reason `no_due_date`. In-flight chores (claimed/approved) are skipped with reason `in_flight_state`. Only PENDING chores with past-due dates are rescheduled. This is exactly the desired behavior.
+
+**Implementation flow** (in `set_user_chores_paused`):
+```python
+if paused is False and resume_action in RESUME_ACTIONS_THAT_RESCHEDULE:
+    # 1. Unpause the user (clear pause flag)
+    user_data[DATA_USER_CHORES_PAUSED] = False
+    self._snap_rotation_back_to_primary(assignee_id)
+
+    # 2. Reschedule past-due chores based on resume_action
+    await self.reschedule_chores_after(
+        user_ids=[assignee_id],
+        after=dt_now_utc(),
+        reschedule_shared=(resume_action == "unpause_shift_all"),
+        reschedule_primary_standby=(resume_action in ("unpause_shift_all_primary", "unpause_shift_all")),
+    )
+
+    # 3. Persist & emit
+    self._coordinator._persist_and_update()
+    self.emit(SIGNAL_SUFFIX_USER_UPDATED, user_id=assignee_id)
+```
+
+**Dashboard layout** (All Chores section, when user is paused):
+```
+[   Resume Only   ]    ← default/current behavior
+[   Resume & Shift Independent   ]    ← shifts independent only
+[ Resume & Shift Indep & Primary ]    ← shifts independent + primary-standby
+[   Resume & Shift All Chores    ]    ← shifts everything
+```
+
+Each button calls `pause_user_chores(paused=false, user_name=..., resume_action=...)` with the appropriate value. No frontend chaining of service calls.
+
+**Translations**: New keys `resume_action_*` for service field, `resume_*` for dashboard button labels.
+
+### Files to touch
+- `const.py` — `SERVICE_FIELD_RESUME_ACTION`, `RESUME_ACTION_*` value constants
+- `services.py` — add `resume_action` param to `PAUSE_USER_CHORES_SCHEMA`, define `RESUME_ACTION_VALUES` frozenset, pass to manager
+- `managers/chore_manager.py` — handle `resume_action` in `set_user_chores_paused()`
+- `translations/en.json` — service field description and values
+- `services.yaml` — field definition
+- `translations/en_dashboard.json` — resume button label keys
+- `admin-peruser-v1.yaml`, `admin-shared-v1.yaml` — replace single resume card with conditional 4-button layout when paused
+
+### Relationship to Phase 5c
+Phase 5c delivered the three-toggle reschedule params. Phase 5d's `unpause_shift_all_primary` and `unpause_shift_all` options delegate to `reschedule_chores_after` with `reschedule_primary_standby=true` and `reschedule_shared=true` respectively. Both params exist and are tested. No dependency blockers.
 
 5. **References**
    - [ARCHITECTURE.md](../ARCHITECTURE.md) — Data model, storage, coordinator pattern
