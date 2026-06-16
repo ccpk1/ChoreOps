@@ -714,23 +714,24 @@ class ChoreEngine:
                             const.STANDBY_CLAIM_MODE_ANYTIME,
                             const.STANDBY_CLAIM_MODE_ON_OVERDUE,
                         ):
-                            pass  # Fall through — claimable
-                        else:
                             return (
                                 const.CHORE_STATE_STANDBY,
-                                const.CHORE_STATE_STANDBY,
+                                None,
                             )
+                        return (
+                            const.CHORE_STATE_STANDBY,
+                            const.CHORE_STATE_STANDBY,
+                        )
                     # Not overdue: only anytime can claim
-                    elif standby_claim_mode == const.STANDBY_CLAIM_MODE_ANYTIME:
+                    if standby_claim_mode == const.STANDBY_CLAIM_MODE_ANYTIME:
                         return (
                             const.CHORE_STATE_STANDBY,
                             None,
                         )
-                    else:
-                        return (
-                            const.CHORE_STATE_STANDBY,
-                            const.CHORE_STATE_STANDBY,
-                        )
+                    return (
+                        const.CHORE_STATE_STANDBY,
+                        const.CHORE_STATE_STANDBY,
+                    )
 
                 overdue_handling = chore_data.get(
                     const.DATA_CHORE_OVERDUE_HANDLING_TYPE

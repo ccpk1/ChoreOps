@@ -1179,6 +1179,9 @@ class AssigneeChoreStatusSensor(ChoreOpsCoordinatorEntity, SensorEntity):
             const.ATTR_CHORE_CLAIM_MODE: claim_mode,
             const.ATTR_CAN_APPROVE: can_approve,
             const.ATTR_CHORE_TURN_USER_NAME: turn_assignee_name,
+            const.ATTR_CHORE_ROTATION_CYCLE_OVERRIDE: chore_info.get(
+                const.DATA_CHORE_ROTATION_CYCLE_OVERRIDE, False
+            ),
             # --- 3. Workflow policy (logic drivers) ---
             const.ATTR_DEFAULT_POINTS: chore_info.get(
                 const.DATA_CHORE_DEFAULT_POINTS, const.DEFAULT_ZERO
@@ -2637,6 +2640,10 @@ class SystemChoreSharedStateSensor(ChoreOpsCoordinatorEntity, SensorEntity):
             )
 
         attributes = {
+            # --- 0. Rotation state ---
+            const.ATTR_CHORE_ROTATION_CYCLE_OVERRIDE: chore_info.get(
+                const.DATA_CHORE_ROTATION_CYCLE_OVERRIDE, False
+            ),
             # --- 1. Identity & Meta ---
             const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_SHARED_CHORE,
             const.ATTR_CHORE_NAME: self._chore_name,

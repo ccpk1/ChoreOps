@@ -3363,15 +3363,19 @@ class ChoreManager(BaseManager):
         # Store updated chore
         self._coordinator._data[const.DATA_CHORES][chore_id] = updated_chore
 
-        # Handle rotation cleanup when assigned_user_ids becomes empty
+        # Handle rotation cleanup when assignment changes
         new_assigned = updated_chore.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
-        if not new_assigned and ChoreEngine.is_rotation_mode(updated_chore):
-            updated_chore[const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID] = None
-            updated_chore[const.DATA_CHORE_ROTATION_CYCLE_OVERRIDE] = False
-            const.LOGGER.debug(
-                "Rotation metadata cleared for chore '%s' (all assignees removed)",
-                chore_id,
-            )
+        if ChoreEngine.is_rotation_mode(updated_chore):
+            # Clear open cycle override whenever assignment list changes
+            if const.DATA_CHORE_ASSIGNED_USER_IDS in updates:
+                updated_chore[const.DATA_CHORE_ROTATION_CYCLE_OVERRIDE] = False
+            # Reset current assignee when all assignees are removed
+            if not new_assigned:
+                updated_chore[const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID] = None
+                const.LOGGER.debug(
+                    "Rotation metadata cleared for chore '%s' (all assignees removed)",
+                    chore_id,
+                )
 
         reset_events: set[tuple[str, str, str]] = set()
 
@@ -5338,6 +5342,9 @@ class ChoreManager(BaseManager):
                 translation_key=const.TRANS_KEY_ERROR_CHORE_PAUSED,
             )
 
+        # Clear open cycle override
+        chore_info[const.DATA_CHORE_ROTATION_CYCLE_OVERRIDE] = False
+
         # Set the turn
         chore_info[const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID] = assignee_id
 
@@ -5348,7 +5355,10 @@ class ChoreManager(BaseManager):
         self.emit(
             const.SIGNAL_SUFFIX_CHORE_UPDATED,
             chore_id=chore_id,
-            updated_fields=[const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID],
+            updated_fields=[
+                const.DATA_CHORE_ROTATION_CYCLE_OVERRIDE,
+                const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID,
+            ],
         )
 
         const.LOGGER.info(
@@ -5393,6 +5403,9 @@ class ChoreManager(BaseManager):
                 translation_key=const.TRANS_KEY_ERROR_NO_ASSIGNED_ASSIGNEES,
             )
 
+        # Clear open cycle override
+        chore_info[const.DATA_CHORE_ROTATION_CYCLE_OVERRIDE] = False
+
         # Reset to first assignee
         first_assignee = assigned_assignees[0]
         chore_info[const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID] = first_assignee
@@ -5404,7 +5417,10 @@ class ChoreManager(BaseManager):
         self.emit(
             const.SIGNAL_SUFFIX_CHORE_UPDATED,
             chore_id=chore_id,
-            updated_fields=[const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID],
+            updated_fields=[
+                const.DATA_CHORE_ROTATION_CYCLE_OVERRIDE,
+                const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID,
+            ],
         )
 
         const.LOGGER.info(

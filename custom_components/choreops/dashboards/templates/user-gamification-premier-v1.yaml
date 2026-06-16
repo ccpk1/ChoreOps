@@ -254,7 +254,7 @@ views:
 
                   {%- set pref_exclude_blocked = false -%}
 
-                  {%- set pref_exclude_states = [] -%}  {#-- Example: ['completed', 'completed_by_other', 'paused', 'not_my_turn', 'missed'] --#}
+                  {%- set pref_exclude_states = [] -%}  {#-- Example: ['completed', 'completed_by_other', 'paused', 'not_my_turn', 'standby', 'missed'] --#}
 
                   {%- set pref_exclude_nonrecurring_no_due_date = false -%}
 
@@ -263,6 +263,8 @@ views:
                   {%- set pref_exclude_group_list = [] -%}  {#-- Example: ['later', 'this_week'] --#}
 
                   {%- set pref_use_label_grouping = false -%}
+
+                  {%- set pref_use_standby_grouping = true -%}
 
                   {%- set pref_exclude_label_list = [] -%}  {#-- Example: ['junk_label', 'skip_this'] --#}
 

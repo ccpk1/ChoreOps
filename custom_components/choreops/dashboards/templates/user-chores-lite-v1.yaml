@@ -159,7 +159,7 @@ views:
 
                     {%- set pref_exclude_blocked = false -%}
 
-                    {%- set pref_exclude_states = [] -%}  {#-- Example: ['completed', 'completed_by_other', 'paused', 'not_my_turn', 'missed'] --#}
+                    {%- set pref_exclude_states = [] -%}  {#-- Example: ['completed', 'completed_by_other', 'paused', 'not_my_turn', 'standby', 'missed'] --#}
 
                     {%- set pref_exclude_nonrecurring_no_due_date = false -%}
 
@@ -263,7 +263,7 @@ views:
                         {%- set chore_recurring_frequency = state_attr(chore_sensor_id, 'recurring_frequency') | default('', true) | string | lower -%}
 
                         {%- if not (chore_labels | select('in', pref_exclude_label_list) | list | count > 0) -%}
-                          {%- if chore_status in pref_exclude_states -%}
+                          {%- if chore_status in pref_exclude_states and (chore_status != 'standby' or not state_attr(chore_sensor_id, 'can_claim')) -%}
                           {%- elif pref_exclude_nonrecurring_no_due_date and chore_due_date in [none, 'unknown', 'unavailable'] and chore_recurring_frequency in ['', 'none'] -%}
                           {%- elif pref_max_due_date_days > 0 and chore_due_date not in [none, 'unknown', 'unavailable'] and ((as_timestamp(chore_due_date) | default(0, true)) - (as_timestamp(now()) | default(0, true))) > (pref_max_due_date_days * 86400) -%}
                           {%- elif chore_status == 'overdue' and pref_use_overdue_grouping -%}
@@ -395,6 +395,8 @@ views:
                                   {%- set state_priority = 7 -%}
                                 {%- elif chore_state == 'not_my_turn' -%}
                                   {%- set state_priority = 8 -%}
+                                {%- elif chore_state == 'standby' -%}
+                                  {%- set state_priority = 9 -%}
                                 {%- elif chore_state == 'missed' -%}
                                   {%- set state_priority = 9 -%}
                                 {%- else -%}
@@ -466,7 +468,7 @@ views:
                               'orange' if raw_state == 'due' else
                               'purple' if raw_state == 'claimed' else
                               'green' if raw_state == 'completed' else
-                              'disabled' if raw_state in ['waiting', 'completed_by_other', 'not_my_turn', 'paused'] else
+                              'disabled' if raw_state in ['waiting', 'completed_by_other', 'not_my_turn', 'standby', 'paused'] else
                               'primary'
                             ) -%}
                             {{

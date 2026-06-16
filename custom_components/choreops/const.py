@@ -2617,6 +2617,7 @@ ATTR_POINTS_PRECISION: Final = "points_precision"
 ATTR_CHORE_CLAIM_MODE: Final = "claim_mode"
 ATTR_CHORE_TURN_USER_NAME: Final = "turn_user_name"
 ATTR_CHORE_AVAILABLE_AT: Final = "available_at"
+ATTR_CHORE_ROTATION_CYCLE_OVERRIDE: Final = "rotation_cycle_override"
 
 # Common attributes for chores and rewards in dashboard helper
 ATTR_EID: Final = "eid"

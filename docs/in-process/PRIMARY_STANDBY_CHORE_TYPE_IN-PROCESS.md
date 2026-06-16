@@ -5,7 +5,7 @@
 - **Name / Code**: `rotation_primary_standby` — Primary & Standby Chore Type
 - **Target release / milestone**: 1.1.0
 - **Owner / driver(s)**: TBD
-- **Status**: Not started
+- **Status**: Phase 5a complete — dashboard templates delivered
 
 ## Summary & immediate steps
 
@@ -19,14 +19,14 @@
 | Phase 3 – UX & notifications   | Translations, standby state, overdue notification      | ✅ 100%    | All 10 steps completed. Overdue message type wired, notification handler updated, standby_needed translation added. Decision matrix documented. |
 | Phase 3A – Terminology rename  | "Backup" → "Standby" across all new constants, variables, state/claim mode values, storage keys, and translation keys | ✅ 100%    | 26 renames across 7 Python files + 3 YAML/JSON files via Python rename scripts. Validated: ruff ✅, mypy ✅ (0 ChoreOps errors), 12/12 rotation tests pass. Zero old `BACKUP_ACCESS`/`PRIMARY_BACKUP`/`backup_needed` references remain. |
 | Phase 4 – Testing              | Rotation FSM tests, boundary tests, regression                | ✅ 100%    | 10 tests in new file `test_rotation_primary_standby.py`. Covers: primary always claimable, standby state visibility, anytime/manual_only/on_overdue claim modes, set_rotation_turn override, turn-reset after approval, single-assignee edge case, due-today exclusion, pause activation. 22/22 rotation tests pass with zero regressions. |
-| Phase 5a – Dashboard templates | Status maps, icons, sort order, i18n (choreops-dashboards)    | 0%         | 9 template files + 12+ translation files touched                     |
+| Phase 5a – Dashboard templates | Status maps, icons, layout, i18n (choreops-dashboards) | ✅ 100%    | Restructured rotation action layout: full-width Move to Front/Primary bar + 3-column temp actions (Activate/Set Turn, Activate All, Reset). Reactive standby indicator via Jinja2 `chore_attrs`. Activate All icon `mdi:account-multiple-plus-outline`. Reset icon `mdi:restore`, primary color. Amber warning text for active cycle. Horizontal `"i n"` layout for permanent action. `rotation_cycle_override` lifecycle fixed: cleared on reset, set_turn, and assignment changes. Translation keys `activate_all`, `all_standby_active` added. |
 | Phase 5b – Docs & wiki         | 9 documentation files across 3 repos                          | 0%         | Wiki, architecture, design guide, release checklist                  |
 
 1. **Key objective** – Introduce a `rotation_primary_standby` completion criteria where the first assigned user is always the primary (permanent turn-holder default). Backups see `standby` state and can claim based on the `standby_claim_mode` field: `anytime` (claim immediately), `on_overdue` (claim after due date), or `manual_only` (admin must intervene). Backup activation also occurs when the primary is paused or when an admin uses `set_rotation_turn`. After every completion, the turn always resets to the primary.
 
-2. **Summary of recent work** – Strategic analysis completed 2026-06-05. All design decisions captured (see Decisions section). 90%+ code reuse from existing rotation infrastructure confirmed.
+2. **Summary of recent work** – Phases 0–5a complete. Core implementation, config flow, services, notifications, testing, and dashboard templates all delivered. `rotation_cycle_override` lifecycle fixed across reset/set_turn/assignment-change paths. 22/22 rotation tests passing, zero regressions. Remaining work: Phase 5b (docs & wiki).
 
-3. **Next steps (short term)** – Phase 1: Add `COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY` constant, `CHORE_STATE_STANDBY` derived state, register in criteria options and engine adapters.
+3. **Next steps (short term)** – Phase 5b: Wiki documentation, architecture updates, release checklist sign-off.
 
 4. **Risks / blockers**
    - `standby` is a new derived UI state — must be added to `CHORE_UI_ASSIGNEE_STATES` and all state-allowlist frozensets that need to include it.

@@ -3557,6 +3557,13 @@
           },
           "available_at": {
             "name": "Available At"
+          },
+          "rotation_cycle_override": {
+            "name": "Rotation Cycle Override",
+            "state": {
+              "true": "Open to All",
+              "false": "Normal Rotation"
+            }
           }
         }
       },
