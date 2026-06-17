@@ -618,13 +618,16 @@ class GamificationEngine:
             reason = f"Today: {current_value}/{threshold}"
 
         elif target_type == const.CANONICAL_TARGET_TYPE_COMPLETION_STREAK:
-            achievement_progress = context.get("current_achievement_progress") or {}
-            stored_streak = float(
-                cast("dict[str, Any]", achievement_progress).get(
-                    const.DATA_USER_CURRENT_STREAK,
-                    0,
-                )
-            )
+            # Current completion streak, derived fresh from chore data on every
+            # evaluation. _get_tracked_current_streak() zeroes a chore's streak
+            # once its last completion is older than yesterday, so this value
+            # resets after a fully missed day.
+            #
+            # This previously used max(stored_streak, tracked_streak). The stored
+            # streak (DATA_USER_CURRENT_STREAK) is only ever written from this
+            # same max(), so it behaved as a monotonic high-water-mark that could
+            # never decrease -- a streak would never reset after a missed day.
+            # Use the freshly tracked value alone.
             tracked_streak_raw: Any = cast("Any", context).get(
                 "tracked_current_streak", 0
             )
@@ -633,7 +636,7 @@ class GamificationEngine:
                 if isinstance(tracked_streak_raw, (int, float, str))
                 else 0.0
             )
-            current_value = max(stored_streak, tracked_streak)
+            current_value = tracked_streak
             reason = f"Streak: {current_value}/{threshold}"
 
         elif target_type == const.CANONICAL_TARGET_TYPE_TOTAL_WITH_BASELINE:
