@@ -29,9 +29,13 @@
 
 ## Card: Chores
 
+### Layout & Grid
+
 - `pref_column_count` (default: `3`)
   - Grid columns for chore cards.
   - Allowed: positive integer.
+
+### Time Buckets
 
 - `pref_use_overdue_grouping` (default: `true`)
   - Shows a dedicated overdue group.
@@ -54,6 +58,8 @@
   - Keeps recurring weekly chores in this-week group.
   - When `false`, those chores move to “other” grouping logic.
   - Allowed: `true`, `false`.
+
+### Exclude Filters
 
 - `pref_exclude_completed` (default: `false`)
   - Hides completed chores.
@@ -99,6 +105,37 @@
   - Example: `['junk_label', 'skip_this']`.
   - Allowed: array of label strings.
 
+### Include Filters
+
+Include filters run before all other filtering (Step 0 priority). When set, only chores matching the criteria are processed — all non-matching chores are skipped before exclude checks run.
+
+- `pref_include_label_list` (default: `[]`)
+  - Only includes chores that have at least one matching label. Higher priority than `pref_exclude_label_list`.
+  - When set, chores without any matching label are skipped before any exclude checks run.
+  - Example: `['shared_chores', 'kitchen']` only shows chores tagged with either label.
+  - Allowed: array of label strings.
+
+- `pref_include_group_list` (default: `[]`)
+  - Only includes chores whose scheduled time bucket is in the list. Higher priority than `pref_exclude_group_list`.
+  - Allowed values: `today`, `this_week`, `other`.
+  - `today` includes due-today and overdue chores (both have `primary_group: today`).
+  - `this_week` includes chores due this week.
+  - `other` includes later-dated chores (maps to the Later bucket).
+  - Example: `['today', 'this_week']` only shows chores due today or this week.
+  - Example: `['other']` only shows later-dated chores.
+  - Use `pref_exclude_states: ['overdue']` alongside `today` to hide overdue chores.
+
+- `pref_include_state_list` (default: `[]`)
+  - Only includes chores whose current state is in the list. Higher priority than `pref_exclude_states`.
+  - Example: `['pending', 'due']` only shows pending and due chores.
+  - Allowed: array of lowercase state strings.
+
+### Labels & Sorting
+
+- `pref_use_label_grouping` (default: `false`)
+  - Groups chores by labels instead of time buckets.
+  - Allowed: `true`, `false`.
+
 - `pref_label_display_order` (default: `[]`)
   - Optional explicit label-group order.
   - Labels not listed still appear afterward in alphabetical order.
@@ -108,10 +145,14 @@
   - Sorting mode inside each rendered group.
   - Allowed: `default`, `name_asc`, `name_desc`, `date_asc`, `date_desc`, `by_state_and_date`.
 
+### Display
+
 - `pref_show_chore_description` (default: `true`)
   - Shows the optional description row when a chore has non-empty description text.
   - When `false`, the description row is always hidden.
   - Allowed: `true`, `false`.
+
+### Colors & Accents
 
 - `pref_claim_accent` (default: `#a957fa`)
   - Accent color used for claimed and in-progress chore-state treatments.

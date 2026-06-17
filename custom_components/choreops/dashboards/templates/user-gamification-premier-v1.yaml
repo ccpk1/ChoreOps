@@ -222,15 +222,25 @@ views:
                   << template_snippets.meta_stamp >>
 
 
-                  {#-- 1. User Configuration --#}
+                  {#-- ═══════════════════════════════════════════════════════════════════════ --#}
+                  {#-- PREFERENCE DEFAULTS                                             --#}
+                  {#-- ═══════════════════════════════════════════════════════════════════════ --#}
+                  {#--                                                                       --#}
+                  {#-- Full reference: https://github.com/ccpk1/ChoreOps-Dashboards/blob/main/preferences/user-gamification-premier-v1.md --#}
+                  {#--                                                                       --#}
+                  {#-- Groups: Layout & Grid · Time Buckets · Exclude Filters ·              --#}
+                  {#--         Include Filters · Labels & Sorting · Display ·                --#}
+                  {#--         Colors & Accents · Header & UI Control                        --#}
+                  {#-- ═══════════════════════════════════════════════════════════════════════ --#}
 
                   << template_snippets.user_override_helper >>
 
-                  {%- set pref_chore_row_variant = 'standard' -%}
 
-                  {%- set pref_chore_engine_layout_mode = 'single' -%}
+                  {#-- ── Layout & Grid ─────────────────────────────────────────────────── --#}
 
-                  {%- set pref_ui_control_key_root = 'gamification/chores' -%}
+                  {%- set pref_chore_row_variant = 'standard' -%}  {#-- Options: 'standard', 'kids' --#}
+
+                  {%- set pref_chore_engine_layout_mode = 'single' -%}  {#-- Options: 'single', 'responsive' --#}
 
                   {%- set pref_settings_column_count_mobile = 3 -%}
 
@@ -240,41 +250,63 @@ views:
 
                   {%- set pref_column_count_kids = 3 -%}
 
-                  {%- set pref_use_overdue_grouping = true -%}
 
-                  {%- set pref_today_grouping_mode = 'today_morning' -%}
+                  {#-- ── Time Buckets ─────────────────────────────────────────────────── --#}
 
-                  {%- set pref_include_daily_recurring_in_today = true -%}
+                  {%- set pref_use_overdue_grouping = true -%}  {#-- Allowed: true, false --#}
 
-                  {%- set pref_use_this_week_grouping = true -%}
+                  {%- set pref_today_grouping_mode = 'today_morning' -%}  {#-- Options: 'off', 'today', 'today_morning' --#}
 
-                  {%- set pref_include_weekly_recurring_in_this_week = true -%}
+                  {%- set pref_include_daily_recurring_in_today = true -%}  {#-- Allowed: true, false --#}
 
-                  {%- set pref_exclude_completed = false -%}
+                  {%- set pref_use_this_week_grouping = true -%}  {#-- Allowed: true, false --#}
 
-                  {%- set pref_exclude_blocked = false -%}
+                  {%- set pref_include_weekly_recurring_in_this_week = true -%}  {#-- Allowed: true, false --#}
+
+                  {%- set pref_use_standby_grouping = true -%}  {#-- Allowed: true, false --#}
+
+
+                  {#-- ── Exclude Filters ──────────────────────────────────────────────── --#}
+
+                  {%- set pref_exclude_completed = false -%}  {#-- Allowed: true, false --#}
+
+                  {%- set pref_exclude_blocked = false -%}  {#-- Allowed: true, false --#}
 
                   {%- set pref_exclude_states = [] -%}  {#-- Example: ['completed', 'completed_by_other', 'paused', 'not_my_turn', 'standby', 'missed'] --#}
 
-                  {%- set pref_exclude_nonrecurring_no_due_date = false -%}
+                  {%- set pref_exclude_nonrecurring_no_due_date = false -%}  {#-- Allowed: true, false --#}
 
                   {%- set pref_max_due_date_days = 0 -%}  {#-- 0 disables; positive integer hides chores due beyond this many days ahead. --#}
 
                   {%- set pref_exclude_group_list = [] -%}  {#-- Example: ['later', 'this_week'] --#}
 
-                  {%- set pref_use_label_grouping = false -%}
-
-                  {%- set pref_use_standby_grouping = true -%}
-
                   {%- set pref_exclude_label_list = [] -%}  {#-- Example: ['junk_label', 'skip_this'] --#}
+
+
+                  {#-- ── Include Filters (whitelist, Step 0 priority) ─────────────────── --#}
+
+                  {%- set pref_include_label_list = [] -%}  {#-- Example: ['shared_chores', 'kitchen'] --#}
+
+                  {%- set pref_include_group_list = [] -%}  {#-- Values: 'today', 'this_week', 'other'. Example: ['today', 'this_week'] --#}
+
+                  {%- set pref_include_state_list = [] -%}  {#-- Example: ['pending', 'due'] --#}
+
+
+                  {#-- ── Labels & Sorting ─────────────────────────────────────────────── --#}
+
+                  {%- set pref_use_label_grouping = false -%}  {#-- Allowed: true, false --#}
 
                   {%- set pref_label_display_order = [] -%}  {#-- Example: ['Kitchen', 'Bedroom', 'Outdoor'] --#}
 
                   {%- set pref_sort_within_groups = 'by_state_and_date' -%}  {#-- Options: 'default', 'name_asc', 'name_desc', 'date_asc', 'date_desc', 'by_state_and_date' --#}
 
-                  {%- set pref_show_chore_description = false -%}
 
-                  {%- set pref_default_header_collapsed = false -%}
+                  {#-- ── Display ──────────────────────────────────────────────────────── --#}
+
+                  {%- set pref_show_chore_description = false -%}  {#-- Allowed: true, false --#}
+
+
+                  {#-- ── Colors & Accents ─────────────────────────────────────────────── --#}
 
                   {%- set pref_claim_accent = '#a957fa' -%}  {#-- Accent color for claimed state highlights. --#}
 
@@ -284,11 +316,20 @@ views:
 
                   {%- set pref_steal_accent = '#F2C94C' -%}  {#-- Accent color for steal-available state highlights. --#}
 
-                  {%- set pref_primary_tint_mix_pct = 14 -%}  {#-- Percent of var(--primary-color) mixed into the main Chores header background when fill is enabled. Allowed: 0-100. --#}
+                  {%- set pref_standby_accent = '#5B8DEF' -%}  {#-- Accent color for standby-available state highlights. --#}
 
-                  {%- set pref_show_header_background = true -%}  {#-- Set to false to remove the main Chores header background fill and leave it transparent. Allowed: true, false. --#}
 
-                  {%- set pref_show_header_thin_border = true -%}  {#-- Set to false to remove the thin outer border line. Accent borders are unaffected. Allowed: true, false. --#}
+                  {#-- ── Header & UI Control ──────────────────────────────────────────── --#}
+
+                  {%- set pref_ui_control_key_root = 'gamification/chores' -%}  {#-- Slash-delimited key path for per-user UI state. --#}
+
+                  {%- set pref_default_header_collapsed = false -%}  {#-- Allowed: true, false --#}
+
+                  {%- set pref_primary_tint_mix_pct = 14 -%}  {#-- 0-100: percent of var(--primary-color) mixed into header background when fill is enabled. --#}
+
+                  {%- set pref_show_header_background = true -%}  {#-- Set to false to remove header background fill. Allowed: true, false. --#}
+
+                  {%- set pref_show_header_thin_border = true -%}  {#-- Set to false to remove the thin outer border line. Accent borders unaffected. Allowed: true, false. --#}
 
 
                   {#-- 2. Dynamic Lookups & Validations --#}

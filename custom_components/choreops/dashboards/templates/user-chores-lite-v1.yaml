@@ -141,37 +141,63 @@ views:
                     << template_snippets.meta_stamp >>
 
 
-                    {#-- 1. User Configuration --#}
+                    {#-- ═══════════════════════════════════════════════════════════════════════ --#}
+                    {#-- PREFERENCE DEFAULTS                                             --#}
+                    {#-- ═══════════════════════════════════════════════════════════════════════ --#}
+                    {#--                                                                       --#}
+                    {#-- Full reference: https://github.com/ccpk1/ChoreOps-Dashboards/blob/main/preferences/user-chores-lite-v1.md --#}
+                    {#--                                                                       --#}
+                    {#-- Groups: Time Buckets · Exclude Filters · Include Filters ·            --#}
+                    {#--         Labels & Sorting                                              --#}
+                    {#-- ═══════════════════════════════════════════════════════════════════════ --#}
 
                     << template_snippets.user_override_helper | indent(width=20, first=true) >>
 
-                    {%- set pref_use_overdue_grouping = true -%}
 
-                    {%- set pref_today_grouping_mode = 'today_morning' -%}
+                    {#-- ── Time Buckets ─────────────────────────────────────────────────── --#}
 
-                    {%- set pref_include_daily_recurring_in_today = true -%}
+                    {%- set pref_use_overdue_grouping = true -%}  {#-- Allowed: true, false --#}
 
-                    {%- set pref_use_this_week_grouping = true -%}
+                    {%- set pref_today_grouping_mode = 'today_morning' -%}  {#-- Options: 'off', 'today', 'today_morning' --#}
 
-                    {%- set pref_include_weekly_recurring_in_this_week = true -%}
+                    {%- set pref_include_daily_recurring_in_today = true -%}  {#-- Allowed: true, false --#}
 
-                    {%- set pref_exclude_completed = false -%}
+                    {%- set pref_use_this_week_grouping = true -%}  {#-- Allowed: true, false --#}
 
-                    {%- set pref_exclude_blocked = false -%}
+                    {%- set pref_include_weekly_recurring_in_this_week = true -%}  {#-- Allowed: true, false --#}
+
+
+                    {#-- ── Exclude Filters ──────────────────────────────────────────────── --#}
+
+                    {%- set pref_exclude_completed = false -%}  {#-- Allowed: true, false --#}
+
+                    {%- set pref_exclude_blocked = false -%}  {#-- Allowed: true, false --#}
 
                     {%- set pref_exclude_states = [] -%}  {#-- Example: ['completed', 'completed_by_other', 'paused', 'not_my_turn', 'standby', 'missed'] --#}
 
-                    {%- set pref_exclude_nonrecurring_no_due_date = false -%}
+                    {%- set pref_exclude_nonrecurring_no_due_date = false -%}  {#-- Allowed: true, false --#}
 
-                    {%- set pref_max_due_date_days = 0 -%}
+                    {%- set pref_max_due_date_days = 0 -%}  {#-- 0 disables; >0 hides chores due beyond N days. --#}
 
-                    {%- set pref_exclude_group_list = [] -%}
+                    {%- set pref_exclude_group_list = [] -%}  {#-- Example: ['later', 'this_week'] --#}
 
-                    {%- set pref_use_label_grouping = false -%}
+                    {%- set pref_exclude_label_list = [] -%}  {#-- Example: ['junk_label', 'skip_this'] --#}
 
-                    {%- set pref_exclude_label_list = [] -%}
 
-                    {%- set pref_label_display_order = [] -%}
+                    {#-- ── Include Filters (whitelist, Step 0 priority) ─────────────────── --#}
+
+                    {%- set pref_include_label_list = [] -%}
+
+                    {%- set pref_include_group_list = [] -%}  {#-- Values: 'today', 'this_week', 'other' --#}
+
+                    {%- set pref_include_state_list = [] -%}  {#-- Example: ['pending', 'due'] --#}
+
+
+                    {#-- ── Labels & Sorting ─────────────────────────────────────────────── --#}
+
+                    {%- set pref_use_label_grouping = false -%}  {#-- Allowed: true, false --#}
+
+                    {%- set pref_label_display_order = [] -%}  {#-- Example: ['Kitchen', 'Bedroom', 'Outdoor'] --#}
 
                     {%- set pref_sort_within_groups = 'by_state_and_date' -%}
 
@@ -212,6 +238,17 @@ views:
                     {%- set pref_exclude_group_list = ns_group_filter.valid -%}
                     {%- set pref_use_label_grouping = pref_use_label_grouping | default(false, true) -%}
                     {%- set pref_exclude_label_list = pref_exclude_label_list if pref_exclude_label_list is iterable else [] -%}
+                    {%- set pref_include_label_list = pref_include_label_list if pref_include_label_list is iterable else [] -%}
+                    {%- set pref_include_group_list = pref_include_group_list if pref_include_group_list is iterable and pref_include_group_list is not string else [] -%}
+                    {%- set pref_include_group_list = pref_include_group_list | map('lower') | list -%}
+                    {%- set ns_valid_include_groups = namespace(items=[]) -%}
+                    {%- for group_id in pref_include_group_list -%}
+                      {%- if group_id in ['today', 'this_week', 'other'] and group_id not in ns_valid_include_groups.items -%}
+                        {%- set ns_valid_include_groups.items = ns_valid_include_groups.items + [group_id] -%}
+                      {%- endif -%}
+                    {%- endfor -%}
+                    {%- set pref_include_group_list = ns_valid_include_groups.items -%}
+                    {%- set pref_include_state_list = pref_include_state_list if pref_include_state_list is iterable else [] -%}
                     {%- set pref_label_display_order = pref_label_display_order if pref_label_display_order is iterable else [] -%}
 
 
@@ -262,35 +299,49 @@ views:
                         {%- set chore_due_date = state_attr(chore_sensor_id, 'due_date') -%}
                         {%- set chore_recurring_frequency = state_attr(chore_sensor_id, 'recurring_frequency') | default('', true) | string | lower -%}
 
-                        {%- if not (chore_labels | select('in', pref_exclude_label_list) | list | count > 0) -%}
-                          {%- if chore_status in pref_exclude_states and (chore_status != 'standby' or not state_attr(chore_sensor_id, 'can_claim')) -%}
-                          {%- elif pref_exclude_nonrecurring_no_due_date and chore_due_date in [none, 'unknown', 'unavailable'] and chore_recurring_frequency in ['', 'none'] -%}
-                          {%- elif pref_max_due_date_days > 0 and chore_due_date not in [none, 'unknown', 'unavailable'] and ((as_timestamp(chore_due_date) | default(0, true)) - (as_timestamp(now()) | default(0, true))) > (pref_max_due_date_days * 86400) -%}
-                          {%- elif chore_status == 'overdue' and pref_use_overdue_grouping -%}
-                            {%- set ns.overdue_buttons = ns.overdue_buttons + [chore_sensor_id] -%}
-                            {%- set ns.visible_count = ns.visible_count + 1 -%}
-                          {%- elif pref_use_label_grouping and (chore_labels | default([], true) | list | length > 0) -%}
-                            {%- set ns.label_group_candidates = ns.label_group_candidates + [{'eid': chore_sensor_id, 'labels': chore_labels}] -%}
-                          {%- elif chore_primary_group == 'today' and not pref_include_daily_recurring_in_today -%}
-                            {%- set ns.other_buttons = ns.other_buttons + [chore_sensor_id] -%}
-                            {%- set ns.visible_count = ns.visible_count + 1 -%}
-                          {%- elif chore_primary_group == 'this_week' and not pref_include_weekly_recurring_in_this_week -%}
-                            {%- set ns.other_buttons = ns.other_buttons + [chore_sensor_id] -%}
-                            {%- set ns.visible_count = ns.visible_count + 1 -%}
-                          {%- elif chore_primary_group == 'today' and pref_today_grouping_mode == 'today_morning' and chore_is_today_am == true -%}
-                            {%- set ns.am_buttons = ns.am_buttons + [chore_sensor_id] -%}
-                            {%- set ns.visible_count = ns.visible_count + 1 -%}
-                          {%- elif chore_primary_group == 'today' and pref_today_grouping_mode in ['today', 'today_morning'] -%}
-                            {%- set ns.today_buttons = ns.today_buttons + [chore_sensor_id] -%}
-                            {%- set ns.visible_count = ns.visible_count + 1 -%}
-                          {%- elif chore_primary_group == 'this_week' and pref_use_this_week_grouping -%}
-                            {%- set ns.this_week_buttons = ns.this_week_buttons + [chore_sensor_id] -%}
-                            {%- set ns.visible_count = ns.visible_count + 1 -%}
-                          {%- else -%}
-                            {%- set ns.other_buttons = ns.other_buttons + [chore_sensor_id] -%}
-                            {%- set ns.visible_count = ns.visible_count + 1 -%}
-                          {%- endif -%}
+                        {#-- Step 0: Include filters (whitelist, evaluated before all other filtering) --#}
+                        {%- set ns_include_pass = namespace(value=true) -%}
+                        {%- if pref_include_label_list | length > 0 -%}
+                          {%- set ns_include_pass.value = ns_include_pass.value and (chore_labels | select('in', pref_include_label_list) | list | count > 0) -%}
                         {%- endif -%}
+                        {%- if pref_include_group_list | length > 0 -%}
+                          {%- set ns_include_pass.value = ns_include_pass.value and (chore_primary_group in pref_include_group_list) -%}
+                        {%- endif -%}
+                        {%- if pref_include_state_list | length > 0 -%}
+                          {%- set ns_include_pass.value = ns_include_pass.value and (chore_status in pref_include_state_list) -%}
+                        {%- endif -%}
+
+                        {%- if ns_include_pass.value -%}
+                          {%- if not (chore_labels | select('in', pref_exclude_label_list) | list | count > 0) -%}
+                            {%- if chore_status in pref_exclude_states and (chore_status != 'standby' or not state_attr(chore_sensor_id, 'can_claim')) -%}
+                            {%- elif pref_exclude_nonrecurring_no_due_date and chore_due_date in [none, 'unknown', 'unavailable'] and chore_recurring_frequency in ['', 'none'] -%}
+                            {%- elif pref_max_due_date_days > 0 and chore_due_date not in [none, 'unknown', 'unavailable'] and ((as_timestamp(chore_due_date) | default(0, true)) - (as_timestamp(now()) | default(0, true))) > (pref_max_due_date_days * 86400) -%}
+                            {%- elif chore_status == 'overdue' and pref_use_overdue_grouping -%}
+                              {%- set ns.overdue_buttons = ns.overdue_buttons + [chore_sensor_id] -%}
+                              {%- set ns.visible_count = ns.visible_count + 1 -%}
+                            {%- elif pref_use_label_grouping and (chore_labels | default([], true) | list | length > 0) -%}
+                              {%- set ns.label_group_candidates = ns.label_group_candidates + [{'eid': chore_sensor_id, 'labels': chore_labels}] -%}
+                            {%- elif chore_primary_group == 'today' and not pref_include_daily_recurring_in_today -%}
+                              {%- set ns.other_buttons = ns.other_buttons + [chore_sensor_id] -%}
+                              {%- set ns.visible_count = ns.visible_count + 1 -%}
+                            {%- elif chore_primary_group == 'this_week' and not pref_include_weekly_recurring_in_this_week -%}
+                              {%- set ns.other_buttons = ns.other_buttons + [chore_sensor_id] -%}
+                              {%- set ns.visible_count = ns.visible_count + 1 -%}
+                            {%- elif chore_primary_group == 'today' and pref_today_grouping_mode == 'today_morning' and chore_is_today_am == true -%}
+                              {%- set ns.am_buttons = ns.am_buttons + [chore_sensor_id] -%}
+                              {%- set ns.visible_count = ns.visible_count + 1 -%}
+                            {%- elif chore_primary_group == 'today' and pref_today_grouping_mode in ['today', 'today_morning'] -%}
+                              {%- set ns.today_buttons = ns.today_buttons + [chore_sensor_id] -%}
+                              {%- set ns.visible_count = ns.visible_count + 1 -%}
+                            {%- elif chore_primary_group == 'this_week' and pref_use_this_week_grouping -%}
+                              {%- set ns.this_week_buttons = ns.this_week_buttons + [chore_sensor_id] -%}
+                              {%- set ns.visible_count = ns.visible_count + 1 -%}
+                            {%- else -%}
+                              {%- set ns.other_buttons = ns.other_buttons + [chore_sensor_id] -%}
+                              {%- set ns.visible_count = ns.visible_count + 1 -%}
+                            {%- endif -%}
+                          {%- endif -%}{#-- ends Step 1 exclude label check --#}
+                        {%- endif -%}{#-- ends Step 0 include pass --#}
                       {%- endfor -%}
 
                       {%- if pref_use_label_grouping -%}

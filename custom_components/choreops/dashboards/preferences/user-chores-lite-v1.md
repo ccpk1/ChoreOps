@@ -36,6 +36,8 @@
 
 ## Card: Chores
 
+### Time Buckets
+
 - `pref_use_overdue_grouping` (default: `true`)
   - Shows a dedicated overdue group.
 
@@ -51,6 +53,8 @@
 
 - `pref_include_weekly_recurring_in_this_week` (default: `true`)
   - Keeps recurring weekly chores in the this-week group.
+
+### Exclude Filters
 
 - `pref_exclude_completed` (default: `false`)
   - Hides completed chores.
@@ -82,11 +86,37 @@
   - Example: `['later', 'this_week']` hides the Later and Due This Week buckets.
   - In `today_morning` mode, excluding `today` hides only the later-today bucket. Exclude both `today_morning` and `today` to hide all today chores.
 
-- `pref_use_label_grouping` (default: `false`)
-  - Groups chores by labels instead of time buckets.
-
 - `pref_exclude_label_list` (default: `[]`)
   - Excludes chores containing any listed labels.
+
+### Include Filters
+
+Include filters run before all other filtering (Step 0 priority). When set, only chores matching the criteria are processed — all non-matching chores are skipped before exclude checks run.
+
+- `pref_include_label_list` (default: `[]`)
+  - Only includes chores that have at least one matching label. Higher priority than `pref_exclude_label_list`.
+  - Example: `['shared_chores', 'kitchen']` only shows chores tagged with either label.
+  - Allowed: array of label strings.
+
+- `pref_include_group_list` (default: `[]`)
+  - Only includes chores whose scheduled time bucket is in the list. Higher priority than `pref_exclude_group_list`.
+  - Allowed values: `today`, `this_week`, `other`.
+  - `today` includes due-today and overdue chores (both have `primary_group: today`).
+  - `this_week` includes chores due this week.
+  - `other` includes later-dated chores (maps to the Later bucket).
+  - Example: `['today', 'this_week']` only shows chores due today or this week.
+  - Example: `['other']` only shows later-dated chores.
+  - Use `pref_exclude_states: ['overdue']` alongside `today` to hide overdue chores.
+
+- `pref_include_state_list` (default: `[]`)
+  - Only includes chores whose current state is in the list. Higher priority than `pref_exclude_states`.
+  - Example: `['pending', 'due']` only shows pending and due chores.
+  - Allowed: array of lowercase state strings.
+
+### Labels & Sorting
+
+- `pref_use_label_grouping` (default: `false`)
+  - Groups chores by labels instead of time buckets.
 
 - `pref_label_display_order` (default: `[]`)
   - Optional explicit label-group order.

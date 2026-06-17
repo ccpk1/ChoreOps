@@ -21,13 +21,21 @@
   - The source of truth is the ChoreOps General Options setting surfaced as `dashboard_config.points_precision`.
   - `fixed_0` remains the fallback when the helper value is missing during transition.
 
+## Card: Chores
+
+### Layout & Grid
+
 - `pref_chore_row_variant` (default: `standard`)
   - Selects which shared chore row template the Chores card uses.
   - `standard` uses `chore_row_v1`.
   - `kids` uses `chore_row_kids_v1`.
   - Allowed: `standard`, `kids`.
 
-## Card: Chores
+- `pref_chore_engine_layout_mode` (default: `responsive`)
+  - Controls whether column counts adapt to screen width.
+  - `single` uses one set of column preferences for all widths.
+  - `responsive` uses separate mobile and wide column preferences.
+  - Allowed: `single`, `responsive`.
 
 - `pref_column_count_mobile_standard` (default: `1`)
   - Grid columns for chore cards on mobile-width screens when using the `standard` row variant.
@@ -49,9 +57,11 @@
   - Grid columns for Chores settings buttons on narrow screens.
   - Allowed: positive integer.
 
-- `pref_settings_column_count_wide` (default: `10`)
+- `pref_settings_column_count_wide` (default: `8`)
   - Grid columns for Chores settings buttons on wide screens.
   - Allowed: positive integer.
+
+### Time Buckets
 
 - `pref_use_overdue_grouping` (default: `true`)
   - Shows a dedicated overdue group.
@@ -77,6 +87,8 @@
   - Keeps recurring weekly chores in this-week group.
   - When `false`, those chores move to “other” grouping logic.
   - Allowed: `true`, `false`.
+
+### Exclude Filters
 
 - `pref_exclude_completed` (default: `false`)
   - Hides completed chores.
@@ -127,6 +139,47 @@
   - Example: `['junk_label', 'skip_this']`.
   - Allowed: array of label strings.
 
+- Completed exclusion behavior
+  - `pref_exclude_states` remains the template-authored base exclusion list.
+  - The gear-panel completed toggle only manages whether `completed` is effectively included in that exclusion list for the current user.
+  - It does not overwrite the rest of `pref_exclude_states`.
+
+- Blocked-state exclusion behavior
+  - `pref_exclude_states` remains the template-authored base exclusion list.
+  - The gear-panel blocked toggle only manages whether `completed_by_other`, `not_my_turn`, and `missed` are effectively included for the current user.
+  - It does not overwrite the rest of `pref_exclude_states`.
+
+### Include Filters
+
+Include filters run before all other filtering (Step 0 priority). When set, only chores matching the criteria are processed — all non-matching chores are skipped before exclude checks run.
+
+- `pref_include_label_list` (default: `[]`)
+  - Only includes chores that have at least one matching label. Higher priority than `pref_exclude_label_list`.
+  - When set, chores without any matching label are skipped before any exclude checks run.
+  - Example: `['shared_chores', 'kitchen']` only shows chores tagged with either label.
+  - Allowed: array of label strings.
+
+- `pref_include_group_list` (default: `[]`)
+  - Only includes chores whose scheduled time bucket is in the list. Higher priority than `pref_exclude_group_list`.
+  - Allowed values: `today`, `this_week`, `other`.
+  - `today` includes due-today and overdue chores (both have `primary_group: today`).
+  - `this_week` includes chores due this week.
+  - `other` includes later-dated chores (maps to the Later bucket).
+  - Example: `['today', 'this_week']` only shows chores due today or this week.
+  - Example: `['other']` only shows later-dated chores.
+  - Use `pref_exclude_states: ['overdue']` alongside `today` to hide overdue chores.
+
+- `pref_include_state_list` (default: `[]`)
+  - Only includes chores whose current state is in the list. Higher priority than `pref_exclude_states`.
+  - Example: `['pending', 'due']` only shows pending and due chores.
+  - Allowed: array of lowercase state strings.
+
+### Labels & Sorting
+
+- `pref_use_label_grouping` (default: `false`)
+  - Groups chores by labels instead of time buckets.
+  - Allowed: `true`, `false`.
+
 - `pref_label_display_order` (default: `[]`)
   - Optional explicit label-group order.
   - Labels not listed still appear afterward in alphabetical order.
@@ -136,11 +189,23 @@
   - Sorting mode inside each rendered group.
   - Allowed: `default`, `name_asc`, `name_desc`, `date_asc`, `date_desc`, `by_state_and_date`.
 
+- Sort override behavior
+  - The gear-panel sort control cycles through `default`, `name_asc`, `name_desc`, `date_asc`, `date_desc`, and `by_state_and_date`.
+  - The selected mode is stored per user in `ui_control`.
+  - When the cycle returns to the template-authored `pref_sort_within_groups`, the stored override is removed.
+
+### Display
+
 - `pref_show_chore_description` (default: `false`)
   - Shows the optional description row when a chore has non-empty description text.
   - When `false`, the description row is always hidden.
   - The kids row variant keeps the simplified tile layout and may ignore description content even when enabled.
   - Allowed: `true`, `false`.
+
+- `pref_claim_accent` (default: `#a957fa`)
+  - Accent color used for claimed and in-progress chore-state treatments.
+  - Applies to shared chore-row variants that opt into the shared accent contract.
+### Colors & Accents
 
 - `pref_claim_accent` (default: `#a957fa`)
   - Accent color used for claimed and in-progress chore-state treatments.
@@ -163,6 +228,8 @@
   - Accent color used for `standby_available` (actionable standby) treatments.
   - Muted blue — noticeable but subdued, distinct from urgency signaling.
   - Applies to shared chore-row card background tint, due-text color, and action-affordance emphasis.
+
+### Header & UI Control
 
 - `pref_ui_control_key_root` (default: `chores`)
   - Sets the `ui_control` branch used by this chores card.
@@ -198,21 +265,6 @@
   - These settings override the template defaults only for the current user.
   - Removing the stored key falls back to the template preferences again.
 
-- Completed exclusion behavior
-  - `pref_exclude_states` remains the template-authored base exclusion list.
-  - The gear-panel completed toggle only manages whether `completed` is effectively included in that exclusion list for the current user.
-  - It does not overwrite the rest of `pref_exclude_states`.
-
-- Blocked-state exclusion behavior
-  - `pref_exclude_states` remains the template-authored base exclusion list.
-  - The gear-panel blocked toggle only manages whether `completed_by_other`, `not_my_turn`, and `missed` are effectively included for the current user.
-  - It does not overwrite the rest of `pref_exclude_states`.
-
-- Sort override behavior
-  - The gear-panel sort control cycles through `default`, `name_asc`, `name_desc`, `date_asc`, `date_desc`, and `by_state_and_date`.
-  - The selected mode is stored per user in `ui_control`.
-  - When the cycle returns to the template-authored `pref_sort_within_groups`, the stored override is removed.
-
 - Chores header collapse state
   - The Chores section header supports a persisted per-user collapse toggle.
   - The template uses the branch from `pref_ui_control_key_root` and stores the header state at `header_collapse` under that root.
@@ -229,4 +281,8 @@
 - Hide the Later group: add `later` to `pref_exclude_group_list` (for example `['later']`).
 - Build a due-focused card: add `later` and `this_week` to `pref_exclude_group_list`.
 - Build a label board: set `pref_use_label_grouping: true` and define `pref_label_display_order`.
+- Build a kitchen-only card: set `pref_include_label_list: ['kitchen']` — only chores with the kitchen label appear.
+- Build a card for today only (performance-focused): set `pref_include_group_list: ['today']` — skips all non-today chores early in the loop.
+- Build a pending-approval card: set `pref_include_state_list: ['claimed', 'completed']` — only chores needing action.
+- Combine include filters: `pref_include_group_list: ['today', 'this_week']` + `pref_include_label_list: ['kitchen', 'bathroom']` — only today/this-week chores with those labels.
 - Prioritize urgent work: keep `pref_use_overdue_grouping: true` and use `pref_sort_within_groups: by_state_and_date`.

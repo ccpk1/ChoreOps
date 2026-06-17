@@ -15,9 +15,14 @@
 
 ## Card: Chores
 
+### Layout & Grid
+
 - `pref_column_count` (default: `2`)
   - Grid columns for chore buttons.
   - Allowed: positive integer.
+
+### Time Buckets
+
 - `pref_use_overdue_grouping` (default: `true`)
   - Show a dedicated overdue group.
   - Allowed: `true`, `false`.
@@ -33,6 +38,9 @@
 - `pref_include_weekly_recurring_in_this_week` (default: `true`)
   - Keep recurring weekly chores in this-week group.
   - Allowed: `true`, `false`.
+
+### Exclude Filters
+
 - `pref_exclude_completed` (default: `false`)
   - Hide completed chores from the display.
   - Allowed: `true`, `false`.
@@ -53,12 +61,37 @@
   - Example: `['later']` hides the Later bucket.
   - Example: `['later', 'this_week']` hides the Later and Due This Week buckets.
   - When `pref_use_today_grouping` is `true`, exclude both `today_morning` and `today` to hide all today chores.
-- `pref_use_label_grouping` (default: `false`)
-  - Group chores by labels.
-  - Allowed: `true`, `false`.
 - `pref_exclude_label_list` (default: `[]`)
   - Exclude chores that contain any listed labels.
   - Allowed: array of label strings.
+
+### Include Filters
+
+Include filters run before all other filtering (Step 0 priority). When set, only chores matching the criteria are processed — all non-matching chores are skipped before exclude checks run.
+
+- `pref_include_label_list` (default: `[]`)
+  - Only includes chores that have at least one matching label. Higher priority than `pref_exclude_label_list`.
+  - Example: `['shared_chores', 'kitchen']` only shows chores tagged with either label.
+  - Allowed: array of label strings.
+- `pref_include_group_list` (default: `[]`)
+  - Only includes chores whose scheduled time bucket is in the list. Higher priority than `pref_exclude_group_list`.
+  - Allowed values: `today`, `this_week`, `other`.
+  - `today` includes due-today and overdue chores (both have `primary_group: today`).
+  - `this_week` includes chores due this week.
+  - `other` includes later-dated chores (maps to the Later bucket).
+  - Example: `['today', 'this_week']` only shows chores due today or this week.
+  - Example: `['other']` only shows later-dated chores.
+  - Use `pref_exclude_states: ['overdue']` alongside `today` to hide overdue chores.
+- `pref_include_state_list` (default: `[]`)
+  - Only includes chores whose current state is in the list. Higher priority than `pref_exclude_completed`.
+  - Example: `['pending', 'due']` only shows pending and due chores.
+  - Allowed: array of lowercase state strings.
+
+### Labels & Sorting
+
+- `pref_use_label_grouping` (default: `false`)
+  - Group chores by labels.
+  - Allowed: `true`, `false`.
 - `pref_label_display_order` (default: `[]`)
   - Optional explicit label group order.
   - Allowed: array of label strings.

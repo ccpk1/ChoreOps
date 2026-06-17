@@ -72,6 +72,8 @@ Recommended ranges:
   - Grid columns for Chores settings buttons on wide screens.
   - Allowed: positive integer.
 
+### Time Buckets
+
 - `pref_use_overdue_grouping` (default: `true`)
   - Shows a dedicated overdue group.
   - Allowed: `true`, `false`.
@@ -132,19 +134,78 @@ Recommended ranges:
   - Example: `['later', 'this_week']` hides the Later and Due This Week buckets.
   - In `today_morning` mode, excluding `today` hides only the later-today bucket. Exclude both `today_morning` and `today` to hide all today chores.
 
-- `pref_use_label_grouping` (default: `false`)
-  - Groups chores by labels instead of time buckets.
+### Exclude Filters
+
+- `pref_exclude_completed` (default: `false`)
+  - Hides completed chores.
+  - If set to `true`, `completed` is automatically added to `pref_exclude_states` when missing.
   - Allowed: `true`, `false`.
 
-- `pref_use_standby_grouping` (default: `true`)
-  - Groups standbys into a dedicated standby section at the bottom of the chore list.
-  - Actionable standbys (overdue global state + `can_claim=true`) still route to the overdue group.
+- `pref_exclude_blocked` (default: `false`)
+  - Hides blocked-result chores.
+  - If set to `true`, `completed_by_other`, `not_my_turn`, and `missed` are automatically added to `pref_exclude_states` when missing.
   - Allowed: `true`, `false`.
+
+- `pref_exclude_states` (default: `[]`)
+  - Excludes chores by state.
+  - Example: `['completed', 'completed_by_other', 'not_my_turn', 'missed']`.
+  - Allowed: array of lowercase state strings.
+
+- `pref_exclude_nonrecurring_no_due_date` (default: `false`)
+  - Hides chores that are both non-recurring and missing a due date.
+  - Daily chores without a due date are not affected.
+  - Allowed: `true`, `false`.
+
+- `pref_max_due_date_days` (default: `0`)
+  - Hides chores whose due date is more than this many days ahead.
+  - Applies only to chores that have a due date.
+  - `0` disables the filter.
+  - Allowed: `0` or a positive integer.
+
+- `pref_exclude_group_list` (default: `[]`)
+  - Excludes one or more rendered chore groups from the card.
+  - Allowed values: `overdue`, `today_morning`, `today`, `this_week`, `later`, `standby`.
+  - Exclusions apply after the dashboard resolves which groups exist.
+  - If a listed group does not exist in the current configuration, it is ignored.
+  - Example: `['later']` hides the Later bucket.
+  - Example: `['later', 'this_week']` hides the Later and Due This Week buckets.
+  - In `today_morning` mode, excluding `today` hides only the later-today bucket. Exclude both `today_morning` and `today` to hide all today chores.
 
 - `pref_exclude_label_list` (default: `[]`)
   - Excludes chores containing any listed labels.
   - Example: `['junk_label', 'skip_this']`.
   - Allowed: array of label strings.
+
+### Include Filters
+
+Include filters run before all other filtering (Step 0 priority). When set, only chores matching the criteria are processed — all non-matching chores are skipped before exclude checks run.
+
+- `pref_include_label_list` (default: `[]`)
+  - Only includes chores that have at least one matching label. Higher priority than `pref_exclude_label_list`.
+  - When set, chores without any matching label are skipped before any exclude checks run.
+  - Example: `['shared_chores', 'kitchen']` only shows chores tagged with either label.
+  - Allowed: array of label strings.
+
+- `pref_include_group_list` (default: `[]`)
+  - Only includes chores whose scheduled time bucket is in the list. Higher priority than `pref_exclude_group_list`.
+  - Allowed values: `today`, `this_week`, `other`.
+  - `today` includes due-today and overdue chores (both have `primary_group: today`).
+  - `this_week` includes chores due this week.
+  - `other` includes later-dated chores (maps to the Later bucket).
+  - Example: `['today', 'this_week']` only shows chores due today or this week.
+  - Example: `['other']` only shows later-dated chores.
+  - Use `pref_exclude_states: ['overdue']` alongside `today` to hide overdue chores.
+
+- `pref_include_state_list` (default: `[]`)
+  - Only includes chores whose current state is in the list. Higher priority than `pref_exclude_states`.
+  - Example: `['pending', 'due']` only shows pending and due chores.
+  - Allowed: array of lowercase state strings.
+
+### Labels & Sorting
+
+- `pref_use_label_grouping` (default: `false`)
+  - Groups chores by labels instead of time buckets.
+  - Allowed: `true`, `false`.
 
 - `pref_label_display_order` (default: `[]`)
   - Optional explicit label-group order.
@@ -159,6 +220,8 @@ Recommended ranges:
   - Shows the optional description row when a chore has non-empty description text.
   - When `false`, the description row is always hidden.
   - Allowed: `true`, `false`.
+
+### Colors & Accents
 
 - `pref_claim_accent` (default: `#a957fa`)
   - Accent color used for claimed and in-progress chore-state treatments.
@@ -180,6 +243,8 @@ Recommended ranges:
   - Accent color used for `standby_available` (actionable standby) treatments.
   - Muted blue — noticeable but subdued, distinct from urgency signaling.
   - Applies to shared chore-row card background tint, due-text color, and action-affordance emphasis.
+
+### Header & UI Control
 
 - `pref_ui_control_key_root` (default: `gamification/chores`)
   - Sets the `ui_control` branch used by this chores card inside the Gamification Premier template.

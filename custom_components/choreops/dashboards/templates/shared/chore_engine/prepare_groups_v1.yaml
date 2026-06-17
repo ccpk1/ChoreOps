@@ -29,68 +29,83 @@
 	{%- set chore_due_date = state_attr(chore_sensor_id, 'due_date') -%}
 	{%- set chore_recurring_frequency = state_attr(chore_sensor_id, 'recurring_frequency') | default('', true) | string | lower -%}
 
-	{#-- Step 1: Skip if chore labels match exclude list --#}
-	{%- if not (chore_label_data.terms | select('in', pref_exclude_label_list) | list | count > 0) -%}
-
-		{#-- Step 2: Skip chores by excluded states preference --#}
-		{%- if chore_status in effective_exclude_states and (chore_status != 'standby' or not state_attr(chore_sensor_id, 'can_claim')) -%}
-			{#-- Skip this chore --#}
-
-		{#-- Step 2b: Skip non-recurring chores with no due date when configured --#}
-		{%- elif pref_exclude_nonrecurring_no_due_date and chore_due_date in [none, 'unknown', 'unavailable'] and chore_recurring_frequency in ['', 'none'] -%}
-			{#-- Skip unscheduled one-off chore --#}
-
-		{#-- Step 2c: Skip chores beyond the due-date horizon when configured --#}
-		{%- elif pref_max_due_date_days > 0 and chore_due_date not in [none, 'unknown', 'unavailable'] and ((as_timestamp(chore_due_date) | default(0, true)) - (as_timestamp(now()) | default(0, true))) > (pref_max_due_date_days * 86400) -%}
-			{#-- Skip far-future due-dated chore --#}
-
-		{#-- Step 3: Handle overdue chores (highest priority) --#}
-		{%- elif chore_status == 'overdue' and effective_use_overdue_grouping -%}
-			{%- set ns.overdue_buttons = ns.overdue_buttons + [chore_sensor_id] -%}
-
-		{#-- Step 3b: Route actionable standbys to overdue group when grouping enabled --#}
-		{%- elif chore_status == 'standby' and effective_use_overdue_grouping and state_attr(chore_sensor_id, 'can_claim') and state_attr(chore_sensor_id, 'global_state') == 'overdue' -%}
-			{%- set ns.overdue_buttons = ns.overdue_buttons + [chore_sensor_id] -%}
-
-		{#-- Step 4: Skip chores with labels when label grouping is enabled (they're processed separately) --#}
-		{%- elif effective_use_label_grouping and (chore_labels | length > 0) -%}
-			{%- set ns.label_group_candidates = ns.label_group_candidates + [{'eid': chore_sensor_id, 'labels': chore_labels}] -%}
-
-		{#-- Step 4b: Route standbys to standby group when grouping enabled --#}
-		{%- elif chore_status == 'standby' and effective_use_standby_grouping -%}
-			{%- set ns.standby_buttons = ns.standby_buttons + [chore_sensor_id] -%}
-
-		{#-- Step 5: Handle recurring filters BEFORE primary_group logic (override primary_group assignment) --#}
-		{#-- If a chore is in 'today' group without specific date, it's daily recurring --#}
-		{%- elif chore_primary_group == 'today' and not pref_include_daily_recurring_in_today -%}
-			{%- set ns.other_buttons = ns.other_buttons + [chore_sensor_id] -%}
-
-		{#-- If a chore is in 'this_week' group without specific date, it's weekly recurring --#}
-		{%- elif chore_primary_group == 'this_week' and not pref_include_weekly_recurring_in_this_week -%}
-			{%- set ns.other_buttons = ns.other_buttons + [chore_sensor_id] -%}
-
-		{#-- Step 6: Categorize by primary_group (time-based) --#}
-		{%- elif chore_primary_group == 'today' and effective_use_today_grouping and effective_use_today_am_grouping and chore_is_today_am == true -%}
-			{%- set ns.am_buttons = ns.am_buttons + [chore_sensor_id] -%}
-
-		{%- elif chore_primary_group == 'today' and effective_use_today_grouping -%}
-			{%- set ns.today_buttons = ns.today_buttons + [chore_sensor_id] -%}
-
-		{%- elif chore_primary_group == 'today' and not effective_use_today_grouping -%}
-			{%- set ns.other_buttons = ns.other_buttons + [chore_sensor_id] -%}
-
-		{%- elif chore_primary_group == 'this_week' and effective_use_this_week_grouping -%}
-			{%- set ns.this_week_buttons = ns.this_week_buttons + [chore_sensor_id] -%}
-
-		{%- elif chore_primary_group == 'this_week' and not effective_use_this_week_grouping -%}
-			{%- set ns.other_buttons = ns.other_buttons + [chore_sensor_id] -%}
-
-		{#-- Step 7: Default fallback --#}
-		{%- else -%}
-			{%- set ns.other_buttons = ns.other_buttons + [chore_sensor_id] -%}
-		{%- endif -%}
-
+	{#-- Step 0: Include filters (whitelist, evaluated before all other filtering) --#}
+	{%- set ns_include_pass = namespace(value=true) -%}
+	{%- if pref_include_label_list | length > 0 -%}
+		{%- set ns_include_pass.value = ns_include_pass.value and (chore_label_data.terms | select('in', pref_include_label_list) | list | count > 0) -%}
 	{%- endif -%}
+	{%- if pref_include_group_list | length > 0 -%}
+		{%- set ns_include_pass.value = ns_include_pass.value and (chore_primary_group in pref_include_group_list) -%}
+	{%- endif -%}
+	{%- if pref_include_state_list | length > 0 -%}
+		{%- set ns_include_pass.value = ns_include_pass.value and (chore_status in pref_include_state_list) -%}
+	{%- endif -%}
+
+	{%- if ns_include_pass.value -%}
+
+		{#-- Step 1: Skip if chore labels match exclude list --#}
+		{%- if not (chore_label_data.terms | select('in', pref_exclude_label_list) | list | count > 0) -%}
+
+			{#-- Step 2: Skip chores by excluded states preference --#}
+			{%- if chore_status in effective_exclude_states and (chore_status != 'standby' or not state_attr(chore_sensor_id, 'can_claim')) -%}
+				{#-- Skip this chore --#}
+
+			{#-- Step 2b: Skip non-recurring chores with no due date when configured --#}
+			{%- elif pref_exclude_nonrecurring_no_due_date and chore_due_date in [none, 'unknown', 'unavailable'] and chore_recurring_frequency in ['', 'none'] -%}
+				{#-- Skip unscheduled one-off chore --#}
+
+			{#-- Step 2c: Skip chores beyond the due-date horizon when configured --#}
+			{%- elif pref_max_due_date_days > 0 and chore_due_date not in [none, 'unknown', 'unavailable'] and ((as_timestamp(chore_due_date) | default(0, true)) - (as_timestamp(now()) | default(0, true))) > (pref_max_due_date_days * 86400) -%}
+				{#-- Skip far-future due-dated chore --#}
+
+			{#-- Step 3: Handle overdue chores (highest priority) --#}
+			{%- elif chore_status == 'overdue' and effective_use_overdue_grouping -%}
+				{%- set ns.overdue_buttons = ns.overdue_buttons + [chore_sensor_id] -%}
+
+			{#-- Step 3b: Route actionable standbys to overdue group when grouping enabled --#}
+			{%- elif chore_status == 'standby' and effective_use_overdue_grouping and state_attr(chore_sensor_id, 'can_claim') and state_attr(chore_sensor_id, 'global_state') == 'overdue' -%}
+				{%- set ns.overdue_buttons = ns.overdue_buttons + [chore_sensor_id] -%}
+
+			{#-- Step 4: Skip chores with labels when label grouping is enabled (they're processed separately) --#}
+			{%- elif effective_use_label_grouping and (chore_labels | length > 0) -%}
+				{%- set ns.label_group_candidates = ns.label_group_candidates + [{'eid': chore_sensor_id, 'labels': chore_labels}] -%}
+
+			{#-- Step 4b: Route standbys to standby group when grouping enabled --#}
+			{%- elif chore_status == 'standby' and effective_use_standby_grouping -%}
+				{%- set ns.standby_buttons = ns.standby_buttons + [chore_sensor_id] -%}
+
+			{#-- Step 5: Handle recurring filters BEFORE primary_group logic (override primary_group assignment) --#}
+			{#-- If a chore is in 'today' group without specific date, it's daily recurring --#}
+			{%- elif chore_primary_group == 'today' and not pref_include_daily_recurring_in_today -%}
+				{%- set ns.other_buttons = ns.other_buttons + [chore_sensor_id] -%}
+
+			{#-- If a chore is in 'this_week' group without specific date, it's weekly recurring --#}
+			{%- elif chore_primary_group == 'this_week' and not pref_include_weekly_recurring_in_this_week -%}
+				{%- set ns.other_buttons = ns.other_buttons + [chore_sensor_id] -%}
+
+			{#-- Step 6: Categorize by primary_group (time-based) --#}
+			{%- elif chore_primary_group == 'today' and effective_use_today_grouping and effective_use_today_am_grouping and chore_is_today_am == true -%}
+				{%- set ns.am_buttons = ns.am_buttons + [chore_sensor_id] -%}
+
+			{%- elif chore_primary_group == 'today' and effective_use_today_grouping -%}
+				{%- set ns.today_buttons = ns.today_buttons + [chore_sensor_id] -%}
+
+			{%- elif chore_primary_group == 'today' and not effective_use_today_grouping -%}
+				{%- set ns.other_buttons = ns.other_buttons + [chore_sensor_id] -%}
+
+			{%- elif chore_primary_group == 'this_week' and effective_use_this_week_grouping -%}
+				{%- set ns.this_week_buttons = ns.this_week_buttons + [chore_sensor_id] -%}
+
+			{%- elif chore_primary_group == 'this_week' and not effective_use_this_week_grouping -%}
+				{%- set ns.other_buttons = ns.other_buttons + [chore_sensor_id] -%}
+
+			{#-- Step 7: Default fallback --#}
+			{%- else -%}
+				{%- set ns.other_buttons = ns.other_buttons + [chore_sensor_id] -%}
+			{%- endif -%}
+
+		{%- endif -%}{#-- ends Step 1 exclude label check --#}
+	{%- endif -%}{#-- ends Step 0 include pass --#}
 {%- endfor -%}
 
 {#-- Build Label Groups from merged chore rows collected once per card --#}
