@@ -13,6 +13,9 @@
   "ruff.fixAll": true,
   "ruff.lint.enable": true,
 
+  "python.defaultInterpreterPath": "/home/vscode/.local/ha-venv/bin/python",
+  "python.terminal.activateEnvInCurrentTerminal": false,
+
   "python.linting.enabled": false,
   "python.linting.pylintEnabled": false,
 
