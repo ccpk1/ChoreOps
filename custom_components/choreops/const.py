@@ -2330,6 +2330,21 @@ ACTION_DISAPPROVE_REWARD = "DISAPPROVE_REWARD"
 ACTION_REMIND_30 = "REMIND_30"
 ACTION_SKIP_CHORE = "SKIP_CHORE"
 
+# Aggregated set of all valid notification action types for early-exit gating.
+# Adding a new ACTION_* constant? Include it here so the guard covers it.
+NOTIFICATION_ACTION_TYPES: Final[frozenset[str]] = frozenset(
+    {
+        ACTION_APPROVE_CHORE,
+        ACTION_APPROVE_REWARD,
+        ACTION_CLAIM_CHORE,
+        ACTION_COMPLETE_FOR_ASSIGNEE,
+        ACTION_DISAPPROVE_CHORE,
+        ACTION_DISAPPROVE_REWARD,
+        ACTION_REMIND_30,
+        ACTION_SKIP_CHORE,
+    }
+)
+
 
 # ------------------------------------------------------------------------------------------------
 # Translation Keys - Entity State Attributes
