@@ -1752,6 +1752,10 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 const.DATA_CHORE_COMPLETION_CRITERIA,
                 const.COMPLETION_CRITERIA_INDEPENDENT,
             ),
+            const.CFOF_CHORES_INPUT_STANDBY_CLAIM_MODE: chore_data.get(
+                const.DATA_CHORE_STANDBY_CLAIM_MODE,
+                const.STANDBY_CLAIM_MODE_ANYTIME,
+            ),
             const.CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: chore_data.get(
                 const.DATA_CHORE_APPROVAL_RESET_TYPE, const.DEFAULT_APPROVAL_RESET_TYPE
             ),

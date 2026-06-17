@@ -885,6 +885,8 @@ views:
 
               {%- set pref_claim_accent = '#a957fa' -%}
 
+              {%- set pref_standby_accent = '#5B8DEF' -%}
+
               {#-- points precision resolves from the selected dashboard helper below --#}
 
               {%- set pref_chore_selector_column_count = 3 -%}
@@ -1413,7 +1415,9 @@ views:
                   'blocked_not_my_turn': ui.get('not_my_turn', 'err-not_my_turn'),
                   'blocked_paused': ui.get('paused', 'err-paused'),
                   'blocked_missed_locked': ui.get('missed_locked', 'err-missed_locked'),
-                  'steal_available': ui.get('steal_available', 'err-steal_available')
+                  'steal_available': ui.get('steal_available', 'err-steal_available'),
+                  'standby_available': ui.get('standby_available', 'err-standby_available'),
+                  'blocked_standby': ui.get('blocked_standby', 'err-blocked_standby')
                 } -%}
                 {%- set recurrence_map = {
                   'none': ui.get('none', 'err-none'),
@@ -1464,7 +1468,9 @@ views:
                   'blocked_not_my_turn': 'var(--disabled-text-color)',
                   'blocked_paused': 'var(--disabled-text-color)',
                   'blocked_missed_locked': 'var(--error-color)',
-                  'steal_available': 'var(--warning-color)'
+                  'steal_available': 'var(--warning-color)',
+                  'standby_available': pref_standby_accent,
+                  'blocked_standby': 'var(--disabled-text-color)'
                 } -%}
                 {%- set chore_overview_card = none -%}
                 {%- if has_selected_chore_sensor -%}
@@ -1475,7 +1481,9 @@ views:
                   {%- set can_claim = chore_attrs.get('can_claim') -%}
                   {%- if claim_mode == 'steal_available' -%}
                     {%- set current_status_key = 'steal_available' -%}
-                  {%- elif can_claim == false and claim_mode not in [None, 'None', ''] and current_status_key not in ['completed', 'completed_in_part'] -%}
+                  {%- elif claim_mode == 'standby_available' -%}
+                    {%- set current_status_key = 'standby_available' -%}
+                  {%- elif can_claim == false and claim_mode not in [None, 'None', ''] and current_status_key not in ['completed', 'completed_in_part', 'overdue'] -%}
                     {%- set current_status_key = claim_mode -%}
                   {%- endif -%}
                   {%- set raw_global_state = chore_attrs.get('global_state', raw_chore_state) -%}
@@ -1568,7 +1576,8 @@ views:
                   {%- endif -%}
                   {%- set context_label = '' -%}
                   {%- set context_value = '' -%}
-                  {%- set overdue_missed_state = raw_chore_state if raw_chore_state in ['overdue', 'missed'] else (raw_global_state if raw_global_state in ['overdue', 'missed'] else '') -%}
+                  {%- set overdue_missed_raw = raw_chore_state if raw_chore_state in ['overdue', 'missed'] else (raw_global_state if raw_global_state in ['overdue', 'missed'] else '') -%}
+                  {%- set overdue_missed_state = 'overdue' if overdue_missed_raw in ['overdue', 'missed'] else overdue_missed_raw -%}
                   {%- set is_rotation_type = 'rotation' in completion_type_key -%}
                   {%- set is_shared_type = completion_type_key in ['shared_all', 'shared_first'] or is_rotation_type -%}
                   {%- if overdue_missed_state != '' -%}
@@ -1633,10 +1642,23 @@ views:
                   {%- set detail_grid = detail_grid ~ "<div><div style='font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--secondary-text-color);'>" ~ ui.get('recurrence', 'err-recurrence') ~ "</div><div style='margin-top:2px;font-size:13px;font-weight:600;line-height:1.3;'>" ~ recurrence_display ~ "</div></div>" -%}
                   {%- if is_rotation_type and assigned_users | count > 0 -%}
                     {%- set assignee_order_ns = namespace(items=[]) -%}
-                    {%- for user_name in assigned_users -%}
-                      {%- set assignee_order_ns.items = assignee_order_ns.items + [loop.index ~ ". " ~ user_name ~ (" 👈" if user_name == turn_user_name else "")] -%}
-                    {%- endfor -%}
-                    {%- set detail_grid = detail_grid ~ "<div style='grid-column:1 / -1;text-align:center;padding-top:2px;border-top:1px solid color-mix(in srgb, var(--divider-color) 78%, transparent);'><div style='font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--secondary-text-color);text-align:center;'>" ~ ui.get('rotation_order', 'err-rotation_order') ~ "</div><div style='margin-top:3px;font-size:13px;font-weight:600;line-height:1.35;color:var(--primary-text-color);text-align:center;'>" ~ (assignee_order_ns.items | join('  ·  ')) ~ "</div></div>" -%}
+                    {%- if completion_type_key == 'rotation_primary_standby' -%}
+                      {%- for user_name in assigned_users -%}
+                        {%- set is_primary = (loop.index0 == 0) -%}
+                        {%- set role_icon = '👑' if is_primary else '⏳' -%}
+                        {%- set assignee_order_ns.items = assignee_order_ns.items + [role_icon ~ " " ~ user_name ~ (" 👈" if user_name == turn_user_name else "")] -%}
+                      {%- endfor -%}
+                    {%- else -%}
+                      {%- for user_name in assigned_users -%}
+                        {%- set assignee_order_ns.items = assignee_order_ns.items + [loop.index ~ ". " ~ user_name ~ (" 👈" if user_name == turn_user_name else "")] -%}
+                      {%- endfor -%}
+                    {%- endif -%}
+                    {%- if completion_type_key == 'rotation_primary_standby' -%}
+                      {%- set section_label = ui.get('rotation_primary_standby', 'err-rotation_primary_standby') -%}
+                      {%- set detail_grid = detail_grid ~ "<div style='grid-column:1 / -1;text-align:center;padding-top:2px;border-top:1px solid color-mix(in srgb, var(--divider-color) 78%, transparent);'><div style='font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--secondary-text-color);text-align:center;'>" ~ section_label ~ "</div><div style='margin-top:3px;font-size:13px;font-weight:600;line-height:1.35;color:var(--primary-text-color);text-align:center;'>" ~ (assignee_order_ns.items | join('  ·  ')) ~ "</div></div>" -%}
+                    {%- else -%}
+                      {%- set detail_grid = detail_grid ~ "<div style='grid-column:1 / -1;text-align:center;padding-top:2px;border-top:1px solid color-mix(in srgb, var(--divider-color) 78%, transparent);'><div style='font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--secondary-text-color);text-align:center;'>" ~ ui.get('rotation_order', 'err-rotation_order') ~ "</div><div style='margin-top:3px;font-size:13px;font-weight:600;line-height:1.35;color:var(--primary-text-color);text-align:center;'>" ~ (assignee_order_ns.items | join('  ·  ')) ~ "</div></div>" -%}
+                    {%- endif -%}
                   {%- elif is_shared_type and assigned_users | count > 0 -%}
                     {%- set detail_grid = detail_grid ~ "<div style='grid-column:1 / -1;text-align:center;'><div style='font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--secondary-text-color);text-align:center;'>" ~ ui.get('assigned_to', 'err-assigned_to') ~ "</div><div style='margin-top:3px;font-size:13px;font-weight:600;line-height:1.35;color:var(--primary-text-color);text-align:center;'>" ~ (assigned_users | join(' · ')) ~ "</div></div>" -%}
                     {%- set detail_grid = detail_grid ~ "<div style='grid-column:1 / -1;text-align:center;'><div style='font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--secondary-text-color);text-align:center;'>" ~ due_label ~ "</div><div style='margin-top:3px;font-size:14px;font-weight:700;line-height:1.35;color:var(--primary-text-color);text-align:center;'>" ~ due_display ~ "</div></div>" -%}
@@ -2036,13 +2058,15 @@ views:
                   ) -%}
                   {#-- ===== ROTATION CONTROLS ===== --#}
                   {%- if is_rotation_type and assigned_users | count > 0 -%}
+                    {%- set set_turn_label = ui.get('activate_standby', 'err-activate_standby') if completion_type_key == 'rotation_primary_standby' else ui.get('set_turn_to', 'err-set_turn_to') -%}
+                    {%- set move_to_front_label = ui.get('make_primary', 'err-make_primary') if completion_type_key == 'rotation_primary_standby' else ui.get('move_to_front', 'err-move_to_front') -%}
                     {%- set reordered = [selected_user_name] + (assigned_users | reject('equalto', selected_user_name) | list) -%}
                     {%- set rotation_action_cards = [
                       {
                         'type': 'custom:button-card',
                         'entity': selected_chore_sensor,
                         'icon': 'mdi:account-arrow-right-outline',
-                        'name': ui.get('set_turn_to', 'err-set_turn_to') ~ ' ' ~ selected_user_name,
+                        'name': set_turn_label ~ ' ' ~ selected_user_name,
                         'show_name': true,
                         'show_icon': true,
                         'show_label': false,
@@ -2086,20 +2110,18 @@ views:
                       {
                         'type': 'custom:button-card',
                         'entity': selected_chore_sensor,
-                        'icon': 'mdi:arrow-up-bold-circle-outline',
-                        'name': ui.get('move_to_front', 'err-move_to_front') ~ ' ' ~ selected_user_name,
+                        'icon': 'mdi:account-multiple-plus-outline',
+                        'name': ui.get('activate_all', 'err-activate_all'),
                         'show_name': true,
                         'show_icon': true,
                         'show_label': false,
                         'show_state': false,
                         'tap_action': {
                           'action': 'call-service',
-                          'service': 'choreops.update_chore',
+                          'service': 'choreops.open_rotation_cycle',
                           'data': {
                             'config_entry_id': integration_entry_id,
-                            'name': selected_chore_display,
-                            'assigned_user_names': reordered,
-                            'assignment_action': 'replace'
+                            'chore_name': selected_chore_display
                           }
                         },
                         'styles': {
@@ -2107,8 +2129,52 @@ views:
                             {'padding': '6px 8px'},
                             {'border-radius': '14px'},
                             {'box-shadow': 'none'},
-                            {'border': '1px solid color-mix(in srgb, var(--primary-color) 18%, var(--divider-color))'},
-                            {'background-color': 'color-mix(in srgb, var(--primary-color) 8%, var(--card-background-color))'}
+                            {'border': "1px solid color-mix(in srgb, var(--warning-color) 18%, var(--divider-color))"},
+                            {'background-color': "color-mix(in srgb, var(--warning-color) 8%, var(--card-background-color))"}
+                          ],
+                          'grid': [
+                            {'grid-template-areas': '"i" "n"'},
+                            {'grid-template-columns': '1fr'},
+                            {'row-gap': '4px'},
+                            {'align-items': 'center'}
+                          ],
+                          'icon': [
+                            {'width': '18px'},
+                            {'color': 'var(--warning-color)'}
+                          ],
+                          'name': [
+                            {'font-size': '11px'},
+                            {'font-weight': '700'},
+                            {'line-height': '1.2'},
+                            {'white-space': 'normal'},
+                            {'text-align': 'center'}
+                          ]
+                        }
+                      },
+                      {
+                        'type': 'custom:button-card',
+                        'entity': selected_chore_sensor,
+                        'icon': 'mdi:restore',
+                        'name': ui.get('cycle_reset', 'err-cycle_reset'),
+                        'show_name': true,
+                        'show_icon': true,
+                        'show_label': false,
+                        'show_state': false,
+                        'tap_action': {
+                          'action': 'call-service',
+                          'service': 'choreops.reset_rotation',
+                          'data': {
+                            'config_entry_id': integration_entry_id,
+                            'chore_name': selected_chore_display
+                          }
+                        },
+                        'styles': {
+                          'card': [
+                            {'padding': '6px 8px'},
+                            {'border-radius': '14px'},
+                            {'box-shadow': 'none'},
+                            {'border': "1px solid color-mix(in srgb, var(--primary-color) 18%, var(--divider-color))"},
+                            {'background-color': "color-mix(in srgb, var(--primary-color) 8%, var(--card-background-color))"}
                           ],
                           'grid': [
                             {'grid-template-areas': '"i" "n"'},
@@ -2131,15 +2197,104 @@ views:
                       }
                     ] -%}
                     {%- set rotation_due_html = "<div style='border-top:1px solid color-mix(in srgb, var(--divider-color) 78%, transparent);margin:4px 0 6px 0;'></div><div style='text-align:center;'><div style='font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--secondary-text-color);text-align:center;'>" ~ due_label ~ "</div><div style='margin-top:3px;font-size:14px;font-weight:700;line-height:1.35;color:var(--primary-text-color);text-align:center;'>" ~ due_display ~ "</div></div>" -%}
+                    {%- if completion_type_key == 'rotation_primary_standby' -%}
+                      {%- set standby_claim_mode_key = chore_attrs.get('standby_claim_mode', 'anytime') -%}
+                      {%- set standby_claim_mode_map = {
+                        'anytime': ui.get('anytime', 'Anytime'),
+                        'on_overdue': ui.get('on_overdue', 'On overdue'),
+                        'manual_only': ui.get('manual_only', 'Manual only')
+                      } -%}
+                      {%- set cycle_override_active = chore_attrs.get('rotation_cycle_override') == True -%}
+                      {%- set standby_mode_line = "<div style='text-align:center;font-size:11px;color:var(--secondary-text-color);margin:4px 0 2px 0;'><strong>" ~ ui.get('standby_mode', 'err-standby_mode') ~ ":</strong> " ~ (standby_claim_mode_map.get(standby_claim_mode_key, standby_claim_mode_key | replace('_', ' ') | title)) ~ ("<span style='color:var(--warning-color)'> — " ~ ui.get('all_standby_active', 'All standby users active') ~ "</span>" if cycle_override_active else '') ~ "</div>" -%}
+                    {%- else -%}
+                      {%- set standby_mode_line = '' -%}
+                    {%- endif -%}
                     {%- set rotation_html = {
                       'card': {
                         'type': 'vertical-stack',
                         'cards': [
                           {
+                            'type': 'custom:button-card',
+                            'entity': selected_chore_sensor,
+                            'show_name': false,
+                            'show_icon': false,
+                            'show_label': false,
+                            'show_state': false,
+                            'tap_action': {'action': 'none'},
+                            'custom_fields': {
+                              'content': standby_mode_line
+                            },
+                            'styles': {
+                              'card': [
+                                {'padding': '0'},
+                                {'border-radius': '0'},
+                                {'box-shadow': 'none'},
+                                {'border': 'none'},
+                                {'background': 'transparent'}
+                              ],
+                              'grid': [
+                                {'grid-template-areas': '"content"'},
+                                {'grid-template-columns': '1fr'}
+                              ],
+                              'custom_fields': {
+                                'content': [
+                                  {'justify-self': 'stretch'},
+                                  {'width': '100%'}
+                                ]
+                              }
+                            }
+                          },
+                          {
                             'type': 'grid',
                             'square': false,
-                            'columns': 2,
+                            'columns': 3,
                             'cards': rotation_action_cards
+                          },
+                          {
+                            'type': 'custom:button-card',
+                            'entity': selected_chore_sensor,
+                            'icon': 'mdi:arrow-up-bold-circle-outline',
+                            'name': move_to_front_label ~ ' ' ~ selected_user_name,
+                            'show_name': true,
+                            'show_icon': true,
+                            'show_label': false,
+                            'show_state': false,
+                            'tap_action': {
+                              'action': 'call-service',
+                              'service': 'choreops.update_chore',
+                              'data': {
+                                'config_entry_id': integration_entry_id,
+                                'name': selected_chore_display,
+                                'assigned_user_names': reordered,
+                                'assignment_action': 'replace'
+                              }
+                            },
+                            'styles': {
+                              'card': [
+                                {'padding': '6px 8px'},
+                                {'border-radius': '14px'},
+                                {'box-shadow': 'none'},
+                                {'border': '1px solid color-mix(in srgb, var(--primary-color) 18%, var(--divider-color))'},
+                                {'background-color': 'color-mix(in srgb, var(--primary-color) 8%, var(--card-background-color))'}
+                              ],
+                              'grid': [
+                                {'grid-template-areas': '"i n"'},
+                                {'grid-template-columns': 'min-content 1fr'},
+                                {'column-gap': '6px'},
+                                {'align-items': 'center'}
+                              ],
+                              'icon': [
+                                {'width': '18px'},
+                                {'color': 'var(--primary-color)'}
+                              ],
+                              'name': [
+                                {'justify-self': 'start'},
+                                {'font-size': '11px'},
+                                {'font-weight': '700'},
+                                {'line-height': '1.2'},
+                                {'white-space': 'normal'}
+                              ]
+                            }
                           },
                           {
                             'type': 'custom:button-card',
@@ -2295,24 +2450,30 @@ views:
                   {%- set all_chores_label = (ui.get('paused', 'err-paused')) if all_chores_is_paused else (total_chore_count ~ " " ~ ui.get('total', 'err-total') ~ " · " ~ due_chore_count ~ " " ~ ui.get('due', 'err-due')) -%}
                   {#-- Build sub-cards --#}
                   {%- set all_chores_date_label = all_chores_date_display if all_chores_has_date else ui.get('no_date_set', 'err-no_date_set') -%}
+                  {%- set all_chores_now_label = ui.get('past_prefix', 'err-past_prefix') ~ ": " ~ ui.get('now', 'err-now') -%}
                   {%- set all_chores_arrow_date_display = ("→ " ~ (as_timestamp(all_chores_date_val) | timestamp_custom('%a, %b %d %I:%M %p', true))) if all_chores_has_date else '' -%}
                   {%- set all_chores_arrow_date_label = all_chores_arrow_date_display if all_chores_has_date else ui.get('no_date_set', 'err-no_date_set') -%}
                   {%- set all_chores_shared_style = {'card': [{'height': '48px'}, {'padding': '6px 12px'}, {'border-radius': '10px'}, {'box-shadow': 'none'}, {'border': '1px solid var(--divider-color)'}, {'border': '1px solid color-mix(in srgb, var(--primary-color) 18%, var(--divider-color))'}, {'background-color': 'color-mix(in srgb, var(--primary-color) 6%, var(--card-background-color))'}], 'grid': [{'grid-template-areas': '"i n" "i l"'}, {'grid-template-columns': '24px 1fr'}, {'grid-template-rows': '1fr auto'}, {'column-gap': '8px'}, {'row-gap': '1px'}, {'align-items': 'center'}], 'icon': [{'width': '20px'}, {'height': '20px'}, {'color': 'var(--primary-color)'}], 'name': [{'justify-self': 'start'}, {'text-align': 'left'}, {'font-size': '12px'}, {'font-weight': '600'}, {'line-height': '1.2'}, {'color': 'var(--primary-text-color)'}], 'label': [{'justify-self': 'start'}, {'font-size': '10px'}, {'color': 'var(--secondary-text-color)'}]} -%}
-                  {%- set all_chores_push_card = {'card': {'type': 'custom:button-card', 'show_name': True, 'show_icon': True, 'show_label': True, 'show_state': False, 'icon': 'mdi:calendar-sync-outline', 'name': ui.get('shift_independent', 'err-shift_independent'), 'label': all_chores_date_label, 'tap_action': ({'action': 'call-service', 'service': 'choreops.reschedule_chores_after', 'data': {'config_entry_id': integration_entry_id, 'user_names': [selected_user_name], 'after': all_chores_date_val}}) if all_chores_has_date else {'action': 'none'}, 'styles': all_chores_shared_style}} -%}
-                  {%- set all_chores_push_all_card = {'card': {'type': 'custom:button-card', 'show_name': True, 'show_icon': True, 'show_label': True, 'show_state': False, 'icon': 'mdi:calendar-refresh', 'name': ui.get('shift_all', 'err-shift_all'), 'label': all_chores_date_label, 'tap_action': ({'action': 'call-service', 'service': 'choreops.reschedule_chores_after', 'data': {'config_entry_id': integration_entry_id, 'user_names': [selected_user_name], 'after': all_chores_date_val, 'reschedule_shared': true}}) if all_chores_has_date else {'action': 'none'}, 'styles': all_chores_shared_style}} -%}
+                  {%- set all_chores_push_card = {'card': {'type': 'custom:button-card', 'show_name': True, 'show_icon': True, 'show_label': True, 'show_state': False, 'icon': 'mdi:calendar-sync-outline', 'name': ui.get('shift_independent', 'err-shift_independent'), 'label': all_chores_date_label, 'tap_action': ({'action': 'call-service', 'service': 'choreops.reschedule_chores_after', 'data': {'config_entry_id': integration_entry_id, 'user_names': [selected_user_name], 'after': all_chores_date_val, 'reschedule_independent': true, 'reschedule_primary_standby': false, 'reschedule_shared': false}}) if all_chores_has_date else {'action': 'none'}, 'styles': all_chores_shared_style}} -%}
+                  {%- set all_chores_push_primary_card = {'card': {'type': 'custom:button-card', 'show_name': True, 'show_icon': True, 'show_label': True, 'show_state': False, 'icon': 'mdi:calendar-sync-outline', 'name': ui.get('shift_independent_primary', 'err-shift_independent_primary'), 'label': all_chores_date_label, 'tap_action': ({'action': 'call-service', 'service': 'choreops.reschedule_chores_after', 'data': {'config_entry_id': integration_entry_id, 'user_names': [selected_user_name], 'after': all_chores_date_val, 'reschedule_independent': true, 'reschedule_primary_standby': true, 'reschedule_shared': false}}) if all_chores_has_date else {'action': 'none'}, 'styles': all_chores_shared_style}} -%}
+                  {%- set all_chores_push_all_card = {'card': {'type': 'custom:button-card', 'show_name': True, 'show_icon': True, 'show_label': True, 'show_state': False, 'icon': 'mdi:calendar-refresh', 'name': ui.get('shift_all', 'err-shift_all'), 'label': all_chores_date_label, 'tap_action': ({'action': 'call-service', 'service': 'choreops.reschedule_chores_after', 'data': {'config_entry_id': integration_entry_id, 'user_names': [selected_user_name], 'after': all_chores_date_val, 'reschedule_independent': true, 'reschedule_primary_standby': true, 'reschedule_shared': true}}) if all_chores_has_date else {'action': 'none'}, 'styles': all_chores_shared_style}} -%}
+                  {%- set resume_shift_style = {'card': [{'height': '48px'}, {'padding': '6px 12px'}, {'border-radius': '10px'}, {'box-shadow': 'none'}, {'border': '1px solid var(--divider-color)'}, {'border': '1px solid color-mix(in srgb, var(--success-color) 14%, var(--divider-color))'}, {'background-color': 'color-mix(in srgb, var(--success-color) 5%, var(--card-background-color))'}], 'grid': [{'grid-template-areas': '"i n" "i l"'}, {'grid-template-columns': '24px 1fr'}, {'grid-template-rows': '1fr auto'}, {'column-gap': '8px'}, {'row-gap': '1px'}, {'align-items': 'center'}], 'icon': [{'width': '20px'}, {'height': '20px'}, {'color': 'var(--success-color)'}], 'name': [{'justify-self': 'start'}, {'text-align': 'left'}, {'font-size': '12px'}, {'font-weight': '600'}, {'line-height': '1.2'}, {'color': 'var(--primary-text-color)'}], 'label': [{'justify-self': 'start'}, {'font-size': '10px'}, {'font-weight': '700'}, {'color': 'var(--secondary-text-color)'}]} -%}
                   {%- set all_chores_pick_card = {'card': {'type': 'custom:button-card', 'entity': dashboard_date_helper if all_chores_date_helper else selected_dashboard_helper, 'icon': 'mdi:calendar-search', 'show_name': False, 'show_icon': True, 'tap_action': {'action': 'more-info'} if all_chores_date_helper else {'action': 'none'}, 'styles': {'card': [{'width': '32px'}, {'height': '32px'}, {'border-radius': '8px'}, {'box-shadow': 'none'}, {'border': '1px solid var(--divider-color)'}, {'background-color': 'var(--card-background-color)'}], 'icon': [{'width': '16px'}, {'color': 'var(--primary-color)'}]}}} -%}
                   {#-- Structural Layout Sections per State --#}
                   {%- if all_chores_expanded and not all_chores_is_paused -%}
                     {%- set pause_style_mod = {'card': [{'height': '48px'}, {'padding': '6px 12px'}, {'border-radius': '10px'}, {'box-shadow': 'none'}, {'border': '1px solid color-mix(in srgb, var(--error-color) 18%, var(--divider-color))'}, {'background-color': 'color-mix(in srgb, var(--error-color) 8%, var(--card-background-color))'}], 'grid': [{'grid-template-areas': '"i n" "i l"'}, {'grid-template-columns': '24px 1fr'}, {'grid-template-rows': '1fr auto'}, {'column-gap': '8px'}, {'row-gap': '1px'}, {'align-items': 'center'}], 'icon': [{'width': '20px'}, {'height': '20px'}, {'color': 'var(--error-color)'}], 'name': [{'justify-self': 'start'}, {'text-align': 'left'}, {'font-size': '12px'}, {'font-weight': '600'}, {'line-height': '1.2'}], 'label': [{'justify-self': 'start'}, {'font-size': '10px'}, {'color': 'var(--secondary-text-color)'}]} -%}
                     {%- set all_chores_pause_card = {'card': {'type': 'custom:button-card', 'show_name': True, 'show_icon': True, 'show_label': False, 'show_state': False, 'icon': 'mdi:pause-circle', 'name': ui.get('pause', 'err-pause'), 'tap_action': {'action': 'call-service', 'service': 'choreops.pause_user_chores', 'data': {'config_entry_id': integration_entry_id, 'user_name': selected_user_name, 'paused': 'true'}}, 'styles': pause_style_mod}} -%}
                     {%- set all_chores_until_card = {'card': {'type': 'custom:button-card', 'show_name': True, 'show_icon': True, 'show_label': True, 'show_state': False, 'icon': 'mdi:calendar-clock', 'name': ui.get('pause_until', 'err-pause_until'), 'label': all_chores_arrow_date_label, 'tap_action': ({'action': 'call-service', 'service': 'choreops.pause_user_chores', 'data': {'config_entry_id': integration_entry_id, 'user_name': selected_user_name, 'paused': 'true', 'paused_until': all_chores_date_val}}) if all_chores_has_date else {'action': 'none'}, 'styles': pause_style_mod}} -%}
-                    {%- set all_chores_grid_template = '"i n l controls" "div_pause div_pause div_pause div_pause" "pause_btn pause_btn until_btn until_btn" "div_sched div_sched div_sched div_sched" "push_btn push_btn push_all_btn push_all_btn"' -%}
-                    {%- set all_chores_grid_rows = 'min-content auto auto auto auto' -%}
+                    {%- set all_chores_grid_template = '"i n l controls" "div_pause div_pause div_pause div_pause" "pause_btn pause_btn until_btn until_btn" "div_sched div_sched div_sched div_sched" "push_btn push_btn push_primary_btn push_primary_btn" "push_all_btn push_all_btn push_all_btn push_all_btn"' -%}
+                    {%- set all_chores_grid_rows = 'min-content auto auto auto auto auto' -%}
                   {%- elif all_chores_expanded and all_chores_is_paused -%}
-                    {%- set all_chores_pause_card = {'card': {'type': 'custom:button-card', 'show_name': True, 'show_icon': True, 'show_label': True, 'show_state': False, 'icon': 'mdi:play-circle-outline', 'name': ui.get('resume', 'err-resume'), 'label': all_chores_paused_display, 'tap_action': {'action': 'call-service', 'service': 'choreops.pause_user_chores', 'data': {'config_entry_id': integration_entry_id, 'user_name': selected_user_name, 'paused': 'false'}}, 'styles': {'card': [{'height': '48px'}, {'padding': '6px 14px'}, {'border-radius': '10px'}, {'box-shadow': 'none'}, {'border': '1px solid color-mix(in srgb, var(--success-color) 18%, var(--divider-color))'}, {'background-color': 'color-mix(in srgb, var(--success-color) 8%, var(--card-background-color))'}], 'grid': [{'grid-template-areas': '"i n l"'}, {'grid-template-columns': '24px 1fr auto'}, {'column-gap': '8px'}, {'align-items': 'center'}], 'icon': [{'width': '20px'}, {'height': '20px'}, {'color': 'var(--success-color)'}], 'name': [{'justify-self': 'start'}, {'font-size': '13px'}, {'font-weight': '700'}], 'label': [{'justify-self': 'end'}, {'font-size': '11px'}, {'color': 'var(--secondary-text-color)'}]}}} -%}
+                    {%- set all_chores_resume_card = {'card': {'type': 'custom:button-card', 'show_name': True, 'show_icon': True, 'show_label': True, 'show_state': False, 'icon': 'mdi:play-circle-outline', 'name': ui.get('resume', 'err-resume'), 'label': all_chores_paused_display, 'tap_action': {'action': 'call-service', 'service': 'choreops.pause_user_chores', 'data': {'config_entry_id': integration_entry_id, 'user_name': selected_user_name, 'paused': 'false'}}, 'styles': {'card': [{'height': '48px'}, {'padding': '6px 14px'}, {'border-radius': '10px'}, {'box-shadow': 'none'}, {'border': '1px solid color-mix(in srgb, var(--success-color) 18%, var(--divider-color))'}, {'background-color': 'color-mix(in srgb, var(--success-color) 8%, var(--card-background-color))'}], 'grid': [{'grid-template-areas': '"i n l"'}, {'grid-template-columns': '24px 1fr auto'}, {'column-gap': '8px'}, {'align-items': 'center'}], 'icon': [{'width': '20px'}, {'height': '20px'}, {'color': 'var(--success-color)'}], 'name': [{'justify-self': 'start'}, {'font-size': '13px'}, {'font-weight': '700'}], 'label': [{'justify-self': 'end'}, {'font-size': '11px'}, {'color': 'var(--secondary-text-color)'}]}}} -%}
+                    {%- set resume_shift_independent_card = {'card': {'type': 'custom:button-card', 'show_name': True, 'show_icon': True, 'show_label': True, 'show_state': False, 'icon': 'mdi:calendar-sync-outline', 'name': ui.get('resume_shift_independent', 'err-resume_shift_independent'), 'label': all_chores_now_label, 'tap_action': ({'action': 'call-service', 'service': 'choreops.pause_user_chores', 'data': {'config_entry_id': integration_entry_id, 'user_name': selected_user_name, 'paused': 'false', 'unpause_action': 'unpause_shift_independent'}}) if all_chores_has_date else {'action': 'none'}, 'styles': resume_shift_style}} -%}
+                    {%- set resume_shift_primary_card = {'card': {'type': 'custom:button-card', 'show_name': True, 'show_icon': True, 'show_label': True, 'show_state': False, 'icon': 'mdi:calendar-sync-outline', 'name': ui.get('resume_shift_independent_primary', 'err-resume_shift_independent_primary'), 'label': all_chores_now_label, 'tap_action': ({'action': 'call-service', 'service': 'choreops.pause_user_chores', 'data': {'config_entry_id': integration_entry_id, 'user_name': selected_user_name, 'paused': 'false', 'unpause_action': 'unpause_shift_all_primary'}}) if all_chores_has_date else {'action': 'none'}, 'styles': resume_shift_style}} -%}
+                    {%- set resume_shift_all_card = {'card': {'type': 'custom:button-card', 'show_name': True, 'show_icon': True, 'show_label': True, 'show_state': False, 'icon': 'mdi:calendar-refresh', 'name': ui.get('resume_shift_all', 'err-resume_shift_all'), 'label': all_chores_now_label, 'tap_action': ({'action': 'call-service', 'service': 'choreops.pause_user_chores', 'data': {'config_entry_id': integration_entry_id, 'user_name': selected_user_name, 'paused': 'false', 'unpause_action': 'unpause_shift_all'}}) if all_chores_has_date else {'action': 'none'}, 'styles': resume_shift_style}} -%}
                     {%- set all_chores_until_card = "" -%}
-                    {%- set all_chores_grid_template = '"i n l controls" "div_pause div_pause div_pause div_pause" "pause_btn pause_btn pause_btn pause_btn" "div_sched div_sched div_sched div_sched" "push_btn push_btn push_all_btn push_all_btn"' -%}
-                    {%- set all_chores_grid_rows = 'min-content auto auto auto auto' -%}
+                    {%- set all_chores_grid_template = '"i n l controls" "div_pause div_pause div_pause div_pause" "resume_btn resume_btn resume_btn resume_btn" "div_resume div_resume div_resume div_resume" "resume_push_btn resume_push_btn resume_push_primary_btn resume_push_primary_btn" "resume_push_all_btn resume_push_all_btn resume_push_all_btn resume_push_all_btn" "div_sched div_sched div_sched div_sched" "push_btn push_btn push_primary_btn push_primary_btn" "push_all_btn push_all_btn push_all_btn push_all_btn"' -%}
+                    {%- set all_chores_grid_rows = 'min-content auto auto auto auto auto auto auto auto' -%}
                   {%- else -%}
                     {%- set all_chores_pause_card = "" -%}
                     {%- set all_chores_until_card = "" -%}
@@ -2368,7 +2529,12 @@ views:
                         'pause_btn': all_chores_pause_card if (all_chores_expanded and all_chores_pause_card is mapping) else "",
                         'until_btn': all_chores_until_card if (all_chores_expanded and all_chores_until_card is mapping) else "",
                         'push_btn': all_chores_push_card if (all_chores_expanded and all_chores_push_card is mapping) else "",
+                        'push_primary_btn': all_chores_push_primary_card if (all_chores_expanded and all_chores_push_primary_card is mapping) else "",
                         'push_all_btn': all_chores_push_all_card if (all_chores_expanded and all_chores_push_all_card is mapping) else "",
+                        'resume_btn': all_chores_resume_card if (all_chores_expanded and all_chores_resume_card is mapping) else "",
+                        'div_resume': "<div style='display:flex;align-items:center;justify-content:center;gap:4px;margin-top:4px;'><span style='font-size:11px;font-weight:600;letter-spacing:0.3px;color:var(--secondary-text-color);white-space:nowrap;'>" ~ ui.get('resume_actions_section', 'err-resume_actions_section') ~ "</span></div>" if (all_chores_expanded and all_chores_is_paused) else "",
+                        'resume_push_btn': resume_shift_independent_card if (all_chores_expanded and all_chores_is_paused and resume_shift_independent_card is mapping) else "",
+                        'resume_push_primary_btn': resume_shift_primary_card if (all_chores_expanded and all_chores_is_paused and resume_shift_primary_card is mapping) else "",
                                               },
                       'styles': {
                         'card': [
@@ -2434,16 +2600,47 @@ views:
                             {'align-self': 'stretch'},
                             {'padding-left': '10px'}
                           ],
+                          'resume_btn': [
+                            {'grid-column': 'span 4'},
+                            {'justify-self': 'stretch'},
+                            {'align-self': 'stretch'}
+                          ],
+                          'div_resume': [
+                            {'grid-column': 'span 4'},
+                            {'justify-self': 'stretch'},
+                            {'align-self': 'stretch'}
+                          ],
+                          'resume_push_btn': [
+                            {'grid-column': 'span 2'},
+                            {'justify-self': 'stretch'},
+                            {'align-self': 'stretch'}
+                          ],
+                          'resume_push_primary_btn': [
+                            {'grid-column': 'span 2'},
+                            {'justify-self': 'stretch'},
+                            {'align-self': 'stretch'},
+                            {'padding-left': '10px'}
+                          ],
+                          'resume_push_all_btn': [
+                            {'grid-column': 'span 4'},
+                            {'justify-self': 'stretch'},
+                            {'align-self': 'stretch'}
+                          ],
                           'push_btn': [
                             {'grid-column': 'span 2'},
                             {'justify-self': 'stretch'},
                             {'align-self': 'stretch'}
                           ],
-                          'push_all_btn': [
+                          'push_primary_btn': [
                             {'grid-column': 'span 2'},
                             {'justify-self': 'stretch'},
                             {'align-self': 'stretch'},
                             {'padding-left': '10px'}
+                          ],
+                          'push_all_btn': [
+                            {'grid-column': 'span 4'},
+                            {'justify-self': 'stretch'},
+                            {'align-self': 'stretch'}
                           ]
                         }
                       }

@@ -468,6 +468,14 @@ class ChoreEngine:
                 return (False, const.TRANS_KEY_ERROR_CHORE_MISSED_LOCKED)
             return (False, const.TRANS_KEY_ERROR_ALREADY_CLAIMED)
 
+        # Primary-standby: standby blocks when lock_reason matches
+        # lock_reason is None for claimable (standby_available) case — falls
+        # through to normal can_claim logic below
+        if resolved_state == const.CHORE_STATE_STANDBY:
+            if lock_reason == const.CHORE_STATE_STANDBY:
+                return (False, const.TRANS_KEY_ERROR_CHORE_STANDBY)
+            # lock_reason is None → allow claim, fall through
+
         # Check multi-claim allowed
         allow_multiple = ChoreEngine.chore_allows_multiple_claims(chore_data)
 
@@ -580,13 +588,15 @@ class ChoreEngine:
             const.COMPLETION_CRITERIA_SHARED_FIRST,
             const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
             const.COMPLETION_CRITERIA_ROTATION_SMART,
+            const.COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY,
         )
 
     @staticmethod
     def is_rotation_mode(chore_data: ChoreData | dict[str, Any]) -> bool:
         """Check if chore uses rotation completion criteria.
 
-        Returns True for rotation_simple and rotation_smart.
+        Returns True for rotation_simple, rotation_smart, and
+        rotation_primary_standby.
         Part of Logic Adapter pattern (D-12) for v0.5.0 rotation feature.
         """
         criteria = chore_data.get(
@@ -596,6 +606,7 @@ class ChoreEngine:
         return criteria in (
             const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
             const.COMPLETION_CRITERIA_ROTATION_SMART,
+            const.COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY,
         )
 
     @staticmethod
@@ -617,6 +628,7 @@ class ChoreEngine:
             const.COMPLETION_CRITERIA_SHARED_FIRST,
             const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
             const.COMPLETION_CRITERIA_ROTATION_SMART,
+            const.COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY,
         )
 
     @staticmethod
@@ -681,6 +693,46 @@ class ChoreEngine:
             override = chore_data.get(const.DATA_CHORE_ROTATION_CYCLE_OVERRIDE, False)
 
             if assignee_id != current_turn and not override:
+                # Primary-standby: non-turn assignees see standby
+                # Claim gating controlled by standby_claim_mode, not overdue_handling
+                completion_criteria = chore_data.get(
+                    const.DATA_CHORE_COMPLETION_CRITERIA,
+                    const.COMPLETION_CRITERIA_INDEPENDENT,
+                )
+                if (
+                    completion_criteria
+                    == const.COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY
+                ):
+                    standby_claim_mode = chore_data.get(
+                        const.DATA_CHORE_STANDBY_CLAIM_MODE,
+                        const.STANDBY_CLAIM_MODE_ANYTIME,
+                    )
+
+                    if due_date is not None and now > due_date:
+                        # Overdue: anytime or on_overdue can claim
+                        if standby_claim_mode in (
+                            const.STANDBY_CLAIM_MODE_ANYTIME,
+                            const.STANDBY_CLAIM_MODE_ON_OVERDUE,
+                        ):
+                            return (
+                                const.CHORE_STATE_STANDBY,
+                                None,
+                            )
+                        return (
+                            const.CHORE_STATE_STANDBY,
+                            const.CHORE_STATE_STANDBY,
+                        )
+                    # Not overdue: only anytime can claim
+                    if standby_claim_mode == const.STANDBY_CLAIM_MODE_ANYTIME:
+                        return (
+                            const.CHORE_STATE_STANDBY,
+                            None,
+                        )
+                    return (
+                        const.CHORE_STATE_STANDBY,
+                        const.CHORE_STATE_STANDBY,
+                    )
+
                 overdue_handling = chore_data.get(
                     const.DATA_CHORE_OVERDUE_HANDLING_TYPE
                 )
@@ -1045,10 +1097,12 @@ class ChoreEngine:
         old_is_rotation = old_criteria in (
             const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
             const.COMPLETION_CRITERIA_ROTATION_SMART,
+            const.COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY,
         )
         new_is_rotation = new_criteria in (
             const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
             const.COMPLETION_CRITERIA_ROTATION_SMART,
+            const.COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY,
         )
 
         # Non-rotation → rotation: Initialize rotation fields

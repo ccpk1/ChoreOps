@@ -516,6 +516,12 @@ When the guard fires, it returns `state=paused`, `claim_mode=blocked_paused`,
 `can_claim=false`, and suppresses all overdue/missed signal emissions for that
 assignee.
 
+**Resume with shift**: The `pause_user_chores` service accepts an optional
+`unpause_action` param. When unpausing with a shift action, the manager
+delegates to `reschedule_chores_after` with chore-type filter flags
+(`reschedule_independent`, `reschedule_primary_standby`, `reschedule_shared`),
+bringing past-due chores current as part of the unpause.
+
 Interaction lane contract (hard fork v1):
 
 - Display lane stays in `state` and `global_state` for visual lifecycle projection.
@@ -530,7 +536,7 @@ steal_available}`.
 | -------- | --------------------- | ---------------------------- | ------------------------------------------------------------ |
 | P1       | `approved`            | `completed`                  | Completed and approved in current period; highest precedence |
 | P2       | `claimed`             | `claimed`                    | Pending approver action                                      |
-| P3       | `not_my_turn`         | `not_my_turn`                | Rotation lock (unless steal window opens)                    |
+| P3       | `not_my_turn`     | `standby` | `not_my_turn` / `standby`         | Rotation lock — primary-standby resolves to `standby` with `standby_claim_mode` gating |
 | P4       | `missed`              | `missed`                     | Strict missed lock (non-claimable)                           |
 | P5       | `overdue`             | `overdue`                    | Relaxed overdue (claimable)                                  |
 | P6       | `waiting`             | `waiting`                    | Claim window not open yet                                    |
@@ -540,7 +546,7 @@ steal_available}`.
 Assignee UI allowlist (`CHORE_UI_ASSIGNEE_STATES`):
 
 - `paused`, `pending`, `due`, `waiting`, `claimed`, `overdue`, `missed`,
-  `not_my_turn`, `completed`, `completed_by_other`
+  `not_my_turn`, `standby`, `completed`, `completed_by_other`
 
 Global persisted allowlist (`CHORE_PERSISTED_GLOBAL_STATES`):
 

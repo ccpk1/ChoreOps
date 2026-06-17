@@ -78,7 +78,7 @@
 
 - `pref_exclude_group_list` (default: `[]`)
   - Excludes one or more rendered chore groups from the card.
-  - Allowed values: `overdue`, `today_morning`, `today`, `this_week`, `later`.
+  - Allowed values: `overdue`, `today_morning`, `today`, `this_week`, `later`, `standby`.
   - Exclusions apply after the dashboard resolves which groups exist.
   - If a listed group does not exist in the current configuration, it is ignored.
   - Example: `['later']` hides the Later bucket.
@@ -87,6 +87,11 @@
 
 - `pref_use_label_grouping` (default: `false`)
   - Groups chores by labels instead of time buckets.
+  - Allowed: `true`, `false`.
+
+- `pref_use_standby_grouping` (default: `true`)
+  - Groups standbys into a dedicated standby section at the bottom of the chore list.
+  - Actionable standbys (overdue global state + `can_claim=true`) still route to the overdue group.
   - Allowed: `true`, `false`.
 
 - `pref_exclude_label_list` (default: `[]`)
@@ -123,6 +128,11 @@
 - `pref_steal_accent` (default: `#F2C94C`)
   - Accent color used for `steal_available` treatments.
   - Applies to inline compact row due-text and action-affordance emphasis.
+
+- `pref_standby_accent` (default: `#5B8DEF`)
+  - Accent color used for `standby_available` (actionable standby) treatments.
+  - Muted blue — noticeable but subdued, distinct from urgency signaling.
+  - Applies to inline compact row button border, icon color, due-text color, and a subtle 5% background tint.
 
 ## Practical tuning examples
 

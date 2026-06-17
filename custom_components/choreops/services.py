@@ -217,6 +217,7 @@ def _service_uses_chore_level_due_date(chore_data: dict[str, Any]) -> bool:
         const.COMPLETION_CRITERIA_SHARED_FIRST,
         const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
         const.COMPLETION_CRITERIA_ROTATION_SMART,
+        const.COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY,
     )
 
 
@@ -600,6 +601,14 @@ RESCHEDULE_CHORES_AFTER_SCHEMA = vol.Schema(
                 cv.ensure_list, [cv.string]
             ),
             vol.Optional(
+                const.SERVICE_FIELD_RESCHEDULE_INDEPENDENT,
+                default=True,
+            ): cv.boolean,
+            vol.Optional(
+                const.SERVICE_FIELD_RESCHEDULE_PRIMARY_STANDBY,
+                default=True,
+            ): cv.boolean,
+            vol.Optional(
                 const.SERVICE_FIELD_RESCHEDULE_SHARED,
                 default=False,
             ): cv.boolean,
@@ -644,6 +653,10 @@ PAUSE_USER_CHORES_SCHEMA = vol.Schema(
             vol.Optional(const.SERVICE_FIELD_CHORES_PAUSED_UNTIL): vol.Any(
                 cv.datetime, None
             ),
+            vol.Optional(
+                const.SERVICE_FIELD_UNPAUSE_ACTION,
+                default=const.UNPAUSE_ACTION_UNPAUSE,
+            ): vol.In(const.UNPAUSE_ACTION_VALUES),
         }
     )
 )
@@ -743,10 +756,17 @@ _CHORE_FREQUENCY_VALUES = [
 
 _COMPLETION_CRITERIA_VALUES = [
     const.COMPLETION_CRITERIA_INDEPENDENT,
+    const.COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY,
     const.COMPLETION_CRITERIA_SHARED,
     const.COMPLETION_CRITERIA_SHARED_FIRST,
     const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
     const.COMPLETION_CRITERIA_ROTATION_SMART,
+]
+
+_STANDBY_CLAIM_MODE_VALUES = [
+    const.STANDBY_CLAIM_MODE_ANYTIME,
+    const.STANDBY_CLAIM_MODE_ON_OVERDUE,
+    const.STANDBY_CLAIM_MODE_MANUAL_ONLY,
 ]
 
 _APPROVAL_RESET_VALUES = [
@@ -820,6 +840,9 @@ CREATE_CHORE_SCHEMA = vol.Schema(
             ),
             vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_COMPLETION_CRITERIA): vol.In(
                 _COMPLETION_CRITERIA_VALUES
+            ),
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_STANDBY_CLAIM_MODE): vol.In(
+                _STANDBY_CLAIM_MODE_VALUES
             ),
             vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_APPROVAL_RESET): vol.In(
                 _APPROVAL_RESET_VALUES
@@ -903,6 +926,9 @@ UPDATE_CHORE_SCHEMA = vol.Schema(
             ),
             vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_OVERDUE_HANDLING): vol.In(
                 _OVERDUE_HANDLING_VALUES
+            ),
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_STANDBY_CLAIM_MODE): vol.In(
+                _STANDBY_CLAIM_MODE_VALUES
             ),
             vol.Optional(
                 const.SERVICE_FIELD_CHORE_CRUD_CLAIM_LOCK_UNTIL_WINDOW
@@ -2324,6 +2350,12 @@ def async_setup_services(hass: HomeAssistant):
             after_dt,
             chore_ids=chore_ids,
             assignee_ids=user_ids,
+            reschedule_independent=bool(
+                call.data.get(const.SERVICE_FIELD_RESCHEDULE_INDEPENDENT, True)
+            ),
+            reschedule_primary_standby=bool(
+                call.data.get(const.SERVICE_FIELD_RESCHEDULE_PRIMARY_STANDBY, True)
+            ),
             reschedule_shared=bool(
                 call.data.get(const.SERVICE_FIELD_RESCHEDULE_SHARED, False)
             ),
@@ -3664,7 +3696,7 @@ def async_setup_services(hass: HomeAssistant):
     async def handle_pause_user_chores(call: ServiceCall) -> None:
         """Handle pause_user_chores service call.
 
-        Pause or resume chore processing for a user. While paused,
+        Pause or unpause chore processing for a user. While paused,
         no overdue/missed stats accumulate and rotation advances past
         this user.
 
@@ -3703,12 +3735,20 @@ def async_setup_services(hass: HomeAssistant):
             assignee_id=assignee_id,
             paused=paused,
             paused_until=paused_until,
+            unpause_action=call.data.get(
+                const.SERVICE_FIELD_UNPAUSE_ACTION,
+                const.UNPAUSE_ACTION_UNPAUSE,
+            ),
         )
 
         const.LOGGER.info(
-            "Pause User Chores: user=%s paused=%s",
+            "Pause User Chores: user=%s paused=%s unpause_action=%s",
             user_name,
             paused,
+            call.data.get(
+                const.SERVICE_FIELD_UNPAUSE_ACTION,
+                const.UNPAUSE_ACTION_UNPAUSE,
+            ),
         )
 
         await coordinator.async_request_refresh()

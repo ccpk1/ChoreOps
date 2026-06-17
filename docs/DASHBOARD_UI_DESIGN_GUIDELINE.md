@@ -126,8 +126,9 @@ Allowed exception class:
   active Home Assistant theme, such as ChoreOps chore-state and reward-state
   accents, may use non-theme colors.
 - These colors must still be declared as explicit template variables such as
-  `pref_claim_accent`, `pref_due_accent`, `pref_overdue_accent`, or other
-  semantically named variables.
+  `pref_claim_accent`, `pref_due_accent`, `pref_overdue_accent`,
+  `pref_steal_accent`, `pref_standby_accent`, or other semantically named
+  variables.
 
 Authoring rule:
 
@@ -135,7 +136,8 @@ Authoring rule:
   name and a single declaration point in the template or shared template
   contract.
 
-For blocked or exception states (`waiting`, `missed`, `not_my_turn`, `completed_by_other`):
+For blocked or exception states (`waiting`, `missed`, `not_my_turn`,
+`completed_by_other`, `standby`):
 
 - Set card opacity to `0.6`
 - Flatten heavy shadows/elevation
@@ -146,7 +148,8 @@ For blocked or exception states (`waiting`, `missed`, `not_my_turn`, `completed_
 
 Use claim capability as the single action truth for claim buttons:
 
-- If `can_claim` is `true`, claim action is enabled and `claim_mode` should be an actionable mode (`claimable` or `steal_available`).
+- If `can_claim` is `true`, claim action is enabled and `claim_mode` should be
+  an actionable mode (`claimable`, `steal_available`, or `standby_available`).
 - If `can_claim` is `false`, claim action is disabled and `claim_mode` should be one of:
   - `blocked_completed_by_other`
   - `blocked_already_approved`
@@ -154,6 +157,7 @@ Use claim capability as the single action truth for claim buttons:
   - `blocked_waiting_window`
   - `blocked_not_my_turn`
   - `blocked_missed_locked`
+  - `blocked_standby`
 
 UI behavior rule:
 
@@ -189,6 +193,7 @@ Placement and visual rules:
 | ----------- | ------------- | ------------ | --------------------------- | ------------------- | --------------------------------------------------- |
 | `pending`   | Upcoming      | `#4A4A4A`    | `var(--primary-text-color)` | `mdi:arrow-right`   | Neutral icon; start affordance                      |
 | `due`       | Due           | `#FF9800`    | `var(--warning-color)`      | `mdi:arrow-right`   | Orange highlight on icon/accent                     |
+| `standby_available` | Standby | `#5B8DEF`    | `var(--info-color)`         | `mdi:shield-account`| Muted blue accent; subdued but visible; no urgency  |
 | `claimed`   | In Progress   | `#A957FA`    | `var(--primary-color)`\*    | `mdi:check-all`     | Solid action button; undo visible                   |
 | `completed` | Done          | `#4CAF50`    | `var(--success-color)`      | `mdi:check`         | Green check icon + neutral outline; action disabled |
 | `overdue`   | Overdue       | `#F44336`    | `var(--error-color)`        | `mdi:alert-octagon` | Error-colored action icon + outline                 |
@@ -208,6 +213,7 @@ choreops-claimed-color: "#A957FA"
 | -------------------- | ------------- | ------------ | ---------------------------- | --------------------------- | ----------------------------------- |
 | `waiting`            | Waiting       | `#9E9E9E`    | `var(--disabled-text-color)` | `mdi:clock-outline`         | Dependency blocked                  |
 | `missed`             | Missed        | `#F44336`    | `var(--error-color)`         | `mdi:lock-outline`          | Window closed; locked               |
+| `standby` / `blocked_standby` | Standby | `#9E9E9E` | `var(--disabled-text-color)` | `mdi:shield-lock-outline`  | Designated backup; non-actionable   |
 | `not_my_turn`        | Not Your Turn | `#9E9E9E`    | `var(--disabled-text-color)` | `mdi:account-lock-outline`  | Show `Currently: [Sibling Name]`    |
 | `paused`            | Paused        | `#FF9800`    | `var(--warning-color)`       | `mdi:pause-circle-outline`  | User's chores are paused            |
 | `completed_by_other` | Done by Other | `#9E9E9E`    | `var(--disabled-text-color)` | `mdi:account-check-outline` | Show `Completed by: [Sibling Name]` |
@@ -218,6 +224,10 @@ choreops-claimed-color: "#A957FA"
 - Use a `2px` actionable outline for default claimable states (commonly `var(--primary-color)`)
 - For `completed`, keep action button background transparent, icon `var(--success-color)`, and a neutral outline (`1px` disabled-text)
 - For `steal_available`, use the declared steal accent variable for the button treatment and keep icon color theme-adaptive (`var(--primary-text-color)`)
+- For `standby_available`, use the declared standby accent variable
+  (`pref_standby_accent`) for the action button border, icon color, due text
+  color, and a subtle 5% background tint. The treatment should be noticeable
+  but subdued — distinguishable from `due`/`overdue` urgency signaling
 
 ## Collaborative mode behaviors
 
@@ -241,6 +251,14 @@ choreops-claimed-color: "#A957FA"
 - Non-active users show `not_my_turn` blocked presentation
 - Always show current turn holder in secondary text
 
+### Admin All Chores section actions
+
+The All Chores card in admin templates combines pause, resume, and reschedule actions in a single expandable section with state-dependent layouts:
+
+- **Pause section**: Shown when chores are active. Pause button + "Pause Until" button, followed by a 3-button reschedule layout (Shift Independent, Shift Indep & Primary, Shift All).
+- **Resume section**: Shown when chores are paused. Full-width Resume button (green, full opacity), followed by a centered "Resume & Reschedule Past-Due" divider, then 3 resume-shift buttons (green, subdued — 14% border / 5% background tint) with "Past: Now" subtitle.
+- **Section headers**: Use centered text without uppercase transformation for subsections (resume actions), left-aligned uppercase with trailing divider for primary sections (pause control, reschedule actions).
+
 ## UI modifiers and badges
 
 | Modifier type   | Description                                    | Standard hex | Lovelace CSS variable        | Icon                          | Placement                            |
@@ -249,14 +267,16 @@ choreops-claimed-color: "#A957FA"
 | Shared (All)    | All assignees must complete                    | `#9E9E9E`    | `var(--disabled-text-color)` | `mdi:account-group`           | Appended to chore name               |
 | Shared (First)  | First assignee to claim wins                   | `#9E9E9E`    | `var(--disabled-text-color)` | `mdi:flag-checkered`          | Appended to chore name               |
 | Rotating        | Assignment shifts by schedule                  | `#9E9E9E`    | `var(--disabled-text-color)` | `mdi:account-sync`            | Appended to chore name               |
+| Primary & Standby | Designated primary with standby backup       | `#9E9E9E`    | `var(--disabled-text-color)` | `mdi:account-switch`          | Appended to chore name               |
 | Recurring       | Chore repeats automatically                    | `#9E9E9E`    | `var(--disabled-text-color)` | `mdi:repeat`                  | Prepended to frequency text          |
 | Bonus           | Positive admin points                          | `#4CAF50`    | `var(--success-color)`       | `mdi:star-plus` / `mdi:gift`  | Admin action grids                   |
 | Penalty         | Negative admin points                          | `#F44336`    | `var(--error-color)`         | `mdi:alert-octagon`           | Admin action grids                   |
 
-Steal color application rule:
+Standby and steal color application rules:
 
 - Apply the gold steal treatment only when `claim_mode` is `steal_available`
-- Do not apply steal styling for generic blocked states
+- Apply the muted blue standby treatment only when `claim_mode` is `standby_available`
+- Do not apply steal or standby styling for generic blocked states
 
 ## Implementation checklist (template authors)
 

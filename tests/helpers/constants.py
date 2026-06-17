@@ -338,12 +338,14 @@ from custom_components.choreops.const import (
     CHORE_STATE_CLAIMED_IN_PART,
     CHORE_STATE_COMPLETED,
     CHORE_STATE_COMPLETED_IN_PART,
+    CHORE_STATE_DUE,
     CHORE_STATE_INDEPENDENT,
     CHORE_STATE_MISSED,  # v0.5.0
     CHORE_STATE_NOT_MY_TURN,  # v0.5.0
     CHORE_STATE_OVERDUE,
     CHORE_STATE_PAUSED,  # user-chore-pause
     CHORE_STATE_PENDING,
+    CHORE_STATE_STANDBY,  # rotation_primary_standby
     CHORE_STATE_UNKNOWN,
     CHORE_STATE_WAITING,  # v0.5.0
     # =========================================================================
@@ -358,6 +360,8 @@ from custom_components.choreops.const import (
     CHORE_CLAIM_MODE_BLOCKED_WAITING_WINDOW,
     CHORE_CLAIM_MODE_CLAIMABLE,
     CHORE_CLAIM_MODE_STEAL_AVAILABLE,
+    CHORE_CLAIM_MODE_BLOCKED_STANDBY,  # rotation_primary_standby
+    CHORE_CLAIM_MODE_STANDBY_AVAILABLE,  # rotation_primary_standby
     # =========================================================================
     # COMPLETION CRITERIA
     # =========================================================================
@@ -366,6 +370,7 @@ from custom_components.choreops.const import (
     COMPLETION_CRITERIA_SHARED_FIRST,
     COMPLETION_CRITERIA_ROTATION_SIMPLE,  # v0.5.0
     COMPLETION_CRITERIA_ROTATION_SMART,  # v0.5.0
+    COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY,  # v1.1.0
     # =========================================================================
     # DOMAIN & COORDINATOR
     # =========================================================================
