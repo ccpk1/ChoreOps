@@ -30,6 +30,24 @@
     "title": "🎯 Chore Now Due",
     "message": "{chore_name} is now due! Complete within {hours} hour(s) to earn {points} {points_label}"
   },
+  "chore_approved_assignee_no_points": {
+    "message": "{chore_name} approved!"
+  },
+  "chore_overdue_assignee_no_points": {
+    "message": "{chore_name} is overdue! Complete it now"
+  },
+  "chore_overdue_steal_available_no_points": {
+    "message": "{chore_name} is overdue and available to steal! Complete it first"
+  },
+  "chore_standby_needed_no_points": {
+    "message": "{primary_name}'s chore {chore_name} is overdue! Claim it now"
+  },
+  "chore_due_reminder_assignee_no_points": {
+    "message": "{chore_name} is due in {minutes} minutes!"
+  },
+  "chore_due_window_assignee_no_points": {
+    "message": "{chore_name} is now due! Complete within {hours} hour(s)"
+  },
   "reward_approved_assignee": {
     "title": "🎉 Reward Approved!",
     "message": "{reward_name} approved!"
