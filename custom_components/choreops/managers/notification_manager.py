@@ -2650,22 +2650,6 @@ class NotificationManager(BaseManager):
         if not assignee_id or not chore_id:
             return
 
-        # Phase 3 Step 9: Filter rotation chores - only notify turn-holder
-        chore_info: ChoreData | None = self.coordinator.chores_data.get(chore_id)
-        if chore_info and ChoreEngine.is_rotation_mode(chore_info):
-            current_turn_assignee = chore_info.get(
-                const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID
-            )
-            if current_turn_assignee != assignee_id:
-                const.LOGGER.debug(
-                    "NotificationManager: Skipping due window notification for rotation chore=%s "
-                    "(not_my_turn: current turn is assignee=%s, not %s)",
-                    chore_name,
-                    current_turn_assignee,
-                    assignee_id,
-                )
-                return
-
         # Schedule-Lock: Check if already notified this period
         if not self._should_send_chore_notification(assignee_id, chore_id, "due_start"):
             const.LOGGER.debug(
@@ -2719,22 +2703,6 @@ class NotificationManager(BaseManager):
 
         if not assignee_id or not chore_id:
             return
-
-        # Phase 3 Step 9: Filter rotation chores - only notify turn-holder
-        chore_info: ChoreData | None = self.coordinator.chores_data.get(chore_id)
-        if chore_info and ChoreEngine.is_rotation_mode(chore_info):
-            current_turn_assignee = chore_info.get(
-                const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID
-            )
-            if current_turn_assignee != assignee_id:
-                const.LOGGER.debug(
-                    "NotificationManager: Skipping due reminder notification for rotation chore=%s "
-                    "(not_my_turn: current turn is assignee=%s, not %s)",
-                    chore_name,
-                    current_turn_assignee,
-                    assignee_id,
-                )
-                return
 
         # Schedule-Lock: Check if already notified this period
         if not self._should_send_chore_notification(

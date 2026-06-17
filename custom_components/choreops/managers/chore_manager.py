@@ -2186,6 +2186,23 @@ class ChoreManager(BaseManager):
                     const.CHORE_OVERDUE_NOTIFICATION_TYPE_STEAL_AVAILABLE
                 )
 
+            elif (
+                ChoreEngine.is_rotation_mode(chore_data)
+                and chore_data.get(const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID)
+                != assignee_id
+            ):
+                # Non-turn-holders in rotation modes without steal or standby
+                # capability don't get overdue notifications — only the current
+                # turn-holder receives the overdue signal.
+                const.LOGGER.debug(
+                    "Skipping overdue signal for non-turn-holder "
+                    "assignee=%s in rotation chore=%s",
+                    assignee_id,
+                    chore_id,
+                )
+                marked_count += 1
+                continue
+
             # Calculate days overdue and accumulate signal data
             days_overdue = (now_utc - due_dt).days
             signals_to_emit.append(
@@ -2248,6 +2265,14 @@ class ChoreManager(BaseManager):
             chore_name = chore_info.get(const.DATA_CHORE_NAME, "Unknown Chore")
             points = chore_info.get(const.DATA_CHORE_DEFAULT_POINTS, 0)
 
+            # Rotation guard: only notify the current turn-holder
+            if ChoreEngine.is_rotation_mode(chore_info):
+                current_turn_assignee = chore_info.get(
+                    const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID
+                )
+                if current_turn_assignee != assignee_id:
+                    continue
+
             # Get assignee name for signal emission
             assignee_info: UserData = cast(
                 "UserData", self._coordinator.assignees_data.get(assignee_id, {})
@@ -2287,6 +2312,14 @@ class ChoreManager(BaseManager):
             assignee_id = entry[const.CHORE_SCAN_ENTRY_USER_ID]
             chore_name = chore_info.get(const.DATA_CHORE_NAME, "Unknown Chore")
             points = chore_info.get(const.DATA_CHORE_DEFAULT_POINTS, 0)
+
+            # Rotation guard: only notify the current turn-holder
+            if ChoreEngine.is_rotation_mode(chore_info):
+                current_turn_assignee = chore_info.get(
+                    const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID
+                )
+                if current_turn_assignee != assignee_id:
+                    continue
 
             # Get assignee name for signal emission
             assignee_info: UserData = cast(
