@@ -146,17 +146,7 @@ def parse_notification_action(action_field: str) -> ParsedAction | None:
         action_type = parts[0]
 
         # Validate action_type is a known constant
-        valid_actions = {
-            const.ACTION_APPROVE_CHORE,
-            const.ACTION_DISAPPROVE_CHORE,
-            const.ACTION_CLAIM_CHORE,
-            const.ACTION_COMPLETE_FOR_ASSIGNEE,
-            const.ACTION_SKIP_CHORE,
-            const.ACTION_APPROVE_REWARD,
-            const.ACTION_DISAPPROVE_REWARD,
-            const.ACTION_REMIND_30,
-        }
-        if action_type not in valid_actions:
+        if action_type not in const.NOTIFICATION_ACTION_TYPES:
             const.LOGGER.warning("Unknown action type: %s", action_type)
             return None
 
@@ -209,7 +199,13 @@ async def async_handle_notification_action(hass: HomeAssistant, event: Event) ->
     """
     action_field = event.data.get(const.NOTIFY_ACTION)
     if not action_field:
-        const.LOGGER.error("No action found in event data: %s", event.data)
+        return
+
+    # Early-exit gate: check action type before any parsing.
+    # The mobile_app_notification_action event fires for ALL integrations,
+    # not just ChoreOps. Only process actions that use a known ChoreOps type.
+    action_type = action_field.split("|", 1)[0]
+    if action_type not in const.NOTIFICATION_ACTION_TYPES:
         return
 
     # Parse action string into typed ParsedAction object (v0.5.0+)
