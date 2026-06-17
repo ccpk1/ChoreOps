@@ -1,0 +1,69 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "🔗 Auto-Link ChoreOps",
+      "type": "shell",
+      "command": "mkdir -p /workspaces/core/config/custom_components && ln -snf /workspaces/choreops/custom_components/choreops /workspaces/core/config/custom_components/choreops",
+      "runOptions": {
+        "runOn": "folderOpen"
+      }
+    },
+    {
+      "label": "📖 Sync ChoreOps Wiki",
+      "type": "shell",
+      "command": "if [ -d /workspaces/choreops-wiki/.git ]; then cd /workspaces/choreops-wiki && git pull --ff-only; else git clone https://github.com/ccpk1/ChoreOps.wiki.git /workspaces/choreops-wiki; fi"
+    },
+    {
+      "label": "📦 Sync Dashboard Assets",
+      "type": "shell",
+      "command": "/home/vscode/.local/ha-venv/bin/python /workspaces/choreops/utils/sync_dashboard_assets.py"
+    },
+    {
+      "label": "✅ Check Dashboard Asset Parity",
+      "type": "shell",
+      "command": "/home/vscode/.local/ha-venv/bin/python /workspaces/choreops/utils/sync_dashboard_assets.py --check"
+    },
+    {
+      "label": "🔄 Refresh HA Dev Environment",
+      "type": "shell",
+      "command": "cd /workspaces/core && git pull --ff-only && script/setup && cd /workspaces/choreops && git pull --ff-only",
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": [],
+      "detail": "Pull HA core → rebuild ha-venv → pull choreops. Run after daily HA dev update."
+    },
+    {
+      "label": "🧪 Run ChoreOps Tests",
+      "type": "shell",
+      "command": "./utils/run_tests.sh tests/ -v --tb=line",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "⚡ Quick Lint",
+      "type": "shell",
+      "command": "cd /workspaces/choreops && source /home/vscode/.local/ha-venv/bin/activate && ./utils/quick_lint.sh --fix",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": [],
+      "detail": "Ruff check/format + mypy + boundary checks"
+    }
+  ]
+}

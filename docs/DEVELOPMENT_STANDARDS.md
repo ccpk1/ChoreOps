@@ -74,9 +74,62 @@ Cross-repository coordination rule:
 - Integration and dashboard registry versions may evolve independently.
 - Compatibility must be enforced by explicit manifest compatibility fields and schema contracts, not by assuming equal version numbers across repositories.
 
-### 1.1 Development environment lock (VS Code)
+### 1.1 Development Environment
 
-To keep editor diagnostics stable across contributors, this repository uses a locked interpreter in workspace settings:
+ChoreOps is a custom component that depends on Home Assistant core at runtime and
+in tests. This creates a shared-environment dependency: tests import from both
+`custom_components.choreops` and `homeassistant.*`, so they must run under a
+Python environment that has HA installed.
+
+#### Dependency chain
+
+```
+core/.devcontainer/devcontainer.json
+  └─ postCreateCommand: script/setup
+       └─ installs HA + all deps into /home/vscode/.local/ha-venv/
+            ├─ used by: ChoreOps VS Code interpreter (locked)
+            ├─ used by: ChoreOps pytest (imports homeassistant.*)
+            └─ used by: core VS Code interpreter
+```
+
+The HA venv at `/home/vscode/.local/ha-venv/` is the **single shared Python
+environment** for both projects. It is created by HA core's `script/setup` and
+goes **stale when HA core's `dev` branch moves** — which happens daily.
+
+#### Daily sync ritual
+
+After every `git pull` on HA core (`/workspaces/core`), run:
+
+```bash
+cd /workspaces/core && script/setup
+```
+
+This rebuilds the shared HA venv with the latest dependencies, keeping ruff,
+mypy, pytest, and all HA test fixtures in sync. Without this step, tests
+silently fail against stale APIs.
+
+Complete session start:
+
+```bash
+# 1. Sync both repos
+cd /workspaces/core && git pull --ff-only && script/setup
+cd /workspaces/choreops && git pull --ff-only
+
+# 2. Verify the symlink bridge is intact
+ls -la /workspaces/core/config/custom_components/choreops  # → symlink to /workspaces/choreops/custom_components/choreops
+
+# 3. Run quality gates
+cd /workspaces/choreops && ./utils/quick_lint.sh --fix
+```
+
+**Common failure mode**: If you pull HA core and skip `script/setup`, the venv
+still has the old HA version. Tests that pass locally may fail in CI because CI
+always runs `script/setup`. Always run it after pulling core.
+
+#### VS Code interpreter lock
+
+To keep editor diagnostics stable across contributors, this repository uses a
+locked interpreter in workspace settings:
 
 - **Locked interpreter**: `/home/vscode/.local/ha-venv/bin/python`
 - **Type authority**: MyPy is authoritative; Pylance `typeCheckingMode` remains `off`
