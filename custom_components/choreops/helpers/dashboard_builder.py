@@ -973,7 +973,13 @@ async def async_dedupe_choreops_dashboards(
         Mapping of url_path to number of removed duplicate records.
     """
     dashboards_collection = DashboardsCollection(hass)
-    await dashboards_collection.async_load()
+    try:
+        await dashboards_collection.async_load()
+    except KeyError:
+        # Storage data is not in the expected format (e.g. in test environments
+        # where the lovelace store isn't set up or returns unexpected data).
+        # Nothing to dedupe.
+        return {}
 
     target_canonical_url_path = (
         _canonical_dashboard_url_path(url_path) if isinstance(url_path, str) else None

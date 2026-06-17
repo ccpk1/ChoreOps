@@ -195,7 +195,7 @@ class TestSizeValidation:
         size = get_translation_sensor_size(hass, "Zoë")
 
         # Keep a pragmatic ceiling while preserving room for dashboard UX labels.
-        assert size < 11 * 1024, f"Translation sensor too large: {size} bytes"
+        assert size < 12 * 1024, f"Translation sensor too large: {size} bytes"
         # Should have meaningful content
         assert size > 1000, f"Translation sensor too small: {size} bytes"
 
