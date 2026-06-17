@@ -808,6 +808,25 @@ class NotificationManager(BaseManager):
             )
         )
 
+    def _get_assignee_gamification_enabled(self, assignee_id: str) -> bool:
+        """Check if gamification is enabled for the target assignee.
+
+        Args:
+            assignee_id: The internal UUID of the assignee
+
+        Returns:
+            True if gamification is enabled, False otherwise
+        """
+        assignee_info: AssigneeData = cast(
+            "AssigneeData", self.coordinator.assignees_data.get(assignee_id, {})
+        )
+        return bool(
+            assignee_info.get(
+                const.DATA_USER_ENABLE_GAMIFICATION,
+                const.DEFAULT_USER_ENABLE_GAMIFICATION,
+            )
+        )
+
     def _build_notification_placeholders(
         self, message_data: dict[str, Any] | None
     ) -> dict[str, Any]:
@@ -1083,6 +1102,18 @@ class NotificationManager(BaseManager):
             title_key,
         )
 
+        # Check gamification status and resolve non-gamified key if needed
+        if not self._get_assignee_gamification_enabled(assignee_id):
+            message_key = const.NOTIF_NON_GAMIFIED_MESSAGE_KEYS.get(
+                message_key, message_key
+            )
+            if message_data:
+                message_data = {
+                    k: v
+                    for k, v in message_data.items()
+                    if k not in ("points", "points_label")
+                }
+
         # Load notification translations from custom translations directory
         translations = await th.load_notification_translation(self.hass, language)
         const.LOGGER.debug(
@@ -1291,12 +1322,30 @@ class NotificationManager(BaseManager):
                 self.hass, approver_language
             )
 
+            # Resolve non-gamified key based on approver's gamification flag
+            resolved_message_key = message_key
+            if not self._get_assignee_gamification_enabled(approver_id):
+                resolved_message_key = const.NOTIF_NON_GAMIFIED_MESSAGE_KEYS.get(
+                    message_key, message_key
+                )
+                approver_message_data = (
+                    {
+                        k: v
+                        for k, v in message_data.items()
+                        if k not in ("points", "points_label")
+                    }
+                    if message_data
+                    else None
+                )
+            else:
+                approver_message_data = message_data
+
             # Convert const keys to JSON keys and look up translations
             title_json_key = self._convert_notification_key(title_key)
-            message_json_key = self._convert_notification_key(message_key)
+            message_json_key = self._convert_notification_key(resolved_message_key)
             title_notification = translations.get(title_json_key, {})
             message_notification = translations.get(message_json_key, {})
-            placeholders = self._build_notification_placeholders(message_data)
+            placeholders = self._build_notification_placeholders(approver_message_data)
 
             # Format both title and message with placeholders
             title = self._format_notification_text(

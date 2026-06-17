@@ -310,35 +310,55 @@ class EconomyManager(BaseManager):
         notify_assignee = bool(payload.get("notify_assignee", True))
 
         if base_points > 0 and assignee_id:
-            apply_multiplier = True
-            multiplier_applied = 1.0
-            if apply_multiplier and (assignee := self._get_assignee(assignee_id)):
-                multiplier_applied = float(
-                    assignee.get(const.DATA_USER_POINTS_MULTIPLIER, 1.0)
+            assignee = self._get_assignee(assignee_id)
+            gamification_enabled = (
+                bool(assignee.get(const.DATA_USER_ENABLE_GAMIFICATION, True))
+                if assignee
+                else True
+            )
+
+            if gamification_enabled:
+                apply_multiplier = True
+                multiplier_applied = 1.0
+                if apply_multiplier and assignee:
+                    multiplier_applied = float(
+                        assignee.get(const.DATA_USER_POINTS_MULTIPLIER, 1.0)
+                    )
+                points_awarded = EconomyEngine.calculate_with_multiplier(
+                    base_points,
+                    multiplier_applied,
                 )
-            points_awarded = EconomyEngine.calculate_with_multiplier(
-                base_points,
-                multiplier_applied,
-            )
 
-            await self.deposit(
-                assignee_id=assignee_id,
-                amount=base_points,
-                source=const.POINTS_SOURCE_CHORES,
-                reference_id=chore_id,
-                item_name=chore_name,
-                apply_multiplier=apply_multiplier,
-            )
+                await self.deposit(
+                    assignee_id=assignee_id,
+                    amount=base_points,
+                    source=const.POINTS_SOURCE_CHORES,
+                    reference_id=chore_id,
+                    item_name=chore_name,
+                    apply_multiplier=apply_multiplier,
+                )
 
-            self.emit(
-                const.SIGNAL_SUFFIX_CHORE_POINTS_AWARDED,
-                user_id=assignee_id,
-                chore_id=chore_id,
-                points_awarded=points_awarded,
-                chore_name=chore_name,
-                effective_date=effective_date,
-                notify_assignee=notify_assignee,
-            )
+                self.emit(
+                    const.SIGNAL_SUFFIX_CHORE_POINTS_AWARDED,
+                    user_id=assignee_id,
+                    chore_id=chore_id,
+                    points_awarded=points_awarded,
+                    chore_name=chore_name,
+                    effective_date=effective_date,
+                    notify_assignee=notify_assignee,
+                )
+            else:
+                # Gamification disabled: emit notification signal with zero points
+                # so the assignee still receives a non-gamified approval message.
+                self.emit(
+                    const.SIGNAL_SUFFIX_CHORE_POINTS_AWARDED,
+                    user_id=assignee_id,
+                    chore_id=chore_id,
+                    points_awarded=0,
+                    chore_name=chore_name,
+                    effective_date=effective_date,
+                    notify_assignee=notify_assignee,
+                )
 
     async def _on_reward_approved(self, payload: dict[str, Any]) -> None:
         """Handle reward approved event - withdraw points from assignee's balance.
