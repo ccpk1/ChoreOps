@@ -5,7 +5,7 @@
 - **Name / Code**: `rotation_primary_standby` — Primary & Standby Chore Type
 - **Target release / milestone**: 1.1.0
 - **Owner / driver(s)**: TBD
-- **Status**: All phases complete — implementation, testing, and dashboard templates delivered. Remaining: Phase 5b (docs & wiki). All code gaps (G-1 through G-7) verified fixed in actual code.
+- **Status**: **All phases complete** — implementation, testing, dashboard templates, docs & wiki delivered. All code gaps (G-1 through G-7) verified fixed in actual code.
 
 ## Summary & immediate steps
 
@@ -20,15 +20,15 @@
 | Phase 3A – Terminology rename  | "Backup" → "Standby" across all new constants, variables, state/claim mode values, storage keys, and translation keys | ✅ 100%    | 26 renames across 7 Python files + 3 YAML/JSON files via Python rename scripts. Validated: ruff ✅, mypy ✅ (0 ChoreOps errors), 12/12 rotation tests pass. Zero old `BACKUP_ACCESS`/`PRIMARY_BACKUP`/`backup_needed` references remain. |
 | Phase 4 – Testing              | Rotation FSM tests, boundary tests, regression                | ✅ 100%    | 10 tests in new file `test_rotation_primary_standby.py`. Covers: primary always claimable, standby state visibility, anytime/manual_only/on_overdue claim modes, set_rotation_turn override, turn-reset after approval, single-assignee edge case, due-today exclusion, pause activation. 22/22 rotation tests pass with zero regressions. |
 | Phase 5a – Dashboard templates | Status maps, icons, layout, i18n (choreops-dashboards) | ✅ 100%    | Restructured rotation action layout: full-width Move to Front/Primary bar + 3-column temp actions (Activate/Set Turn, Activate All, Reset). Reactive standby indicator via Jinja2 `chore_attrs`. Activate All icon `mdi:account-multiple-plus-outline`. Reset icon `mdi:restore`, primary color. Amber warning text for active cycle. Horizontal `"i n"` layout for permanent action. `rotation_cycle_override` lifecycle fixed: cleared on reset, set_turn, and assignment changes. Translation keys `activate_all`, `all_standby_active` added. |
-| Phase 5b – Docs & wiki         | 9 documentation files across 3 repos                          | 0%         | Wiki, architecture, design guide, release checklist                  |
+| Phase 5b – Docs & wiki         | 9 documentation files across 3 repos                          | ✅ 100%    | Verified: all docs already had thorough coverage. Only gap was `Technical:-Chores.md` — added primary-standby state explanation. ARCHITECTURE.md, DESIGN_GUIDELINE.md, TEMPLATE_GUIDE.md, all wiki pages already sufficient. |
 | Phase 5c – Reschedule chore types filter | Add per-chore-type reschedule toggles; add "Shift Indep & Primary" dashboard card | ✅ 100%    | Three independent toggles: `reschedule_independent` (default true), `reschedule_primary_standby` (default true), `reschedule_shared` (default false). Dashboard 3-button layout with explicit toggle payloads. `push_primary_btn` slot with 10px left padding, `push_all_btn` full-width span-4. |
 | Phase 5d – Smart resume options | Add `unpause_action` param to `pause_user_chores`; add resume option buttons to All Chores card | ✅ 100%    | Four unpause actions: `unpause`, `unpause_shift_independent`, `unpause_shift_all_primary`, `unpause_shift_all`. Backend delegates to `reschedule_chores_after` internally. Dashboard: resume section with "Past: Now" subtitle, 3 action buttons matching Phase 5c chore-type filters. |
 
 1. **Key objective** – Introduce a `rotation_primary_standby` completion criteria where the first assigned user is always the primary (permanent turn-holder default). Backups see `standby` state and can claim based on the `standby_claim_mode` field: `anytime` (claim immediately), `on_overdue` (claim after due date), or `manual_only` (admin must intervene). Backup activation also occurs when the primary is paused or when an admin uses `set_rotation_turn`. After every completion, the turn always resets to the primary.
 
-2. **Summary of recent work** – Phases 0–5d complete. All code gaps (G-1 through G-7) verified fixed in the actual codebase (see evidence below). Remaining: Phase 5b (docs & wiki).
+2. **Summary of recent work** – Phases 0–5d complete. All code gaps (G-1 through G-7) verified fixed in the actual codebase (see evidence below).
 
-3. **Next steps (short term)** – Phase 5b: Wiki documentation, architecture updates, release checklist sign-off.
+3. **Next steps (short term)** – PR review and merge to `main`.
 
 4. **Risks / blockers**
    - `standby` is a new derived UI state — must be added to `CHORE_UI_ASSIGNEE_STATES` and all state-allowlist frozensets that need to include it.
