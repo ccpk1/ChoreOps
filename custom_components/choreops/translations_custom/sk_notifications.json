@@ -138,5 +138,9 @@
     "disapprove": "↩️ Neschváliť",
     "remind_30": "⏰ Pripomenúť o 30 minút",
     "skip": "⏭️ Preskočiť"
+  },
+  "chore_standby_needed": {
+    "title": "🫲 Požadovaná pohotovosť",
+    "message": "Úloha {primary_name} {chore_name} je už načase! Vyzdvihnite si ju teraz a získajte {points} {points_label}"
   }
 }

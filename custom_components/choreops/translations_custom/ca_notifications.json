@@ -138,5 +138,9 @@
     "disapprove": "↩️ Desaprovar",
     "remind_30": "⏰ Recorda en 30 minuts",
     "skip": "⏭️ Omet"
+  },
+  "chore_standby_needed": {
+    "title": "🫲 S'ha sol·licitat l'estat d'espera",
+    "message": "La tasca de {primary_name}, {chore_name} , està pendent! Reclama-la ara per guanyar {points} {points_label}"
   }
 }

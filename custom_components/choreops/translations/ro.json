@@ -148,15 +148,17 @@
               "icon": "📋 Pictogramă (mdi:xxx)",
               "default_points": "💰 Puncte acordate",
               "assigned_user_ids": "👥 Atribuit la",
-              "completion_criteria": "👥 Criterii de finalizare"
+              "completion_criteria": "👥 Criterii de finalizare",
+              "standby_claim_mode": "🔑 Mod de revendicare în așteptare"
             },
             "data_description": {
               "name": "Nume unic afișat în tot sistemul.",
               "chore_description": "Instrucțiuni sau detalii opționale despre cum se finalizează această sarcină.",
               "icon": "Pictogramă Material Design (de exemplu, mdi:broom, mdi:dishwasher).",
               "default_points": "Puncte câștigate la finalizare.",
-              "assigned_user_ids": "Persoane desemnate care pot vedea și revendica această sarcină.",
-              "completion_criteria": "Controlează modul în care se finalizează sarcina atunci când sunt atribuite mai multe persoane: urmărire individuală, finalizare partajată sau rotație pe ture."
+              "assigned_user_ids": "Persoane desemnate care pot vedea și revendica această sarcină. Pentru sarcinile prin rotație, ordinea desemnatelor determină secvența turei. Pentru sarcinile Principale și de Rezervă, prima persoană desemnată este principala.",
+              "completion_criteria": "Controlează modul în care se finalizează sarcina atunci când sunt atribuite mai multe persoane: urmărire individuală, finalizare partajată sau rotație pe ture.",
+              "standby_claim_mode": "Controlează când sarcinile de rezervă pot revendica această sarcină (oricând, la depășire, doar manual). Se aplică numai criteriilor de finalizare principale și de rezervă."
             }
           },
           "section_schedule": {
@@ -229,7 +231,8 @@
           "chore_due_window_offset": "⏱️ Interval scadență: Compensare înainte de data scadenței",
           "chore_due_reminder_offset": "🔔 Memento scadență: Compensare înainte de data scadenței",
           "show_on_calendar": "📅 Afișați în Calendar?",
-          "chore_notifications": "🔔 Evenimente de notificare (opțional)"
+          "chore_notifications": "🔔 Evenimente de notificare (opțional)",
+          "standby_claim_mode": "🔑 Mod de revendicare în așteptare"
         },
         "data_description": {
           "name": "Nume unic afișat în tot sistemul.",
@@ -237,7 +240,7 @@
           "icon": "Pictogramă Material Design (de exemplu, mdi:broom, mdi:dishwasher).",
           "chore_labels": "Etichete pentru organizarea treburilor casnice (de exemplu, „bucătărie”, „exterior”). Lăsați necompletat dacă nu este necesar.",
           "default_points": "Puncte câștigate la finalizare.",
-          "assigned_user_ids": "Persoane desemnate care pot vedea și revendica această sarcină.",
+          "assigned_user_ids": "Persoane desemnate care pot vedea și revendica această sarcină. Pentru sarcinile prin rotație, ordinea desemnatelor determină secvența turei. Pentru sarcinile Principale și de Rezervă, prima persoană desemnată este principala.",
           "completion_criteria": "Controlează modul în care se finalizează sarcina atunci când sunt atribuite mai multe persoane: urmărire individuală, finalizare partajată sau rotație pe ture.",
           "approval_reset_type": "Controlează momentul în care se declanșează limita ciclului de aprobare al sarcinii (miezul nopții, data scadenței, la finalizare sau declanșare manuală).",
           "approval_reset_pending_claim_action": "Iată ce se întâmplă cu cererile care încă așteaptă aprobarea atunci când are loc resetarea aprobării.",
@@ -252,7 +255,8 @@
           "chore_due_window_offset": "Când starea sarcinii se schimbă din În așteptare în Scadentă. Format: „1z 6h 30m” sau doar „30” pentru minute. Introduceți „0” pentru dezactivare. Exemplu: „1z” înseamnă că sarcina apare ca „Scadentă” cu 1 zi înainte de termenul limită.",
           "chore_due_reminder_offset": "Când se trimite notificarea de reamintire a scadenței. Format: „1d 6h 30m” sau doar „30” pentru minute. Implicit: 30m (cu 30 de minute înainte de scadență). Introduceți „0” pentru a dezactiva.",
           "show_on_calendar": "Afișează această sarcină în vizualizarea calendarului.",
-          "chore_notifications": "Când se trimit notificări: La revendicare, la aprobare, la respingere sau orice combinație a acestora."
+          "chore_notifications": "Când se trimit notificări: La revendicare, la aprobare, la respingere sau orice combinație a acestora.",
+          "standby_claim_mode": "Controlează când sarcinile de rezervă pot revendica această sarcină (oricând, la depășire, doar manual). Se aplică numai criteriilor de finalizare principale și de rezervă."
         }
       },
       "badge_count": {
@@ -639,15 +643,17 @@
               "icon": "📋 Pictogramă (mdi:xxx)",
               "default_points": "💰 Puncte acordate",
               "assigned_user_ids": "👥 Atribuit la",
-              "completion_criteria": "👥 Criterii de finalizare"
+              "completion_criteria": "👥 Criterii de finalizare",
+              "standby_claim_mode": "🔑 Mod de revendicare în așteptare"
             },
             "data_description": {
               "name": "Nume unic afișat în tot sistemul.",
               "chore_description": "Instrucțiuni sau detalii opționale despre cum se finalizează această sarcină.",
               "icon": "Pictogramă Material Design (de exemplu, mdi:broom, mdi:dishwasher).",
               "default_points": "Puncte câștigate la finalizare.",
-              "assigned_user_ids": "Persoane desemnate care pot vedea și revendica această sarcină.",
-              "completion_criteria": "Controlează modul în care se finalizează sarcina atunci când sunt atribuite mai multe persoane: urmărire individuală, finalizare partajată sau rotație pe ture."
+              "assigned_user_ids": "Persoane desemnate care pot vedea și revendica această sarcină. Pentru sarcinile prin rotație, ordinea desemnatelor determină secvența turei. Pentru sarcinile Principale și de Rezervă, prima persoană desemnată este principala.",
+              "completion_criteria": "Controlează modul în care se finalizează sarcina atunci când sunt atribuite mai multe persoane: urmărire individuală, finalizare partajată sau rotație pe ture.",
+              "standby_claim_mode": "Controlează când sarcinile de rezervă pot revendica această sarcină (oricând, la depășire, doar manual). Se aplică numai criteriilor de finalizare principale și de rezervă."
             }
           },
           "section_schedule": {
@@ -721,7 +727,8 @@
           "chore_due_window_offset": "⏱️ Interval scadență: Compensare înainte de data scadenței",
           "chore_due_reminder_offset": "🔔 Memento scadență: Compensare înainte de data scadenței",
           "show_on_calendar": "📅 Afișați în Calendar?",
-          "chore_notifications": "🔔 Evenimente de notificare (opțional)"
+          "chore_notifications": "🔔 Evenimente de notificare (opțional)",
+          "standby_claim_mode": "🔑 Mod de revendicare în așteptare"
         },
         "data_description": {
           "name": "Nume unic afișat în tot sistemul.",
@@ -729,7 +736,7 @@
           "icon": "Pictogramă Material Design (de exemplu, mdi:broom, mdi:dishwasher).",
           "chore_labels": "Etichete pentru organizarea treburilor casnice (de exemplu, „bucătărie”, „exterior”). Lăsați necompletat dacă nu este necesar.",
           "default_points": "Puncte câștigate la finalizare.",
-          "assigned_user_ids": "Persoane desemnate care pot vedea și revendica această sarcină.",
+          "assigned_user_ids": "Persoane desemnate care pot vedea și revendica această sarcină. Pentru sarcinile prin rotație, ordinea desemnatelor determină secvența turei. Pentru sarcinile Principale și de Rezervă, prima persoană desemnată este principala.",
           "completion_criteria": "Controlează modul în care se finalizează sarcina atunci când sunt atribuite mai multe persoane: urmărire individuală, finalizare partajată sau rotație pe ture.",
           "approval_reset_type": "Controlează momentul în care se declanșează limita ciclului de aprobare a sarcinii (miezul nopții, data scadenței, la finalizare sau declanșare manuală).",
           "approval_reset_pending_claim_action": "Controlează ce se întâmplă cu revendicările neaprobate atunci când se declanșează limita de resetare a aprobării.",
@@ -745,7 +752,8 @@
           "chore_due_window_offset": "Când starea sarcinii se schimbă din În așteptare în Scadentă. Format: „1z 6h 30m” sau doar „30” pentru minute. Introduceți „0” pentru dezactivare. Exemplu: „1z” înseamnă că sarcina apare ca „Scadentă” cu 1 zi înainte de termenul limită.",
           "chore_due_reminder_offset": "Când se trimite notificarea de reamintire a scadenței. Format: „1d 6h 30m” sau doar „30” pentru minute. Implicit: 30m (cu 30 de minute înainte de scadență). Introduceți „0” pentru a dezactiva.",
           "show_on_calendar": "Afișează această sarcină în vizualizarea calendarului.",
-          "chore_notifications": "Când se trimit notificări: La revendicare, la aprobare, la respingere sau orice combinație a acestora."
+          "chore_notifications": "Când se trimit notificări: La revendicare, la aprobare, la respingere sau orice combinație a acestora.",
+          "standby_claim_mode": "Controlează când sarcinile de rezervă pot revendica această sarcină (oricând, la depășire, doar manual). Se aplică numai criteriilor de finalizare principale și de rezervă."
         }
       },
       "add_badge": {
@@ -1079,15 +1087,17 @@
               "icon": "📋 Pictogramă (mdi:xxx)",
               "default_points": "💰 Puncte acordate",
               "assigned_user_ids": "👥 Atribuit la",
-              "completion_criteria": "👥 Criterii de finalizare"
+              "completion_criteria": "👥 Criterii de finalizare",
+              "standby_claim_mode": "🔑 Mod de revendicare în așteptare"
             },
             "data_description": {
               "name": "Nume unic afișat în tot sistemul.",
               "chore_description": "Instrucțiuni sau detalii opționale despre cum se finalizează această sarcină.",
               "icon": "Pictogramă Material Design (de exemplu, mdi:broom, mdi:dishwasher).",
               "default_points": "Puncte câștigate la finalizare.",
-              "assigned_user_ids": "Persoane desemnate care pot vedea și revendica această sarcină.",
-              "completion_criteria": "Controlează modul în care se finalizează sarcina atunci când sunt atribuite mai multe persoane: urmărire individuală, finalizare partajată sau rotație pe ture."
+              "assigned_user_ids": "Persoane desemnate care pot vedea și revendica această sarcină. Pentru sarcinile prin rotație, ordinea desemnatelor determină secvența turei. Pentru sarcinile Principale și de Rezervă, prima persoană desemnată este principala.",
+              "completion_criteria": "Controlează modul în care se finalizează sarcina atunci când sunt atribuite mai multe persoane: urmărire individuală, finalizare partajată sau rotație pe ture.",
+              "standby_claim_mode": "Controlează când sarcinile de rezervă pot revendica această sarcină (oricând, la depășire, doar manual). Se aplică numai criteriilor de finalizare principale și de rezervă."
             }
           },
           "section_schedule": {
@@ -1162,7 +1172,8 @@
           "chore_due_window_offset": "⏱️ Interval scadență: Compensare înainte de data scadenței",
           "chore_due_reminder_offset": "🔔 Memento scadență: Compensare înainte de data scadenței",
           "show_on_calendar": "📅 Afișați în Calendar?",
-          "chore_notifications": "🔔 Evenimente de notificare (opțional)"
+          "chore_notifications": "🔔 Evenimente de notificare (opțional)",
+          "standby_claim_mode": "🔑 Mod de revendicare în așteptare"
         },
         "data_description": {
           "name": "Nume unic afișat în tot sistemul.",
@@ -1170,7 +1181,7 @@
           "icon": "Pictogramă Material Design (de exemplu, mdi:broom, mdi:dishwasher).",
           "chore_labels": "Etichete pentru organizarea treburilor casnice (de exemplu, „bucătărie”, „exterior”). Lăsați necompletat dacă nu este necesar.",
           "default_points": "Puncte câștigate la finalizare.",
-          "assigned_user_ids": "Persoane desemnate care pot vedea și revendica această sarcină.",
+          "assigned_user_ids": "Persoane desemnate care pot vedea și revendica această sarcină. Pentru sarcinile prin rotație, ordinea desemnatelor determină secvența turei. Pentru sarcinile Principale și de Rezervă, prima persoană desemnată este principala.",
           "completion_criteria": "Controlează modul în care se finalizează sarcina atunci când sunt atribuite mai multe persoane: urmărire individuală, finalizare partajată sau rotație pe ture.",
           "approval_reset_type": "Controlează momentul în care se declanșează limita ciclului de aprobare a sarcinii (miezul nopții, data scadenței, la finalizare sau declanșare manuală).",
           "approval_reset_pending_claim_action": "Controlează ce se întâmplă cu revendicările neaprobate atunci când se declanșează limita de resetare a aprobării.",
@@ -1186,7 +1197,8 @@
           "chore_due_window_offset": "Când starea sarcinii se schimbă din În așteptare în Scadentă. Format: „1z 6h 30m” sau doar „30” pentru minute. Introduceți „0” pentru dezactivare. Exemplu: „1z” înseamnă că sarcina apare ca „Scadentă” cu 1 zi înainte de termenul limită.",
           "chore_due_reminder_offset": "Când se trimite notificarea de reamintire a scadenței. Format: „1d 6h 30m” sau doar „30” pentru minute. Implicit: 30m (cu 30 de minute înainte de scadență). Introduceți „0” pentru a dezactiva.",
           "show_on_calendar": "Afișează această sarcină în vizualizarea calendarului.",
-          "chore_notifications": "Când se trimit notificări: La revendicare, la aprobare, la respingere sau orice combinație a acestora."
+          "chore_notifications": "Când se trimit notificări: La revendicare, la aprobare, la respingere sau orice combinație a acestora.",
+          "standby_claim_mode": "Controlează când sarcinile de rezervă pot revendica această sarcină (oricând, la depășire, doar manual). Se aplică numai criteriilor de finalizare principale și de rezervă."
         }
       },
       "edit_chore_per_user_dates": {
@@ -2056,7 +2068,15 @@
         "independent": "Independent (Fiecare participant completează singur)",
         "shared_first": "Partajat Mai întâi (Primele finalizări numără)",
         "rotation_simple": "Rotație simplă (doar titular de tură, ordine strictă)",
-        "rotation_smart": "Rotație inteligentă (doar pentru titularul de tură, ponderat în funcție de corectitudine)"
+        "rotation_smart": "Rotație inteligentă (doar pentru titularul de tură, ponderat în funcție de corectitudine)",
+        "rotation_primary_standby": "Principal și în așteptare (tura implicită principală, în așteptare când este eligibil)"
+      }
+    },
+    "standby_claim_mode": {
+      "options": {
+        "anytime": "Oricând (persoana aflată în rezervă poate revendica imediat)",
+        "on_overdue": "La scadență (persoana aflată în așteptare poate solicita plata atunci când scadența este întârziată)",
+        "manual_only": "Numai manual (administratorul trebuie să atribuie rândul)"
       }
     },
     "approval_reset_type": {
@@ -2263,7 +2283,7 @@
     },
     "pause_user_chores": {
       "name": "Întrerupeți sarcinile utilizatorului",
-      "description": "Întrerupeți sau reluați procesarea sarcinilor pentru un utilizator.",
+      "description": "Întrerupe sau reia procesarea sarcinilor pentru un utilizator. La reluarea întreruperii, unpause_action controlează dacă sarcinile restante sunt reprogramate pentru a preveni tranzițiile imediate restante.",
       "fields": {
         "config_entry_id": {
           "name": "ID intrare configurație (opțional)",
@@ -2289,6 +2309,11 @@
           "name": "Întrerupt până la",
           "description": "Dată de revenire opțională. Dacă este setată, treburile casnice se reiau automat la miezul nopții după această dată.",
           "example": "2026-06-10T00:00:00+00:00"
+        },
+        "unpause_action": {
+          "name": "Reluare acțiune",
+          "description": "Se aplică numai când paused=false. Controlează dacă sarcinile restante sunt reprogramate în timpul reluării pauzei. Implicit: reluare pauză (fără reprogramare).",
+          "example": "reluare_de_schimb_independent"
         }
       }
     },
@@ -2713,6 +2738,10 @@
           "name": "Compensare memento scadent",
           "description": "Durata înainte de data scadentă pentru trimiterea notificării de memento. Format: „30 min”, „1 oră”, „1 zi 6 ore 30 minute” etc. Folosiți „0” pentru a dezactiva mementourile.",
           "example": "30 de metri"
+        },
+        "standby_claim_mode": {
+          "name": "Mod de revendicare în așteptare",
+          "description": "Controlează când sarcinile de rezervă pot revendica această sarcină (oricând, la depășire, doar manual). Se aplică numai criteriilor de finalizare principale și de rezervă."
         }
       }
     },
@@ -2819,6 +2848,10 @@
           "name": "Acțiune de atribuire",
           "description": "Cum se gestionează lista assigned_user_names. „replace” setează lista direct (implicit, compatibil cu versiunile anterioare). „add” adaugă utilizatorii listați la utilizatorii desemnați existenți. „remove” elimină utilizatorii listați dintre utilizatorii desemnați existenți.",
           "example": "adăuga"
+        },
+        "standby_claim_mode": {
+          "name": "Mod de revendicare în așteptare",
+          "description": "Controlează când sarcinile de rezervă pot revendica această sarcină (oricând, la depășire, doar manual). Se aplică numai criteriilor de finalizare principale și de rezervă."
         }
       }
     },
@@ -2850,7 +2883,7 @@
     },
     "set_rotation_turn": {
       "name": "Setați rotația",
-      "description": "Atribuiți manual tura curentă unei anumite persoane într-o sarcină de rotație. Funcționează numai pentru sarcinile de rotație (rotation_simple sau rotation_smart). Folosiți fie ID-ul, fie numele pentru identificare.",
+      "description": "Atribuiți manual tura curentă unei anumite persoane într-o sarcină de rotație. Funcționează doar pentru sarcinile de rotație (rotation_simple, rotation_smart sau rotation_primary_standby). Folosiți fie ID-ul, fie numele pentru identificare.",
       "fields": {
         "config_entry_id": {
           "name": "ID intrare configurație (opțional)",
@@ -2886,7 +2919,7 @@
     },
     "reset_rotation": {
       "name": "Resetare rotație",
-      "description": "Resetează tura de rotație la prima persoană atribuită. Funcționează doar pentru sarcinile de rotație (rotation_simple sau rotation_smart). Folosește fie ID-ul, fie numele pentru identificare.",
+      "description": "Resetează rotația la prima persoană atribuită. Funcționează doar pentru sarcinile de rotație (rotation_simple, rotation_smart sau rotation_primary_standby). Folosește fie ID-ul, fie numele pentru identificare.",
       "fields": {
         "config_entry_id": {
           "name": "ID intrare configurație (opțional)",
@@ -3138,7 +3171,7 @@
     },
     "reschedule_chores_after": {
       "name": "Reprogramarea treburilor după",
-      "description": "Reprogramați una sau mai multe sarcini astfel încât următoarea lor dată scadentă să cadă după data și ora specificate. Sarcinile recurente avansează la următoarea apariție programată după limită. Sarcinile nerecurente scadente la sau înainte de limită se mută la limită, cu excepția cazului în care este activat skip_non_recurring. Sarcinile partajate sunt omise, cu excepția cazului în care este activat reschedule_shared.",
+      "description": "Reprogramează datele scadente ale sarcinilor astfel încât să cadă după data specificată. Trei comutatoare independente controlează tipurile de sarcini care sunt reprogramate: reschedule_independent (implicit true), reschedule_primary_standby (implicit true), reschedule_shared (implicit false).",
       "fields": {
         "config_entry_id": {
           "name": "ID intrare configurație (opțional)",
@@ -3171,9 +3204,19 @@
           "name": "Nume de utilizator",
           "description": "Listă opțională de nume de persoane desemnate pentru a limita actualizările independente ale sarcinilor atunci când nu sunt furnizate user_id-uri."
         },
+        "reschedule_independent": {
+          "name": "Reprogramați treburile independente",
+          "description": "Include sarcini independente (cu data scadentă pentru fiecare persoană însărcinată). Implicit, este adevărat.",
+          "example": "adevărat"
+        },
+        "reschedule_primary_standby": {
+          "name": "Reprogramare Principal și Rezervă",
+          "description": "Include sarcinile principale de rezervă. Implicit, este adevărat.",
+          "example": "adevărat"
+        },
         "reschedule_shared": {
           "name": "Reprogramarea sarcinilor partajate",
-          "description": "Activați această opțiune pentru a permite reprogramarea sarcinilor partajate și a celor prin rotație. Aceasta afectează toate persoanele responsabile cu aceste sarcini.",
+          "description": "Include sarcini partajate și rotative (simple/inteligente). Aceasta afectează toate persoanele desemnate pentru aceste sarcini. Valoarea implicită este falsă.",
           "example": "fals"
         },
         "skip_non_recurring": {
@@ -3268,6 +3311,7 @@
           "completed_by_other": "Completat de Altul",
           "waiting": "În așteptare (fereastra scadenței nu este deschisă)",
           "not_my_turn": "Nu e rândul meu (rotație)",
+          "standby": "Așteptare",
           "missed": "Pierdut (Blocat)",
           "paused": "Întrerupt"
         },
@@ -3306,7 +3350,8 @@
               "shared_first": "Partajat (Primul)",
               "shared_all": "Partajat (Toate)",
               "rotation_simple": "Rotație simplă",
-              "rotation_smart": "Rotație inteligentă"
+              "rotation_smart": "Rotație inteligentă",
+              "rotation_primary_standby": "Principal și de rezervă"
             }
           },
           "approval_reset_type": {
@@ -3516,6 +3561,8 @@
               "blocked_pending_claim": "Reclamație în așteptare",
               "blocked_waiting_window": "Așteptând fereastra scadentă",
               "blocked_not_my_turn": "Nu-ți vine rândul",
+              "blocked_standby": "Aștepți această treabă",
+              "standby_available": "În așteptare — puteți revendica această sarcină",
               "blocked_missed_locked": "Pierdut și blocat",
               "blocked_paused": "Treburile sunt puse în pauză pentru acest utilizator"
             }
@@ -3525,6 +3572,13 @@
           },
           "available_at": {
             "name": "Disponibil la"
+          },
+          "rotation_cycle_override": {
+            "name": "Suprascrierea ciclului de rotație",
+            "state": {
+              "true": "Deschis tuturor",
+              "false": "Rotație normală"
+            }
           }
         }
       },
@@ -4220,7 +4274,8 @@
               "shared_first": "Partajat (Primul singur)",
               "shared_all": "Partajat (Toate obligatorii)",
               "rotation_simple": "Rotație simplă",
-              "rotation_smart": "Rotație inteligentă"
+              "rotation_smart": "Rotație inteligentă",
+              "rotation_primary_standby": "Principal și de rezervă"
             }
           },
           "approval_reset_type": {
@@ -5332,6 +5387,9 @@
     },
     "chore_not_my_turn": {
       "message": "Această sarcină este blocată prin rotație. În prezent, este rândul unei alte persoane desemnate."
+    },
+    "chore_standby": {
+      "message": "Ești o persoană de rezervă pentru {chore_name}. Persoana principală desemnată are prima responsabilitate."
     },
     "chore_missed_locked": {
       "message": "Această sarcină este marcată ca ratată și blocată pentru ciclul curent."

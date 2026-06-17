@@ -138,5 +138,9 @@
     "disapprove": "↩️ Ne odobri",
     "remind_30": "⏰ Opomni čez 30 minut",
     "skip": "⏭️ Preskoči"
+  },
+  "chore_standby_needed": {
+    "title": "🫲 Zahtevano stanje pripravljenosti",
+    "message": "Naloga uporabnika {primary_name} {chore_name} je že zapadla! Izkoristite jo zdaj in si prislužite {points} {points_label}"
   }
 }

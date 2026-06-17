@@ -148,15 +148,17 @@
               "icon": "📋 Pictogram (mdi:xxx)",
               "default_points": "💰 Toegekende punten",
               "assigned_user_ids": "👥 Toegewezen aan",
-              "completion_criteria": "👥 Voltooiingscriteria"
+              "completion_criteria": "👥 Voltooiingscriteria",
+              "standby_claim_mode": "🔑 Standby-claimmodus"
             },
             "data_description": {
               "name": "Unieke naam die in het hele systeem wordt weergegeven.",
               "chore_description": "Optionele instructies of details over hoe deze taak moet worden uitgevoerd.",
               "icon": "Material Design-pictogrammen (bijv. mdi:bezem, mdi:afwasmachine).",
               "default_points": "Punten worden verdiend na voltooiing.",
-              "assigned_user_ids": "Toegewezen personen die deze taak kunnen inzien en opeisen.",
-              "completion_criteria": "Hiermee wordt bepaald hoe de taak wordt voltooid wanneer meerdere personen eraan zijn toegewezen: individuele registratie, gezamenlijke voltooiing of beurtelings rouleren."
+              "assigned_user_ids": "De personen aan wie deze taak is toegewezen, kunnen deze zien en claimen. Bij taken met roulatie bepaalt de volgorde van toewijzing de beurtvolgorde. Bij taken met primaire en reservetaken is de eerste toegewezen persoon de primaire.",
+              "completion_criteria": "Hiermee wordt bepaald hoe de taak wordt voltooid wanneer meerdere personen eraan zijn toegewezen: individuele registratie, gezamenlijke voltooiing of beurtelings rouleren.",
+              "standby_claim_mode": "Hiermee wordt bepaald wanneer standbys deze taak kunnen overnemen (altijd, bij achterstallige status, alleen handmatig). Dit geldt alleen voor de voltooiingscriteria van de primaire en standby-systemen."
             }
           },
           "section_schedule": {
@@ -229,7 +231,8 @@
           "chore_due_window_offset": "⏱️ Uiterste betaaldatum: Betaal vóór de uiterste betaaldatum",
           "chore_due_reminder_offset": "🔔 Herinnering: Betaal vóór de vervaldatum",
           "show_on_calendar": "📅 Weergeven op de kalender?",
-          "chore_notifications": "🔔 Meldingen (optioneel)"
+          "chore_notifications": "🔔 Meldingen (optioneel)",
+          "standby_claim_mode": "🔑 Standby-claimmodus"
         },
         "data_description": {
           "name": "Unieke naam die in het hele systeem wordt weergegeven.",
@@ -237,7 +240,7 @@
           "icon": "Material Design-pictogrammen (bijv. mdi:bezem, mdi:afwasmachine).",
           "chore_labels": "Labels om klusjes te organiseren (bijv. 'keuken', 'buiten'). Laat leeg als dit niet nodig is.",
           "default_points": "Punten worden verdiend na voltooiing.",
-          "assigned_user_ids": "Toegewezen personen die deze taak kunnen inzien en opeisen.",
+          "assigned_user_ids": "De personen aan wie deze taak is toegewezen, kunnen deze zien en claimen. Bij taken met roulatie bepaalt de volgorde van toewijzing de beurtvolgorde. Bij taken met primaire en reservetaken is de eerste toegewezen persoon de primaire.",
           "completion_criteria": "Hiermee wordt bepaald hoe de taak wordt voltooid wanneer meerdere personen eraan zijn toegewezen: individuele registratie, gezamenlijke voltooiing of beurtelings rouleren.",
           "approval_reset_type": "Hiermee wordt bepaald wanneer de grens van de goedkeuringscyclus voor de taak wordt bereikt (middernacht, vervaldatum, na voltooiing of handmatige trigger).",
           "approval_reset_pending_claim_action": "Dit is wat er gebeurt met aanvragen die nog wachten op goedkeuring wanneer de goedkeuringsperiode wordt gereset.",
@@ -252,7 +255,8 @@
           "chore_due_window_offset": "Wanneer de status van een taak verandert van 'In behandeling' naar 'Verschuldigd'. Formaat: '1d 6u 30m' of gewoon '30' voor minuten. Voer '0' in om uit te schakelen. Voorbeeld: '1d' betekent dat de taak 1 dag voor de deadline als 'Verschuldigd' wordt weergegeven.",
           "chore_due_reminder_offset": "Wanneer moet de herinneringsmelding worden verzonden? Formaat: '1d 6h 30m' of gewoon '30' voor minuten. Standaard: 30m (30 minuten voor de vervaldatum). Voer '0' in om uit te schakelen.",
           "show_on_calendar": "Toon deze taak in de kalenderweergave.",
-          "chore_notifications": "Wanneer moeten meldingen worden verzonden: Bij een aanvraag, bij goedkeuring, bij afwijzing, of een combinatie hiervan."
+          "chore_notifications": "Wanneer moeten meldingen worden verzonden: Bij een aanvraag, bij goedkeuring, bij afwijzing, of een combinatie hiervan.",
+          "standby_claim_mode": "Hiermee wordt bepaald wanneer standbys deze taak kunnen overnemen (altijd, bij achterstallige status, alleen handmatig). Dit geldt alleen voor de voltooiingscriteria van de primaire en standby-systemen."
         }
       },
       "badge_count": {
@@ -639,15 +643,17 @@
               "icon": "📋 Pictogram (mdi:xxx)",
               "default_points": "💰 Toegekende punten",
               "assigned_user_ids": "👥 Toegewezen aan",
-              "completion_criteria": "👥 Voltooiingscriteria"
+              "completion_criteria": "👥 Voltooiingscriteria",
+              "standby_claim_mode": "🔑 Standby-claimmodus"
             },
             "data_description": {
               "name": "Unieke naam die in het hele systeem wordt weergegeven.",
               "chore_description": "Optionele instructies of details over hoe deze taak moet worden uitgevoerd.",
               "icon": "Material Design-pictogrammen (bijv. mdi:bezem, mdi:afwasmachine).",
               "default_points": "Punten worden verdiend na voltooiing.",
-              "assigned_user_ids": "Toegewezen personen die deze taak kunnen inzien en opeisen.",
-              "completion_criteria": "Hiermee wordt bepaald hoe de taak wordt voltooid wanneer meerdere personen eraan zijn toegewezen: individuele registratie, gezamenlijke voltooiing of beurtelings rouleren."
+              "assigned_user_ids": "De personen aan wie deze taak is toegewezen, kunnen deze zien en claimen. Bij taken met roulatie bepaalt de volgorde van toewijzing de beurtvolgorde. Bij taken met primaire en reservetaken is de eerste toegewezen persoon de primaire.",
+              "completion_criteria": "Hiermee wordt bepaald hoe de taak wordt voltooid wanneer meerdere personen eraan zijn toegewezen: individuele registratie, gezamenlijke voltooiing of beurtelings rouleren.",
+              "standby_claim_mode": "Hiermee wordt bepaald wanneer standbys deze taak kunnen overnemen (altijd, bij achterstallige status, alleen handmatig). Dit geldt alleen voor de voltooiingscriteria van de primaire en standby-systemen."
             }
           },
           "section_schedule": {
@@ -721,7 +727,8 @@
           "chore_due_window_offset": "⏱️ Uiterste betaaldatum: Betaal vóór de uiterste betaaldatum",
           "chore_due_reminder_offset": "🔔 Herinnering: Betaal vóór de vervaldatum",
           "show_on_calendar": "📅 Weergeven op de kalender?",
-          "chore_notifications": "🔔 Meldingen (optioneel)"
+          "chore_notifications": "🔔 Meldingen (optioneel)",
+          "standby_claim_mode": "🔑 Standby-claimmodus"
         },
         "data_description": {
           "name": "Unieke naam die in het hele systeem wordt weergegeven.",
@@ -729,7 +736,7 @@
           "icon": "Material Design-pictogrammen (bijv. mdi:bezem, mdi:afwasmachine).",
           "chore_labels": "Labels om klusjes te organiseren (bijv. 'keuken', 'buiten'). Laat leeg als dit niet nodig is.",
           "default_points": "Punten worden verdiend na voltooiing.",
-          "assigned_user_ids": "Toegewezen personen die deze taak kunnen inzien en opeisen.",
+          "assigned_user_ids": "De personen aan wie deze taak is toegewezen, kunnen deze zien en claimen. Bij taken met roulatie bepaalt de volgorde van toewijzing de beurtvolgorde. Bij taken met primaire en reservetaken is de eerste toegewezen persoon de primaire.",
           "completion_criteria": "Hiermee wordt bepaald hoe de taak wordt voltooid wanneer meerdere personen eraan zijn toegewezen: individuele registratie, gezamenlijke voltooiing of beurtelings rouleren.",
           "approval_reset_type": "Hiermee wordt bepaald wanneer de grens van de goedkeuringscyclus voor de taak wordt bereikt (middernacht, vervaldatum, na voltooiing of handmatige trigger).",
           "approval_reset_pending_claim_action": "Bepaalt wat er gebeurt met niet-goedgekeurde claims wanneer de grens voor het opnieuw instellen van de goedkeuring wordt bereikt.",
@@ -745,7 +752,8 @@
           "chore_due_window_offset": "Wanneer de status van een taak verandert van 'In behandeling' naar 'Verschuldigd'. Formaat: '1d 6u 30m' of gewoon '30' voor minuten. Voer '0' in om uit te schakelen. Voorbeeld: '1d' betekent dat de taak 1 dag voor de deadline als 'Verschuldigd' wordt weergegeven.",
           "chore_due_reminder_offset": "Wanneer moet de herinneringsmelding worden verzonden? Formaat: '1d 6h 30m' of gewoon '30' voor minuten. Standaard: 30m (30 minuten voor de vervaldatum). Voer '0' in om uit te schakelen.",
           "show_on_calendar": "Toon deze taak in de kalenderweergave.",
-          "chore_notifications": "Wanneer moeten meldingen worden verzonden: Bij een aanvraag, bij goedkeuring, bij afwijzing, of een combinatie hiervan."
+          "chore_notifications": "Wanneer moeten meldingen worden verzonden: Bij een aanvraag, bij goedkeuring, bij afwijzing, of een combinatie hiervan.",
+          "standby_claim_mode": "Hiermee wordt bepaald wanneer standbys deze taak kunnen overnemen (altijd, bij achterstallige status, alleen handmatig). Dit geldt alleen voor de voltooiingscriteria van de primaire en standby-systemen."
         }
       },
       "add_badge": {
@@ -1079,15 +1087,17 @@
               "icon": "📋 Pictogram (mdi:xxx)",
               "default_points": "💰 Toegekende punten",
               "assigned_user_ids": "👥 Toegewezen aan",
-              "completion_criteria": "👥 Voltooiingscriteria"
+              "completion_criteria": "👥 Voltooiingscriteria",
+              "standby_claim_mode": "🔑 Standby-claimmodus"
             },
             "data_description": {
               "name": "Unieke naam die in het hele systeem wordt weergegeven.",
               "chore_description": "Optionele instructies of details over hoe deze taak moet worden uitgevoerd.",
               "icon": "Material Design-pictogrammen (bijv. mdi:bezem, mdi:afwasmachine).",
               "default_points": "Punten worden verdiend na voltooiing.",
-              "assigned_user_ids": "Toegewezen personen die deze taak kunnen inzien en opeisen.",
-              "completion_criteria": "Hiermee wordt bepaald hoe de taak wordt voltooid wanneer meerdere personen eraan zijn toegewezen: individuele registratie, gezamenlijke voltooiing of beurtelings rouleren."
+              "assigned_user_ids": "De personen aan wie deze taak is toegewezen, kunnen deze zien en claimen. Bij taken met roulatie bepaalt de volgorde van toewijzing de beurtvolgorde. Bij taken met primaire en reservetaken is de eerste toegewezen persoon de primaire.",
+              "completion_criteria": "Hiermee wordt bepaald hoe de taak wordt voltooid wanneer meerdere personen eraan zijn toegewezen: individuele registratie, gezamenlijke voltooiing of beurtelings rouleren.",
+              "standby_claim_mode": "Hiermee wordt bepaald wanneer standbys deze taak kunnen overnemen (altijd, bij achterstallige status, alleen handmatig). Dit geldt alleen voor de voltooiingscriteria van de primaire en standby-systemen."
             }
           },
           "section_schedule": {
@@ -1162,7 +1172,8 @@
           "chore_due_window_offset": "⏱️ Uiterste betaaldatum: Betaal vóór de uiterste betaaldatum",
           "chore_due_reminder_offset": "🔔 Herinnering: Betaal vóór de vervaldatum",
           "show_on_calendar": "📅 Weergeven op de kalender?",
-          "chore_notifications": "🔔 Meldingen (optioneel)"
+          "chore_notifications": "🔔 Meldingen (optioneel)",
+          "standby_claim_mode": "🔑 Standby-claimmodus"
         },
         "data_description": {
           "name": "Unieke naam die in het hele systeem wordt weergegeven.",
@@ -1170,7 +1181,7 @@
           "icon": "Material Design-pictogrammen (bijv. mdi:bezem, mdi:afwasmachine).",
           "chore_labels": "Labels om klusjes te organiseren (bijv. 'keuken', 'buiten'). Laat leeg als dit niet nodig is.",
           "default_points": "Punten worden verdiend na voltooiing.",
-          "assigned_user_ids": "Toegewezen personen die deze taak kunnen inzien en opeisen.",
+          "assigned_user_ids": "De personen aan wie deze taak is toegewezen, kunnen deze zien en claimen. Bij taken met roulatie bepaalt de volgorde van toewijzing de beurtvolgorde. Bij taken met primaire en reservetaken is de eerste toegewezen persoon de primaire.",
           "completion_criteria": "Hiermee wordt bepaald hoe de taak wordt voltooid wanneer meerdere personen eraan zijn toegewezen: individuele registratie, gezamenlijke voltooiing of beurtelings rouleren.",
           "approval_reset_type": "Hiermee wordt bepaald wanneer de grens van de goedkeuringscyclus voor de taak wordt bereikt (middernacht, vervaldatum, na voltooiing of handmatige trigger).",
           "approval_reset_pending_claim_action": "Bepaalt wat er gebeurt met niet-goedgekeurde claims wanneer de grens voor het opnieuw instellen van de goedkeuring wordt bereikt.",
@@ -1186,7 +1197,8 @@
           "chore_due_window_offset": "Wanneer de status van een taak verandert van 'In behandeling' naar 'Verschuldigd'. Formaat: '1d 6u 30m' of gewoon '30' voor minuten. Voer '0' in om uit te schakelen. Voorbeeld: '1d' betekent dat de taak 1 dag voor de deadline als 'Verschuldigd' wordt weergegeven.",
           "chore_due_reminder_offset": "Wanneer moet de herinneringsmelding worden verzonden? Formaat: '1d 6h 30m' of gewoon '30' voor minuten. Standaard: 30m (30 minuten voor de vervaldatum). Voer '0' in om uit te schakelen.",
           "show_on_calendar": "Toon deze taak in de kalenderweergave.",
-          "chore_notifications": "Wanneer moeten meldingen worden verzonden: Bij een aanvraag, bij goedkeuring, bij afwijzing, of een combinatie hiervan."
+          "chore_notifications": "Wanneer moeten meldingen worden verzonden: Bij een aanvraag, bij goedkeuring, bij afwijzing, of een combinatie hiervan.",
+          "standby_claim_mode": "Hiermee wordt bepaald wanneer standbys deze taak kunnen overnemen (altijd, bij achterstallige status, alleen handmatig). Dit geldt alleen voor de voltooiingscriteria van de primaire en standby-systemen."
         }
       },
       "edit_chore_per_user_dates": {
@@ -2056,7 +2068,15 @@
         "independent": "Zelfstandig (Elke deelnemer vult deze opdracht zelf in)",
         "shared_first": "Gedeelde eerste plaats (Eerste voltooiing telt)",
         "rotation_simple": "Eenvoudige rotatie (alleen voor de beurthouder, strikte volgorde)",
-        "rotation_smart": "Rotatie Slim (Alleen voor beurthouders, gewogen op basis van eerlijkheid)"
+        "rotation_smart": "Rotatie Slim (Alleen voor beurthouders, gewogen op basis van eerlijkheid)",
+        "rotation_primary_standby": "Primair en reserve (Primaire standaardfunctie, reservefunctie indien beschikbaar)"
+      }
+    },
+    "standby_claim_mode": {
+      "options": {
+        "anytime": "Op elk moment (wachttijd kan direct worden geclaimd)",
+        "on_overdue": "Bij achterstallige betalingen (standby kan een claim indienen wanneer de betalingstermijn is overschreden)",
+        "manual_only": "Alleen handmatig (beheerder moet beurt toewijzen)"
       }
     },
     "approval_reset_type": {
@@ -2263,7 +2283,7 @@
     },
     "pause_user_chores": {
       "name": "Pauzeer de taken van de gebruiker",
-      "description": "De verwerking van taken voor een gebruiker pauzeren of hervatten.",
+      "description": "Pauzeer of hervat de verwerking van taken voor een gebruiker. Bij het hervatten van de verwerking bepaalt unpause_action of achterstallige taken opnieuw worden ingepland om te voorkomen dat er direct overgangen naar achterstallige taken plaatsvinden.",
       "fields": {
         "config_entry_id": {
           "name": "Configuratie-item-ID (optioneel)",
@@ -2289,6 +2309,11 @@
           "name": "Gepauzeerd tot",
           "description": "Optionele terugkeerdatum. Indien ingesteld, worden de klusjes na deze datum automatisch hervat om middernacht.",
           "example": "2026-06-10T00:00:00+00:00"
+        },
+        "unpause_action": {
+          "name": "Actie hervatten",
+          "description": "Geldt alleen wanneer paused=false. Bepaalt of achterstallige taken opnieuw worden ingepland wanneer de pauze wordt opgeheven. Standaard: pauze wordt opgeheven (niet opnieuw inplannen).",
+          "example": "unpause_shift_independent"
         }
       }
     },
@@ -2713,6 +2738,10 @@
           "name": "Vervaldatum herinnering verrekening",
           "description": "De tijd tot de vervaldatum waarop de herinneringsmelding moet worden verzonden. Formaat: '30m', '1h', '1d 6h 30m', enz. Gebruik '0' om herinneringen uit te schakelen.",
           "example": "30m"
+        },
+        "standby_claim_mode": {
+          "name": "Standby-claimmodus",
+          "description": "Hiermee wordt bepaald wanneer standbys deze taak kunnen overnemen (altijd, bij achterstallige status, alleen handmatig). Dit geldt alleen voor de voltooiingscriteria van de primaire en standby-systemen."
         }
       }
     },
@@ -2819,6 +2848,10 @@
           "name": "Toewijzingsactie",
           "description": "Hoe om te gaan met de lijst assigned_user_names. 'replace' stelt de lijst direct in (standaard, achterwaarts compatibel). 'add' voegt de vermelde gebruikers toe aan de bestaande lijst met toegewezen gebruikers. 'remove' verwijdert de vermelde gebruikers uit de bestaande lijst met toegewezen gebruikers.",
           "example": "toevoegen"
+        },
+        "standby_claim_mode": {
+          "name": "Standby-claimmodus",
+          "description": "Hiermee wordt bepaald wanneer standbys deze taak kunnen overnemen (altijd, bij achterstallige status, alleen handmatig). Dit geldt alleen voor de voltooiingscriteria van de primaire en standby-systemen."
         }
       }
     },
@@ -2850,7 +2883,7 @@
     },
     "set_rotation_turn": {
       "name": "Draai de rotatie in.",
-      "description": "Wijs handmatig de huidige beurt toe aan een specifieke medewerker in een rotatietaak. Werkt alleen voor rotatietaken (rotation_simple of rotation_smart). Gebruik een ID of naam ter identificatie.",
+      "description": "Wijs handmatig de huidige beurt toe aan een specifieke medewerker in een rotatietaak. Werkt alleen voor rotatietaken (rotation_simple, rotation_smart of rotation_primary_standby). Gebruik een ID of naam ter identificatie.",
       "fields": {
         "config_entry_id": {
           "name": "Configuratie-item-ID (optioneel)",
@@ -2886,7 +2919,7 @@
     },
     "reset_rotation": {
       "name": "Rotatie opnieuw instellen",
-      "description": "Zet de rotatiebeurt terug naar de eerst toegewezen persoon. Werkt alleen voor rotatietaken (rotation_simple of rotation_smart). Gebruik ID of naam ter identificatie.",
+      "description": "Stel de rotatiebeurt terug naar de eerst toegewezen persoon. Werkt alleen voor rotatietaken (rotation_simple, rotation_smart of rotation_primary_standby). Gebruik ID of naam ter identificatie.",
       "fields": {
         "config_entry_id": {
           "name": "Configuratie-item-ID (optioneel)",
@@ -3138,7 +3171,7 @@
     },
     "reschedule_chores_after": {
       "name": "Verplaats de klusjes naar de volgende datum.",
-      "description": "Verplaats een of meer taken zodat hun volgende vervaldatum na de opgegeven datum en tijd valt. Terugkerende taken worden verplaatst naar de eerstvolgende geplande uitvoering na de grens. Niet-terugkerende taken die op of vóór de grens moeten worden uitgevoerd, worden naar de grens verplaatst, tenzij skip_non_recurring is ingeschakeld. Gedeelde taken worden overgeslagen, tenzij reschedule_shared is ingeschakeld.",
+      "description": "Verplaats de vervaldatums van taken zodat ze na de opgegeven datum vallen. Drie onafhankelijke schakelaars bepalen welke taaktypen worden verplaatst: reschedule_independent (standaard true), reschedule_primary_standby (standaard true), reschedule_shared (standaard false).",
       "fields": {
         "config_entry_id": {
           "name": "Configuratie-item-ID (optioneel)",
@@ -3171,9 +3204,19 @@
           "name": "Gebruikersnamen",
           "description": "Optionele lijst met namen van toegewezen personen om onafhankelijke taakupdates te beperken wanneer gebruikers-ID's niet zijn opgegeven."
         },
+        "reschedule_independent": {
+          "name": "Zelfstandige klusjes opnieuw inplannen",
+          "description": "Inclusief onafhankelijke taken (met een eigen deadline per toegewezen persoon). Standaardwaarde: true.",
+          "example": "WAAR"
+        },
+        "reschedule_primary_standby": {
+          "name": "Primaire en reserve-afspraken opnieuw inplannen",
+          "description": "Primaire-standby taken meenemen. Standaardwaarde: true.",
+          "example": "WAAR"
+        },
         "reschedule_shared": {
           "name": "Verplaats de gezamenlijke klusjes",
-          "description": "Schakel deze optie in om gedeelde en roulerende taken opnieuw in te plannen. Dit heeft gevolgen voor alle personen die aan deze taken zijn toegewezen.",
+          "description": "Inclusief gedeelde en roulerende (eenvoudige/slimme) taken. Dit heeft gevolgen voor alle toegewezen personen aan die taken. Standaardwaarde: false.",
           "example": "onjuist"
         },
         "skip_non_recurring": {
@@ -3268,6 +3311,7 @@
           "completed_by_other": "Voltooid door anderen",
           "waiting": "Wachten (venster niet geopend)",
           "not_my_turn": "Niet mijn beurt (Rotatie)",
+          "standby": "Standby",
           "missed": "Gemist (Vergrendeld)",
           "paused": "Gepauzeerd"
         },
@@ -3306,7 +3350,8 @@
               "shared_first": "Gedeeld (eerste)",
               "shared_all": "Gedeeld (alles)",
               "rotation_simple": "Eenvoudige rotatie",
-              "rotation_smart": "Rotatie Slim"
+              "rotation_smart": "Rotatie Slim",
+              "rotation_primary_standby": "Primair en reserve"
             }
           },
           "approval_reset_type": {
@@ -3516,6 +3561,8 @@
               "blocked_pending_claim": "Claim in behandeling",
               "blocked_waiting_window": "Wachten op de deadline",
               "blocked_not_my_turn": "Nu ben jij aan de beurt.",
+              "blocked_standby": "Je staat klaar voor deze klus.",
+              "standby_available": "Even geduld — jij kunt deze klus op je nemen.",
               "blocked_missed_locked": "Gemist en vergrendeld",
               "blocked_paused": "De taken voor deze gebruiker zijn gepauzeerd."
             }
@@ -3525,6 +3572,13 @@
           },
           "available_at": {
             "name": "Beschikbaar bij"
+          },
+          "rotation_cycle_override": {
+            "name": "Rotatiecyclus overschrijven",
+            "state": {
+              "true": "Voor iedereen toegankelijk",
+              "false": "Normale rotatie"
+            }
           }
         }
       },
@@ -4220,7 +4274,8 @@
               "shared_first": "Gedeeld (alleen eerste keus)",
               "shared_all": "Gedeeld (alles verplicht)",
               "rotation_simple": "Eenvoudige rotatie",
-              "rotation_smart": "Rotatie Slim"
+              "rotation_smart": "Rotatie Slim",
+              "rotation_primary_standby": "Primair en reserve"
             }
           },
           "approval_reset_type": {
@@ -5332,6 +5387,9 @@
     },
     "chore_not_my_turn": {
       "message": "Deze taak is roulerend. Momenteel is een andere toegewezen persoon aan de beurt."
+    },
+    "chore_standby": {
+      "message": "Je bent een reservekandidaat voor {chore_name}. De primaire verantwoordelijke heeft de eerste verantwoordelijkheid."
     },
     "chore_missed_locked": {
       "message": "Deze taak is gemarkeerd als gemist en vergrendeld voor de huidige cyclus."

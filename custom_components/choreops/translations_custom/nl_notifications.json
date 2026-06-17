@@ -138,5 +138,9 @@
     "disapprove": "↩️ Afkeuren",
     "remind_30": "⏰ Herinnering over 30 minuten",
     "skip": "⏭️ Overslaan"
+  },
+  "chore_standby_needed": {
+    "title": "🫲 Standby aangevraagd",
+    "message": "De taak van {primary_name} {chore_name} is al lang geleden voltooid! Claim hem nu om {points} {points_label} te verdienen!"
   }
 }

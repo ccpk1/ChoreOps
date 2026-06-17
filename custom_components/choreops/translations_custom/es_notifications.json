@@ -138,5 +138,9 @@
     "disapprove": "↩️ Desaprobar",
     "remind_30": "⏰ Recordar en 30 minutos",
     "skip": "⏭️ Saltar"
+  },
+  "chore_standby_needed": {
+    "title": "🫲 Se solicita estar en espera",
+    "message": "¡La tarea de {primary_name} {chore_name} está vencida! Reclámala ahora para ganar {points} {points_label}"
   }
 }

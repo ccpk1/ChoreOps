@@ -138,5 +138,9 @@
     "disapprove": "↩️ Dezaprob",
     "remind_30": "⏰ Reamintire în 30 de minute",
     "skip": "⏭️ Sari peste"
+  },
+  "chore_standby_needed": {
+    "title": "🫲 Mod de așteptare solicitat",
+    "message": "Treaba lui {primary_name}, {chore_name} , este întârziată! Revendică-o acum pentru a câștiga {points} {points_label}"
   }
 }

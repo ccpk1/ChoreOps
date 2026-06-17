@@ -148,15 +148,17 @@
               "icon": "📋 Ikon (mdi:xxx)",
               "default_points": "💰 Poeng tildelt",
               "assigned_user_ids": "👥 Tildelt til",
-              "completion_criteria": "👥 Fullføringskriterier"
+              "completion_criteria": "👥 Fullføringskriterier",
+              "standby_claim_mode": "🔑 Standby-kravmodus"
             },
             "data_description": {
               "name": "Unikt navn som vises i hele systemet.",
               "chore_description": "Valgfrie instruksjoner eller detaljer om hvordan du fullfører denne oppgaven.",
               "icon": "Material Design-ikon (f.eks. mdi:kost, mdi:oppvaskmaskin).",
               "default_points": "Poeng opptjent når fullført.",
-              "assigned_user_ids": "Tildelere som kan se og gjøre krav på denne oppgaven.",
-              "completion_criteria": "Styrer hvordan gjøremålet fullføres når flere tilordnede er tildelt: individuell sporing, delt fullføring eller turbasert rotasjon."
+              "assigned_user_ids": "Tildelte personer som kan se og gjøre krav på denne gjøremålet. For rotasjonsgjøremål bestemmer den tildeltes rekkefølge tursekvensen. For primær og standby er den første tildelte den primære.",
+              "completion_criteria": "Styrer hvordan gjøremålet fullføres når flere tilordnede er tildelt: individuell sporing, delt fullføring eller turbasert rotasjon.",
+              "standby_claim_mode": "Styrer når standby-medlemmer kan gjøre krav på denne gjøremålet (når som helst, on_forfalle, manual_only). Gjelder kun for primære og standby-fullføringskriterier."
             }
           },
           "section_schedule": {
@@ -229,7 +231,8 @@
           "chore_due_window_offset": "⏱️ Forfallsvindu: Forskyvning før forfallsdato",
           "chore_due_reminder_offset": "🔔 Forfallspåminnelse: Forskyvning før forfallsdato",
           "show_on_calendar": "📅 Vis i kalenderen?",
-          "chore_notifications": "🔔 Varslingshendelser (valgfritt)"
+          "chore_notifications": "🔔 Varslingshendelser (valgfritt)",
+          "standby_claim_mode": "🔑 Standby-kravmodus"
         },
         "data_description": {
           "name": "Unikt navn som vises i hele systemet.",
@@ -237,7 +240,7 @@
           "icon": "Material Design-ikon (f.eks. mdi:kost, mdi:oppvaskmaskin).",
           "chore_labels": "Tagger for å organisere gjøremål (f.eks. «kjøkken», «ute»). La stå tomt hvis det ikke er nødvendig.",
           "default_points": "Poeng opptjent når fullført.",
-          "assigned_user_ids": "Tildelere som kan se og gjøre krav på denne oppgaven.",
+          "assigned_user_ids": "Tildelte personer som kan se og gjøre krav på denne gjøremålet. For rotasjonsgjøremål bestemmer den tildeltes rekkefølge tursekvensen. For primær og standby er den første tildelte den primære.",
           "completion_criteria": "Styrer hvordan gjøremålet fullføres når flere tilordnede er tildelt: individuell sporing, delt fullføring eller turbasert rotasjon.",
           "approval_reset_type": "Styrer når grensen for godkjenningssyklusen for gjøremålet utløses (midnatt, forfallsdato, ved fullføring eller manuell utløser).",
           "approval_reset_pending_claim_action": "Dette er hva som skjer med krav som fortsatt venter på godkjenning når godkjenningen tilbakestilles.",
@@ -252,7 +255,8 @@
           "chore_due_window_offset": "Når gjøremålets status endres fra Venter til Forfaller. Format: '1d 6t 30m' eller bare '30' for minutter. Skriv inn '0' for å deaktivere. Eksempel: '1d' betyr at gjøremålet vises som 'Forfaller' 1 dag før fristen.",
           "chore_due_reminder_offset": "Når påminnelse om forfall skal sendes. Format: '1d 6t 30m' eller bare '30' for minutter. Standard: 30m (30 minutter før forfall). Skriv inn '0' for å deaktivere.",
           "show_on_calendar": "Vis denne gjøremålet i kalendervisningen.",
-          "chore_notifications": "Når varsler skal sendes: Ved krav, ved godkjenning, ved avslag eller en hvilken som helst kombinasjon."
+          "chore_notifications": "Når varsler skal sendes: Ved krav, ved godkjenning, ved avslag eller en hvilken som helst kombinasjon.",
+          "standby_claim_mode": "Styrer når standby-medlemmer kan gjøre krav på denne gjøremålet (når som helst, on_forfalle, manual_only). Gjelder kun for primære og standby-fullføringskriterier."
         }
       },
       "badge_count": {
@@ -639,15 +643,17 @@
               "icon": "📋 Ikon (mdi:xxx)",
               "default_points": "💰 Poeng tildelt",
               "assigned_user_ids": "👥 Tildelt til",
-              "completion_criteria": "👥 Fullføringskriterier"
+              "completion_criteria": "👥 Fullføringskriterier",
+              "standby_claim_mode": "🔑 Standby-kravmodus"
             },
             "data_description": {
               "name": "Unikt navn som vises i hele systemet.",
               "chore_description": "Valgfrie instruksjoner eller detaljer om hvordan du fullfører denne oppgaven.",
               "icon": "Material Design-ikon (f.eks. mdi:kost, mdi:oppvaskmaskin).",
               "default_points": "Poeng opptjent når fullført.",
-              "assigned_user_ids": "Tildelere som kan se og gjøre krav på denne oppgaven.",
-              "completion_criteria": "Styrer hvordan gjøremålet fullføres når flere tilordnede er tildelt: individuell sporing, delt fullføring eller turbasert rotasjon."
+              "assigned_user_ids": "Tildelte personer som kan se og gjøre krav på denne gjøremålet. For rotasjonsgjøremål bestemmer den tildeltes rekkefølge tursekvensen. For primær og standby er den første tildelte den primære.",
+              "completion_criteria": "Styrer hvordan gjøremålet fullføres når flere tilordnede er tildelt: individuell sporing, delt fullføring eller turbasert rotasjon.",
+              "standby_claim_mode": "Styrer når standby-medlemmer kan gjøre krav på denne gjøremålet (når som helst, on_forfalle, manual_only). Gjelder kun for primære og standby-fullføringskriterier."
             }
           },
           "section_schedule": {
@@ -721,7 +727,8 @@
           "chore_due_window_offset": "⏱️ Forfallsvindu: Forskyvning før forfallsdato",
           "chore_due_reminder_offset": "🔔 Forfallspåminnelse: Forskyvning før forfallsdato",
           "show_on_calendar": "📅 Vis i kalenderen?",
-          "chore_notifications": "🔔 Varslingshendelser (valgfritt)"
+          "chore_notifications": "🔔 Varslingshendelser (valgfritt)",
+          "standby_claim_mode": "🔑 Standby-kravmodus"
         },
         "data_description": {
           "name": "Unikt navn som vises i hele systemet.",
@@ -729,7 +736,7 @@
           "icon": "Material Design-ikon (f.eks. mdi:kost, mdi:oppvaskmaskin).",
           "chore_labels": "Tagger for å organisere gjøremål (f.eks. «kjøkken», «ute»). La stå tomt hvis det ikke er nødvendig.",
           "default_points": "Poeng opptjent når fullført.",
-          "assigned_user_ids": "Tildelere som kan se og gjøre krav på denne oppgaven.",
+          "assigned_user_ids": "Tildelte personer som kan se og gjøre krav på denne gjøremålet. For rotasjonsgjøremål bestemmer den tildeltes rekkefølge tursekvensen. For primær og standby er den første tildelte den primære.",
           "completion_criteria": "Styrer hvordan gjøremålet fullføres når flere tilordnede er tildelt: individuell sporing, delt fullføring eller turbasert rotasjon.",
           "approval_reset_type": "Styrer når grensen for godkjenningssyklusen for gjøremålet utløses (midnatt, forfallsdato, ved fullføring eller manuell utløser).",
           "approval_reset_pending_claim_action": "Kontrollerer hva som skjer med ikke-godkjente krav når grensen for tilbakestilling av godkjenning utløses.",
@@ -745,7 +752,8 @@
           "chore_due_window_offset": "Når gjøremålets status endres fra Venter til Forfaller. Format: '1d 6t 30m' eller bare '30' for minutter. Skriv inn '0' for å deaktivere. Eksempel: '1d' betyr at gjøremålet vises som 'Forfaller' 1 dag før fristen.",
           "chore_due_reminder_offset": "Når påminnelse om forfall skal sendes. Format: '1d 6t 30m' eller bare '30' for minutter. Standard: 30m (30 minutter før forfall). Skriv inn '0' for å deaktivere.",
           "show_on_calendar": "Vis denne gjøremålet i kalendervisningen.",
-          "chore_notifications": "Når varsler skal sendes: Ved krav, ved godkjenning, ved avslag eller en hvilken som helst kombinasjon."
+          "chore_notifications": "Når varsler skal sendes: Ved krav, ved godkjenning, ved avslag eller en hvilken som helst kombinasjon.",
+          "standby_claim_mode": "Styrer når standby-medlemmer kan gjøre krav på denne gjøremålet (når som helst, on_forfalle, manual_only). Gjelder kun for primære og standby-fullføringskriterier."
         }
       },
       "add_badge": {
@@ -1079,15 +1087,17 @@
               "icon": "📋 Ikon (mdi:xxx)",
               "default_points": "💰 Poeng tildelt",
               "assigned_user_ids": "👥 Tildelt til",
-              "completion_criteria": "👥 Fullføringskriterier"
+              "completion_criteria": "👥 Fullføringskriterier",
+              "standby_claim_mode": "🔑 Standby-kravmodus"
             },
             "data_description": {
               "name": "Unikt navn som vises i hele systemet.",
               "chore_description": "Valgfrie instruksjoner eller detaljer om hvordan du fullfører denne oppgaven.",
               "icon": "Material Design-ikon (f.eks. mdi:kost, mdi:oppvaskmaskin).",
               "default_points": "Poeng opptjent når fullført.",
-              "assigned_user_ids": "Tildelere som kan se og gjøre krav på denne oppgaven.",
-              "completion_criteria": "Styrer hvordan gjøremålet fullføres når flere tilordnede er tildelt: individuell sporing, delt fullføring eller turbasert rotasjon."
+              "assigned_user_ids": "Tildelte personer som kan se og gjøre krav på denne gjøremålet. For rotasjonsgjøremål bestemmer den tildeltes rekkefølge tursekvensen. For primær og standby er den første tildelte den primære.",
+              "completion_criteria": "Styrer hvordan gjøremålet fullføres når flere tilordnede er tildelt: individuell sporing, delt fullføring eller turbasert rotasjon.",
+              "standby_claim_mode": "Styrer når standby-medlemmer kan gjøre krav på denne gjøremålet (når som helst, on_forfalle, manual_only). Gjelder kun for primære og standby-fullføringskriterier."
             }
           },
           "section_schedule": {
@@ -1162,7 +1172,8 @@
           "chore_due_window_offset": "⏱️ Forfallsvindu: Forskyvning før forfallsdato",
           "chore_due_reminder_offset": "🔔 Forfallspåminnelse: Forskyvning før forfallsdato",
           "show_on_calendar": "📅 Vis i kalenderen?",
-          "chore_notifications": "🔔 Varslingshendelser (valgfritt)"
+          "chore_notifications": "🔔 Varslingshendelser (valgfritt)",
+          "standby_claim_mode": "🔑 Standby-kravmodus"
         },
         "data_description": {
           "name": "Unikt navn som vises i hele systemet.",
@@ -1170,7 +1181,7 @@
           "icon": "Material Design-ikon (f.eks. mdi:kost, mdi:oppvaskmaskin).",
           "chore_labels": "Tagger for å organisere gjøremål (f.eks. «kjøkken», «ute»). La stå tomt hvis det ikke er nødvendig.",
           "default_points": "Poeng opptjent når fullført.",
-          "assigned_user_ids": "Tildelere som kan se og gjøre krav på denne oppgaven.",
+          "assigned_user_ids": "Tildelte personer som kan se og gjøre krav på denne gjøremålet. For rotasjonsgjøremål bestemmer den tildeltes rekkefølge tursekvensen. For primær og standby er den første tildelte den primære.",
           "completion_criteria": "Styrer hvordan gjøremålet fullføres når flere tilordnede er tildelt: individuell sporing, delt fullføring eller turbasert rotasjon.",
           "approval_reset_type": "Styrer når grensen for godkjenningssyklusen for gjøremålet utløses (midnatt, forfallsdato, ved fullføring eller manuell utløser).",
           "approval_reset_pending_claim_action": "Kontrollerer hva som skjer med ikke-godkjente krav når grensen for tilbakestilling av godkjenning utløses.",
@@ -1186,7 +1197,8 @@
           "chore_due_window_offset": "Når gjøremålets status endres fra Venter til Forfaller. Format: '1d 6t 30m' eller bare '30' for minutter. Skriv inn '0' for å deaktivere. Eksempel: '1d' betyr at gjøremålet vises som 'Forfaller' 1 dag før fristen.",
           "chore_due_reminder_offset": "Når påminnelse om forfall skal sendes. Format: '1d 6t 30m' eller bare '30' for minutter. Standard: 30m (30 minutter før forfall). Skriv inn '0' for å deaktivere.",
           "show_on_calendar": "Vis denne gjøremålet i kalendervisningen.",
-          "chore_notifications": "Når varsler skal sendes: Ved krav, ved godkjenning, ved avslag eller en hvilken som helst kombinasjon."
+          "chore_notifications": "Når varsler skal sendes: Ved krav, ved godkjenning, ved avslag eller en hvilken som helst kombinasjon.",
+          "standby_claim_mode": "Styrer når standby-medlemmer kan gjøre krav på denne gjøremålet (når som helst, on_forfalle, manual_only). Gjelder kun for primære og standby-fullføringskriterier."
         }
       },
       "edit_chore_per_user_dates": {
@@ -2056,7 +2068,15 @@
         "independent": "Uavhengig (hver oppdragsgiver fullfører på egenhånd)",
         "shared_first": "Delt først (første fullføring teller)",
         "rotation_simple": "Enkel rotasjon (kun turholder, streng rekkefølge)",
-        "rotation_smart": "Rotasjonssmart (kun turholder, rettferdighetsvektet)"
+        "rotation_smart": "Rotasjonssmart (kun turholder, rettferdighetsvektet)",
+        "rotation_primary_standby": "Primær og standby (Primær standardtur, standby når det er mulig)"
+      }
+    },
+    "standby_claim_mode": {
+      "options": {
+        "anytime": "Når som helst (standby kan kreves umiddelbart)",
+        "on_overdue": "Forfalt (kan kreves når forfalt)",
+        "manual_only": "Kun manuell (administrator må tildele tur)"
       }
     },
     "approval_reset_type": {
@@ -2263,7 +2283,7 @@
     },
     "pause_user_chores": {
       "name": "Sett brukerens gjøremål på pause",
-      "description": "Sette en bruker på pause eller gjenoppta gjøremålsbehandlingen.",
+      "description": "Sett på pause eller gjenoppta pause i gjøremålsbehandling for en bruker. Når pausen gjenopptas, styrer unpause_action om forfalte gjøremål skal omplanlegges for å forhindre umiddelbare forsinkede overganger.",
       "fields": {
         "config_entry_id": {
           "name": "Konfigurasjonsoppførings-ID (valgfritt)",
@@ -2289,6 +2309,11 @@
           "name": "Pause til",
           "description": "Valgfri returdato. Hvis angitt, gjenopptas gjøremål automatisk ved midnatt etter denne datoen.",
           "example": "2026-06-10T00:00:00+00:00"
+        },
+        "unpause_action": {
+          "name": "Avbryt handlingen",
+          "description": "Gjelder bare når paused=false. Kontrollerer om forfalte gjøremål skal planlegges på nytt under oppheving av pause. Standard: opphev pause (ingen omplanlegging).",
+          "example": "unpause_shift_independent"
         }
       }
     },
@@ -2713,6 +2738,10 @@
           "name": "Forskyvning av påminnelse",
           "description": "Varighet før forfallsdato for å sende påminnelsesvarsling. Format: '30m', '1t', '1d 6t 30m' osv. Bruk '0' for å deaktivere påminnelser.",
           "example": "30m"
+        },
+        "standby_claim_mode": {
+          "name": "Standby-kravmodus",
+          "description": "Styrer når standby-medlemmer kan gjøre krav på denne gjøremålet (når som helst, on_forfalle, manual_only). Gjelder kun for primære og standby-fullføringskriterier."
         }
       }
     },
@@ -2819,6 +2848,10 @@
           "name": "Tildelingshandling",
           "description": "Slik håndterer du listen over tildelte_brukernavn. 'erstatt' angir listen direkte (standard, bakoverkompatibel). 'legg til' legger til de oppførte brukerne i eksisterende tildelte. 'fjern' fjerner de oppførte brukerne fra eksisterende tildelte.",
           "example": "legge til"
+        },
+        "standby_claim_mode": {
+          "name": "Standby-kravmodus",
+          "description": "Styrer når standby-medlemmer kan gjøre krav på denne gjøremålet (når som helst, on_forfalle, manual_only). Gjelder kun for primære og standby-fullføringskriterier."
         }
       }
     },
@@ -2850,7 +2883,7 @@
     },
     "set_rotation_turn": {
       "name": "Angi rotasjon Sving",
-      "description": "Tildel manuelt gjeldende tur til en bestemt tildeler i en rotasjonsoppgave. Fungerer bare for rotasjonsoppgaver (rotation_simple eller rotation_smart). Bruk enten ID eller navn for identifikasjon.",
+      "description": "Tildel manuelt gjeldende tur til en bestemt tildeler i en rotasjonsoppgave. Fungerer bare for rotasjonsoppgaver (rotation_simple, rotation_smart eller rotation_primary_standby). Bruk enten ID eller navn for identifikasjon.",
       "fields": {
         "config_entry_id": {
           "name": "Konfigurasjonsoppførings-ID (valgfritt)",
@@ -2886,7 +2919,7 @@
     },
     "reset_rotation": {
       "name": "Tilbakestill rotasjon",
-      "description": "Tilbakestill rotasjonstur til den første tildelte mottakeren. Fungerer bare for rotasjonsoppgaver (rotation_simple eller rotation_smart). Bruk enten ID eller navn for identifikasjon.",
+      "description": "Tilbakestill rotasjonstur til den første tildelte mottakeren. Fungerer bare for rotasjonsoppgaver (rotation_simple, rotation_smart eller rotation_primary_standby). Bruk enten ID eller navn for identifikasjon.",
       "fields": {
         "config_entry_id": {
           "name": "Konfigurasjonsoppførings-ID (valgfritt)",
@@ -3138,7 +3171,7 @@
     },
     "reschedule_chores_after": {
       "name": "Planlegg gjøremål etterpå",
-      "description": "Planlegg ett eller flere gjøremål slik at neste forfallsdato faller etter den angitte datoen og klokkeslettet. Gjentakende gjøremål går videre til neste planlagte forekomst etter grensen. Ikke-gjentakende gjøremål som forfaller på eller før grensen flyttes til grensen med mindre skip_non_recurring er aktivert. Delte gjøremål hoppes over med mindre reschedule_shared er aktivert.",
+      "description": "Endre forfallsdatoer for gjøremål slik at de faller etter den angitte datoen. Tre uavhengige vekslere styrer hvilke gjøremålstyper som skal planlegges på nytt: reschedule_independent (standard sann), reschedule_primary_standby (standard sann), reschedule_shared (standard usann).",
       "fields": {
         "config_entry_id": {
           "name": "Konfigurasjonsoppførings-ID (valgfritt)",
@@ -3171,9 +3204,19 @@
           "name": "Brukernavn",
           "description": "Valgfri liste over navn på tildelere for å begrense uavhengige oppdateringer av gjøremål når bruker-ID-er ikke er oppgitt."
         },
+        "reschedule_independent": {
+          "name": "Planlegg uavhengige gjøremål på nytt",
+          "description": "Inkluder uavhengige gjøremål (forfallsdato per tildeler). Standard sann.",
+          "example": "ekte"
+        },
+        "reschedule_primary_standby": {
+          "name": "Planlegg primær og standby på nytt",
+          "description": "Inkluder primære reserveoppgaver. Standardverdi sann.",
+          "example": "ekte"
+        },
         "reschedule_shared": {
           "name": "Planlegg delte gjøremål på nytt",
-          "description": "Aktiver dette for å tillate at delte og rotasjonsoppgaver kan omplanlegges. Dette påvirker alle som er tildelt disse oppgavene.",
+          "description": "Inkluder delte og roterende (enkle/smarte) gjøremål. Dette påvirker alle tilordnede til disse gjøremålene. Standard usann.",
           "example": "falsk"
         },
         "skip_non_recurring": {
@@ -3268,6 +3311,7 @@
           "completed_by_other": "Fullført av Annen",
           "waiting": "Venter (fristvinduet er ikke åpent)",
           "not_my_turn": "Ikke min tur (rotasjon)",
+          "standby": "Standby",
           "missed": "Mistet (Låst)",
           "paused": "Pauset"
         },
@@ -3306,7 +3350,8 @@
               "shared_first": "Delt (først)",
               "shared_all": "Delt (alle)",
               "rotation_simple": "Rotasjon Enkel",
-              "rotation_smart": "Rotasjonssmart"
+              "rotation_smart": "Rotasjonssmart",
+              "rotation_primary_standby": "Primær og standby"
             }
           },
           "approval_reset_type": {
@@ -3516,6 +3561,8 @@
               "blocked_pending_claim": "Ventende krav",
               "blocked_waiting_window": "Venter på forfallsvinduet",
               "blocked_not_my_turn": "Ikke din tur",
+              "blocked_standby": "Du venter på dette gjøremålet",
+              "standby_available": "Standby – du kan gjøre krav på denne oppgaven",
               "blocked_missed_locked": "Savnet og låst",
               "blocked_paused": "Gjøremål er satt på pause for denne brukeren"
             }
@@ -3525,6 +3572,13 @@
           },
           "available_at": {
             "name": "Tilgjengelig på"
+          },
+          "rotation_cycle_override": {
+            "name": "Overstyring av rotasjonssyklus",
+            "state": {
+              "true": "Åpent for alle",
+              "false": "Normal rotasjon"
+            }
           }
         }
       },
@@ -4220,7 +4274,8 @@
               "shared_first": "Delt (kun første)",
               "shared_all": "Delt (alle obligatoriske)",
               "rotation_simple": "Rotasjon Enkel",
-              "rotation_smart": "Rotasjonssmart"
+              "rotation_smart": "Rotasjonssmart",
+              "rotation_primary_standby": "Primær og standby"
             }
           },
           "approval_reset_type": {
@@ -5332,6 +5387,9 @@
     },
     "chore_not_my_turn": {
       "message": "Denne gjøremålet er rotasjonslåst. Det er for øyeblikket en annen tildelt persons tur."
+    },
+    "chore_standby": {
+      "message": "Du er reserve for {chore_name}. Den primære tildeleren har førsteansvaret."
     },
     "chore_missed_locked": {
       "message": "Denne gjøremålet er merket som tapt og låst for gjeldende syklus."

@@ -148,15 +148,17 @@
               "icon": "📋 Icona (mdi:xxx)",
               "default_points": "💰 Punts atorgats",
               "assigned_user_ids": "👥 Assignat a",
-              "completion_criteria": "👥 Criteris de finalització"
+              "completion_criteria": "👥 Criteris de finalització",
+              "standby_claim_mode": "🔑 Mode de reclamació en espera"
             },
             "data_description": {
               "name": "Nom únic que es mostra a tot el sistema.",
               "chore_description": "Instruccions o detalls opcionals sobre com completar aquesta tasca.",
               "icon": "Icona de disseny de materials (per exemple, mdi:broom, mdi:dishwasher).",
               "default_points": "Punts guanyats en completar-se.",
-              "assigned_user_ids": "Assignataris que poden veure i reclamar aquesta tasca.",
-              "completion_criteria": "Controla com es completa la tasca quan s'assignen diverses persones: seguiment individual, finalització compartida o rotació per torns."
+              "assigned_user_ids": "Assignats que poden veure i reclamar aquesta tasca. Per a les tasques de rotació, l'ordre dels assignats determina la seqüència de torns. Per a les tasques principal i de reserva, el primer assignat és el principal.",
+              "completion_criteria": "Controla com es completa la tasca quan s'assignen diverses persones: seguiment individual, finalització compartida o rotació per torns.",
+              "standby_claim_mode": "Controla quan els servidors en espera poden reclamar aquesta tasca (en qualsevol moment, en cas de venciment, només manual). Només s'aplica als criteris de finalització principals i de servidor en espera."
             }
           },
           "section_schedule": {
@@ -229,7 +231,8 @@
           "chore_due_window_offset": "⏱️ Finestra de venciment: Compensació abans de la data de venciment",
           "chore_due_reminder_offset": "🔔 Recordatori de venciment: Compensació abans de la data de venciment",
           "show_on_calendar": "📅 Mostrar al calendari?",
-          "chore_notifications": "🔔 Esdeveniments de notificació (opcional)"
+          "chore_notifications": "🔔 Esdeveniments de notificació (opcional)",
+          "standby_claim_mode": "🔑 Mode de reclamació en espera"
         },
         "data_description": {
           "name": "Nom únic que es mostra a tot el sistema.",
@@ -237,7 +240,7 @@
           "icon": "Icona de disseny de materials (per exemple, mdi:broom, mdi:dishwasher).",
           "chore_labels": "Etiquetes per organitzar les tasques (per exemple, \"cuina\", \"exterior\"). Deixeu-ho en blanc si no és necessari.",
           "default_points": "Punts guanyats en completar-se.",
-          "assigned_user_ids": "Assignataris que poden veure i reclamar aquesta tasca.",
+          "assigned_user_ids": "Assignats que poden veure i reclamar aquesta tasca. Per a les tasques de rotació, l'ordre dels assignats determina la seqüència de torns. Per a les tasques principal i de reserva, el primer assignat és el principal.",
           "completion_criteria": "Controla com es completa la tasca quan s'assignen diverses persones: seguiment individual, finalització compartida o rotació per torns.",
           "approval_reset_type": "Controla quan s'activa el límit del cicle d'aprovació de la tasca (mitjanit, data de venciment, en finalitzar-se o activació manual).",
           "approval_reset_pending_claim_action": "Això és el que passa amb les reclamacions que encara estan pendents d'aprovació quan es produeix el restabliment de l'aprovació.",
@@ -252,7 +255,8 @@
           "chore_due_window_offset": "Quan l'estat de la tasca canvia de Pendent a Vençuda. Format: '1d 6h 30m' o simplement '30' per a minuts. Introduïu '0' per desactivar-ho. Exemple: '1d' significa que la tasca es mostra com a 'Vençuda' 1 dia abans de la data límit.",
           "chore_due_reminder_offset": "Quan s'ha d'enviar la notificació de recordatori de venciment. Format: \"1d 6h 30m\" o simplement \"30\" per a minuts. Per defecte: 30m (30 minuts abans del venciment). Introduïu \"0\" per desactivar-ho.",
           "show_on_calendar": "Mostra aquesta tasca a la vista de calendari.",
-          "chore_notifications": "Quan enviar notificacions: En cas de reclamació, aprovació, rebuig o qualsevol combinació."
+          "chore_notifications": "Quan enviar notificacions: En cas de reclamació, aprovació, rebuig o qualsevol combinació.",
+          "standby_claim_mode": "Controla quan els servidors en espera poden reclamar aquesta tasca (en qualsevol moment, en cas de venciment, només manual). Només s'aplica als criteris de finalització principals i de servidor en espera."
         }
       },
       "badge_count": {
@@ -639,15 +643,17 @@
               "icon": "📋 Icona (mdi:xxx)",
               "default_points": "💰 Punts atorgats",
               "assigned_user_ids": "👥 Assignat a",
-              "completion_criteria": "👥 Criteris de finalització"
+              "completion_criteria": "👥 Criteris de finalització",
+              "standby_claim_mode": "🔑 Mode de reclamació en espera"
             },
             "data_description": {
               "name": "Nom únic que es mostra a tot el sistema.",
               "chore_description": "Instruccions o detalls opcionals sobre com completar aquesta tasca.",
               "icon": "Icona de disseny de materials (per exemple, mdi:broom, mdi:dishwasher).",
               "default_points": "Punts guanyats en completar-se.",
-              "assigned_user_ids": "Assignataris que poden veure i reclamar aquesta tasca.",
-              "completion_criteria": "Controla com es completa la tasca quan s'assignen diverses persones: seguiment individual, finalització compartida o rotació per torns."
+              "assigned_user_ids": "Assignats que poden veure i reclamar aquesta tasca. Per a les tasques de rotació, l'ordre dels assignats determina la seqüència de torns. Per a les tasques principal i de reserva, el primer assignat és el principal.",
+              "completion_criteria": "Controla com es completa la tasca quan s'assignen diverses persones: seguiment individual, finalització compartida o rotació per torns.",
+              "standby_claim_mode": "Controla quan els servidors en espera poden reclamar aquesta tasca (en qualsevol moment, en cas de venciment, només manual). Només s'aplica als criteris de finalització principals i de servidor en espera."
             }
           },
           "section_schedule": {
@@ -721,7 +727,8 @@
           "chore_due_window_offset": "⏱️ Finestra de venciment: Compensació abans de la data de venciment",
           "chore_due_reminder_offset": "🔔 Recordatori de venciment: Compensació abans de la data de venciment",
           "show_on_calendar": "📅 Mostrar al calendari?",
-          "chore_notifications": "🔔 Esdeveniments de notificació (opcional)"
+          "chore_notifications": "🔔 Esdeveniments de notificació (opcional)",
+          "standby_claim_mode": "🔑 Mode de reclamació en espera"
         },
         "data_description": {
           "name": "Nom únic que es mostra a tot el sistema.",
@@ -729,7 +736,7 @@
           "icon": "Icona de disseny de materials (per exemple, mdi:broom, mdi:dishwasher).",
           "chore_labels": "Etiquetes per organitzar les tasques (per exemple, \"cuina\", \"exterior\"). Deixeu-ho en blanc si no és necessari.",
           "default_points": "Punts guanyats en completar-se.",
-          "assigned_user_ids": "Assignataris que poden veure i reclamar aquesta tasca.",
+          "assigned_user_ids": "Assignats que poden veure i reclamar aquesta tasca. Per a les tasques de rotació, l'ordre dels assignats determina la seqüència de torns. Per a les tasques principal i de reserva, el primer assignat és el principal.",
           "completion_criteria": "Controla com es completa la tasca quan s'assignen diverses persones: seguiment individual, finalització compartida o rotació per torns.",
           "approval_reset_type": "Controla quan s'activa el límit del cicle d'aprovació de la tasca (mitjanit, data de venciment, en finalitzar-se o activació manual).",
           "approval_reset_pending_claim_action": "Controla què passa amb les reclamacions no aprovades quan s'activa el límit de restabliment d'aprovació.",
@@ -745,7 +752,8 @@
           "chore_due_window_offset": "Quan l'estat de la tasca canvia de Pendent a Vençuda. Format: '1d 6h 30m' o simplement '30' per a minuts. Introduïu '0' per desactivar-ho. Exemple: '1d' significa que la tasca es mostra com a 'Vençuda' 1 dia abans de la data límit.",
           "chore_due_reminder_offset": "Quan s'ha d'enviar la notificació de recordatori de venciment. Format: \"1d 6h 30m\" o simplement \"30\" per a minuts. Per defecte: 30m (30 minuts abans del venciment). Introduïu \"0\" per desactivar-ho.",
           "show_on_calendar": "Mostra aquesta tasca a la vista de calendari.",
-          "chore_notifications": "Quan enviar notificacions: En cas de reclamació, aprovació, rebuig o qualsevol combinació."
+          "chore_notifications": "Quan enviar notificacions: En cas de reclamació, aprovació, rebuig o qualsevol combinació.",
+          "standby_claim_mode": "Controla quan els servidors en espera poden reclamar aquesta tasca (en qualsevol moment, en cas de venciment, només manual). Només s'aplica als criteris de finalització principals i de servidor en espera."
         }
       },
       "add_badge": {
@@ -1079,15 +1087,17 @@
               "icon": "📋 Icona (mdi:xxx)",
               "default_points": "💰 Punts atorgats",
               "assigned_user_ids": "👥 Assignat a",
-              "completion_criteria": "👥 Criteris de finalització"
+              "completion_criteria": "👥 Criteris de finalització",
+              "standby_claim_mode": "🔑 Mode de reclamació en espera"
             },
             "data_description": {
               "name": "Nom únic que es mostra a tot el sistema.",
               "chore_description": "Instruccions o detalls opcionals sobre com completar aquesta tasca.",
               "icon": "Icona de disseny de materials (per exemple, mdi:broom, mdi:dishwasher).",
               "default_points": "Punts guanyats en completar-se.",
-              "assigned_user_ids": "Assignataris que poden veure i reclamar aquesta tasca.",
-              "completion_criteria": "Controla com es completa la tasca quan s'assignen diverses persones: seguiment individual, finalització compartida o rotació per torns."
+              "assigned_user_ids": "Assignats que poden veure i reclamar aquesta tasca. Per a les tasques de rotació, l'ordre dels assignats determina la seqüència de torns. Per a les tasques principal i de reserva, el primer assignat és el principal.",
+              "completion_criteria": "Controla com es completa la tasca quan s'assignen diverses persones: seguiment individual, finalització compartida o rotació per torns.",
+              "standby_claim_mode": "Controla quan els servidors en espera poden reclamar aquesta tasca (en qualsevol moment, en cas de venciment, només manual). Només s'aplica als criteris de finalització principals i de servidor en espera."
             }
           },
           "section_schedule": {
@@ -1162,7 +1172,8 @@
           "chore_due_window_offset": "⏱️ Finestra de venciment: Compensació abans de la data de venciment",
           "chore_due_reminder_offset": "🔔 Recordatori de venciment: Compensació abans de la data de venciment",
           "show_on_calendar": "📅 Mostrar al calendari?",
-          "chore_notifications": "🔔 Esdeveniments de notificació (opcional)"
+          "chore_notifications": "🔔 Esdeveniments de notificació (opcional)",
+          "standby_claim_mode": "🔑 Mode de reclamació en espera"
         },
         "data_description": {
           "name": "Nom únic que es mostra a tot el sistema.",
@@ -1170,7 +1181,7 @@
           "icon": "Icona de disseny de materials (per exemple, mdi:broom, mdi:dishwasher).",
           "chore_labels": "Etiquetes per organitzar les tasques (per exemple, \"cuina\", \"exterior\"). Deixeu-ho en blanc si no cal.",
           "default_points": "Punts guanyats en completar-se.",
-          "assigned_user_ids": "Assignataris que poden veure i reclamar aquesta tasca.",
+          "assigned_user_ids": "Assignats que poden veure i reclamar aquesta tasca. Per a les tasques de rotació, l'ordre dels assignats determina la seqüència de torns. Per a les tasques principal i de reserva, el primer assignat és el principal.",
           "completion_criteria": "Controla com es completa la tasca quan s'assignen diverses persones: seguiment individual, finalització compartida o rotació per torns.",
           "approval_reset_type": "Controla quan s'activa el límit del cicle d'aprovació de la tasca (mitjanit, data de venciment, en finalitzar-se o activació manual).",
           "approval_reset_pending_claim_action": "Controla què passa amb les reclamacions no aprovades quan s'activa el límit de restabliment d'aprovació.",
@@ -1186,7 +1197,8 @@
           "chore_due_window_offset": "Quan l'estat de la tasca canvia de Pendent a Vençuda. Format: '1d 6h 30m' o simplement '30' per a minuts. Introduïu '0' per desactivar-ho. Exemple: '1d' significa que la tasca es mostra com a 'Vençuda' 1 dia abans de la data límit.",
           "chore_due_reminder_offset": "Quan s'ha d'enviar la notificació de recordatori de venciment. Format: \"1d 6h 30m\" o simplement \"30\" per a minuts. Per defecte: 30m (30 minuts abans del venciment). Introduïu \"0\" per desactivar-ho.",
           "show_on_calendar": "Mostra aquesta tasca a la vista de calendari.",
-          "chore_notifications": "Quan enviar notificacions: En cas de reclamació, aprovació, rebuig o qualsevol combinació."
+          "chore_notifications": "Quan enviar notificacions: En cas de reclamació, aprovació, rebuig o qualsevol combinació.",
+          "standby_claim_mode": "Controla quan els servidors en espera poden reclamar aquesta tasca (en qualsevol moment, en cas de venciment, només manual). Només s'aplica als criteris de finalització principals i de servidor en espera."
         }
       },
       "edit_chore_per_user_dates": {
@@ -2056,7 +2068,15 @@
         "independent": "Independent (cada assignat ho completa pel seu compte)",
         "shared_first": "Primer compartit (recompte de la primera finalització)",
         "rotation_simple": "Rotació simple (només titular de torn, ordre estricte)",
-        "rotation_smart": "Rotació intel·ligent (només per al titular del torn, ponderat per la justícia)"
+        "rotation_smart": "Rotació intel·ligent (només per al titular del torn, ponderat per la justícia)",
+        "rotation_primary_standby": "Principal i en espera (torn per defecte principal, en espera quan sigui possible)"
+      }
+    },
+    "standby_claim_mode": {
+      "options": {
+        "anytime": "En qualsevol moment (el client en espera pot reclamar immediatament)",
+        "on_overdue": "En venciment (la persona en espera pot reclamar quan venç)",
+        "manual_only": "Només manual (l'administrador ha d'assignar el torn)"
       }
     },
     "approval_reset_type": {
@@ -2263,7 +2283,7 @@
     },
     "pause_user_chores": {
       "name": "Pausa les tasques de l'usuari",
-      "description": "Pausa o reprèn el processament de tasques per a un usuari.",
+      "description": "Pausa o reactiva el processament de tasques per a un usuari. Quan es reactiva, unpause_action controla si les tasques vençudes es reprograma per evitar transicions vençudes immediates.",
       "fields": {
         "config_entry_id": {
           "name": "ID d'entrada de configuració (opcional)",
@@ -2289,6 +2309,11 @@
           "name": "En pausa fins a",
           "description": "Data de retorn opcional. Si s'estableix, les tasques es reprenen automàticament a mitjanit després d'aquesta data.",
           "example": "2026-06-10T00:00:00+00:00"
+        },
+        "unpause_action": {
+          "name": "Reprendre l'acció",
+          "description": "Només s'aplica quan pausat=fals. Controla si les tasques vençudes es reprogramaran durant la reactivació. Per defecte: reactivació (sense reprogramació).",
+          "example": "reactivar_canvi_independent"
         }
       }
     },
@@ -2713,6 +2738,10 @@
           "name": "Compensació de recordatori de venciment",
           "description": "Durada abans de la data de venciment per enviar la notificació de recordatori. Format: '30m', '1h', '1d 6h 30m', etc. Utilitzeu '0' per desactivar els recordatoris.",
           "example": "30 m"
+        },
+        "standby_claim_mode": {
+          "name": "Mode de reclamació en espera",
+          "description": "Controla quan els servidors en espera poden reclamar aquesta tasca (en qualsevol moment, en cas de venciment, només manual). Només s'aplica als criteris de finalització principals i de servidor en espera."
         }
       }
     },
@@ -2819,6 +2848,10 @@
           "name": "Acció d'assignació",
           "description": "Com gestionar la llista assigned_user_names. 'replace' estableix la llista directament (per defecte, compatible amb versions anteriors). 'add' afegeix els usuaris llistats als assignats existents. 'remove' elimina els usuaris llistats dels assignats existents.",
           "example": "afegeix"
+        },
+        "standby_claim_mode": {
+          "name": "Mode de reclamació en espera",
+          "description": "Controla quan els servidors en espera poden reclamar aquesta tasca (en qualsevol moment, en cas de venciment, només manual). Només s'aplica als criteris de finalització principals i de servidor en espera."
         }
       }
     },
@@ -2850,7 +2883,7 @@
     },
     "set_rotation_turn": {
       "name": "Estableix el gir de rotació",
-      "description": "Assigna manualment el torn actual a una persona específica en una tasca de rotació. Només funciona per a tasques de rotació (rotation_simple o rotation_smart). Utilitza l'ID o el nom per a la identificació.",
+      "description": "Assigna manualment el torn actual a una persona específica assignada en una tasca de rotació. Només funciona per a tasques de rotació (rotation_simple, rotation_smart o rotation_primary_standby). Utilitza l'ID o el nom per a la identificació.",
       "fields": {
         "config_entry_id": {
           "name": "ID d'entrada de configuració (opcional)",
@@ -2886,7 +2919,7 @@
     },
     "reset_rotation": {
       "name": "Restableix la rotació",
-      "description": "Restableix el torn de rotació al primer assignat. Només funciona per a tasques de rotació (rotation_simple o rotation_smart). Utilitza l'ID o el nom per a la identificació.",
+      "description": "Restableix el torn de rotació al primer assignat. Només funciona per a tasques de rotació (rotation_simple, rotation_smart o rotation_primary_standby). Utilitza l'ID o el nom per a la identificació.",
       "fields": {
         "config_entry_id": {
           "name": "ID d'entrada de configuració (opcional)",
@@ -3138,7 +3171,7 @@
     },
     "reschedule_chores_after": {
       "name": "Reprogramar tasques després de",
-      "description": "Reprograma una o més tasques perquè la seva propera data de venciment sigui després de la data i hora especificades. Les tasques recurrents avancen a la següent ocurrència programada després del límit. Les tasques no recurrents que vencen en o abans del límit es mouen al límit tret que skip_non_recurring estigui habilitat. Les tasques compartides s'ometen tret que reschedule_shared estigui habilitat.",
+      "description": "Reprograma les dates de venciment de les tasques perquè siguin posteriors a la data especificada. Tres interruptors independents controlen quins tipus de tasques es reprogramaran: reschedule_independent (per defecte, true), reschedule_primary_standby (per defecte, true) i reschedule_shared (per defecte, false).",
       "fields": {
         "config_entry_id": {
           "name": "ID d'entrada de configuració (opcional)",
@@ -3171,9 +3204,19 @@
           "name": "Noms d'usuari",
           "description": "Llista opcional de noms d'assignats per limitar les actualitzacions independents de les tasques quan no es proporcionen els user_ids."
         },
+        "reschedule_independent": {
+          "name": "Reprogramar tasques independents",
+          "description": "Inclou tasques independents (data de venciment per assignat). Per defecte, és cert.",
+          "example": "cert"
+        },
+        "reschedule_primary_standby": {
+          "name": "Reprogramació principal i de reserva",
+          "description": "Inclou les tasques de reserva principals. Per defecte, és true.",
+          "example": "cert"
+        },
         "reschedule_shared": {
           "name": "Reprogramar tasques compartides",
-          "description": "Activa això per permetre que les tasques compartides i de rotació es reprogramin. Això afecta tots els assignats a aquestes tasques.",
+          "description": "Inclou tasques compartides i de rotació (simples/intel·ligents). Això afecta tots els assignats en aquestes tasques. Per defecte, és fals.",
           "example": "fals"
         },
         "skip_non_recurring": {
@@ -3268,6 +3311,7 @@
           "completed_by_other": "Completat per altres",
           "waiting": "Esperant (finestra de venciment no oberta)",
           "not_my_turn": "No és el meu torn (rotació)",
+          "standby": "Espera",
           "missed": "Perdut (Bloquejat)",
           "paused": "En pausa"
         },
@@ -3306,7 +3350,8 @@
               "shared_first": "Compartit (Primer)",
               "shared_all": "Compartit (Tot)",
               "rotation_simple": "Rotació simple",
-              "rotation_smart": "Rotació intel·ligent"
+              "rotation_smart": "Rotació intel·ligent",
+              "rotation_primary_standby": "Principal i de reserva"
             }
           },
           "approval_reset_type": {
@@ -3516,6 +3561,8 @@
               "blocked_pending_claim": "Reclamació pendent",
               "blocked_waiting_window": "Esperant la finestra de venciment",
               "blocked_not_my_turn": "No és el teu torn",
+              "blocked_standby": "Esteu esperant per aquesta tasca",
+              "standby_available": "En espera: pots reclamar aquesta tasca",
               "blocked_missed_locked": "Perdut i bloquejat",
               "blocked_paused": "Les tasques estan en pausa per a aquest usuari"
             }
@@ -3525,6 +3572,13 @@
           },
           "available_at": {
             "name": "Disponible a"
+          },
+          "rotation_cycle_override": {
+            "name": "Anul·lació del cicle de rotació",
+            "state": {
+              "true": "Obert a tothom",
+              "false": "Rotació normal"
+            }
           }
         }
       },
@@ -4220,7 +4274,8 @@
               "shared_first": "Compartit (només el primer)",
               "shared_all": "Compartit (tot obligatori)",
               "rotation_simple": "Rotació simple",
-              "rotation_smart": "Rotació intel·ligent"
+              "rotation_smart": "Rotació intel·ligent",
+              "rotation_primary_standby": "Principal i de reserva"
             }
           },
           "approval_reset_type": {
@@ -5332,6 +5387,9 @@
     },
     "chore_not_my_turn": {
       "message": "Aquesta tasca està bloquejada per rotació. Actualment és el torn d'una altra persona assignada."
+    },
+    "chore_standby": {
+      "message": "Ets un suplent de {chore_name}. L'assignat principal té la primera responsabilitat."
     },
     "chore_missed_locked": {
       "message": "Aquesta tasca està marcada com a perduda i bloquejada per al cicle actual."

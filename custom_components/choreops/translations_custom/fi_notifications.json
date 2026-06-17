@@ -138,5 +138,9 @@
     "disapprove": "↩️ Hylkää",
     "remind_30": "⏰ Muistutus 30 minuutin kuluttua",
     "skip": "⏭️ Ohita"
+  },
+  "chore_standby_needed": {
+    "title": "🫲 Valmiustila pyydetty",
+    "message": "{primary_name}:n tehtävä {chore_name} on myöhässä! Lunasta se nyt ansaitaksesi {points} {points_label}"
   }
 }

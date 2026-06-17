@@ -138,5 +138,9 @@
     "disapprove": "↩️ Avvis",
     "remind_30": "⏰ Påminn om 30 minutter",
     "skip": "⏭️ Hopp over"
+  },
+  "chore_standby_needed": {
+    "title": "🫲 Standby forespurt",
+    "message": "{primary_name}s gjøremål {chore_name} er for sent! Hent det nå for å tjene {points} {points_label}"
   }
 }

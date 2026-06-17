@@ -138,5 +138,9 @@
     "disapprove": "↩️ Avvisa",
     "remind_30": "⏰ Påminn om 30 minuter",
     "skip": "⏭️ Hoppa över"
+  },
+  "chore_standby_needed": {
+    "title": "🫲 Standby begärd",
+    "message": "{primary_name}s syssla {chore_name} är försenad! Hämta den nu för att tjäna {points} {points_label}"
   }
 }

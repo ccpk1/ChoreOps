@@ -148,15 +148,17 @@
               "icon": "📋 Symbol (mdi:xxx)",
               "default_points": "💰 Vergebene Punkte",
               "assigned_user_ids": "👥 Zugewiesen an",
-              "completion_criteria": "👥 Abschlusskriterien"
+              "completion_criteria": "👥 Abschlusskriterien",
+              "standby_claim_mode": "🔑 Standby-Anspruchsmodus"
             },
             "data_description": {
               "name": "Eindeutiger Name, der im gesamten System angezeigt wird.",
               "chore_description": "Optionale Anweisungen oder Details zur Erledigung dieser Aufgabe.",
               "icon": "Material Design Icon (z. B. mdi:broom, mdi:dishwasher).",
               "default_points": "Punkte werden nach Abschluss gutgeschrieben.",
-              "assigned_user_ids": "Zugewiesene Personen, die diese Aufgabe sehen und übernehmen können.",
-              "completion_criteria": "Steuert, wie die Aufgabe erledigt wird, wenn mehrere Personen zugewiesen sind: individuelle Nachverfolgung, gemeinsame Erledigung oder turnusbasierte Rotation."
+              "assigned_user_ids": "Zugewiesene Personen, die diese Aufgabe sehen und übernehmen können. Bei rotierenden Aufgaben bestimmt die Reihenfolge der Zugewiesenen die Bearbeitungsreihenfolge. Bei primären und Bereitschaftsaufgaben ist die erste zugewiesene Person die primäre.",
+              "completion_criteria": "Steuert, wie die Aufgabe erledigt wird, wenn mehrere Personen zugewiesen sind: individuelle Nachverfolgung, gemeinsame Erledigung oder turnusbasierte Rotation.",
+              "standby_claim_mode": "Steuert, wann Bereitschaftsserver diese Aufgabe übernehmen können (jederzeit, bei Überschreitung der Fälligkeit, nur manuell). Gilt nur für die Abschlusskriterien von primären und Bereitschaftsservern."
             }
           },
           "section_schedule": {
@@ -229,7 +231,8 @@
           "chore_due_window_offset": "⏱️ Fälligkeitszeitraum: Versatz vor dem Fälligkeitsdatum",
           "chore_due_reminder_offset": "🔔 Fälligkeitserinnerung: Verrechnung vor dem Fälligkeitsdatum",
           "show_on_calendar": "📅 Im Kalender anzeigen?",
-          "chore_notifications": "🔔 Benachrichtigungsereignisse (optional)"
+          "chore_notifications": "🔔 Benachrichtigungsereignisse (optional)",
+          "standby_claim_mode": "🔑 Standby-Anspruchsmodus"
         },
         "data_description": {
           "name": "Eindeutiger Name, der im gesamten System angezeigt wird.",
@@ -237,7 +240,7 @@
           "icon": "Material Design Symbol (z. B. mdi:broom, mdi:dishwasher).",
           "chore_labels": "Schlagwörter zur Organisation von Aufgaben (z. B. „Küche“, „Garten“). Felder leer lassen, falls nicht benötigt.",
           "default_points": "Erhaltene Punkte nach Fertigstellung.",
-          "assigned_user_ids": "Zugewiesene Personen, die diese Aufgabe sehen und beanspruchen können.",
+          "assigned_user_ids": "Zugewiesene Personen, die diese Aufgabe sehen und übernehmen können. Bei rotierenden Aufgaben bestimmt die Reihenfolge der Zugewiesenen die Bearbeitungsreihenfolge. Bei primären und Bereitschaftsaufgaben ist die erste zugewiesene Person die primäre.",
           "completion_criteria": "Steuert, wie die Aufgabe erledigt wird, wenn mehrere Personen zugewiesen sind: individuelle Nachverfolgung, gemeinsame Erledigung oder wechselnde Rotation.",
           "approval_reset_type": "Steuert, wann die Genehmigungszyklusgrenze der Aufgabe ausgelöst wird (Mitternacht, Fälligkeitsdatum, nach Abschluss oder manueller Auslöser).",
           "approval_reset_pending_claim_action": "Dies geschieht mit Ansprüchen, die noch auf Genehmigung warten, wenn der Genehmigungs-Reset erfolgt.",
@@ -252,7 +255,8 @@
           "chore_due_window_offset": "Wann sich der Status der Aufgabe von „Ausstehend“ auf „Fällig“ ändert. Format: „1d 6h 30m“ oder einfach „30“ für Minuten. Geben Sie „0“ ein, um die Funktion zu deaktivieren. Beispiel: „1d“ bedeutet, dass die Aufgabe einen Tag vor dem Fälligkeitstermin als „Fällig“ angezeigt wird.",
           "chore_due_reminder_offset": "Wann die Erinnerungsbenachrichtigung versendet werden soll. Format: „1d 6h 30m“ oder einfach „30“ für Minuten. Standard: 30m (30 Minuten vor Fälligkeit). Gib „0“ ein, um die Benachrichtigung zu deaktivieren.",
           "show_on_calendar": "Diese Aufgabe in der Kalenderansicht anzeigen.",
-          "chore_notifications": "Wann Benachrichtigungen versendet werden sollen: Bei Anspruch, bei Genehmigung, bei Ablehnung oder in beliebiger Kombination."
+          "chore_notifications": "Wann Benachrichtigungen versendet werden sollen: Bei Anspruch, bei Genehmigung, bei Ablehnung oder in beliebiger Kombination.",
+          "standby_claim_mode": "Steuert, wann Bereitschaftsserver diese Aufgabe übernehmen können (jederzeit, bei Überschreitung der Fälligkeit, nur manuell). Gilt nur für die Abschlusskriterien von primären und Bereitschaftsservern."
         }
       },
       "badge_count": {
@@ -639,15 +643,17 @@
               "icon": "Symbol (mdi:xxx)",
               "default_points": "Standard-Punkte",
               "assigned_user_ids": "👥 Zugewiesen an",
-              "completion_criteria": "👥 Abschlusskriterien"
+              "completion_criteria": "👥 Abschlusskriterien",
+              "standby_claim_mode": "🔑 Standby-Anspruchsmodus"
             },
             "data_description": {
               "name": "Eindeutiger Name, der im gesamten System angezeigt wird.",
               "chore_description": "Optionale Anweisungen oder Details zur Erledigung dieser Aufgabe.",
               "icon": "Material Design Icon (z. B. mdi:broom, mdi:dishwasher).",
               "default_points": "Punkte werden nach Abschluss gutgeschrieben.",
-              "assigned_user_ids": "Zugewiesene Personen, die diese Aufgabe sehen und übernehmen können.",
-              "completion_criteria": "Steuert, wie die Aufgabe erledigt wird, wenn mehrere Personen zugewiesen sind: individuelle Nachverfolgung, gemeinsame Erledigung oder turnusbasierte Rotation."
+              "assigned_user_ids": "Zugewiesene Personen, die diese Aufgabe sehen und übernehmen können. Bei rotierenden Aufgaben bestimmt die Reihenfolge der Zugewiesenen die Bearbeitungsreihenfolge. Bei primären und Bereitschaftsaufgaben ist die erste zugewiesene Person die primäre.",
+              "completion_criteria": "Steuert, wie die Aufgabe erledigt wird, wenn mehrere Personen zugewiesen sind: individuelle Nachverfolgung, gemeinsame Erledigung oder turnusbasierte Rotation.",
+              "standby_claim_mode": "Steuert, wann Bereitschaftsserver diese Aufgabe übernehmen können (jederzeit, bei Überschreitung der Fälligkeit, nur manuell). Gilt nur für die Abschlusskriterien von primären und Bereitschaftsservern."
             }
           },
           "section_schedule": {
@@ -721,7 +727,8 @@
           "chore_due_window_offset": "⏱️ Fälligkeitszeitraum: Versatz vor dem Fälligkeitsdatum",
           "chore_due_reminder_offset": "🔔 Fälligkeitserinnerung: Verrechnung vor dem Fälligkeitsdatum",
           "show_on_calendar": "📅 Im Kalender anzeigen?",
-          "chore_notifications": "🔔 Benachrichtigungsereignisse (optional)"
+          "chore_notifications": "🔔 Benachrichtigungsereignisse (optional)",
+          "standby_claim_mode": "🔑 Standby-Anspruchsmodus"
         },
         "data_description": {
           "name": "Eindeutiger Name, der im gesamten System angezeigt wird.",
@@ -729,7 +736,7 @@
           "icon": "Material Design Icon (z. B. mdi:broom, mdi:dishwasher).",
           "chore_labels": "Schlagwörter zur Organisation von Aufgaben (z. B. „Küche“, „Garten“). Felder leer lassen, falls nicht benötigt.",
           "default_points": "Punkte werden nach Abschluss gutgeschrieben.",
-          "assigned_user_ids": "Zugewiesene Personen, die diese Aufgabe sehen und übernehmen können.",
+          "assigned_user_ids": "Zugewiesene Personen, die diese Aufgabe sehen und übernehmen können. Bei rotierenden Aufgaben bestimmt die Reihenfolge der Zugewiesenen die Bearbeitungsreihenfolge. Bei primären und Bereitschaftsaufgaben ist die erste zugewiesene Person die primäre.",
           "completion_criteria": "Steuert, wie die Aufgabe erledigt wird, wenn mehrere Personen zugewiesen sind: individuelle Nachverfolgung, gemeinsame Erledigung oder turnusbasierte Rotation.",
           "approval_reset_type": "Steuert, wann die Genehmigungszyklusgrenze der Aufgabe ausgelöst wird (Mitternacht, Fälligkeitsdatum, nach Abschluss oder manueller Auslöser).",
           "approval_reset_pending_claim_action": "Steuert, was mit nicht genehmigten Anträgen geschieht, wenn die Genehmigungs-Reset-Grenze ausgelöst wird.",
@@ -745,7 +752,8 @@
           "chore_due_window_offset": "Wenn sich der Status der Aufgabe von „Ausstehend“ auf „Fällig“ ändert. Format: „1d 6h 30m“ oder einfach „30“ für Minuten. Geben Sie „0“ ein, um die Funktion zu deaktivieren. Beispiel: „1d“ bedeutet, dass die Aufgabe einen Tag vor dem Fälligkeitstermin als „Fällig“ angezeigt wird.",
           "chore_due_reminder_offset": "Wann soll die Erinnerungsbenachrichtigung versendet werden? Format: „1d 6h 30m“ oder einfach „30“ für Minuten. Standard: 30m (30 Minuten vor Fälligkeit). Geben Sie „0“ ein, um die Benachrichtigung zu deaktivieren.",
           "show_on_calendar": "Diese Aufgabe in der Kalenderansicht anzeigen.",
-          "chore_notifications": "Wann Benachrichtigungen versendet werden sollen: Bei Antragstellung, bei Genehmigung, bei Ablehnung oder in beliebiger Kombination."
+          "chore_notifications": "Wann Benachrichtigungen versendet werden sollen: Bei Antragstellung, bei Genehmigung, bei Ablehnung oder in beliebiger Kombination.",
+          "standby_claim_mode": "Steuert, wann Bereitschaftsserver diese Aufgabe übernehmen können (jederzeit, bei Überschreitung der Fälligkeit, nur manuell). Gilt nur für die Abschlusskriterien von primären und Bereitschaftsservern."
         }
       },
       "add_badge": {
@@ -1079,15 +1087,17 @@
               "icon": "Symbol (mdi:xxx)",
               "default_points": "Standard-Punkte",
               "assigned_user_ids": "👥 Zugewiesen an",
-              "completion_criteria": "👥 Abschlusskriterien"
+              "completion_criteria": "👥 Abschlusskriterien",
+              "standby_claim_mode": "🔑 Standby-Anspruchsmodus"
             },
             "data_description": {
               "name": "Eindeutiger Name, der im gesamten System angezeigt wird.",
               "chore_description": "Optionale Anweisungen oder Details zur Erledigung dieser Aufgabe.",
               "icon": "Material Design Icon (z. B. mdi:broom, mdi:dishwasher).",
               "default_points": "Punkte werden nach Abschluss gutgeschrieben.",
-              "assigned_user_ids": "Zugewiesene Personen, die diese Aufgabe sehen und übernehmen können.",
-              "completion_criteria": "Steuert, wie die Aufgabe erledigt wird, wenn mehrere Personen zugewiesen sind: individuelle Nachverfolgung, gemeinsame Erledigung oder turnusbasierte Rotation."
+              "assigned_user_ids": "Zugewiesene Personen, die diese Aufgabe sehen und übernehmen können. Bei rotierenden Aufgaben bestimmt die Reihenfolge der Zugewiesenen die Bearbeitungsreihenfolge. Bei primären und Bereitschaftsaufgaben ist die erste zugewiesene Person die primäre.",
+              "completion_criteria": "Steuert, wie die Aufgabe erledigt wird, wenn mehrere Personen zugewiesen sind: individuelle Nachverfolgung, gemeinsame Erledigung oder turnusbasierte Rotation.",
+              "standby_claim_mode": "Steuert, wann Bereitschaftsserver diese Aufgabe übernehmen können (jederzeit, bei Überschreitung der Fälligkeit, nur manuell). Gilt nur für die Abschlusskriterien von primären und Bereitschaftsservern."
             }
           },
           "section_schedule": {
@@ -1162,7 +1172,8 @@
           "chore_due_window_offset": "⏱️ Fälligkeitszeitraum: Versatz vor dem Fälligkeitsdatum",
           "chore_due_reminder_offset": "🔔 Fälligkeitserinnerung: Verrechnung vor dem Fälligkeitsdatum",
           "show_on_calendar": "📅 Im Kalender anzeigen?",
-          "chore_notifications": "🔔 Benachrichtigungsereignisse (optional)"
+          "chore_notifications": "🔔 Benachrichtigungsereignisse (optional)",
+          "standby_claim_mode": "🔑 Standby-Anspruchsmodus"
         },
         "data_description": {
           "name": "Eindeutiger Name, der im gesamten System angezeigt wird.",
@@ -1170,7 +1181,7 @@
           "icon": "Material Design Icon (z. B. mdi:broom, mdi:dishwasher).",
           "chore_labels": "Schlagwörter zur Organisation von Aufgaben (z. B. „Küche“, „Garten“). Felder leer lassen, falls nicht benötigt.",
           "default_points": "Punkte werden nach Abschluss gutgeschrieben.",
-          "assigned_user_ids": "Zugewiesene Personen, die diese Aufgabe sehen und übernehmen können.",
+          "assigned_user_ids": "Zugewiesene Personen, die diese Aufgabe sehen und übernehmen können. Bei rotierenden Aufgaben bestimmt die Reihenfolge der Zugewiesenen die Bearbeitungsreihenfolge. Bei primären und Bereitschaftsaufgaben ist die erste zugewiesene Person die primäre.",
           "completion_criteria": "Steuert, wie die Aufgabe erledigt wird, wenn mehrere Personen zugewiesen sind: individuelle Nachverfolgung, gemeinsame Erledigung oder turnusbasierte Rotation.",
           "approval_reset_type": "Steuert, wann die Genehmigungszyklusgrenze der Aufgabe ausgelöst wird (Mitternacht, Fälligkeitsdatum, nach Abschluss oder manueller Auslöser).",
           "approval_reset_pending_claim_action": "Steuert, was mit nicht genehmigten Anträgen geschieht, wenn die Genehmigungs-Reset-Grenze ausgelöst wird.",
@@ -1186,7 +1197,8 @@
           "chore_due_window_offset": "Wenn sich der Status der Aufgabe von „Ausstehend“ auf „Fällig“ ändert. Format: „1d 6h 30m“ oder einfach „30“ für Minuten. Geben Sie „0“ ein, um die Funktion zu deaktivieren. Beispiel: „1d“ bedeutet, dass die Aufgabe einen Tag vor dem Fälligkeitstermin als „Fällig“ angezeigt wird.",
           "chore_due_reminder_offset": "Wann soll die Erinnerungsbenachrichtigung versendet werden? Format: „1d 6h 30m“ oder einfach „30“ für Minuten. Standard: 30m (30 Minuten vor Fälligkeit). Geben Sie „0“ ein, um die Benachrichtigung zu deaktivieren.",
           "show_on_calendar": "Diese Aufgabe in der Kalenderansicht anzeigen.",
-          "chore_notifications": "Wann Benachrichtigungen versendet werden sollen: Bei Antragstellung, bei Genehmigung, bei Ablehnung oder in beliebiger Kombination."
+          "chore_notifications": "Wann Benachrichtigungen versendet werden sollen: Bei Antragstellung, bei Genehmigung, bei Ablehnung oder in beliebiger Kombination.",
+          "standby_claim_mode": "Steuert, wann Bereitschaftsserver diese Aufgabe übernehmen können (jederzeit, bei Überschreitung der Fälligkeit, nur manuell). Gilt nur für die Abschlusskriterien von primären und Bereitschaftsservern."
         }
       },
       "edit_chore_per_user_dates": {
@@ -2056,7 +2068,15 @@
         "independent": "Unabhängig (Jeder Beauftragte bearbeitet die Aufgabe selbstständig)",
         "shared_first": "Gemeinsamer erster Platz (Erster Abschluss zählt)",
         "rotation_simple": "Einfache Drehung (nur Drehhalter, strikte Reihenfolge einhalten)",
-        "rotation_smart": "Rotation Smart (nur für Turnholder, Fairness-gewichtet)"
+        "rotation_smart": "Rotation Smart (nur für Turnholder, Fairness-gewichtet)",
+        "rotation_primary_standby": "Primär & Standby (Primär ist standardmäßig an der Reihe, Standby, wenn möglich)"
+      }
+    },
+    "standby_claim_mode": {
+      "options": {
+        "anytime": "Jederzeit (Bereitschaftsdienst kann sofort in Anspruch genommen werden)",
+        "on_overdue": "Bei Überfälligkeit (Bereitschaftsdienst kann bei Überfälligkeit Ansprüche geltend machen)",
+        "manual_only": "Nur manuelle Bedienung (Zug muss vom Administrator zugewiesen werden)"
       }
     },
     "approval_reset_type": {
@@ -2263,7 +2283,7 @@
     },
     "pause_user_chores": {
       "name": "Aufgaben des Benutzers pausieren",
-      "description": "Aufgabenverarbeitung für einen Benutzer pausieren oder fortsetzen.",
+      "description": "Aufgabenverarbeitung für einen Benutzer pausieren oder fortsetzen. Beim Fortsetzen steuert unpause_action, ob überfällige Aufgaben neu geplant werden, um sofortige Übergänge zu vermeiden.",
       "fields": {
         "config_entry_id": {
           "name": "Konfigurationseintrags-ID (optional)",
@@ -2289,6 +2309,11 @@
           "name": "Angehalten bis",
           "description": "Optionales Rückkehrdatum. Falls festgelegt, werden die Aufgaben automatisch um Mitternacht nach diesem Datum fortgesetzt.",
           "example": "2026-06-10T00:00:00+00:00"
+        },
+        "unpause_action": {
+          "name": "Unpause Action",
+          "description": "Gilt nur, wenn paused=false. Steuert, ob überfällige Aufgaben beim Fortsetzen neu geplant werden. Standard: Fortsetzen (keine Neuplanung).",
+          "example": "unpause_shift_independent"
         }
       }
     },
@@ -2713,6 +2738,10 @@
           "name": "Fälligkeitserinnerung Verrechnung",
           "description": "Zeitraum vor dem Fälligkeitsdatum, für den eine Erinnerungsbenachrichtigung versendet werden soll. Format: '30m', '1h', '1d 6h 30m' usw. Verwenden Sie '0', um Erinnerungen zu deaktivieren.",
           "example": "30 m"
+        },
+        "standby_claim_mode": {
+          "name": "Standby-Anspruchsmodus",
+          "description": "Steuert, wann Bereitschaftsserver diese Aufgabe übernehmen können (jederzeit, bei Überschreitung der Fälligkeit, nur manuell). Gilt nur für die Abschlusskriterien von primären und Bereitschaftsservern."
         }
       }
     },
@@ -2819,6 +2848,10 @@
           "name": "Zuweisungsaktion",
           "description": "So wird die Liste „assigned_user_names“ verarbeitet: „replace“ setzt die Liste direkt (Standard, abwärtskompatibel). „add“ fügt die aufgelisteten Benutzer bestehenden Bearbeitern hinzu. „remove“ entfernt die aufgelisteten Benutzer aus bestehenden Bearbeitern.",
           "example": "hinzufügen"
+        },
+        "standby_claim_mode": {
+          "name": "Standby-Anspruchsmodus",
+          "description": "Steuert, wann Bereitschaftsserver diese Aufgabe übernehmen können (jederzeit, bei Überschreitung der Fälligkeit, nur manuell). Gilt nur für die Abschlusskriterien von primären und Bereitschaftsservern."
         }
       }
     },
@@ -2850,7 +2883,7 @@
     },
     "set_rotation_turn": {
       "name": "Rotation einstellen",
-      "description": "Weisen Sie die aktuelle Runde manuell einem bestimmten Bearbeiter in einer Rotationsaufgabe zu. Funktioniert nur für Rotationsaufgaben (rotation_simple oder rotation_smart). Verwenden Sie entweder die ID oder den Namen zur Identifizierung.",
+      "description": "Weisen Sie die aktuelle Runde manuell einem bestimmten Bearbeiter in einer Rotationsaufgabe zu. Funktioniert nur für Rotationsaufgaben (rotation_simple, rotation_smart oder rotation_primary_standby). Verwenden Sie entweder die ID oder den Namen zur Identifizierung.",
       "fields": {
         "config_entry_id": {
           "name": "Konfigurationseintrags-ID (optional)",
@@ -2886,7 +2919,7 @@
     },
     "reset_rotation": {
       "name": "Rotation zurücksetzen",
-      "description": "Die Rotation wird auf den ersten zugewiesenen Bearbeiter zurückgesetzt. Funktioniert nur für Rotationsaufgaben (rotation_simple oder rotation_smart). Zur Identifizierung kann entweder die ID oder der Name verwendet werden.",
+      "description": "Setzt die Rotationsreihenfolge auf den ersten zugewiesenen Benutzer zurück. Funktioniert nur für Rotationsaufgaben (rotation_simple, rotation_smart oder rotation_primary_standby). Verwenden Sie entweder die ID oder den Namen zur Identifizierung.",
       "fields": {
         "config_entry_id": {
           "name": "Konfigurationseintrags-ID (optional)",
@@ -3138,7 +3171,7 @@
     },
     "reschedule_chores_after": {
       "name": "Aufgaben neu planen",
-      "description": "Verschieben Sie eine oder mehrere Aufgaben so, dass ihr nächster Fälligkeitstermin nach dem angegebenen Datum und der angegebenen Uhrzeit liegt. Wiederkehrende Aufgaben werden nach dem festgelegten Zeitpunkt zum nächsten geplanten Termin verschoben. Einmalige Aufgaben, die am oder vor dem festgelegten Zeitpunkt fällig sind, werden auf diesen Zeitpunkt verschoben, es sei denn, „Nicht wiederkehrende Aufgaben überspringen“ ist aktiviert. Gemeinsam genutzte Aufgaben werden übersprungen, es sei denn, „Gemeinsame Aufgaben neu planen“ ist aktiviert.",
+      "description": "Verschieben Sie die Fälligkeitstermine von Aufgaben so, dass sie nach dem angegebenen Datum liegen. Drei unabhängige Schalter steuern, welche Aufgabentypen verschoben werden: reschedule_independent (Standard: true), reschedule_primary_standby (Standard: true), reschedule_shared (Standard: false).",
       "fields": {
         "config_entry_id": {
           "name": "Konfigurationseintrags-ID (optional)",
@@ -3171,9 +3204,19 @@
           "name": "Benutzernamen",
           "description": "Optionale Liste von Namen der Bearbeiter, um unabhängige Aufgabenaktualisierungen einzuschränken, wenn keine Benutzer-IDs angegeben werden."
         },
+        "reschedule_independent": {
+          "name": "Unabhängige Aufgaben neu planen",
+          "description": "Unabhängige Aufgaben (mit Fälligkeitsdatum pro Bearbeiter) einbeziehen. Standardmäßig aktiviert.",
+          "example": "WAHR"
+        },
+        "reschedule_primary_standby": {
+          "name": "Primär- und Standby-Termin neu planen",
+          "description": "Primär-Standby-Aufgaben einbeziehen. Standardmäßig aktiviert.",
+          "example": "WAHR"
+        },
         "reschedule_shared": {
           "name": "Gemeinsame Aufgaben neu planen",
-          "description": "Aktivieren Sie diese Option, um gemeinsam genutzte und rotierende Aufgaben neu zu planen. Dies betrifft alle Personen, denen diese Aufgaben zugewiesen sind.",
+          "description": "Gemeinsame und rotierende (einfache/intelligente) Aufgaben einbeziehen. Dies betrifft alle Personen, denen diese Aufgaben zugewiesen sind. Standardmäßig deaktiviert.",
           "example": "FALSCH"
         },
         "skip_non_recurring": {
@@ -3268,6 +3311,7 @@
           "completed_by_other": "Ausgefüllt von Anderen",
           "waiting": "Warten (Terminfenster nicht geöffnet)",
           "not_my_turn": "Nicht meine Runde (Rotation)",
+          "standby": "Stehen zu",
           "missed": "Verpasst (gesperrt)",
           "paused": "Angehalten"
         },
@@ -3306,7 +3350,8 @@
               "shared_first": "Gemeinsam (Erste)",
               "shared_all": "Gemeinsam (Alle)",
               "rotation_simple": "Einfache Rotation",
-              "rotation_smart": "Rotation Smart"
+              "rotation_smart": "Rotation Smart",
+              "rotation_primary_standby": "Primär & Standby"
             }
           },
           "approval_reset_type": {
@@ -3516,6 +3561,8 @@
               "blocked_pending_claim": "Anhängiger Anspruch",
               "blocked_waiting_window": "Warten auf das Fälligkeitsfenster",
               "blocked_not_my_turn": "Du bist nicht dran.",
+              "blocked_standby": "Du stehst bereit für diese Aufgabe.",
+              "standby_available": "Bitte warten – Sie können diese Aufgabe übernehmen.",
               "blocked_missed_locked": "Verpasst und gesperrt",
               "blocked_paused": "Die Aufgaben für diesen Benutzer sind pausiert."
             }
@@ -3525,6 +3572,13 @@
           },
           "available_at": {
             "name": "Verfügbar bei"
+          },
+          "rotation_cycle_override": {
+            "name": "Rotationszyklus-Überschreibung",
+            "state": {
+              "true": "Offen für alle",
+              "false": "Normale Rotation"
+            }
           }
         }
       },
@@ -4220,7 +4274,8 @@
               "shared_first": "Gemeinsam (nur beim ersten Mal)",
               "shared_all": "Gemeinsam (Alle erforderlich)",
               "rotation_simple": "Einfache Rotation",
-              "rotation_smart": "Rotation Smart"
+              "rotation_smart": "Rotation Smart",
+              "rotation_primary_standby": "Primär & Standby"
             }
           },
           "approval_reset_type": {
@@ -5332,6 +5387,9 @@
     },
     "chore_not_my_turn": {
       "message": "Diese Aufgabe ist rotationsgesperrt. Sie ist derzeit einem anderen Bearbeiter zugewiesen."
+    },
+    "chore_standby": {
+      "message": "Sie stehen als Ersatz für {chore_name}bereit. Der primär Beauftragte hat die erste Verantwortung."
     },
     "chore_missed_locked": {
       "message": "Diese Aufgabe wurde als verpasst markiert und für den aktuellen Zyklus gesperrt."

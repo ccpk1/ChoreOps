@@ -148,15 +148,17 @@
               "icon": "📋 Ikona (mdi:xxx)",
               "default_points": "💰 Przyznane punkty",
               "assigned_user_ids": "👥 Przypisany do",
-              "completion_criteria": "👥 Kryteria ukończenia"
+              "completion_criteria": "👥 Kryteria ukończenia",
+              "standby_claim_mode": "🔑 Tryb zgłaszania roszczeń w trybie gotowości"
             },
             "data_description": {
               "name": "Unikalna nazwa wyświetlana w całym systemie.",
               "chore_description": "Opcjonalne instrukcje lub szczegóły dotyczące sposobu wykonania tego zadania.",
               "icon": "Ikona Material Design Icons (np. mdi:broom, mdi:dishwasher).",
               "default_points": "Punkty przyznawane po ukończeniu zadania.",
-              "assigned_user_ids": "Osoby, które mogą zobaczyć i wykonać to zadanie.",
-              "completion_criteria": "Kontroluje sposób wykonywania zadania w przypadku, gdy przypisano wielu osobom więcej niż jedno zadanie: indywidualne śledzenie, wspólne wykonywanie lub rotacja oparta na turach."
+              "assigned_user_ids": "Osoby przypisane, które mogą zobaczyć i odebrać to zadanie. W przypadku zadań rotacyjnych kolejność przydzielonych osób określa kolejność tur. W przypadku zadań głównych i rezerwowych, pierwsza osoba przypisana jest osobą główną.",
+              "completion_criteria": "Kontroluje sposób wykonywania zadania w przypadku, gdy przypisano wielu osobom więcej niż jedno zadanie: indywidualne śledzenie, wspólne wykonywanie lub rotacja oparta na turach.",
+              "standby_claim_mode": "Określa, kiedy zadania w trybie gotowości mogą zostać wykonane (w dowolnym momencie, po terminie, tylko ręcznie). Dotyczy tylko kryteriów ukończenia zadań w trybie podstawowym i gotowości."
             }
           },
           "section_schedule": {
@@ -229,7 +231,8 @@
           "chore_due_window_offset": "⏱️ Okno zgłoszeń: ile przed terminem ma się otworzyć",
           "chore_due_reminder_offset": "🔔 Przypomnienie o terminie płatności: Przesunięcie przed terminem płatności",
           "show_on_calendar": "📅 Pokazać w kalendarzu?",
-          "chore_notifications": "🔔 Wydarzenia powiadomień (opcjonalnie)"
+          "chore_notifications": "🔔 Wydarzenia powiadomień (opcjonalnie)",
+          "standby_claim_mode": "🔑 Tryb zgłaszania roszczeń w trybie gotowości"
         },
         "data_description": {
           "name": "Unikalna nazwa wyświetlana w całym systemie.",
@@ -237,7 +240,7 @@
           "icon": "Ikona Material Design (np. mdi:miotła, mdi:zmywarka).",
           "chore_labels": "Tagi do organizowania obowiązków (np. „kuchnia”, „na zewnątrz”). Pozostaw puste, jeśli nie są potrzebne.",
           "default_points": "Punkty przyznawane po ukończeniu zadania.",
-          "assigned_user_ids": "Osoby, które mogą zobaczyć i odebrać to zadanie.",
+          "assigned_user_ids": "Osoby przypisane, które mogą zobaczyć i odebrać to zadanie. W przypadku zadań rotacyjnych kolejność przydzielonych osób określa kolejność tur. W przypadku zadań głównych i rezerwowych, pierwsza osoba przypisana jest osobą główną.",
           "completion_criteria": "Określa sposób wykonywania zadania w przypadku, gdy przypisano wielu osobom więcej niż jedno zadanie: indywidualne śledzenie, wspólne wykonywanie zadania lub rotacja oparta na turach.",
           "approval_reset_type": "Kontroluje, kiedy uruchamiana jest granica cyklu zatwierdzania zadania (o północy, w dniu ukończenia, po zakończeniu lub ręcznie).",
           "approval_reset_pending_claim_action": "Dzieje się tak w przypadku roszczeń, które wciąż czekają na zatwierdzenie, gdy nastąpi reset zatwierdzenia.",
@@ -252,7 +255,8 @@
           "chore_due_window_offset": "Gdy status zadania zmieni się z „Oczekujące” na „Należy”. Format: „1d 6h 30m” lub po prostu „30” dla minut. Wprowadź „0”, aby wyłączyć. Przykład: „1d” oznacza, że zadanie wyświetla się jako „Należy” 1 dzień przed terminem.",
           "chore_due_reminder_offset": "Kiedy wysłać przypomnienie o terminie. Format: „1d 6h 30m” lub po prostu „30” w przypadku minut. Domyślnie: 30m (30 minut przed terminem). Wprowadź „0”, aby wyłączyć.",
           "show_on_calendar": "Wyświetl to zadanie w widoku kalendarza.",
-          "chore_notifications": "Kiedy wysyłać powiadomienia: w przypadku roszczenia, zatwierdzenia, odrzucenia lub w dowolnej kombinacji tych zdarzeń."
+          "chore_notifications": "Kiedy wysyłać powiadomienia: w przypadku roszczenia, zatwierdzenia, odrzucenia lub w dowolnej kombinacji tych zdarzeń.",
+          "standby_claim_mode": "Określa, kiedy urządzenia rezerwowe mogą ubiegać się o to zadanie (w dowolnym momencie, po terminie, tylko ręcznie). Dotyczy tylko kryteriów ukończenia zadań podstawowych i rezerwowych."
         }
       },
       "badge_count": {
@@ -639,15 +643,17 @@
               "icon": "📋 Ikona (mdi:xxx)",
               "default_points": "💰 Przyznane punkty",
               "assigned_user_ids": "👥 Przypisany do",
-              "completion_criteria": "👥 Kryteria ukończenia"
+              "completion_criteria": "👥 Kryteria ukończenia",
+              "standby_claim_mode": "🔑 Tryb zgłaszania roszczeń w trybie gotowości"
             },
             "data_description": {
               "name": "Unikalna nazwa wyświetlana w całym systemie.",
               "chore_description": "Opcjonalne instrukcje lub szczegóły dotyczące sposobu wykonania tego zadania.",
               "icon": "Ikona Material Design (np. mdi:miotła, mdi:zmywarka).",
               "default_points": "Punkty przyznawane po ukończeniu zadania.",
-              "assigned_user_ids": "Osoby, które mogą zobaczyć i odebrać to zadanie.",
-              "completion_criteria": "Kontroluje sposób wykonywania zadania w przypadku, gdy przypisano wielu osobom więcej niż jedno zadanie: indywidualne śledzenie, wspólne wykonywanie lub rotacja oparta na turach."
+              "assigned_user_ids": "Osoby przypisane, które mogą zobaczyć i odebrać to zadanie. W przypadku zadań rotacyjnych kolejność przydzielonych osób określa kolejność tur. W przypadku zadań głównych i rezerwowych, pierwsza osoba przypisana jest osobą główną.",
+              "completion_criteria": "Kontroluje sposób wykonywania zadania w przypadku, gdy przypisano wielu osobom więcej niż jedno zadanie: indywidualne śledzenie, wspólne wykonywanie lub rotacja oparta na turach.",
+              "standby_claim_mode": "Określa, kiedy zadania w trybie gotowości mogą zostać wykonane (w dowolnym momencie, po terminie, tylko ręcznie). Dotyczy tylko kryteriów ukończenia zadań w trybie podstawowym i gotowości."
             }
           },
           "section_schedule": {
@@ -721,7 +727,8 @@
           "chore_due_window_offset": "⏱️ Termin płatności: Przesunięcie przed terminem płatności",
           "chore_due_reminder_offset": "🔔 Przypomnienie o terminie płatności: Przesunięcie przed terminem płatności",
           "show_on_calendar": "📅 Pokazać w kalendarzu?",
-          "chore_notifications": "🔔 Wydarzenia powiadomień (opcjonalnie)"
+          "chore_notifications": "🔔 Wydarzenia powiadomień (opcjonalnie)",
+          "standby_claim_mode": "🔑 Tryb zgłaszania roszczeń w trybie gotowości"
         },
         "data_description": {
           "name": "Unikalna nazwa wyświetlana w całym systemie.",
@@ -729,7 +736,7 @@
           "icon": "Ikona Material Design (np. mdi:miotła, mdi:zmywarka).",
           "chore_labels": "Tagi do organizowania obowiązków (np. „kuchnia”, „na zewnątrz”). Pozostaw puste, jeśli nie są potrzebne.",
           "default_points": "Punkty przyznawane po ukończeniu zadania.",
-          "assigned_user_ids": "Osoby, które mogą zobaczyć i odebrać to zadanie.",
+          "assigned_user_ids": "Osoby przypisane, które mogą zobaczyć i odebrać to zadanie. W przypadku zadań rotacyjnych kolejność przydzielonych osób określa kolejność tur. W przypadku zadań głównych i rezerwowych, pierwsza osoba przypisana jest osobą główną.",
           "completion_criteria": "Kontroluje sposób wykonywania zadania w przypadku, gdy przypisano wielu osobom więcej niż jedno zadanie: indywidualne śledzenie, wspólne wykonywanie zadania lub rotacja oparta na turach.",
           "approval_reset_type": "Kontroluje, kiedy uruchamiana jest granica cyklu zatwierdzania zadania (o północy, w dniu ukończenia, po zakończeniu lub ręcznie).",
           "approval_reset_pending_claim_action": "Kontroluje, co dzieje się z niezatwierdzonymi roszczeniami po uruchomieniu granicy resetowania zatwierdzenia.",
@@ -745,7 +752,8 @@
           "chore_due_window_offset": "Gdy status zadania zmieni się z „Oczekujące” na „Należy”. Format: „1d 6h 30m” lub po prostu „30” dla minut. Wprowadź „0”, aby wyłączyć. Przykład: „1d” oznacza, że zadanie wyświetla się jako „Należy” 1 dzień przed terminem.",
           "chore_due_reminder_offset": "Kiedy wysłać przypomnienie o terminie. Format: „1d 6h 30m” lub po prostu „30” w przypadku minut. Domyślnie: 30m (30 minut przed terminem). Wprowadź „0”, aby wyłączyć.",
           "show_on_calendar": "Wyświetl to zadanie w widoku kalendarza.",
-          "chore_notifications": "Kiedy wysyłać powiadomienia: w przypadku roszczenia, zatwierdzenia, odrzucenia lub w dowolnej kombinacji tych zdarzeń."
+          "chore_notifications": "Kiedy wysyłać powiadomienia: w przypadku roszczenia, zatwierdzenia, odrzucenia lub w dowolnej kombinacji tych zdarzeń.",
+          "standby_claim_mode": "Określa, kiedy zadania w trybie gotowości mogą zostać wykonane (w dowolnym momencie, po terminie, tylko ręcznie). Dotyczy tylko kryteriów ukończenia zadań w trybie podstawowym i gotowości."
         }
       },
       "add_badge": {
@@ -1079,15 +1087,17 @@
               "icon": "📋 Ikona (mdi:xxx)",
               "default_points": "💰 Przyznane punkty",
               "assigned_user_ids": "👥 Przypisany do",
-              "completion_criteria": "👥 Kryteria ukończenia"
+              "completion_criteria": "👥 Kryteria ukończenia",
+              "standby_claim_mode": "🔑 Tryb zgłaszania roszczeń w trybie gotowości"
             },
             "data_description": {
               "name": "Unikalna nazwa wyświetlana w całym systemie.",
               "chore_description": "Opcjonalne instrukcje lub szczegóły dotyczące sposobu wykonania tego zadania.",
               "icon": "Ikona Material Design (np. mdi:miotła, mdi:zmywarka).",
               "default_points": "Punkty przyznawane po ukończeniu zadania.",
-              "assigned_user_ids": "Osoby, które mogą zobaczyć i odebrać to zadanie.",
-              "completion_criteria": "Kontroluje sposób wykonywania zadania w przypadku, gdy przypisano wielu osobom więcej niż jedno zadanie: indywidualne śledzenie, wspólne wykonywanie lub rotacja oparta na turach."
+              "assigned_user_ids": "Osoby przypisane, które mogą zobaczyć i odebrać to zadanie. W przypadku zadań rotacyjnych kolejność przydzielonych osób określa kolejność tur. W przypadku zadań głównych i rezerwowych, pierwsza osoba przypisana jest osobą główną.",
+              "completion_criteria": "Kontroluje sposób wykonywania zadania w przypadku, gdy przypisano wielu osobom więcej niż jedno zadanie: indywidualne śledzenie, wspólne wykonywanie lub rotacja oparta na turach.",
+              "standby_claim_mode": "Określa, kiedy zadania w trybie gotowości mogą zostać wykonane (w dowolnym momencie, po terminie, tylko ręcznie). Dotyczy tylko kryteriów ukończenia zadań w trybie podstawowym i gotowości."
             }
           },
           "section_schedule": {
@@ -1162,7 +1172,8 @@
           "chore_due_window_offset": "⏱️ Termin płatności: Przesunięcie przed terminem płatności",
           "chore_due_reminder_offset": "🔔 Przypomnienie o terminie płatności: Przesunięcie przed terminem płatności",
           "show_on_calendar": "📅 Pokazać w kalendarzu?",
-          "chore_notifications": "🔔 Wydarzenia powiadomień (opcjonalnie)"
+          "chore_notifications": "🔔 Wydarzenia powiadomień (opcjonalnie)",
+          "standby_claim_mode": "🔑 Tryb zgłaszania roszczeń w trybie gotowości"
         },
         "data_description": {
           "name": "Unikalna nazwa wyświetlana w całym systemie.",
@@ -1170,7 +1181,7 @@
           "icon": "Ikona Material Design (np. mdi:miotła, mdi:zmywarka).",
           "chore_labels": "Tagi do organizowania obowiązków (np. „kuchnia”, „na zewnątrz”). Pozostaw puste, jeśli nie są potrzebne.",
           "default_points": "Punkty przyznawane po ukończeniu zadania.",
-          "assigned_user_ids": "Osoby, które mogą zobaczyć i odebrać to zadanie.",
+          "assigned_user_ids": "Osoby przypisane, które mogą zobaczyć i odebrać to zadanie. W przypadku zadań rotacyjnych kolejność przydzielonych osób określa kolejność tur. W przypadku zadań głównych i rezerwowych, pierwsza osoba przypisana jest osobą główną.",
           "completion_criteria": "Kontroluje sposób wykonywania zadania w przypadku, gdy przypisano wielu osobom więcej niż jedno zadanie: indywidualne śledzenie, wspólne wykonywanie zadania lub rotacja oparta na turach.",
           "approval_reset_type": "Kontroluje, kiedy uruchamiana jest granica cyklu zatwierdzania zadania (o północy, w dniu ukończenia, po zakończeniu lub ręcznie).",
           "approval_reset_pending_claim_action": "Kontroluje, co dzieje się z niezatwierdzonymi roszczeniami po uruchomieniu granicy resetowania zatwierdzenia.",
@@ -1186,7 +1197,8 @@
           "chore_due_window_offset": "Gdy status zadania zmieni się z „Oczekujące” na „Należy”. Format: „1d 6h 30m” lub po prostu „30” dla minut. Wprowadź „0”, aby wyłączyć. Przykład: „1d” oznacza, że zadanie wyświetla się jako „Należy” 1 dzień przed terminem.",
           "chore_due_reminder_offset": "Kiedy wysłać przypomnienie o terminie. Format: „1d 6h 30m” lub po prostu „30” w przypadku minut. Domyślnie: 30m (30 minut przed terminem). Wprowadź „0”, aby wyłączyć.",
           "show_on_calendar": "Wyświetl to zadanie w widoku kalendarza.",
-          "chore_notifications": "Kiedy wysyłać powiadomienia: w przypadku roszczenia, zatwierdzenia, odrzucenia lub w dowolnej kombinacji tych zdarzeń."
+          "chore_notifications": "Kiedy wysyłać powiadomienia: w przypadku roszczenia, zatwierdzenia, odrzucenia lub w dowolnej kombinacji tych zdarzeń.",
+          "standby_claim_mode": "Określa, kiedy zadania w trybie gotowości mogą zostać wykonane (w dowolnym momencie, po terminie, tylko ręcznie). Dotyczy tylko kryteriów ukończenia zadań w trybie podstawowym i gotowości."
         }
       },
       "edit_chore_per_user_dates": {
@@ -2056,7 +2068,15 @@
         "independent": "Samodzielny (każdy z pracowników wypełnia samodzielnie)",
         "shared_first": "Udostępnione jako pierwsze (liczy się pierwsze ukończenie)",
         "rotation_simple": "Rotacja prosta (tylko dla trzymającego turę, ścisła kolejność)",
-        "rotation_smart": "Rotacja inteligentna (tylko dla posiadacza tury, ważona uczciwością)"
+        "rotation_smart": "Rotacja inteligentna (tylko dla posiadacza tury, ważona uczciwością)",
+        "rotation_primary_standby": "Podstawowy i rezerwowy (domyślny tryb podstawowy, tryb rezerwowy, gdy jest dostępny)"
+      }
+    },
+    "standby_claim_mode": {
+      "options": {
+        "anytime": "W dowolnym momencie (możliwość natychmiastowego zgłoszenia gotowości)",
+        "on_overdue": "W przypadku przeterminowania (można ubiegać się o zwrot w przypadku przeterminowania)",
+        "manual_only": "Tylko ręcznie (administrator musi przypisać turę)"
       }
     },
     "approval_reset_type": {
@@ -2263,7 +2283,7 @@
     },
     "pause_user_chores": {
       "name": "Wstrzymaj obowiązki użytkownika",
-      "description": "Wstrzymaj lub wznów przetwarzanie zadań dla użytkownika.",
+      "description": "Wstrzymaj lub wznów przetwarzanie zadań dla użytkownika. Podczas wznawiania, unpause_action kontroluje, czy zaległe zadania są ponownie planowane, aby zapobiec natychmiastowym przejściom.",
       "fields": {
         "config_entry_id": {
           "name": "Identyfikator wpisu konfiguracji (opcjonalnie)",
@@ -2289,6 +2309,11 @@
           "name": "Wstrzymano do",
           "description": "Opcjonalna data powrotu. Jeśli ustawiono, obowiązki domowe zostaną automatycznie wznowione o północy po tej dacie.",
           "example": "2026-06-10T00:00:00+00:00"
+        },
+        "unpause_action": {
+          "name": "Wstrzymaj akcję",
+          "description": "Dotyczy tylko sytuacji, gdy paused=false. Kontroluje, czy zaległe zadania są ponownie planowane podczas wznawiania. Domyślnie: wznawianie (brak ponownego planowania).",
+          "example": "unpause_shift_independent"
         }
       }
     },
@@ -2713,6 +2738,10 @@
           "name": "Przesunięcie terminu przypomnienia",
           "description": "Czas do daty wymagalności wysłania przypomnienia. Format: „30 min”, „1 godz.”, „1d 6 godz. 30 min” itd. Użyj „0”, aby wyłączyć przypomnienia.",
           "example": "30m"
+        },
+        "standby_claim_mode": {
+          "name": "Tryb zgłaszania roszczeń w trybie gotowości",
+          "description": "Określa, kiedy urządzenia rezerwowe mogą ubiegać się o to zadanie (w dowolnym momencie, po terminie, tylko ręcznie). Dotyczy tylko kryteriów ukończenia zadań podstawowych i rezerwowych."
         }
       }
     },
@@ -2819,6 +2848,10 @@
           "name": "Akcja zadania",
           "description": "Jak obsługiwać listę assigned_user_names. Polecenie „replace” ustawia listę bezpośrednio (domyślne, zgodne z poprzednimi wersjami). Polecenie „add” dołącza użytkowników wymienionych do istniejących osób przypisanych. Polecenie „remove” usuwa użytkowników wymienionych z istniejących osób przypisanych.",
           "example": "dodać"
+        },
+        "standby_claim_mode": {
+          "name": "Tryb zgłaszania roszczeń w trybie gotowości",
+          "description": "Określa, kiedy urządzenia rezerwowe mogą ubiegać się o to zadanie (w dowolnym momencie, po terminie, tylko ręcznie). Dotyczy tylko kryteriów ukończenia zadań podstawowych i rezerwowych."
         }
       }
     },
@@ -2850,7 +2883,7 @@
     },
     "set_rotation_turn": {
       "name": "Ustaw obrót Obrót",
-      "description": "Ręcznie przypisz bieżącą turę do konkretnej osoby w zadaniu rotacyjnym. Działa tylko w przypadku zadań rotacyjnych (rotation_simple lub rotation_smart). Użyj identyfikatora lub nazwy do identyfikacji.",
+      "description": "Ręcznie przypisz bieżącą turę do konkretnej osoby w zadaniu rotacyjnym. Działa tylko w przypadku zadań rotacyjnych (rotation_simple, rotation_smart lub rotation_primary_standby). Użyj identyfikatora lub nazwy do identyfikacji.",
       "fields": {
         "config_entry_id": {
           "name": "Identyfikator wpisu konfiguracji (opcjonalnie)",
@@ -2886,7 +2919,7 @@
     },
     "reset_rotation": {
       "name": "Zresetuj obrót",
-      "description": "Resetuj obrót do pierwszego przypisanego zadania. Działa tylko dla zadań rotacyjnych (rotation_simple lub rotation_smart). Użyj identyfikatora lub nazwy do identyfikacji.",
+      "description": "Resetuj obrót do pierwszego przypisanego użytkownika. Działa tylko dla zadań rotacyjnych (rotation_simple, rotation_smart lub rotation_primary_standby). Użyj identyfikatora lub nazwy do identyfikacji.",
       "fields": {
         "config_entry_id": {
           "name": "Identyfikator wpisu konfiguracji (opcjonalnie)",
@@ -3138,7 +3171,7 @@
     },
     "reschedule_chores_after": {
       "name": "Przeplanuj obowiązki po",
-      "description": "Przeplanuj jedno lub więcej zadań tak, aby ich następny termin przypadał po określonej dacie i godzinie. Zadania cykliczne przechodzą do następnego zaplanowanego wystąpienia po granicy. Zadania niecykliczne, które mają się odbyć w dniu lub przed granicą, przechodzą do granicy, chyba że włączono opcję skip_non_recurring. Zadania współdzielone są pomijane, chyba że włączono opcję reschedule_shared.",
+      "description": "Przeplanuj terminy wykonania zadań tak, aby wypadały po określonej dacie. Trzy niezależne przełączniki kontrolują, które typy zadań są przeplanowywane: reschedule_independent (domyślnie true), reschedule_primary_standby (domyślnie true), reschedule_shared (domyślnie false).",
       "fields": {
         "config_entry_id": {
           "name": "Identyfikator wpisu konfiguracji (opcjonalnie)",
@@ -3171,9 +3204,19 @@
           "name": "Nazwy użytkowników",
           "description": "Opcjonalna lista nazw osób przypisanych w celu ograniczenia niezależnych aktualizacji zadań, gdy nie podano identyfikatorów użytkownika."
         },
+        "reschedule_independent": {
+          "name": "Przeplanuj niezależne obowiązki",
+          "description": "Uwzględnij niezależne zadania (z terminem wykonania dla każdego przypisanego pracownika). Domyślnie „prawda”.",
+          "example": "pRAWDA"
+        },
+        "reschedule_primary_standby": {
+          "name": "Przeplanuj główny i rezerwowy",
+          "description": "Uwzględnij zadania podstawowe i zapasowe. Domyślnie „prawda”.",
+          "example": "pRAWDA"
+        },
         "reschedule_shared": {
           "name": "Przeplanuj wspólne obowiązki",
-          "description": "Włącz tę opcję, aby umożliwić zmianę harmonogramu zadań współdzielonych i rotacyjnych. Dotyczy to wszystkich osób przypisanych do tych zadań.",
+          "description": "Uwzględnij zadania współdzielone i rotacyjne (proste/inteligentne). Dotyczy to wszystkich osób przypisanych do tych zadań. Domyślnie fałsz.",
           "example": "fałsz"
         },
         "skip_non_recurring": {
@@ -3268,6 +3311,7 @@
           "completed_by_other": "Ukończone przez Innego",
           "waiting": "Oczekiwanie (okno płatności nie jest otwarte)",
           "not_my_turn": "Nie moja kolej (rotacja)",
+          "standby": "Gotowość",
           "missed": "Pominięto (zablokowano)",
           "paused": "Wstrzymano"
         },
@@ -3306,7 +3350,8 @@
               "shared_first": "Udostępnione (pierwsze)",
               "shared_all": "Współdzielone (wszystkie)",
               "rotation_simple": "Rotacja prosta",
-              "rotation_smart": "Inteligentny obrót"
+              "rotation_smart": "Inteligentny obrót",
+              "rotation_primary_standby": "Podstawowy i rezerwowy"
             }
           },
           "approval_reset_type": {
@@ -3516,6 +3561,8 @@
               "blocked_pending_claim": "Oczekujące roszczenie",
               "blocked_waiting_window": "Czekam na odpowiedni termin",
               "blocked_not_my_turn": "Nie twoja kolej",
+              "blocked_standby": "Jesteś gotowy na to zadanie",
+              "standby_available": "Gotowość — możesz zażądać tego zadania",
               "blocked_missed_locked": "Pominięte i zablokowane",
               "blocked_paused": "Obowiązki domowe tego użytkownika są wstrzymane"
             }
@@ -3525,6 +3572,13 @@
           },
           "available_at": {
             "name": "Dostępne w"
+          },
+          "rotation_cycle_override": {
+            "name": "Nadpisanie cyklu rotacji",
+            "state": {
+              "true": "Otwarte dla wszystkich",
+              "false": "Obrót normalny"
+            }
           }
         }
       },
@@ -4220,7 +4274,8 @@
               "shared_first": "Współdzielone (tylko pierwsze)",
               "shared_all": "Współdzielone (wszystkie wymagane)",
               "rotation_simple": "Rotacja prosta",
-              "rotation_smart": "Inteligentny obrót"
+              "rotation_smart": "Inteligentny obrót",
+              "rotation_primary_standby": "Podstawowy i rezerwowy"
             }
           },
           "approval_reset_type": {
@@ -5332,6 +5387,9 @@
     },
     "chore_not_my_turn": {
       "message": "To zadanie jest zablokowane rotacyjnie. Aktualnie kolej na inną osobę."
+    },
+    "chore_standby": {
+      "message": "Jesteś rezerwowym dla {chore_name}. Główny cesjonariusz ma pierwszą odpowiedzialność."
     },
     "chore_missed_locked": {
       "message": "To zadanie jest oznaczone jako pominięte i zablokowane w bieżącym cyklu."

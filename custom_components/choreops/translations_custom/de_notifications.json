@@ -138,5 +138,9 @@
     "disapprove": "↩️ Ablehnen",
     "remind_30": "⏰ Erinnerung in 30 Minuten",
     "skip": "⏭️ Überspringen"
+  },
+  "chore_standby_needed": {
+    "title": "🫲 Bereitschaftsdienst angefordert",
+    "message": "{primary_name}s Aufgabe {chore_name} ist überfällig! Hol sie dir jetzt und erhalte {points} {points_label}"
   }
 }

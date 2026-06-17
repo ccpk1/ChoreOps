@@ -148,15 +148,17 @@
               "icon": "Ikona 📋 (mdi:xxx)",
               "default_points": "💰 Udelené body",
               "assigned_user_ids": "👥 Pridelené",
-              "completion_criteria": "👥 Kritériá dokončenia"
+              "completion_criteria": "👥 Kritériá dokončenia",
+              "standby_claim_mode": "🔑 Pohotovostný režim nárokovania"
             },
             "data_description": {
               "name": "Jedinečný názov zobrazený v celom systéme.",
               "chore_description": "Voliteľné pokyny alebo podrobnosti o tom, ako túto úlohu dokončiť.",
               "icon": "Ikona materiálového dizajnu (napr. mdi:metla, mdi:umývačka riadu).",
               "default_points": "Body získané po dokončení.",
-              "assigned_user_ids": "Priradené osoby, ktoré môžu vidieť a uplatniť si túto úlohu.",
-              "completion_criteria": "Ovláda spôsob dokončenia úlohy, keď je priradených viacero osôb: individuálne sledovanie, zdieľané dokončenie alebo rotácia na základe ťahov."
+              "assigned_user_ids": "Priradené osoby, ktoré môžu vidieť a nárokovať si túto úlohu. V prípade rotačných úloh určuje poradie priradených osôb poradie striedania. V prípade primárnych a záložných úloh je prvá priradená osoba primárnou.",
+              "completion_criteria": "Ovláda spôsob dokončenia úlohy, keď je priradených viacero osôb: individuálne sledovanie, zdieľané dokončenie alebo rotácia na základe ťahov.",
+              "standby_claim_mode": "Určuje, kedy si záložné úlohy môžu nárokovať túto úlohu (kedykoľvek, pri oneskorení, iba manuálne). Vzťahuje sa iba na kritériá dokončenia primárnych a záložných úloh."
             }
           },
           "section_schedule": {
@@ -229,7 +231,8 @@
           "chore_due_window_offset": "⏱️ Termín: Kompenzácia pred dátumom splatnosti",
           "chore_due_reminder_offset": "🔔 Pripomienka: Započítanie pred dátumom splatnosti",
           "show_on_calendar": "📅 Zobraziť v kalendári?",
-          "chore_notifications": "🔔 Udalosti oznámení (voliteľné)"
+          "chore_notifications": "🔔 Udalosti oznámení (voliteľné)",
+          "standby_claim_mode": "🔑 Pohotovostný režim nárokovania"
         },
         "data_description": {
           "name": "Jedinečný názov zobrazený v celom systéme.",
@@ -237,7 +240,7 @@
           "icon": "Ikona materiálového dizajnu (napr. mdi:metla, mdi:umývačka riadu).",
           "chore_labels": "Štítky na organizovanie domácich prác (napr. „kuchyňa“, „vonkajšie“). Ak nie sú potrebné, nechajte pole prázdne.",
           "default_points": "Body získané po dokončení.",
-          "assigned_user_ids": "Priradené osoby, ktoré môžu vidieť a uplatniť si túto úlohu.",
+          "assigned_user_ids": "Priradené osoby, ktoré môžu vidieť a nárokovať si túto úlohu. V prípade rotačných úloh určuje poradie priradených osôb poradie striedania. V prípade primárnych a záložných úloh je prvá priradená osoba primárnou.",
           "completion_criteria": "Ovláda spôsob dokončenia úlohy, keď je priradených viacero osôb: individuálne sledovanie, zdieľané dokončenie alebo rotácia na základe ťahov.",
           "approval_reset_type": "Ovláda, kedy sa spustí hranica cyklu schvaľovania úlohy (polnoc, dátum splatnosti, po dokončení alebo manuálne spustenie).",
           "approval_reset_pending_claim_action": "Toto sa stane s nárokmi, ktoré stále čakajú na schválenie, keď dôjde k resetovaniu schválenia.",
@@ -252,7 +255,8 @@
           "chore_due_window_offset": "Keď sa stav úlohy zmení z Čaká na dokončenie na Termín. Formát: „1d 6h 30m“ alebo len „30“ pre minúty. Zadajte „0“ pre vypnutie. Príklad: „1d“ znamená, že úloha sa zobrazí ako „Termín“ 1 deň pred termínom.",
           "chore_due_reminder_offset": "Kedy odoslať upozornenie na pripomenutie termínu. Formát: „1d 6h 30m“ alebo len „30“ pre minúty. Predvolené: 30m (30 minút pred termínom). Zadajte „0“ pre vypnutie.",
           "show_on_calendar": "Zobraziť túto úlohu v zobrazení kalendára.",
-          "chore_notifications": "Kedy odosielať oznámenia: Pri reklamácii, schválení, zamietnutí alebo akejkoľvek kombinácii."
+          "chore_notifications": "Kedy odosielať oznámenia: Pri reklamácii, schválení, zamietnutí alebo akejkoľvek kombinácii.",
+          "standby_claim_mode": "Určuje, kedy si záložné úlohy môžu nárokovať túto úlohu (kedykoľvek, pri oneskorení, iba manuálne). Vzťahuje sa iba na kritériá dokončenia primárnych a záložných úloh."
         }
       },
       "badge_count": {
@@ -639,15 +643,17 @@
               "icon": "Ikona 📋 (mdi:xxx)",
               "default_points": "💰 Udelené body",
               "assigned_user_ids": "👥 Pridelené",
-              "completion_criteria": "👥 Kritériá dokončenia"
+              "completion_criteria": "👥 Kritériá dokončenia",
+              "standby_claim_mode": "🔑 Pohotovostný režim nárokovania"
             },
             "data_description": {
               "name": "Jedinečný názov zobrazený v celom systéme.",
               "chore_description": "Voliteľné pokyny alebo podrobnosti o tom, ako túto úlohu dokončiť.",
               "icon": "Ikona materiálového dizajnu (napr. mdi:metla, mdi:umývačka riadu).",
               "default_points": "Body získané po dokončení.",
-              "assigned_user_ids": "Priradené osoby, ktoré môžu vidieť a uplatniť si túto úlohu.",
-              "completion_criteria": "Ovláda spôsob dokončenia úlohy, keď je priradených viacero osôb: individuálne sledovanie, zdieľané dokončenie alebo rotácia na základe ťahov."
+              "assigned_user_ids": "Priradené osoby, ktoré môžu vidieť a nárokovať si túto úlohu. V prípade rotačných úloh určuje poradie priradených osôb poradie striedania. V prípade primárnych a záložných úloh je prvá priradená osoba primárnou.",
+              "completion_criteria": "Ovláda spôsob dokončenia úlohy, keď je priradených viacero osôb: individuálne sledovanie, zdieľané dokončenie alebo rotácia na základe ťahov.",
+              "standby_claim_mode": "Určuje, kedy si záložné úlohy môžu nárokovať túto úlohu (kedykoľvek, pri oneskorení, iba manuálne). Vzťahuje sa iba na kritériá dokončenia primárnych a záložných úloh."
             }
           },
           "section_schedule": {
@@ -721,7 +727,8 @@
           "chore_due_window_offset": "⏱️ Termín: Kompenzácia pred dátumom splatnosti",
           "chore_due_reminder_offset": "🔔 Pripomienka: Započítanie pred dátumom splatnosti",
           "show_on_calendar": "📅 Zobraziť v kalendári?",
-          "chore_notifications": "🔔 Udalosti oznámení (voliteľné)"
+          "chore_notifications": "🔔 Udalosti oznámení (voliteľné)",
+          "standby_claim_mode": "🔑 Pohotovostný režim nárokovania"
         },
         "data_description": {
           "name": "Jedinečný názov zobrazený v celom systéme.",
@@ -729,7 +736,7 @@
           "icon": "Ikona materiálového dizajnu (napr. mdi:metla, mdi:umývačka riadu).",
           "chore_labels": "Štítky na organizovanie domácich prác (napr. „kuchyňa“, „vonkajšie“). Ak nie sú potrebné, nechajte pole prázdne.",
           "default_points": "Body získané po dokončení.",
-          "assigned_user_ids": "Priradené osoby, ktoré môžu vidieť a uplatniť si túto úlohu.",
+          "assigned_user_ids": "Priradené osoby, ktoré môžu vidieť a nárokovať si túto úlohu. V prípade rotačných úloh určuje poradie priradených osôb poradie striedania. V prípade primárnych a záložných úloh je prvá priradená osoba primárnou.",
           "completion_criteria": "Ovláda spôsob dokončenia úlohy, keď je priradených viacero osôb: individuálne sledovanie, zdieľané dokončenie alebo rotácia na základe ťahov.",
           "approval_reset_type": "Ovláda, kedy sa spustí hranica cyklu schvaľovania úlohy (polnoc, dátum splatnosti, po dokončení alebo manuálne spustenie).",
           "approval_reset_pending_claim_action": "Riadi, čo sa stane s neschválenými nárokmi, keď sa spustí hranica resetovania schválenia.",
@@ -745,7 +752,8 @@
           "chore_due_window_offset": "Keď sa stav úlohy zmení z Čaká na dokončenie na Termín. Formát: „1d 6h 30m“ alebo len „30“ pre minúty. Zadajte „0“ pre vypnutie. Príklad: „1d“ znamená, že úloha sa zobrazí ako „Termín“ 1 deň pred termínom.",
           "chore_due_reminder_offset": "Kedy odoslať upozornenie na pripomenutie termínu. Formát: „1d 6h 30m“ alebo len „30“ pre minúty. Predvolené: 30m (30 minút pred termínom). Zadajte „0“ pre vypnutie.",
           "show_on_calendar": "Zobraziť túto úlohu v zobrazení kalendára.",
-          "chore_notifications": "Kedy odosielať oznámenia: Pri reklamácii, schválení, zamietnutí alebo akejkoľvek kombinácii."
+          "chore_notifications": "Kedy odosielať oznámenia: Pri reklamácii, schválení, zamietnutí alebo akejkoľvek kombinácii.",
+          "standby_claim_mode": "Určuje, kedy si záložné úlohy môžu nárokovať túto úlohu (kedykoľvek, pri oneskorení, iba manuálne). Vzťahuje sa iba na kritériá dokončenia primárnych a záložných úloh."
         }
       },
       "add_badge": {
@@ -1079,15 +1087,17 @@
               "icon": "Ikona 📋 (mdi:xxx)",
               "default_points": "💰 Udelené body",
               "assigned_user_ids": "👥 Pridelené",
-              "completion_criteria": "👥 Kritériá dokončenia"
+              "completion_criteria": "👥 Kritériá dokončenia",
+              "standby_claim_mode": "🔑 Pohotovostný režim nárokovania"
             },
             "data_description": {
               "name": "Jedinečný názov zobrazený v celom systéme.",
               "chore_description": "Voliteľné pokyny alebo podrobnosti o tom, ako túto úlohu dokončiť.",
               "icon": "Ikona materiálového dizajnu (napr. mdi:metla, mdi:umývačka riadu).",
               "default_points": "Body získané po dokončení.",
-              "assigned_user_ids": "Priradené osoby, ktoré môžu vidieť a uplatniť si túto úlohu.",
-              "completion_criteria": "Ovláda spôsob dokončenia úlohy, keď je priradených viacero osôb: individuálne sledovanie, zdieľané dokončenie alebo rotácia na základe ťahov."
+              "assigned_user_ids": "Priradené osoby, ktoré môžu vidieť a nárokovať si túto úlohu. V prípade rotačných úloh určuje poradie priradených osôb poradie striedania. V prípade primárnych a záložných úloh je prvá priradená osoba primárnou.",
+              "completion_criteria": "Ovláda spôsob dokončenia úlohy, keď je priradených viacero osôb: individuálne sledovanie, zdieľané dokončenie alebo rotácia na základe ťahov.",
+              "standby_claim_mode": "Určuje, kedy si záložné úlohy môžu nárokovať túto úlohu (kedykoľvek, pri oneskorení, iba manuálne). Vzťahuje sa iba na kritériá dokončenia primárnych a záložných úloh."
             }
           },
           "section_schedule": {
@@ -1162,7 +1172,8 @@
           "chore_due_window_offset": "⏱️ Termín: Kompenzácia pred dátumom splatnosti",
           "chore_due_reminder_offset": "🔔 Pripomienka: Započítanie pred dátumom splatnosti",
           "show_on_calendar": "📅 Zobraziť v kalendári?",
-          "chore_notifications": "🔔 Udalosti oznámení (voliteľné)"
+          "chore_notifications": "🔔 Udalosti oznámení (voliteľné)",
+          "standby_claim_mode": "🔑 Pohotovostný režim nárokovania"
         },
         "data_description": {
           "name": "Jedinečný názov zobrazený v celom systéme.",
@@ -1170,7 +1181,7 @@
           "icon": "Ikona materiálového dizajnu (napr. mdi:metla, mdi:umývačka riadu).",
           "chore_labels": "Štítky na organizovanie domácich prác (napr. „kuchyňa“, „vonkajšie“). Ak nie sú potrebné, nechajte pole prázdne.",
           "default_points": "Body získané po dokončení.",
-          "assigned_user_ids": "Priradené osoby, ktoré môžu vidieť a uplatniť si túto úlohu.",
+          "assigned_user_ids": "Priradené osoby, ktoré môžu vidieť a nárokovať si túto úlohu. V prípade rotačných úloh určuje poradie priradených osôb poradie striedania. V prípade primárnych a záložných úloh je prvá priradená osoba primárnou.",
           "completion_criteria": "Ovláda spôsob dokončenia úlohy, keď je priradených viacero osôb: individuálne sledovanie, zdieľané dokončenie alebo rotácia na základe ťahov.",
           "approval_reset_type": "Ovláda, kedy sa spustí hranica cyklu schvaľovania úlohy (polnoc, dátum splatnosti, po dokončení alebo manuálne spustenie).",
           "approval_reset_pending_claim_action": "Riadi, čo sa stane s neschválenými nárokmi, keď sa spustí hranica resetovania schválenia.",
@@ -1186,7 +1197,8 @@
           "chore_due_window_offset": "Keď sa stav úlohy zmení z Čaká na dokončenie na Termín. Formát: „1d 6h 30m“ alebo len „30“ pre minúty. Zadajte „0“ pre vypnutie. Príklad: „1d“ znamená, že úloha sa zobrazí ako „Termín“ 1 deň pred termínom.",
           "chore_due_reminder_offset": "Kedy odoslať upozornenie na pripomenutie termínu. Formát: „1d 6h 30m“ alebo len „30“ pre minúty. Predvolené: 30m (30 minút pred termínom). Zadajte „0“ pre vypnutie.",
           "show_on_calendar": "Zobraziť túto úlohu v zobrazení kalendára.",
-          "chore_notifications": "Kedy odosielať oznámenia: Pri reklamácii, schválení, zamietnutí alebo akejkoľvek kombinácii."
+          "chore_notifications": "Kedy odosielať oznámenia: Pri reklamácii, schválení, zamietnutí alebo akejkoľvek kombinácii.",
+          "standby_claim_mode": "Určuje, kedy si záložné úlohy môžu nárokovať túto úlohu (kedykoľvek, pri oneskorení, iba manuálne). Vzťahuje sa iba na kritériá dokončenia primárnych a záložných úloh."
         }
       },
       "edit_chore_per_user_dates": {
@@ -2056,7 +2068,15 @@
         "independent": "Nezávislý (každý priradený pracovník dokončí samostatne)",
         "shared_first": "Zdieľané ako prvé (počíta sa prvé dokončenie)",
         "rotation_simple": "Jednoduchá rotácia (iba držiteľ otočného prvku, prísne poradie)",
-        "rotation_smart": "Inteligentná rotácia (iba držitelia ťahov, vážené podľa spravodlivosti)"
+        "rotation_smart": "Inteligentná rotácia (iba držitelia ťahov, vážené podľa spravodlivosti)",
+        "rotation_primary_standby": "Primárny a záložný (primárny predvolený obrat, záložný, ak je oprávnený)"
+      }
+    },
+    "standby_claim_mode": {
+      "options": {
+        "anytime": "Kedykoľvek (pohotovostný režim si môže uplatniť nárok okamžite)",
+        "on_overdue": "Po termíne (pohotovostný režim si môže uplatniť nárok po termíne)",
+        "manual_only": "Iba manuálne (rad musí priradiť administrátor)"
       }
     },
     "approval_reset_type": {
@@ -2263,7 +2283,7 @@
     },
     "pause_user_chores": {
       "name": "Pozastaviť domáce úlohy používateľa",
-      "description": "Pozastaviť alebo obnoviť spracovanie úloh pre používateľa.",
+      "description": "Pozastavenie alebo obnovenie spracovania úloh pre používateľa. Pri obnovení pozastavenia unpause_action riadi, či sa úlohy po termíne preplánujú, aby sa predišlo okamžitým prechodom po termíne.",
       "fields": {
         "config_entry_id": {
           "name": "ID konfiguračnej položky (voliteľné)",
@@ -2289,6 +2309,11 @@
           "name": "Pozastavené do",
           "description": "Voliteľný dátum návratu. Ak je nastavený, domáce práce sa automaticky obnovia o polnoci po tomto dátume.",
           "example": "2026-06-10T00:00:00+00:00"
+        },
+        "unpause_action": {
+          "name": "Zrušiť pozastavenie akcie",
+          "description": "Platí iba vtedy, keď je paused=false. Určuje, či sa oneskorené úlohy počas zrušenia pozastavenia preplánujú. Predvolené: zrušiť pozastavenie (bez preplánovania).",
+          "example": "unpause_shift_independent"
         }
       }
     },
@@ -2713,6 +2738,10 @@
           "name": "Posunutie pripomienky splatnosti",
           "description": "Čas pred dátumom splatnosti, kedy sa má odoslať pripomienka. Formát: „30 min“, „1 h“, „1 deň 6 h 30 min“ atď. Na vypnutie pripomienok použite hodnotu „0“.",
           "example": "30 metrov"
+        },
+        "standby_claim_mode": {
+          "name": "Pohotovostný režim nárokovania",
+          "description": "Určuje, kedy si záložné úlohy môžu nárokovať túto úlohu (kedykoľvek, pri oneskorení, iba manuálne). Vzťahuje sa iba na kritériá dokončenia primárnych a záložných úloh."
         }
       }
     },
@@ -2819,6 +2848,10 @@
           "name": "Akcia priradenia",
           "description": "Ako pracovať so zoznamom assigned_user_names. „replace“ nastaví zoznam priamo (predvolené, spätne kompatibilné). „add“ pridá uvedených používateľov k existujúcim prideleným používateľom. „remove“ odstráni uvedených používateľov z existujúcich pridelených používateľov.",
           "example": "pridať"
+        },
+        "standby_claim_mode": {
+          "name": "Pohotovostný režim nárokovania",
+          "description": "Určuje, kedy si záložné úlohy môžu nárokovať túto úlohu (kedykoľvek, pri oneskorení, iba manuálne). Vzťahuje sa iba na kritériá dokončenia primárnych a záložných úloh."
         }
       }
     },
@@ -2850,7 +2883,7 @@
     },
     "set_rotation_turn": {
       "name": "Nastaviť rotáciu Otočiť",
-      "description": "Manuálne priraďte aktuálny ťah konkrétnemu priradenému v rámci rotačnej úlohy. Funguje iba pre rotačné úlohy (rotation_simple alebo rotation_smart). Na identifikáciu použite buď ID, alebo meno.",
+      "description": "Manuálne priraďte aktuálny ťah konkrétnemu priradenému účastníkovi v rámci rotačnej úlohy. Funguje iba pre rotačné úlohy (rotation_simple, rotation_smart alebo rotation_primary_standby). Na identifikáciu použite buď ID, alebo meno.",
       "fields": {
         "config_entry_id": {
           "name": "ID konfiguračnej položky (voliteľné)",
@@ -2886,7 +2919,7 @@
     },
     "reset_rotation": {
       "name": "Obnoviť rotáciu",
-      "description": "Obnoviť rotáciu na prvého prideleného priradeného člena. Funguje iba pre úlohy rotácie (rotation_simple alebo rotation_smart). Na identifikáciu použite buď ID, alebo meno.",
+      "description": "Obnoviť rotáciu na prvého prideleného priradeného príjemcu. Funguje iba pre úlohy rotácie (rotation_simple, rotation_smart alebo rotation_primary_standby). Na identifikáciu použite buď ID, alebo meno.",
       "fields": {
         "config_entry_id": {
           "name": "ID konfiguračnej položky (voliteľné)",
@@ -3138,7 +3171,7 @@
     },
     "reschedule_chores_after": {
       "name": "Preplánujte si domáce práce po",
-      "description": "Preplánujte jednu alebo viac domácich úloh tak, aby ich ďalší dátum splatnosti pripadol na zadaný dátum a čas. Opakujúce sa domáce úlohy sa presunú na ďalší naplánovaný výskyt za hranicou. Neopakujúce sa domáce úlohy s termínom splatnosti v deň alebo pred hranicou sa presunú na hranicu, pokiaľ nie je povolená možnosť skip_non_recurring. Zdieľané domáce úlohy sa preskočia, pokiaľ nie je povolená možnosť reschedule_shared.",
+      "description": "Preplánujte termíny úloh tak, aby spadali po zadanom dátume. Tri nezávislé prepínače ovládajú, ktoré typy úloh sa preplánujú: reschedule_independent (predvolené true), reschedule_primary_standby (predvolené true), reschedule_shared (predvolené false).",
       "fields": {
         "config_entry_id": {
           "name": "ID konfiguračnej položky (voliteľné)",
@@ -3171,9 +3204,19 @@
           "name": "Používateľské mená",
           "description": "Voliteľný zoznam mien priradených osôb na obmedzenie nezávislých aktualizácií úloh, keď nie sú poskytnuté identifikátory používateľov."
         },
+        "reschedule_independent": {
+          "name": "Preplánujte si nezávislé domáce práce",
+          "description": "Zahrnúť nezávislé (dátum splatnosti pre každého povereného) domáce úlohy. Predvolená hodnota je true.",
+          "example": "pravda"
+        },
+        "reschedule_primary_standby": {
+          "name": "Preplánovať primárny a záložný",
+          "description": "Zahrnúť úlohy primárneho aj záložného režimu. Predvolená hodnota je true.",
+          "example": "pravda"
+        },
         "reschedule_shared": {
           "name": "Preplánujte si spoločné domáce práce",
-          "description": "Povoľte túto možnosť, ak chcete povoliť zmenu plánovania zdieľaných a rotačných úloh. Toto ovplyvní všetkých osôb poverených týmito úlohami.",
+          "description": "Zahrnúť zdieľané a rotačné (jednoduché/inteligentné) úlohy. Toto ovplyvní všetkých pridelených osôb na týchto úlohách. Predvolená hodnota je nepravdivá.",
           "example": "nepravdivé"
         },
         "skip_non_recurring": {
@@ -3268,6 +3311,7 @@
           "completed_by_other": "Dokončené iným používateľom",
           "waiting": "Čakanie (Okno splatnosti nie je otvorené)",
           "not_my_turn": "Nie je môj ťah (rotácia)",
+          "standby": "Pohotovostný režim",
           "missed": "Zmeškané (Uzamknuté)",
           "paused": "Pozastavené"
         },
@@ -3306,7 +3350,8 @@
               "shared_first": "Zdieľané (prvé)",
               "shared_all": "Zdieľané (všetky)",
               "rotation_simple": "Jednoduchá rotácia",
-              "rotation_smart": "Inteligentná rotácia"
+              "rotation_smart": "Inteligentná rotácia",
+              "rotation_primary_standby": "Primárny a záložný"
             }
           },
           "approval_reset_type": {
@@ -3516,6 +3561,8 @@
               "blocked_pending_claim": "Čaká na vybavenie nároku",
               "blocked_waiting_window": "Čakanie na časový úsek",
               "blocked_not_my_turn": "Nie si na rade",
+              "blocked_standby": "Čakáš na túto povinnosť",
+              "standby_available": "Pohotovostný režim – túto povinnosť si môžete vyžiadať",
               "blocked_missed_locked": "Nepremeškané a uzamknuté",
               "blocked_paused": "Domáce úlohy sú pre tohto používateľa pozastavené"
             }
@@ -3525,6 +3572,13 @@
           },
           "available_at": {
             "name": "K dispozícii na"
+          },
+          "rotation_cycle_override": {
+            "name": "Prepísanie cyklu rotacie",
+            "state": {
+              "true": "Otvorené pre všetkých",
+              "false": "Normálna rotácia"
+            }
           }
         }
       },
@@ -4220,7 +4274,8 @@
               "shared_first": "Zdieľané (iba prvé)",
               "shared_all": "Zdieľané (všetky povinné)",
               "rotation_simple": "Jednoduchá rotácia",
-              "rotation_smart": "Inteligentná rotácia"
+              "rotation_smart": "Inteligentná rotácia",
+              "rotation_primary_standby": "Primárny a záložný"
             }
           },
           "approval_reset_type": {
@@ -5332,6 +5387,9 @@
     },
     "chore_not_my_turn": {
       "message": "Táto úloha je uzamknutá na rotáciu. Momentálne je na rade iný priradený pracovník."
+    },
+    "chore_standby": {
+      "message": "Ste náhradným zástupcom pre {chore_name}. Hlavný poverený pracovník má prvú zodpovednosť."
     },
     "chore_missed_locked": {
       "message": "Táto úloha je označená ako zmeškaná a uzamknutá pre aktuálny cyklus."

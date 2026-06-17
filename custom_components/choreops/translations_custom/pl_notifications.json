@@ -138,5 +138,9 @@
     "disapprove": "↩️ Nie zgadzam się",
     "remind_30": "⏰ Przypomnij za 30 minut",
     "skip": "⏭️ Pomiń"
+  },
+  "chore_standby_needed": {
+    "title": "🫲 Żądano gotowości",
+    "message": "Zadanie {primary_name} {chore_name} jest spóźnione! Zdobądź je teraz, aby zdobyć {points} {points_label}"
   }
 }

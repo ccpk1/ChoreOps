@@ -148,15 +148,17 @@
               "icon": "📋 Ícone (mdi:xxx)",
               "default_points": "💰 Pontos Atribuídos",
               "assigned_user_ids": "👥 Designado para",
-              "completion_criteria": "👥 Critérios de Conclusão"
+              "completion_criteria": "👥 Critérios de Conclusão",
+              "standby_claim_mode": "🔑 Modo de espera para reclamação"
             },
             "data_description": {
               "name": "Nome único apresentado em todo o sistema.",
               "chore_description": "Instruções ou detalhes opcionais sobre como completar esta tarefa.",
               "icon": "Ícone do Material Design (ex.: mdi:broom, mdi:dishwasher).",
               "default_points": "Pontos ganhos ao concluir.",
-              "assigned_user_ids": "Responsáveis que podem visualizar e reivindicar esta tarefa.",
-              "completion_criteria": "Controla a forma como a tarefa é concluída quando são atribuídas várias pessoas: acompanhamento individual, conclusão partilhada ou rotação por turnos."
+              "assigned_user_ids": "Responsáveis que podem visualizar e reivindicar esta tarefa. Para tarefas rotativas, a ordem de atribuição determina a sequência de turnos. Para as tarefas primárias e de reserva, o primeiro responsável atribuído é o principal.",
+              "completion_criteria": "Controla a forma como a tarefa é concluída quando são atribuídas várias pessoas: acompanhamento individual, conclusão partilhada ou rotação por turnos.",
+              "standby_claim_mode": "Controla quando os servidores em espera podem reclamar esta tarefa (a qualquer momento, em caso de atraso, apenas manual). Aplica-se apenas aos critérios de conclusão dos servidores primário e em espera."
             }
           },
           "section_schedule": {
@@ -229,7 +231,8 @@
           "chore_due_window_offset": "⏱️ Prazo de vencimento: Pagar antes da data de vencimento",
           "chore_due_reminder_offset": "🔔 Lembrete: Pague antes do vencimento",
           "show_on_calendar": "📅 Mostrar no calendário?",
-          "chore_notifications": "🔔 Eventos de notificação (opcional)"
+          "chore_notifications": "🔔 Eventos de notificação (opcional)",
+          "standby_claim_mode": "🔑 Modo de espera para reclamação"
         },
         "data_description": {
           "name": "Nome único apresentado em todo o sistema.",
@@ -237,7 +240,7 @@
           "icon": "Ícone do Material Design (ex.: mdi:broom, mdi:dishwasher).",
           "chore_labels": "Etiquetas para organizar tarefas (ex.: 'cozinha', 'exterior'). Deixe em branco se não for necessário.",
           "default_points": "Pontos ganhos ao concluir.",
-          "assigned_user_ids": "Responsáveis que podem visualizar e reivindicar esta tarefa.",
+          "assigned_user_ids": "Responsáveis que podem visualizar e reivindicar esta tarefa. Para tarefas rotativas, a ordem de atribuição determina a sequência de turnos. Para as tarefas primárias e de reserva, o primeiro responsável atribuído é o principal.",
           "completion_criteria": "Controla a forma como a tarefa é concluída quando são atribuídas várias pessoas: acompanhamento individual, conclusão partilhada ou rotação por turnos.",
           "approval_reset_type": "Controla quando o limite do ciclo de aprovação da tarefa é acionado (meia-noite, data de entrega, após a conclusão ou acionamento manual).",
           "approval_reset_pending_claim_action": "É o que acontece aos pedidos que ainda aguardam aprovação quando ocorre a reinicialização do processo de aprovação.",
@@ -252,7 +255,8 @@
           "chore_due_window_offset": "Quando o estado da tarefa mudar de Pendente para Vencimento. Formato: '1d 6h 30m' ou apenas '30' para minutos. Introduza '0' para desativar. Exemplo: '1d' significa que a tarefa aparece como 'Vencindo' 1 dia antes do prazo.",
           "chore_due_reminder_offset": "Quando enviar a notificação de lembrete de vencimento. Formato: '1d 6h 30m' ou apenas '30' para minutos. Padrão: 30m (30 minutos antes do vencimento). Introduza '0' para desativar.",
           "show_on_calendar": "Visualizar esta tarefa na visualização de calendário.",
-          "chore_notifications": "Quando enviar notificações: No pedido, na aprovação, na rejeição ou em qualquer combinação destes fatores."
+          "chore_notifications": "Quando enviar notificações: No pedido, na aprovação, na rejeição ou em qualquer combinação destes fatores.",
+          "standby_claim_mode": "Controla quando os servidores em espera podem reclamar esta tarefa (a qualquer momento, em caso de atraso, apenas manual). Aplica-se apenas aos critérios de conclusão dos servidores primário e em espera."
         }
       },
       "badge_count": {
@@ -639,15 +643,17 @@
               "icon": "📋 Ícone (mdi:xxx)",
               "default_points": "💰 Pontos Atribuídos",
               "assigned_user_ids": "👥 Designado para",
-              "completion_criteria": "👥 Critérios de Conclusão"
+              "completion_criteria": "👥 Critérios de Conclusão",
+              "standby_claim_mode": "🔑 Modo de espera para reclamação"
             },
             "data_description": {
               "name": "Nome único apresentado em todo o sistema.",
               "chore_description": "Instruções ou detalhes opcionais sobre como completar esta tarefa.",
               "icon": "Ícone do Material Design (ex.: mdi:broom, mdi:dishwasher).",
               "default_points": "Pontos ganhos ao concluir.",
-              "assigned_user_ids": "Responsáveis que podem visualizar e reivindicar esta tarefa.",
-              "completion_criteria": "Controla a forma como a tarefa é concluída quando são atribuídas várias pessoas: acompanhamento individual, conclusão partilhada ou rotação por turnos."
+              "assigned_user_ids": "Responsáveis que podem visualizar e reivindicar esta tarefa. Para tarefas rotativas, a ordem de atribuição determina a sequência de turnos. Para as tarefas primárias e de reserva, o primeiro responsável atribuído é o principal.",
+              "completion_criteria": "Controla a forma como a tarefa é concluída quando são atribuídas várias pessoas: acompanhamento individual, conclusão partilhada ou rotação por turnos.",
+              "standby_claim_mode": "Controla quando os servidores em espera podem reclamar esta tarefa (a qualquer momento, em caso de atraso, apenas manual). Aplica-se apenas aos critérios de conclusão dos servidores primário e em espera."
             }
           },
           "section_schedule": {
@@ -721,7 +727,8 @@
           "chore_due_window_offset": "⏱️ Prazo de vencimento: Pagar antes da data de vencimento",
           "chore_due_reminder_offset": "🔔 Lembrete: Pague antes do vencimento",
           "show_on_calendar": "📅 Mostrar no calendário?",
-          "chore_notifications": "🔔 Eventos de notificação (opcional)"
+          "chore_notifications": "🔔 Eventos de notificação (opcional)",
+          "standby_claim_mode": "🔑 Modo de espera para reclamação"
         },
         "data_description": {
           "name": "Nome único apresentado em todo o sistema.",
@@ -729,7 +736,7 @@
           "icon": "Ícone do Material Design (ex.: mdi:broom, mdi:dishwasher).",
           "chore_labels": "Etiquetas para organizar tarefas (ex.: 'cozinha', 'exterior'). Deixe em branco se não for necessário.",
           "default_points": "Pontos ganhos ao concluir.",
-          "assigned_user_ids": "Responsáveis que podem visualizar e reivindicar esta tarefa.",
+          "assigned_user_ids": "Responsáveis que podem visualizar e reivindicar esta tarefa. Para tarefas rotativas, a ordem de atribuição determina a sequência de turnos. Para as tarefas primárias e de reserva, o primeiro responsável atribuído é o principal.",
           "completion_criteria": "Controla a forma como a tarefa é concluída quando são atribuídas várias pessoas: acompanhamento individual, conclusão partilhada ou rotação por turnos.",
           "approval_reset_type": "Controla quando o limite do ciclo de aprovação da tarefa é acionado (meia-noite, data de entrega, após a conclusão ou acionamento manual).",
           "approval_reset_pending_claim_action": "Controla o que acontece aos pedidos não aprovados quando o limite de reposição de aprovação é acionado.",
@@ -745,7 +752,8 @@
           "chore_due_window_offset": "Quando o estado da tarefa mudar de Pendente para Vencimento. Formato: '1d 6h 30m' ou apenas '30' para minutos. Introduza '0' para desativar. Exemplo: '1d' significa que a tarefa aparece como 'Vencindo' 1 dia antes do prazo.",
           "chore_due_reminder_offset": "Quando enviar a notificação de lembrete de vencimento. Formato: '1d 6h 30m' ou apenas '30' para minutos. Padrão: 30m (30 minutos antes do vencimento). Introduza '0' para desativar.",
           "show_on_calendar": "Visualizar esta tarefa na visualização de calendário.",
-          "chore_notifications": "Quando enviar notificações: No pedido, na aprovação, na rejeição ou em qualquer combinação destes fatores."
+          "chore_notifications": "Quando enviar notificações: No pedido, na aprovação, na rejeição ou em qualquer combinação destes fatores.",
+          "standby_claim_mode": "Controla quando os servidores em espera podem reclamar esta tarefa (a qualquer momento, em caso de atraso, apenas manual). Aplica-se apenas aos critérios de conclusão dos servidores primário e em espera."
         }
       },
       "add_badge": {
@@ -1079,15 +1087,17 @@
               "icon": "📋 Ícone (mdi:xxx)",
               "default_points": "💰 Pontos Atribuídos",
               "assigned_user_ids": "👥 Designado para",
-              "completion_criteria": "👥 Critérios de Conclusão"
+              "completion_criteria": "👥 Critérios de Conclusão",
+              "standby_claim_mode": "🔑 Modo de espera para reclamação"
             },
             "data_description": {
               "name": "Nome único apresentado em todo o sistema.",
               "chore_description": "Instruções ou detalhes opcionais sobre como completar esta tarefa.",
               "icon": "Ícone do Material Design (ex.: mdi:broom, mdi:dishwasher).",
               "default_points": "Pontos ganhos ao concluir.",
-              "assigned_user_ids": "Responsáveis que podem visualizar e reivindicar esta tarefa.",
-              "completion_criteria": "Controla a forma como a tarefa é concluída quando são atribuídas várias pessoas: acompanhamento individual, conclusão partilhada ou rotação por turnos."
+              "assigned_user_ids": "Responsáveis que podem visualizar e reivindicar esta tarefa. Para tarefas rotativas, a ordem de atribuição determina a sequência de turnos. Para as tarefas primárias e de reserva, o primeiro responsável atribuído é o principal.",
+              "completion_criteria": "Controla a forma como a tarefa é concluída quando são atribuídas várias pessoas: acompanhamento individual, conclusão partilhada ou rotação por turnos.",
+              "standby_claim_mode": "Controla quando os servidores em espera podem reclamar esta tarefa (a qualquer momento, em caso de atraso, apenas manual). Aplica-se apenas aos critérios de conclusão dos servidores primário e em espera."
             }
           },
           "section_schedule": {
@@ -1162,7 +1172,8 @@
           "chore_due_window_offset": "⏱️ Prazo de vencimento: Pagar antes da data de vencimento",
           "chore_due_reminder_offset": "🔔 Lembrete: Pague antes do vencimento",
           "show_on_calendar": "📅 Mostrar no calendário?",
-          "chore_notifications": "🔔 Eventos de notificação (opcional)"
+          "chore_notifications": "🔔 Eventos de notificação (opcional)",
+          "standby_claim_mode": "🔑 Modo de espera para reclamação"
         },
         "data_description": {
           "name": "Nome único apresentado em todo o sistema.",
@@ -1170,7 +1181,7 @@
           "icon": "Ícone do Material Design (ex.: mdi:broom, mdi:dishwasher).",
           "chore_labels": "Etiquetas para organizar tarefas (ex.: 'cozinha', 'exterior'). Deixe em branco se não for necessário.",
           "default_points": "Pontos ganhos ao concluir.",
-          "assigned_user_ids": "Responsáveis que podem visualizar e reivindicar esta tarefa.",
+          "assigned_user_ids": "Responsáveis que podem visualizar e reivindicar esta tarefa. Para tarefas rotativas, a ordem de atribuição determina a sequência de turnos. Para as tarefas primárias e de reserva, o primeiro responsável atribuído é o principal.",
           "completion_criteria": "Controla a forma como a tarefa é concluída quando são atribuídas várias pessoas: acompanhamento individual, conclusão partilhada ou rotação por turnos.",
           "approval_reset_type": "Controla quando o limite do ciclo de aprovação da tarefa é acionado (meia-noite, data de entrega, após a conclusão ou acionamento manual).",
           "approval_reset_pending_claim_action": "Controla o que acontece aos pedidos não aprovados quando o limite de reposição de aprovação é acionado.",
@@ -1186,7 +1197,8 @@
           "chore_due_window_offset": "Quando o estado da tarefa mudar de Pendente para Vencimento. Formato: '1d 6h 30m' ou apenas '30' para minutos. Introduza '0' para desativar. Exemplo: '1d' significa que a tarefa aparece como 'Vencindo' 1 dia antes do prazo.",
           "chore_due_reminder_offset": "Quando enviar a notificação de lembrete de vencimento. Formato: '1d 6h 30m' ou apenas '30' para minutos. Padrão: 30m (30 minutos antes do vencimento). Introduza '0' para desativar.",
           "show_on_calendar": "Visualizar esta tarefa na visualização de calendário.",
-          "chore_notifications": "Quando enviar notificações: No pedido, na aprovação, na rejeição ou em qualquer combinação destes fatores."
+          "chore_notifications": "Quando enviar notificações: No pedido, na aprovação, na rejeição ou em qualquer combinação destes fatores.",
+          "standby_claim_mode": "Controla quando os servidores em espera podem reclamar esta tarefa (a qualquer momento, em caso de atraso, apenas manual). Aplica-se apenas aos critérios de conclusão dos servidores primário e em espera."
         }
       },
       "edit_chore_per_user_dates": {
@@ -2056,7 +2068,15 @@
         "independent": "Independente (Cada participante completa individualmente)",
         "shared_first": "Partilhado primeiro (a primeira conclusão conta)",
         "rotation_simple": "Rotação Simples (Apenas para quem segura a roda, ordem estrita)",
-        "rotation_smart": "Rotação Inteligente (Apenas para quem detém a vez, ponderada pela equidade)"
+        "rotation_smart": "Rotação Inteligente (Apenas para quem detém a vez, ponderada pela equidade)",
+        "rotation_primary_standby": "Primário e Reserva (Primário tem a função padrão, reserva quando elegível)"
+      }
+    },
+    "standby_claim_mode": {
+      "options": {
+        "anytime": "A qualquer momento (em lista de espera, pode ser solicitado de imediato)",
+        "on_overdue": "Em atraso (o plano de standby pode ser acionado quando o pagamento está em atraso)",
+        "manual_only": "Apenas manual (o administrador deve atribuir a vez)"
       }
     },
     "approval_reset_type": {
@@ -2263,7 +2283,7 @@
     },
     "pause_user_chores": {
       "name": "Pausar tarefas do utilizador",
-      "description": "Pausar ou retomar o processamento de tarefas para um utilizador.",
+      "description": "Pausa ou retoma o processamento de tarefas para um utilizador. Ao retomar, a opção `unpause_action` controla se as tarefas atrasadas são reagendadas para evitar transições imediatas de atraso.",
       "fields": {
         "config_entry_id": {
           "name": "ID da entrada de configuração (opcional)",
@@ -2289,6 +2309,11 @@
           "name": "Em pausa até",
           "description": "Data de regresso opcional. Se estiver definida, as tarefas serão retomadas automaticamente à meia-noite após essa data.",
           "example": "2026-06-10T00:00:00+00:00"
+        },
+        "unpause_action": {
+          "name": "Ação de retoma",
+          "description": "Aplica-se apenas quando paused=false. Controla se as tarefas atrasadas são reagendadas ao retomar o programa. Padrão: retomar (sem reagendamento).",
+          "example": "despausar_shift_independente"
         }
       }
     },
@@ -2713,6 +2738,10 @@
           "name": "Compensação de lembrete de vencimento",
           "description": "Duração antes do vencimento para envio da notificação de lembrete. Formato: '30m', '1h', '1d 6h 30m', etc. Utilize '0' para desativar os lembretes.",
           "example": "30m"
+        },
+        "standby_claim_mode": {
+          "name": "Modo de espera para reclamação",
+          "description": "Controla quando os servidores em espera podem reclamar esta tarefa (a qualquer momento, em caso de atraso, apenas manual). Aplica-se apenas aos critérios de conclusão dos servidores primário e em espera."
         }
       }
     },
@@ -2819,6 +2848,10 @@
           "name": "Ação de atribuição",
           "description": "Como manipular a lista `assigned_user_names`. 'replace' define a lista directamente (padrão, compatível com versões anteriores). ‘add’ adiciona os utilizadores listados aos responsáveis existentes. ‘remove’ remove os utilizadores listados dos responsáveis existentes.",
           "example": "adicionar"
+        },
+        "standby_claim_mode": {
+          "name": "Modo de espera para reclamação",
+          "description": "Controla quando os servidores em espera podem reclamar esta tarefa (a qualquer momento, em caso de atraso, apenas manual). Aplica-se apenas aos critérios de conclusão dos servidores primário e em espera."
         }
       }
     },
@@ -2850,7 +2883,7 @@
     },
     "set_rotation_turn": {
       "name": "Defina a rotação",
-      "description": "Atribua manualmente o turno atual a um responsável específico numa tarefa rotativa. Funciona apenas para tarefas rotativas (rotação_simples ou rotação_inteligente). Utilize o ID ou o nome para identificação.",
+      "description": "Atribua manualmente o turno atual a um responsável específico numa tarefa de rotação. Funciona apenas para tarefas de rotação (rotação_simples, rotação_inteligente ou rotação_primária_em_espera). Utilize o ID ou o nome para identificação.",
       "fields": {
         "config_entry_id": {
           "name": "ID da entrada de configuração (opcional)",
@@ -2886,7 +2919,7 @@
     },
     "reset_rotation": {
       "name": "Reiniciar rotação",
-      "description": "Reponha a rotação para o primeiro responsável atribuído. Funciona apenas para tarefas de rotação (rotação_simples ou rotação_inteligente). Utilize o ID ou o nome para identificação.",
+      "description": "Reponha a rotação para o primeiro responsável atribuído. Funciona apenas para tarefas de rotação (rotação_simples, rotação_inteligente ou rotação_primária_em_espera). Utilize o ID ou o nome para identificação.",
       "fields": {
         "config_entry_id": {
           "name": "ID da entrada de configuração (opcional)",
@@ -3138,7 +3171,7 @@
     },
     "reschedule_chores_after": {
       "name": "Remarcar tarefas após",
-      "description": "Remarque uma ou mais tarefas para que a próxima data de vencimento seja posterior à data e hora especificadas. As tarefas recorrentes avançam para a próxima ocorrência agendada após o limite. As tarefas não recorrentes com vencimento até ao limite são movidas para o limite, a menos que a opção `skip_non_recurring` esteja ativada. As tarefas partilhadas são ignoradas, a menos que a opção `reschedule_shared` esteja ativada.",
+      "description": "Remarque as datas de entrega das tarefas para que fiquem após a data especificada. Três opções independentes controlam que tipos de tarefas serão remarcadas: remarcar_independente (padrão: verdadeiro), remarcar_principal_em_espera (padrão: verdadeiro) e remarcar_partilhada (padrão: falso).",
       "fields": {
         "config_entry_id": {
           "name": "ID da entrada de configuração (opcional)",
@@ -3171,9 +3204,19 @@
           "name": "Nomes de utilizador",
           "description": "Lista opcional de nomes de responsáveis para limitar as atualizações independentes de tarefas quando não são fornecidos IDs de utilizador."
         },
+        "reschedule_independent": {
+          "name": "Remarcar tarefas independentes",
+          "description": "Incluir tarefas independentes (com data de vencimento definida para cada responsável). Valor por defeito: verdadeiro.",
+          "example": "VERDADE"
+        },
+        "reschedule_primary_standby": {
+          "name": "Remarcar Primário e Reserva",
+          "description": "Incluir tarefas primárias e de espera. Valor por defeito: verdadeiro.",
+          "example": "VERDADE"
+        },
         "reschedule_shared": {
           "name": "Remarcar as tarefas partilhadas",
-          "description": "Ative esta opção para permitir o reagendamento de tarefas partilhadas e rotativas. Isto afetará todos os responsáveis por estas tarefas.",
+          "description": "Incluir tarefas partilhadas e rotativas (simples/inteligentes). Isto afeta todos os responsáveis por estas tarefas. O padrão é falso.",
           "example": "FALSO"
         },
         "skip_non_recurring": {
@@ -3268,6 +3311,7 @@
           "completed_by_other": "Concluído por Outro",
           "waiting": "Aguarda (Janela fechada)",
           "not_my_turn": "Não é a minha vez (Rotação)",
+          "standby": "Espera",
           "missed": "Perdido (Bloqueado)",
           "paused": "Em pausa"
         },
@@ -3306,7 +3350,8 @@
               "shared_first": "Partilhado (Primeiro)",
               "shared_all": "Partilhado (Todos)",
               "rotation_simple": "Rotação Simples",
-              "rotation_smart": "Rotação Inteligente"
+              "rotation_smart": "Rotação Inteligente",
+              "rotation_primary_standby": "Primário e de reserva"
             }
           },
           "approval_reset_type": {
@@ -3516,6 +3561,8 @@
               "blocked_pending_claim": "Reclamação pendente",
               "blocked_waiting_window": "Aguarda o prazo final",
               "blocked_not_my_turn": "Não é a sua vez",
+              "blocked_standby": "Está à disposição para esta tarefa.",
+              "standby_available": "Aguarde — pode assumir esta tarefa.",
               "blocked_missed_locked": "Perdido e trancado",
               "blocked_paused": "As tarefas estão em pausa para este utilizador."
             }
@@ -3525,6 +3572,13 @@
           },
           "available_at": {
             "name": "Disponível em"
+          },
+          "rotation_cycle_override": {
+            "name": "Substituição do ciclo de rotação",
+            "state": {
+              "true": "Aberto a todos os",
+              "false": "Rotação normal"
+            }
           }
         }
       },
@@ -4220,7 +4274,8 @@
               "shared_first": "Partilhado (apenas o primeiro)",
               "shared_all": "Partilhado (Todos Obrigatórios)",
               "rotation_simple": "Rotação Simples",
-              "rotation_smart": "Rotação Inteligente"
+              "rotation_smart": "Rotação Inteligente",
+              "rotation_primary_standby": "Primário e de reserva"
             }
           },
           "approval_reset_type": {
@@ -5332,6 +5387,9 @@
     },
     "chore_not_my_turn": {
       "message": "Esta tarefa está bloqueada por rotação. Atualmente é a vez de outro responsável."
+    },
+    "chore_standby": {
+      "message": "Você é um substituto de {chore_name}. O responsável principal tem a responsabilidade imediata."
     },
     "chore_missed_locked": {
       "message": "Esta tarefa foi marcada como não realizada e bloqueada para o ciclo atual."

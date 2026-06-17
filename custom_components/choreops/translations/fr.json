@@ -148,15 +148,17 @@
               "icon": "📋 Icône (mdi:xxx)",
               "default_points": "💰 Points attribués",
               "assigned_user_ids": "👥 Attribué à",
-              "completion_criteria": "👥 Critères d'achèvement"
+              "completion_criteria": "👥 Critères d'achèvement",
+              "standby_claim_mode": "🔑 Mode de réclamation en attente"
             },
             "data_description": {
               "name": "Nom unique affiché dans tout le système.",
               "chore_description": "Instructions ou détails facultatifs sur la manière d'effectuer cette tâche.",
               "icon": "Icône Material Design (ex. : mdi:balai, mdi:lave-vaisselle).",
               "default_points": "Points obtenus une fois la tâche achevée.",
-              "assigned_user_ids": "Utilisateurs désignés qui peuvent voir et revendiquer cette tâche.",
-              "completion_criteria": "Contrôle la manière dont la tâche est effectuée lorsque plusieurs utilisateurs sont assignées : suivi individuel, exécution partagée ou rotation à tour de rôle."
+              "assigned_user_ids": "Les personnes désignées peuvent voir et prendre en charge cette tâche. Pour les tâches à rotation, l'ordre des personnes désignées détermine l'ordre de passage. Pour la tâche principale et la tâche de réserve, la première personne désignée est la principale.",
+              "completion_criteria": "Contrôle la manière dont la tâche est effectuée lorsque plusieurs utilisateurs sont assignées : suivi individuel, exécution partagée ou rotation à tour de rôle.",
+              "standby_claim_mode": "Contrôle les conditions dans lesquelles les processus de secours peuvent prendre en charge cette tâche (à tout moment, en cas de retard, manuellement uniquement). S'applique uniquement aux critères d'achèvement des processus principaux et de secours."
             }
           },
           "section_schedule": {
@@ -229,7 +231,8 @@
           "chore_due_window_offset": "⏱️ Délai d'échéance : Décalage avant la date d'échéance",
           "chore_due_reminder_offset": "🔔 Rappel d'échéance : Effectuez votre compensation avant la date d'échéance",
           "show_on_calendar": "📅 Afficher dans le calendrier ?",
-          "chore_notifications": "🔔 Notifications d'événements (facultatif)"
+          "chore_notifications": "🔔 Notifications d'événements (facultatif)",
+          "standby_claim_mode": "🔑 Mode de réclamation en attente"
         },
         "data_description": {
           "name": "Nom unique affiché dans tout le système.",
@@ -237,7 +240,7 @@
           "icon": "Icône Material Design (ex. : mdi:balai, mdi:lave-vaisselle).",
           "chore_labels": "Étiquettes pour organiser les tâches ménagères (ex. : « cuisine », « extérieur »). Laisser vide si non nécessaire.",
           "default_points": "Points obtenus une fois la tâche terminée.",
-          "assigned_user_ids": "Utilisateurs désignés qui peuvent voir et revendiquer cette tâche.",
+          "assigned_user_ids": "Les personnes désignées peuvent voir et prendre en charge cette tâche. Pour les tâches à rotation, l'ordre des personnes désignées détermine l'ordre de passage. Pour la tâche principale et la tâche de réserve, la première personne désignée est la principale.",
           "completion_criteria": "Contrôle la manière dont la tâche est effectuée lorsque plusieurs utilisateurs sont désignées : suivi individuel, exécution partagée ou rotation à tour de rôle.",
           "approval_reset_type": "Contrôle le déclenchement du cycle d'approbation de la tâche (minuit, date d'échéance, à l'achèvement ou déclenchement manuel).",
           "approval_reset_pending_claim_action": "Voici ce qui arrive aux réclamations toujours en attente d'approbation lors de la réinitialisation du processus d'approbation.",
@@ -252,7 +255,8 @@
           "chore_due_window_offset": "Lorsque l'état de la tâche passe de « En attente » à « À faire ». Format : « 1j 6h 30m » ou simplement « 30 » pour les minutes. Saisissez « 0 » pour désactiver. Exemple : « 1j » signifie que la tâche apparaît comme « À faire » un jour avant l'échéance.",
           "chore_due_reminder_offset": "Quand envoyer la notification de rappel d'échéance ? Format : « 1j 6h 30m » ou simplement « 30 » pour les minutes. Par défaut : 30 min (30 minutes avant l'échéance). Saisissez « 0 » pour désactiver.",
           "show_on_calendar": "Afficher cette tâche dans le calendrier.",
-          "chore_notifications": "Quand envoyer les notifications : lors de la réclamation, lors de l’approbation, lors du rejet ou toute combinaison de ces éléments."
+          "chore_notifications": "Quand envoyer les notifications : lors de la réclamation, lors de l’approbation, lors du rejet ou toute combinaison de ces éléments.",
+          "standby_claim_mode": "Contrôle les conditions dans lesquelles les processus de secours peuvent prendre en charge cette tâche (à tout moment, en cas de retard, manuellement uniquement). S'applique uniquement aux critères d'achèvement des processus principaux et de secours."
         }
       },
       "badge_count": {
@@ -639,15 +643,17 @@
               "icon": "📋 Icône (mdi:xxx)",
               "default_points": "💰 Points attribués",
               "assigned_user_ids": "👥 Attribué à",
-              "completion_criteria": "👥 Critères d'achèvement"
+              "completion_criteria": "👥 Critères d'achèvement",
+              "standby_claim_mode": "🔑 Mode de réclamation en attente"
             },
             "data_description": {
               "name": "Nom unique affiché dans tout le système.",
               "chore_description": "Instructions ou détails facultatifs sur la manière d'effectuer cette tâche.",
               "icon": "Icône Material Design (ex. : mdi:balai, mdi:lave-vaisselle).",
               "default_points": "Points obtenus une fois le projet terminé.",
-              "assigned_user_ids": "Personnes désignées qui peuvent voir et revendiquer cette tâche.",
-              "completion_criteria": "Contrôle la manière dont la tâche est effectuée lorsque plusieurs personnes sont assignées : suivi individuel, exécution partagée ou rotation à tour de rôle."
+              "assigned_user_ids": "Les personnes désignées peuvent voir et prendre en charge cette tâche. Pour les tâches à rotation, l'ordre des personnes désignées détermine l'ordre de passage. Pour la tâche principale et la tâche de réserve, la première personne désignée est la principale.",
+              "completion_criteria": "Contrôle la manière dont la tâche est effectuée lorsque plusieurs personnes sont assignées : suivi individuel, exécution partagée ou rotation à tour de rôle.",
+              "standby_claim_mode": "Contrôle les conditions dans lesquelles les processus de secours peuvent prendre en charge cette tâche (à tout moment, en cas de retard, manuellement uniquement). S'applique uniquement aux critères d'achèvement des processus principaux et de secours."
             }
           },
           "section_schedule": {
@@ -721,7 +727,8 @@
           "chore_due_window_offset": "⏱️ Délai d'échéance : Décalage avant la date d'échéance",
           "chore_due_reminder_offset": "🔔 Rappel d'échéance : Effectuez votre compensation avant la date d'échéance",
           "show_on_calendar": "📅 Afficher dans le calendrier ?",
-          "chore_notifications": "🔔 Notifications d'événements (facultatif)"
+          "chore_notifications": "🔔 Notifications d'événements (facultatif)",
+          "standby_claim_mode": "🔑 Mode de réclamation en attente"
         },
         "data_description": {
           "name": "Nom unique affiché dans tout le système.",
@@ -729,7 +736,7 @@
           "icon": "Icône Material Design (ex. : mdi:balai, mdi:lave-vaisselle).",
           "chore_labels": "Étiquettes pour organiser les tâches ménagères (ex. : « cuisine », « extérieur »). Laisser vide si non nécessaire.",
           "default_points": "Points obtenus une fois le projet terminé.",
-          "assigned_user_ids": "Personnes désignées qui peuvent voir et revendiquer cette tâche.",
+          "assigned_user_ids": "Les personnes désignées peuvent voir et prendre en charge cette tâche. Pour les tâches à rotation, l'ordre des personnes désignées détermine l'ordre de passage. Pour la tâche principale et la tâche de réserve, la première personne désignée est la principale.",
           "completion_criteria": "Contrôle la manière dont la tâche est effectuée lorsque plusieurs personnes sont désignées : suivi individuel, exécution partagée ou rotation à tour de rôle.",
           "approval_reset_type": "Contrôle le déclenchement du cycle d'approbation de la tâche (minuit, date d'échéance, à l'achèvement ou déclenchement manuel).",
           "approval_reset_pending_claim_action": "Contrôle ce qui arrive aux demandes non approuvées lorsque le seuil de réinitialisation des approbations est atteint.",
@@ -745,7 +752,8 @@
           "chore_due_window_offset": "Lorsque l'état de la tâche passe de « En attente » à « À faire ». Format : « 1j 6h 30m » ou simplement « 30 » pour les minutes. Saisissez « 0 » pour désactiver. Exemple : « 1j » signifie que la tâche apparaît comme « À faire » un jour avant l'échéance.",
           "chore_due_reminder_offset": "Quand envoyer la notification de rappel d'échéance ? Format : « 1j 6h 30m » ou simplement « 30 » pour les minutes. Par défaut : 30 min (30 minutes avant l'échéance). Saisissez « 0 » pour désactiver.",
           "show_on_calendar": "Afficher cette tâche dans le calendrier.",
-          "chore_notifications": "Quand envoyer les notifications : lors de la réclamation, de l’approbation, du rejet ou toute combinaison de ces situations."
+          "chore_notifications": "Quand envoyer les notifications : lors de la réclamation, de l’approbation, du rejet ou toute combinaison de ces situations.",
+          "standby_claim_mode": "Contrôle les conditions dans lesquelles les processus de secours peuvent prendre en charge cette tâche (à tout moment, en cas de retard, manuellement uniquement). S'applique uniquement aux critères d'achèvement des processus principaux et de secours."
         }
       },
       "add_badge": {
@@ -1079,15 +1087,17 @@
               "icon": "📋 Icône (mdi:xxx)",
               "default_points": "💰 Points attribués",
               "assigned_user_ids": "👥 Attribué à",
-              "completion_criteria": "👥 Critères d'achèvement"
+              "completion_criteria": "👥 Critères d'achèvement",
+              "standby_claim_mode": "🔑 Mode de réclamation en attente"
             },
             "data_description": {
               "name": "Nom unique affiché dans tout le système.",
               "chore_description": "Instructions ou détails facultatifs sur la manière d'effectuer cette tâche.",
               "icon": "Icône Material Design (ex. : mdi:balai, mdi:lave-vaisselle).",
               "default_points": "Points obtenus une fois le projet terminé.",
-              "assigned_user_ids": "Personnes désignées qui peuvent voir et revendiquer cette tâche.",
-              "completion_criteria": "Contrôle la manière dont la tâche est effectuée lorsque plusieurs personnes sont assignées : suivi individuel, exécution partagée ou rotation à tour de rôle."
+              "assigned_user_ids": "Les personnes désignées peuvent voir et prendre en charge cette tâche. Pour les tâches à rotation, l'ordre des personnes désignées détermine l'ordre de passage. Pour la tâche principale et la tâche de réserve, la première personne désignée est la principale.",
+              "completion_criteria": "Contrôle la manière dont la tâche est effectuée lorsque plusieurs personnes sont assignées : suivi individuel, exécution partagée ou rotation à tour de rôle.",
+              "standby_claim_mode": "Contrôle les conditions dans lesquelles les processus de secours peuvent prendre en charge cette tâche (à tout moment, en cas de retard, manuellement uniquement). S'applique uniquement aux critères d'achèvement des processus principaux et de secours."
             }
           },
           "section_schedule": {
@@ -1162,7 +1172,8 @@
           "chore_due_window_offset": "⏱️ Délai d'échéance : Décalage avant la date d'échéance",
           "chore_due_reminder_offset": "🔔 Rappel d'échéance : Effectuez votre compensation avant la date d'échéance",
           "show_on_calendar": "📅 Afficher dans le calendrier ?",
-          "chore_notifications": "🔔 Notifications d'événements (facultatif)"
+          "chore_notifications": "🔔 Notifications d'événements (facultatif)",
+          "standby_claim_mode": "🔑 Mode de réclamation en attente"
         },
         "data_description": {
           "name": "Nom unique affiché dans tout le système.",
@@ -1170,7 +1181,7 @@
           "icon": "Icône Material Design (ex. : mdi:balai, mdi:lave-vaisselle).",
           "chore_labels": "Étiquettes pour organiser les tâches ménagères (ex. : « cuisine », « extérieur »). Laisser vide si non nécessaire.",
           "default_points": "Points obtenus une fois le projet terminé.",
-          "assigned_user_ids": "Personnes désignées qui peuvent voir et revendiquer cette tâche.",
+          "assigned_user_ids": "Les personnes désignées peuvent voir et prendre en charge cette tâche. Pour les tâches à rotation, l'ordre des personnes désignées détermine l'ordre de passage. Pour la tâche principale et la tâche de réserve, la première personne désignée est la principale.",
           "completion_criteria": "Contrôle la manière dont la tâche est effectuée lorsque plusieurs personnes sont désignées : suivi individuel, exécution partagée ou rotation à tour de rôle.",
           "approval_reset_type": "Contrôle le déclenchement du cycle d'approbation de la tâche (minuit, date d'échéance, à l'achèvement ou déclenchement manuel).",
           "approval_reset_pending_claim_action": "Contrôle ce qui arrive aux demandes non approuvées lorsque le seuil de réinitialisation des approbations est atteint.",
@@ -1186,7 +1197,8 @@
           "chore_due_window_offset": "Lorsque l'état de la tâche passe de « En attente » à « À faire ». Format : « 1j 6h 30m » ou simplement « 30 » pour les minutes. Saisissez « 0 » pour désactiver. Exemple : « 1j » signifie que la tâche apparaît comme « À faire » un jour avant l'échéance.",
           "chore_due_reminder_offset": "Quand envoyer la notification de rappel d'échéance ? Format : « 1j 6h 30m » ou simplement « 30 » pour les minutes. Par défaut : 30 min (30 minutes avant l'échéance). Saisissez « 0 » pour désactiver.",
           "show_on_calendar": "Afficher cette tâche dans le calendrier.",
-          "chore_notifications": "Quand envoyer les notifications : lors de la réclamation, de l’approbation, du rejet ou toute combinaison de ces situations."
+          "chore_notifications": "Quand envoyer les notifications : lors de la réclamation, de l’approbation, du rejet ou toute combinaison de ces situations.",
+          "standby_claim_mode": "Contrôle les conditions dans lesquelles les processus de secours peuvent prendre en charge cette tâche (à tout moment, en cas de retard, manuellement uniquement). S'applique uniquement aux critères d'achèvement des processus principaux et de secours."
         }
       },
       "edit_chore_per_user_dates": {
@@ -2056,7 +2068,15 @@
         "independent": "Indépendant (Chaque personne assignée remplit le formulaire individuellement)",
         "shared_first": "Partagé en premier (la première réalisation compte)",
         "rotation_simple": "Rotation simple (Réservé au support de rotation, ordre strict)",
-        "rotation_smart": "Rotation intelligente (Réservé au détenteur du tour, pondération équitable)"
+        "rotation_smart": "Rotation intelligente (Réservé au détenteur du tour, pondération équitable)",
+        "rotation_primary_standby": "Principal et en veille (le rôle principal est activé par défaut, le rôle de veille est activé lorsque cela est possible)"
+      }
+    },
+    "standby_claim_mode": {
+      "options": {
+        "anytime": "À tout moment (les personnes en attente peuvent réclamer immédiatement)",
+        "on_overdue": "En cas de retard de paiement (le service en attente peut réclamer en cas de retard de paiement)",
+        "manual_only": "Manuel uniquement (l'administrateur doit attribuer le tour)"
       }
     },
     "approval_reset_type": {
@@ -2263,7 +2283,7 @@
     },
     "pause_user_chores": {
       "name": "Mettre en pause les tâches de l'utilisateur",
-      "description": "Mettre en pause ou reprendre le traitement des tâches pour un utilisateur.",
+      "description": "Suspendre ou reprendre le traitement des tâches pour un utilisateur. Lors de la reprise, l'option `unpause_action` détermine si les tâches en retard sont reprogrammées afin d'éviter les transitions immédiates vers les tâches en retard.",
       "fields": {
         "config_entry_id": {
           "name": "ID de l'entrée de configuration (facultatif)",
@@ -2289,6 +2309,11 @@
           "name": "En pause jusqu'à",
           "description": "Date de retour facultative. Si cette date est définie, les tâches reprennent automatiquement à minuit après cette date.",
           "example": "2026-06-10T00:00:00+00:00"
+        },
+        "unpause_action": {
+          "name": "Reprendre l'action",
+          "description": "S'applique uniquement lorsque paused=false. Détermine si les tâches en retard sont reprogrammées lors de la reprise. Par défaut : reprise (pas de reprogrammation).",
+          "example": "dépause_shift_indépendant"
         }
       }
     },
@@ -2713,6 +2738,10 @@
           "name": "Décalage du rappel d'échéance",
           "description": "Durée avant l'échéance pour l'envoi d'un rappel. Format : « 30 min », « 1 h », « 1 j 6 h 30 min », etc. Utilisez « 0 » pour désactiver les rappels.",
           "example": "30 m"
+        },
+        "standby_claim_mode": {
+          "name": "Mode de réclamation en attente",
+          "description": "Contrôle les conditions dans lesquelles les processus de secours peuvent prendre en charge cette tâche (à tout moment, en cas de retard, manuellement uniquement). S'applique uniquement aux critères d'achèvement des processus principaux et de secours."
         }
       }
     },
@@ -2819,6 +2848,10 @@
           "name": "Action d'affectation",
           "description": "Comment gérer la liste assigned_user_names ? « replace » définit directement la liste (comportement par défaut, rétrocompatible). « add » ajoute les utilisateurs listés aux personnes assignées. « remove » supprime les utilisateurs listés des personnes assignées.",
           "example": "ajouter"
+        },
+        "standby_claim_mode": {
+          "name": "Mode de réclamation en attente",
+          "description": "Contrôle les conditions dans lesquelles les processus de secours peuvent prendre en charge cette tâche (à tout moment, en cas de retard, manuellement uniquement). S'applique uniquement aux critères d'achèvement des processus principaux et de secours."
         }
       }
     },
@@ -2850,7 +2883,7 @@
     },
     "set_rotation_turn": {
       "name": "Réglage de la rotation",
-      "description": "Attribuez manuellement le tour actuel à un utilisateur spécifique dans une tâche de rotation. Fonctionne uniquement pour les tâches de rotation (rotation_simple ou rotation_smart). Utilisez l'identifiant ou le nom pour l'identification.",
+      "description": "Attribuez manuellement le tour de rôle actuel à un utilisateur spécifique dans une tâche de rotation. Fonctionne uniquement pour les tâches de rotation (rotation_simple, rotation_smart ou rotation_primary_standby). Utilisez l'identifiant ou le nom pour l'identification.",
       "fields": {
         "config_entry_id": {
           "name": "ID de l'entrée de configuration (facultatif)",
@@ -2886,7 +2919,7 @@
     },
     "reset_rotation": {
       "name": "Réinitialiser la rotation",
-      "description": "Réinitialiser le tour de rotation au premier responsable désigné. Fonctionne uniquement pour les tâches de rotation (rotation_simple ou rotation_smart). Utiliser l'identifiant ou le nom pour l'identification.",
+      "description": "Réinitialiser la rotation au premier responsable désigné. Fonctionne uniquement pour les tâches de rotation (rotation_simple, rotation_smart ou rotation_primary_standby). Utiliser l'identifiant ou le nom pour l'identification.",
       "fields": {
         "config_entry_id": {
           "name": "ID de l'entrée de configuration (facultatif)",
@@ -3138,7 +3171,7 @@
     },
     "reschedule_chores_after": {
       "name": "Reprogrammer les tâches ménagères après",
-      "description": "Reportez une ou plusieurs tâches afin que leur prochaine échéance soit postérieure à la date et à l'heure spécifiées. Les tâches récurrentes sont reportées à la prochaine occurrence planifiée après la date et l'heure limites. Les tâches non récurrentes dont l'échéance est antérieure ou égale à la date et l'heure limites sont reportées à cette date et heure limites, sauf si l'option « skip_non_recurring » est activée. Les tâches partagées sont ignorées, sauf si l'option « reschedule_shared » est activée.",
+      "description": "Reprogrammez les dates d'échéance des tâches pour qu'elles soient postérieures à la date spécifiée. Trois options indépendantes permettent de contrôler les types de tâches à reprogrammer : reschedule_independent (activé par défaut), reschedule_primary_standby (activé par défaut) et reschedule_shared (désactivé par défaut).",
       "fields": {
         "config_entry_id": {
           "name": "ID de l'entrée de configuration (facultatif)",
@@ -3171,9 +3204,19 @@
           "name": "Noms d'utilisateur",
           "description": "Liste facultative des noms des personnes assignées afin de limiter les mises à jour indépendantes des tâches lorsque les identifiants utilisateur ne sont pas fournis."
         },
+        "reschedule_independent": {
+          "name": "Reprogrammer les tâches ménagères indépendantes",
+          "description": "Inclure les tâches indépendantes (avec une date d'échéance par personne assignée). Par défaut : vrai.",
+          "example": "vrai"
+        },
+        "reschedule_primary_standby": {
+          "name": "Reprogrammer le serveur principal et le serveur de secours",
+          "description": "Inclure les tâches principales et de secours. Valeur par défaut : oui.",
+          "example": "vrai"
+        },
         "reschedule_shared": {
           "name": "Reprogrammer les tâches partagées",
-          "description": "Activez cette option pour permettre la reprogrammation des tâches partagées et des tâches à rotation. Cela affectera tous les utilisateurs affectés à ces tâches.",
+          "description": "Inclure les tâches partagées et à rotation (simples/intelligentes). Cela affecte tous les responsables de ces tâches. Par défaut : non.",
           "example": "Faux"
         },
         "skip_non_recurring": {
@@ -3268,6 +3311,7 @@
           "completed_by_other": "Réalisé par d'autres",
           "waiting": "En attente (fenêtre fermée)",
           "not_my_turn": "Ce n'est pas mon tour (rotation)",
+          "standby": "Attendre",
           "missed": "Manqué (Verrouillé)",
           "paused": "En pause"
         },
@@ -3306,7 +3350,8 @@
               "shared_first": "Partagé (Premier)",
               "shared_all": "Partagé (Tous)",
               "rotation_simple": "Rotation simple",
-              "rotation_smart": "Rotation intelligente"
+              "rotation_smart": "Rotation intelligente",
+              "rotation_primary_standby": "Principal et de secours"
             }
           },
           "approval_reset_type": {
@@ -3516,6 +3561,8 @@
               "blocked_pending_claim": "Réclamation en cours",
               "blocked_waiting_window": "En attente de l'échéance",
               "blocked_not_my_turn": "À votre tour",
+              "blocked_standby": "Vous êtes prêt à effectuer cette tâche",
+              "standby_available": "En attente — vous pouvez vous acquitter de cette tâche",
               "blocked_missed_locked": "Manqué et verrouillé",
               "blocked_paused": "Les tâches sont suspendues pour cet utilisateur."
             }
@@ -3525,6 +3572,13 @@
           },
           "available_at": {
             "name": "Disponible chez"
+          },
+          "rotation_cycle_override": {
+            "name": "Remplacement du cycle de rotation",
+            "state": {
+              "true": "Ouvert à tous",
+              "false": "Rotation normale"
+            }
           }
         }
       },
@@ -4220,7 +4274,8 @@
               "shared_first": "Partagé (Premier arrivé, premier servi)",
               "shared_all": "Partagé (Tous requis)",
               "rotation_simple": "Rotation simple",
-              "rotation_smart": "Rotation intelligente"
+              "rotation_smart": "Rotation intelligente",
+              "rotation_primary_standby": "Principal et de secours"
             }
           },
           "approval_reset_type": {
@@ -5332,6 +5387,9 @@
     },
     "chore_not_my_turn": {
       "message": "Cette tâche est assignée à tour de rôle. C'est actuellement au tour d'un autre employé."
+    },
+    "chore_standby": {
+      "message": "Vous êtes en attente pour {chore_name}. Le titulaire principal a la responsabilité première."
     },
     "chore_missed_locked": {
       "message": "Cette tâche est marquée comme manquée et verrouillée pour le cycle en cours."

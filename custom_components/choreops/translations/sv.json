@@ -148,15 +148,17 @@
               "icon": "📋 Ikon (mdi:xxx)",
               "default_points": "💰 Poäng tilldelade",
               "assigned_user_ids": "👥 Tilldelad till",
-              "completion_criteria": "👥 Slutförandekriterier"
+              "completion_criteria": "👥 Slutförandekriterier",
+              "standby_claim_mode": "🔑 Standby-anspråksläge"
             },
             "data_description": {
               "name": "Unikt namn som visas i hela systemet.",
               "chore_description": "Valfria instruktioner eller detaljer om hur man slutför den här sysslan.",
               "icon": "Ikon för materialdesign (t.ex. mdi:kvast, mdi:diskmaskin).",
               "default_points": "Poäng intjänade när de är klara.",
-              "assigned_user_ids": "Tilldeltagare som kan se och göra anspråk på denna syssla.",
-              "completion_criteria": "Styr hur sysslan slutförs när flera personer är tilldelade: individuell spårning, delad slutförande eller turbaserad rotation."
+              "assigned_user_ids": "Tilldelade personer som kan se och göra anspråk på denna syssla. För rotationssysslor avgör den tilldelades ordning turordning. För Primär och Standby är den första tilldelade den primära.",
+              "completion_criteria": "Styr hur sysslan slutförs när flera personer är tilldelade: individuell spårning, delad slutförande eller turbaserad rotation.",
+              "standby_claim_mode": "Styr när reservpersoner kan göra anspråk på den här uppgiften (när som helst, on_forfallodatum, manual_only). Gäller endast för Primära och Standby-slutförandekriterier."
             }
           },
           "section_schedule": {
@@ -229,7 +231,8 @@
           "chore_due_window_offset": "⏱️ Förfallofönster: Förskjutning före förfallodatum",
           "chore_due_reminder_offset": "🔔 Förfallopåminnelse: Förskjutning före förfallodatum",
           "show_on_calendar": "📅 Visa i kalendern?",
-          "chore_notifications": "🔔 Aviseringshändelser (valfritt)"
+          "chore_notifications": "🔔 Aviseringshändelser (valfritt)",
+          "standby_claim_mode": "🔑 Standby-anspråksläge"
         },
         "data_description": {
           "name": "Unikt namn som visas i hela systemet.",
@@ -237,7 +240,7 @@
           "icon": "Ikon för materialdesign (t.ex. mdi:kvast, mdi:diskmaskin).",
           "chore_labels": "Taggar för att organisera sysslor (t.ex. 'kök', 'utomhus'). Lämna tomt om det inte behövs.",
           "default_points": "Poäng intjänade när de är klara.",
-          "assigned_user_ids": "Tilldeltagare som kan se och göra anspråk på denna syssla.",
+          "assigned_user_ids": "Tilldelade personer som kan se och göra anspråk på denna syssla. För rotationssysslor avgör den tilldelades ordning turordning. För Primär och Standby är den första tilldelade den primära.",
           "completion_criteria": "Styr hur sysslan slutförs när flera personer är tilldelade: individuell spårning, delad slutförande eller turbaserad rotation.",
           "approval_reset_type": "Styr när sysslanens godkännandecykelgräns utlöses (midnatt, förfallodatum, vid slutförande eller manuell utlösning).",
           "approval_reset_pending_claim_action": "Detta är vad som händer med anspråk som fortfarande väntar på godkännande när godkännandet återställs.",
@@ -252,7 +255,8 @@
           "chore_due_window_offset": "När sysslan visas som \"Förfaller\" 1 dag före deadline. Format: '1d 6h 30m' eller bara '30' för minuter. Ange '0' för att inaktivera. Exempel: '1d' betyder att sysslan visas som \"Förfaller\" 1 dag före deadline.",
           "chore_due_reminder_offset": "När påminnelsen om förfallodatum ska skickas. Format: '1d 6h 30m' eller bara '30' för minuter. Standard: 30m (30 minuter före förfallodatum). Ange '0' för att inaktivera.",
           "show_on_calendar": "Visa den här uppgiften i kalendervyn.",
-          "chore_notifications": "När aviseringar ska skickas: Vid anspråk, vid godkännande, vid avslag eller någon kombination."
+          "chore_notifications": "När aviseringar ska skickas: Vid anspråk, vid godkännande, vid avslag eller någon kombination.",
+          "standby_claim_mode": "Styr när reservpersoner kan göra anspråk på den här uppgiften (när som helst, on_forfallodatum, manual_only). Gäller endast för Primära och Standby-slutförandekriterier."
         }
       },
       "badge_count": {
@@ -639,15 +643,17 @@
               "icon": "📋 Ikon (mdi:xxx)",
               "default_points": "💰 Poäng tilldelade",
               "assigned_user_ids": "👥 Tilldelad till",
-              "completion_criteria": "👥 Slutförandekriterier"
+              "completion_criteria": "👥 Slutförandekriterier",
+              "standby_claim_mode": "🔑 Standby-anspråksläge"
             },
             "data_description": {
               "name": "Unikt namn som visas i hela systemet.",
               "chore_description": "Valfria instruktioner eller detaljer om hur man slutför den här sysslan.",
               "icon": "Ikon för materialdesign (t.ex. mdi:kvast, mdi:diskmaskin).",
               "default_points": "Poäng intjänade när de är klara.",
-              "assigned_user_ids": "Tilldeltagare som kan se och göra anspråk på denna syssla.",
-              "completion_criteria": "Styr hur sysslan slutförs när flera personer är tilldelade: individuell spårning, delad slutförande eller turbaserad rotation."
+              "assigned_user_ids": "Tilldelade personer som kan se och göra anspråk på denna syssla. För rotationssysslor avgör den tilldelades ordning turordning. För Primär och Standby är den första tilldelade den primära.",
+              "completion_criteria": "Styr hur sysslan slutförs när flera personer är tilldelade: individuell spårning, delad slutförande eller turbaserad rotation.",
+              "standby_claim_mode": "Styr när reservpersoner kan göra anspråk på den här uppgiften (när som helst, on_forfallodatum, manual_only). Gäller endast för Primära och Standby-slutförandekriterier."
             }
           },
           "section_schedule": {
@@ -721,7 +727,8 @@
           "chore_due_window_offset": "⏱️ Förfallofönster: Förskjutning före förfallodatum",
           "chore_due_reminder_offset": "🔔 Förfallopåminnelse: Förskjutning före förfallodatum",
           "show_on_calendar": "📅 Visa i kalendern?",
-          "chore_notifications": "🔔 Aviseringshändelser (valfritt)"
+          "chore_notifications": "🔔 Aviseringshändelser (valfritt)",
+          "standby_claim_mode": "🔑 Standby-anspråksläge"
         },
         "data_description": {
           "name": "Unikt namn som visas i hela systemet.",
@@ -729,7 +736,7 @@
           "icon": "Ikon för materialdesign (t.ex. mdi:kvast, mdi:diskmaskin).",
           "chore_labels": "Taggar för att organisera sysslor (t.ex. 'kök', 'utomhus'). Lämna tomt om det inte behövs.",
           "default_points": "Poäng intjänade när de är klara.",
-          "assigned_user_ids": "Tilldeltagare som kan se och göra anspråk på denna syssla.",
+          "assigned_user_ids": "Tilldelade personer som kan se och göra anspråk på denna syssla. För rotationssysslor avgör den tilldelades ordning turordning. För Primär och Standby är den första tilldelade den primära.",
           "completion_criteria": "Styr hur sysslan slutförs när flera personer är tilldelade: individuell spårning, delad slutförande eller turbaserad rotation.",
           "approval_reset_type": "Styr när sysslanens godkännandecykelgräns utlöses (midnatt, förfallodatum, vid slutförande eller manuell utlösning).",
           "approval_reset_pending_claim_action": "Styr vad som händer med ogodkända anspråk när återställningsgränsen för godkännande utlöses.",
@@ -745,7 +752,8 @@
           "chore_due_window_offset": "När sysslan visas som \"Förfaller\" 1 dag före deadline. Format: '1d 6h 30m' eller bara '30' för minuter. Ange '0' för att inaktivera. Exempel: '1d' betyder att sysslan visas som \"Förfaller\" 1 dag före deadline.",
           "chore_due_reminder_offset": "När påminnelsen om förfallodatum ska skickas. Format: '1d 6h 30m' eller bara '30' för minuter. Standard: 30m (30 minuter före förfallodatum). Ange '0' för att inaktivera.",
           "show_on_calendar": "Visa den här uppgiften i kalendervyn.",
-          "chore_notifications": "När aviseringar ska skickas: Vid anspråk, vid godkännande, vid avslag eller någon kombination."
+          "chore_notifications": "När aviseringar ska skickas: Vid anspråk, vid godkännande, vid avslag eller någon kombination.",
+          "standby_claim_mode": "Styr när reservpersoner kan göra anspråk på den här uppgiften (när som helst, on_forfallodatum, manual_only). Gäller endast för Primära och Standby-slutförandekriterier."
         }
       },
       "add_badge": {
@@ -1079,15 +1087,17 @@
               "icon": "📋 Ikon (mdi:xxx)",
               "default_points": "💰 Poäng tilldelade",
               "assigned_user_ids": "👥 Tilldelad till",
-              "completion_criteria": "👥 Slutförandekriterier"
+              "completion_criteria": "👥 Slutförandekriterier",
+              "standby_claim_mode": "🔑 Standby-anspråksläge"
             },
             "data_description": {
               "name": "Unikt namn som visas i hela systemet.",
               "chore_description": "Valfria instruktioner eller detaljer om hur man slutför den här sysslan.",
               "icon": "Ikon för materialdesign (t.ex. mdi:kvast, mdi:diskmaskin).",
               "default_points": "Poäng intjänade när de är klara.",
-              "assigned_user_ids": "Tilldeltagare som kan se och göra anspråk på denna syssla.",
-              "completion_criteria": "Styr hur sysslan slutförs när flera personer är tilldelade: individuell spårning, delad slutförande eller turbaserad rotation."
+              "assigned_user_ids": "Tilldelade personer som kan se och göra anspråk på denna syssla. För rotationssysslor avgör den tilldelades ordning turordning. För Primär och Standby är den första tilldelade den primära.",
+              "completion_criteria": "Styr hur sysslan slutförs när flera personer är tilldelade: individuell spårning, delad slutförande eller turbaserad rotation.",
+              "standby_claim_mode": "Styr när reservpersoner kan göra anspråk på den här uppgiften (när som helst, on_forfallodatum, manual_only). Gäller endast för Primära och Standby-slutförandekriterier."
             }
           },
           "section_schedule": {
@@ -1162,7 +1172,8 @@
           "chore_due_window_offset": "⏱️ Förfallofönster: Förskjutning före förfallodatum",
           "chore_due_reminder_offset": "🔔 Förfallopåminnelse: Förskjutning före förfallodatum",
           "show_on_calendar": "📅 Visa i kalendern?",
-          "chore_notifications": "🔔 Aviseringshändelser (valfritt)"
+          "chore_notifications": "🔔 Aviseringshändelser (valfritt)",
+          "standby_claim_mode": "🔑 Standby-anspråksläge"
         },
         "data_description": {
           "name": "Unikt namn som visas i hela systemet.",
@@ -1170,7 +1181,7 @@
           "icon": "Ikon för materialdesign (t.ex. mdi:kvast, mdi:diskmaskin).",
           "chore_labels": "Taggar för att organisera sysslor (t.ex. 'kök', 'utomhus'). Lämna tomt om det inte behövs.",
           "default_points": "Poäng intjänade när de är klara.",
-          "assigned_user_ids": "Tilldeltagare som kan se och göra anspråk på denna syssla.",
+          "assigned_user_ids": "Tilldelade personer som kan se och göra anspråk på denna syssla. För rotationssysslor avgör den tilldelades ordning turordning. För Primär och Standby är den första tilldelade den primära.",
           "completion_criteria": "Styr hur sysslan slutförs när flera personer är tilldelade: individuell spårning, delad slutförande eller turbaserad rotation.",
           "approval_reset_type": "Styr när sysslanens godkännandecykelgräns utlöses (midnatt, förfallodatum, vid slutförande eller manuell utlösning).",
           "approval_reset_pending_claim_action": "Styr vad som händer med ogodkända anspråk när återställningsgränsen för godkännande utlöses.",
@@ -1186,7 +1197,8 @@
           "chore_due_window_offset": "När sysslan visas som \"Förfaller\" 1 dag före deadline. Format: '1d 6h 30m' eller bara '30' för minuter. Ange '0' för att inaktivera. Exempel: '1d' betyder att sysslan visas som \"Förfaller\" 1 dag före deadline.",
           "chore_due_reminder_offset": "När påminnelsen om förfallodatum ska skickas. Format: '1d 6h 30m' eller bara '30' för minuter. Standard: 30m (30 minuter före förfallodatum). Ange '0' för att inaktivera.",
           "show_on_calendar": "Visa den här uppgiften i kalendervyn.",
-          "chore_notifications": "När aviseringar ska skickas: Vid anspråk, vid godkännande, vid avslag eller någon kombination."
+          "chore_notifications": "När aviseringar ska skickas: Vid anspråk, vid godkännande, vid avslag eller någon kombination.",
+          "standby_claim_mode": "Styr när reservpersoner kan göra anspråk på den här uppgiften (när som helst, on_forfallodatum, manual_only). Gäller endast för Primära och Standby-slutförandekriterier."
         }
       },
       "edit_chore_per_user_dates": {
@@ -2056,7 +2068,15 @@
         "independent": "Oberoende (Varje uppdragstagare slutför på egen hand)",
         "shared_first": "Delad först (första slutförandet räknas)",
         "rotation_simple": "Enkel rotation (endast turhållare, strikt ordning)",
-        "rotation_smart": "Rotation Smart (Endast turhållare, rättviseviktad)"
+        "rotation_smart": "Rotation Smart (Endast turhållare, rättviseviktad)",
+        "rotation_primary_standby": "Primär och standby (Primär standardtur, standby när det är möjligt)"
+      }
+    },
+    "standby_claim_mode": {
+      "options": {
+        "anytime": "När som helst (standby kan göra anspråk omedelbart)",
+        "on_overdue": "Försenad (i standby-läge kan man begära när förfallet är försenat)",
+        "manual_only": "Endast manuell (administratören måste tilldela tur)"
       }
     },
     "approval_reset_type": {
@@ -2263,7 +2283,7 @@
     },
     "pause_user_chores": {
       "name": "Pausa användarens sysslor",
-      "description": "Pausa eller återuppta sysslobearbetning för en användare.",
+      "description": "Pausa eller återuppta sysslobearbetning för en användare. Vid återupptagning styr unpause_action om förfallna sysslor schemaläggs om för att förhindra omedelbara försenade övergångar.",
       "fields": {
         "config_entry_id": {
           "name": "Konfigurationspost-ID (valfritt)",
@@ -2289,6 +2309,11 @@
           "name": "Pausad tills",
           "description": "Valfritt återlämningsdatum. Om det är inställt återupptas sysslor automatiskt vid midnatt efter detta datum.",
           "example": "2026-06-10T00:00:00+00:00"
+        },
+        "unpause_action": {
+          "name": "Återuppta åtgärden",
+          "description": "Gäller endast när paused=false. Styr om förfallna sysslor schemaläggs om under återuppta paus. Standard: återuppta paus (ingen omplanering).",
+          "example": "unpause_shift_oberoende"
         }
       }
     },
@@ -2713,6 +2738,10 @@
           "name": "Förskjutning av förfallna påminnelser",
           "description": "Tid före förfallodatum för att skicka påminnelsemeddelande. Format: '30m', '1h', '1d 6h 30m', etc. Använd '0' för att inaktivera påminnelser.",
           "example": "30m"
+        },
+        "standby_claim_mode": {
+          "name": "Standby-anspråksläge",
+          "description": "Styr när reservpersoner kan göra anspråk på den här uppgiften (när som helst, on_forfallodatum, manual_only). Gäller endast för Primära och Standby-slutförandekriterier."
         }
       }
     },
@@ -2819,6 +2848,10 @@
           "name": "Tilldelningsåtgärd",
           "description": "Hur man hanterar listan assigned_user_names. 'replace' ställer in listan direkt (standard, bakåtkompatibel). 'add' lägger till de listade användarna till befintliga tilldelade. 'remove' tar bort de listade användarna från befintliga tilldelade.",
           "example": "tillägga"
+        },
+        "standby_claim_mode": {
+          "name": "Standby-anspråksläge",
+          "description": "Styr när reservpersoner kan göra anspråk på den här uppgiften (när som helst, on_forfallodatum, manual_only). Gäller endast för Primära och Standby-slutförandekriterier."
         }
       }
     },
@@ -2850,7 +2883,7 @@
     },
     "set_rotation_turn": {
       "name": "Ställ in rotation Vrid",
-      "description": "Tilldela manuellt den aktuella turen till en specifik tilldelad person i en rotationsuppgift. Fungerar endast för rotationsuppgiftar (rotation_simple eller rotation_smart). Använd antingen ID eller namn för identifiering.",
+      "description": "Tilldela manuellt den aktuella turen till en specifik tilldelad person i en rotationsuppgift. Fungerar endast för rotationsuppgiftar (rotation_simple, rotation_smart eller rotation_primary_standby). Använd antingen ID eller namn för identifiering.",
       "fields": {
         "config_entry_id": {
           "name": "Konfigurationspost-ID (valfritt)",
@@ -2886,7 +2919,7 @@
     },
     "reset_rotation": {
       "name": "Återställ rotation",
-      "description": "Återställ rotationsturen till den först tilldelade personen. Fungerar endast för rotationssysslor (rotation_simple eller rotation_smart). Använd antingen ID eller namn för identifiering.",
+      "description": "Återställ rotationsvängen till den först tilldelade personen. Fungerar endast för rotationssysslor (rotation_simple, rotation_smart eller rotation_primary_standby). Använd antingen ID eller namn för identifiering.",
       "fields": {
         "config_entry_id": {
           "name": "Konfigurationspost-ID (valfritt)",
@@ -3138,7 +3171,7 @@
     },
     "reschedule_chores_after": {
       "name": "Omplanera sysslor efteråt",
-      "description": "Schemalägg om en eller flera sysslor så att deras nästa förfallodatum infaller efter det angivna datumet och tiden. Återkommande sysslor flyttas till nästa schemalagda händelse efter gränsen. Icke-återkommande sysslor som förfaller på eller före gränsen flyttas till gränsen om inte skip_non_recurring är aktiverat. Delade sysslor hoppas över om inte reschedule_shared är aktiverat.",
+      "description": "Schemalägg om förfallodatum för sysslor så att de infaller efter det angivna datumet. Tre oberoende växlar styr vilka sysslotyper som omschemaläggs: reschedule_independent (standard sant), reschedule_primary_standby (standard sant), reschedule_shared (standard falskt).",
       "fields": {
         "config_entry_id": {
           "name": "Konfigurationspost-ID (valfritt)",
@@ -3171,9 +3204,19 @@
           "name": "Användarnamn",
           "description": "Valfri lista över tilldelades namn för att begränsa oberoende sysslouppdateringar när user_id:n inte anges."
         },
+        "reschedule_independent": {
+          "name": "Omplanera oberoende sysslor",
+          "description": "Inkludera oberoende (förfallodatum per tilldelad) sysslor. Standardvärde sant.",
+          "example": "sann"
+        },
+        "reschedule_primary_standby": {
+          "name": "Omplanera primär och standby",
+          "description": "Inkludera primära standby-sysslor. Standardvärde sant.",
+          "example": "sann"
+        },
         "reschedule_shared": {
           "name": "Omplanera delade sysslor",
-          "description": "Aktivera detta för att tillåta att delade och roterande sysslor omschemaläggs. Detta påverkar alla tilldelade på dessa sysslor.",
+          "description": "Inkludera delade och roterande (enkla/smarta) sysslor. Detta påverkar alla tilldelade på dessa sysslor. Standardvärde falskt.",
           "example": "falsk"
         },
         "skip_non_recurring": {
@@ -3268,6 +3311,7 @@
           "completed_by_other": "Slutförd av Annan",
           "waiting": "Väntar (förfallofönstret är inte öppet)",
           "not_my_turn": "Inte min tur (rotation)",
+          "standby": "Standby",
           "missed": "Missad (Låst)",
           "paused": "Pausad"
         },
@@ -3306,7 +3350,8 @@
               "shared_first": "Delad (först)",
               "shared_all": "Delad (alla)",
               "rotation_simple": "Rotation Enkel",
-              "rotation_smart": "Rotationssmart"
+              "rotation_smart": "Rotationssmart",
+              "rotation_primary_standby": "Primär och standby"
             }
           },
           "approval_reset_type": {
@@ -3516,6 +3561,8 @@
               "blocked_pending_claim": "Väntande anspråk",
               "blocked_waiting_window": "Väntar på förfallofönstret",
               "blocked_not_my_turn": "Inte din tur",
+              "blocked_standby": "Du väntar på den här sysslan",
+              "standby_available": "Standby — du kan göra anspråk på den här sysslan",
               "blocked_missed_locked": "Missad och låst",
               "blocked_paused": "Sysslor är pausade för den här användaren"
             }
@@ -3525,6 +3572,13 @@
           },
           "available_at": {
             "name": "Tillgänglig på"
+          },
+          "rotation_cycle_override": {
+            "name": "Åsidosättning av rotationscykel",
+            "state": {
+              "true": "Öppet för alla",
+              "false": "Normal rotation"
+            }
           }
         }
       },
@@ -4220,7 +4274,8 @@
               "shared_first": "Delad (endast första)",
               "shared_all": "Delat (alla obligatoriska)",
               "rotation_simple": "Rotation Enkel",
-              "rotation_smart": "Rotationssmart"
+              "rotation_smart": "Rotationssmart",
+              "rotation_primary_standby": "Primär och standby"
             }
           },
           "approval_reset_type": {
@@ -5332,6 +5387,9 @@
     },
     "chore_not_my_turn": {
       "message": "Denna syssla är rotationslåst. Det är för närvarande en annan tilldelads tur."
+    },
+    "chore_standby": {
+      "message": "Du är reserv för {chore_name}. Den primära tilldelade har det första ansvaret."
     },
     "chore_missed_locked": {
       "message": "Den här sysslan är markerad som missad och låst för den aktuella cykeln."

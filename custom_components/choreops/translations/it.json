@@ -148,15 +148,17 @@
               "icon": "📋 Icona (mdi:xxx)",
               "default_points": "💰 Punti assegnati",
               "assigned_user_ids": "👥 Assegnato a",
-              "completion_criteria": "👥 Criteri di completamento"
+              "completion_criteria": "👥 Criteri di completamento",
+              "standby_claim_mode": "🔑 Modalità di richiesta in standby"
             },
             "data_description": {
               "name": "Nome univoco visualizzato in tutto il sistema.",
               "chore_description": "Istruzioni o dettagli facoltativi su come completare questa attività.",
               "icon": "Icona Material Design (ad esempio, mdi:scopa, mdi:lavastoviglie).",
               "default_points": "Punti guadagnati al completamento.",
-              "assigned_user_ids": "Incaricati che possono visualizzare e richiedere questo incarico.",
-              "completion_criteria": "Controlla la modalità di completamento dell'attività quando sono assegnati più incaricati: monitoraggio individuale, completamento condiviso o rotazione a turni."
+              "assigned_user_ids": "Incaricati che possono visualizzare e rivendicare questo compito. Per i compiti a rotazione, l'ordine di assegnazione determina la sequenza dei turni. Per il compito principale e di riserva, il primo incaricato è il principale.",
+              "completion_criteria": "Controlla la modalità di completamento dell'attività quando sono assegnati più incaricati: monitoraggio individuale, completamento condiviso o rotazione a turni.",
+              "standby_claim_mode": "Controlla quando i dipendenti in standby possono rivendicare questa attività (in qualsiasi momento, in caso di ritardo, solo manualmente). Si applica solo ai criteri di completamento per i dipendenti primari e in standby."
             }
           },
           "section_schedule": {
@@ -229,7 +231,8 @@
           "chore_due_window_offset": "⏱️ Periodo di scadenza: Compensazione prima della data di scadenza",
           "chore_due_reminder_offset": "🔔 Promemoria scadenza: Compensazione prima della data di scadenza",
           "show_on_calendar": "📅 Mostra sul calendario?",
-          "chore_notifications": "🔔 Notifiche di eventi (facoltative)"
+          "chore_notifications": "🔔 Notifiche di eventi (facoltative)",
+          "standby_claim_mode": "🔑 Modalità di richiesta in standby"
         },
         "data_description": {
           "name": "Nome univoco visualizzato in tutto il sistema.",
@@ -237,7 +240,7 @@
           "icon": "Icona Material Design (ad esempio, mdi:scopa, mdi:lavastoviglie).",
           "chore_labels": "Etichette per organizzare le attività (ad esempio, 'cucina', 'esterno'). Lasciare vuoto se non necessario.",
           "default_points": "Punti guadagnati al completamento.",
-          "assigned_user_ids": "Incaricati che possono visualizzare e richiedere questo incarico.",
+          "assigned_user_ids": "Incaricati che possono visualizzare e rivendicare questo compito. Per i compiti a rotazione, l'ordine di assegnazione determina la sequenza dei turni. Per il compito principale e di riserva, il primo incaricato è il principale.",
           "completion_criteria": "Controlla la modalità di completamento dell'attività quando sono assegnati più incaricati: monitoraggio individuale, completamento condiviso o rotazione a turni.",
           "approval_reset_type": "Controlla quando si attiva il limite del ciclo di approvazione dell'attività (mezzanotte, data di scadenza, al completamento o attivazione manuale).",
           "approval_reset_pending_claim_action": "Ecco cosa succede alle richieste ancora in attesa di approvazione quando si verifica il ripristino del processo di approvazione.",
@@ -252,7 +255,8 @@
           "chore_due_window_offset": "Quando lo stato dell'attività cambia da In sospeso a Scaduto. Formato: '1d 6h 30m' o semplicemente '30' per i minuti. Inserisci '0' per disabilitare. Esempio: '1d' significa che l'attività viene visualizzata come 'Scaduto' 1 giorno prima della scadenza.",
           "chore_due_reminder_offset": "Quando inviare la notifica di promemoria. Formato: '1d 6h 30m' o semplicemente '30' per i minuti. Predefinito: 30m (30 minuti prima della scadenza). Inserire '0' per disabilitare.",
           "show_on_calendar": "Visualizza quest'attività nella vista calendario.",
-          "chore_notifications": "Quando inviare le notifiche: in caso di richiesta, di approvazione, di rifiuto o in qualsiasi combinazione di questi momenti."
+          "chore_notifications": "Quando inviare le notifiche: in caso di richiesta, di approvazione, di rifiuto o in qualsiasi combinazione di questi momenti.",
+          "standby_claim_mode": "Controlla quando i dipendenti in standby possono rivendicare questa attività (in qualsiasi momento, in caso di ritardo, solo manualmente). Si applica solo ai criteri di completamento per i dipendenti primari e in standby."
         }
       },
       "badge_count": {
@@ -639,15 +643,17 @@
               "icon": "📋 Icona (mdi:xxx)",
               "default_points": "💰 Punti assegnati",
               "assigned_user_ids": "👥 Assegnato a",
-              "completion_criteria": "👥 Criteri di completamento"
+              "completion_criteria": "👥 Criteri di completamento",
+              "standby_claim_mode": "🔑 Modalità di richiesta in standby"
             },
             "data_description": {
               "name": "Nome univoco visualizzato in tutto il sistema.",
               "chore_description": "Istruzioni o dettagli facoltativi su come completare questa attività.",
               "icon": "Icona Material Design (ad esempio, mdi:scopa, mdi:lavastoviglie).",
               "default_points": "Punti guadagnati al completamento.",
-              "assigned_user_ids": "Incaricati che possono visualizzare e richiedere questo incarico.",
-              "completion_criteria": "Controlla la modalità di completamento dell'attività quando sono assegnati più incaricati: monitoraggio individuale, completamento condiviso o rotazione a turni."
+              "assigned_user_ids": "Incaricati che possono visualizzare e rivendicare questo compito. Per i compiti a rotazione, l'ordine di assegnazione determina la sequenza dei turni. Per il compito principale e di riserva, il primo incaricato è il principale.",
+              "completion_criteria": "Controlla la modalità di completamento dell'attività quando sono assegnati più incaricati: monitoraggio individuale, completamento condiviso o rotazione a turni.",
+              "standby_claim_mode": "Controlla quando i dipendenti in standby possono rivendicare questa attività (in qualsiasi momento, in caso di ritardo, solo manualmente). Si applica solo ai criteri di completamento per i dipendenti primari e in standby."
             }
           },
           "section_schedule": {
@@ -721,7 +727,8 @@
           "chore_due_window_offset": "⏱️ Periodo di scadenza: Compensazione prima della data di scadenza",
           "chore_due_reminder_offset": "🔔 Promemoria scadenza: Compensazione prima della data di scadenza",
           "show_on_calendar": "📅 Mostra sul calendario?",
-          "chore_notifications": "🔔 Notifiche di eventi (facoltative)"
+          "chore_notifications": "🔔 Notifiche di eventi (facoltative)",
+          "standby_claim_mode": "🔑 Modalità di richiesta in standby"
         },
         "data_description": {
           "name": "Nome univoco visualizzato in tutto il sistema.",
@@ -729,7 +736,7 @@
           "icon": "Icona Material Design (ad esempio, mdi:scopa, mdi:lavastoviglie).",
           "chore_labels": "Etichette per organizzare le attività (ad esempio, 'cucina', 'esterno'). Lasciare vuoto se non necessario.",
           "default_points": "Punti guadagnati al completamento.",
-          "assigned_user_ids": "Incaricati che possono visualizzare e richiedere questo incarico.",
+          "assigned_user_ids": "Incaricati che possono visualizzare e rivendicare questo compito. Per i compiti a rotazione, l'ordine di assegnazione determina la sequenza dei turni. Per il compito principale e di riserva, il primo incaricato è il principale.",
           "completion_criteria": "Controlla la modalità di completamento dell'attività quando sono assegnati più incaricati: monitoraggio individuale, completamento condiviso o rotazione a turni.",
           "approval_reset_type": "Controlla quando si attiva il limite del ciclo di approvazione dell'attività (mezzanotte, data di scadenza, al completamento o attivazione manuale).",
           "approval_reset_pending_claim_action": "Controlla cosa succede alle richieste non approvate quando si attiva il ripristino del limite di approvazione.",
@@ -745,7 +752,8 @@
           "chore_due_window_offset": "Quando lo stato dell'attività cambia da In sospeso a Scaduto. Formato: '1d 6h 30m' o semplicemente '30' per i minuti. Inserisci '0' per disabilitare. Esempio: '1d' significa che l'attività viene visualizzata come 'Scaduto' 1 giorno prima della scadenza.",
           "chore_due_reminder_offset": "Quando inviare la notifica di promemoria. Formato: '1d 6h 30m' o semplicemente '30' per i minuti. Predefinito: 30m (30 minuti prima della scadenza). Inserire '0' per disabilitare.",
           "show_on_calendar": "Visualizza quest'attività nella vista calendario.",
-          "chore_notifications": "Quando inviare le notifiche: in caso di richiesta, di approvazione, di rifiuto o in qualsiasi combinazione di questi momenti."
+          "chore_notifications": "Quando inviare le notifiche: in caso di richiesta, di approvazione, di rifiuto o in qualsiasi combinazione di questi momenti.",
+          "standby_claim_mode": "Controlla quando i dipendenti in standby possono rivendicare questa attività (in qualsiasi momento, in caso di ritardo, solo manualmente). Si applica solo ai criteri di completamento per i dipendenti primari e in standby."
         }
       },
       "add_badge": {
@@ -1079,15 +1087,17 @@
               "icon": "📋 Icona (mdi:xxx)",
               "default_points": "💰 Punti assegnati",
               "assigned_user_ids": "👥 Assegnato a",
-              "completion_criteria": "👥 Criteri di completamento"
+              "completion_criteria": "👥 Criteri di completamento",
+              "standby_claim_mode": "🔑 Modalità di richiesta in standby"
             },
             "data_description": {
               "name": "Nome univoco visualizzato in tutto il sistema.",
               "chore_description": "Istruzioni o dettagli facoltativi su come completare questa attività.",
               "icon": "Icona Material Design (ad esempio, mdi:scopa, mdi:lavastoviglie).",
               "default_points": "Punti guadagnati al completamento.",
-              "assigned_user_ids": "Incaricati che possono visualizzare e richiedere questo incarico.",
-              "completion_criteria": "Controlla la modalità di completamento dell'attività quando sono assegnati più incaricati: monitoraggio individuale, completamento condiviso o rotazione a turni."
+              "assigned_user_ids": "Incaricati che possono visualizzare e rivendicare questo compito. Per i compiti a rotazione, l'ordine di assegnazione determina la sequenza dei turni. Per il compito principale e di riserva, il primo incaricato è il principale.",
+              "completion_criteria": "Controlla la modalità di completamento dell'attività quando sono assegnati più incaricati: monitoraggio individuale, completamento condiviso o rotazione a turni.",
+              "standby_claim_mode": "Controlla quando i dipendenti in standby possono rivendicare questa attività (in qualsiasi momento, in caso di ritardo, solo manualmente). Si applica solo ai criteri di completamento per i dipendenti primari e in standby."
             }
           },
           "section_schedule": {
@@ -1162,7 +1172,8 @@
           "chore_due_window_offset": "⏱️ Periodo di scadenza: Compensazione prima della data di scadenza",
           "chore_due_reminder_offset": "🔔 Promemoria scadenza: Compensazione prima della data di scadenza",
           "show_on_calendar": "📅 Mostra sul calendario?",
-          "chore_notifications": "🔔 Notifiche di eventi (facoltative)"
+          "chore_notifications": "🔔 Notifiche di eventi (facoltative)",
+          "standby_claim_mode": "🔑 Modalità di richiesta in standby"
         },
         "data_description": {
           "name": "Nome univoco visualizzato in tutto il sistema.",
@@ -1170,7 +1181,7 @@
           "icon": "Icona Material Design (ad esempio, mdi:scopa, mdi:lavastoviglie).",
           "chore_labels": "Etichette per organizzare le attività (ad esempio, 'cucina', 'esterno'). Lasciare vuoto se non necessario.",
           "default_points": "Punti guadagnati al completamento.",
-          "assigned_user_ids": "Incaricati che possono visualizzare e richiedere questo incarico.",
+          "assigned_user_ids": "Incaricati che possono visualizzare e rivendicare questo compito. Per i compiti a rotazione, l'ordine di assegnazione determina la sequenza dei turni. Per il compito principale e di riserva, il primo incaricato è il principale.",
           "completion_criteria": "Controlla la modalità di completamento dell'attività quando sono assegnati più incaricati: monitoraggio individuale, completamento condiviso o rotazione a turni.",
           "approval_reset_type": "Controlla quando si attiva il limite del ciclo di approvazione dell'attività (mezzanotte, data di scadenza, al completamento o attivazione manuale).",
           "approval_reset_pending_claim_action": "Controlla cosa succede alle richieste non approvate quando si attiva il ripristino del limite di approvazione.",
@@ -1186,7 +1197,8 @@
           "chore_due_window_offset": "Quando lo stato dell'attività cambia da In sospeso a Scaduto. Formato: '1d 6h 30m' o semplicemente '30' per i minuti. Inserisci '0' per disabilitare. Esempio: '1d' significa che l'attività viene visualizzata come 'Scaduto' 1 giorno prima della scadenza.",
           "chore_due_reminder_offset": "Quando inviare la notifica di promemoria. Formato: '1d 6h 30m' o semplicemente '30' per i minuti. Predefinito: 30m (30 minuti prima della scadenza). Inserire '0' per disabilitare.",
           "show_on_calendar": "Visualizza quest'attività nella vista calendario.",
-          "chore_notifications": "Quando inviare le notifiche: in caso di richiesta, di approvazione, di rifiuto o in qualsiasi combinazione di questi momenti."
+          "chore_notifications": "Quando inviare le notifiche: in caso di richiesta, di approvazione, di rifiuto o in qualsiasi combinazione di questi momenti.",
+          "standby_claim_mode": "Controlla quando i dipendenti in standby possono rivendicare questa attività (in qualsiasi momento, in caso di ritardo, solo manualmente). Si applica solo ai criteri di completamento per i dipendenti primari e in standby."
         }
       },
       "edit_chore_per_user_dates": {
@@ -2056,7 +2068,15 @@
         "independent": "Lavoro autonomo (ogni incaricato completa il compito in modo indipendente)",
         "shared_first": "Condivisione prioritaria (conta il primo completamento)",
         "rotation_simple": "Rotazione semplice (solo per chi tiene il turno, ordine rigoroso)",
-        "rotation_smart": "Rotazione intelligente (solo per chi tiene il volante, ponderata in base all'equità)"
+        "rotation_smart": "Rotazione intelligente (solo per chi tiene il volante, ponderata in base all'equità)",
+        "rotation_primary_standby": "Primario e di riserva (turno primario predefinito, di riserva quando disponibile)"
+      }
+    },
+    "standby_claim_mode": {
+      "options": {
+        "anytime": "In qualsiasi momento (chi è in lista d'attesa può reclamare immediatamente)",
+        "on_overdue": "In ritardo (il cliente in standby può richiedere il rimborso in caso di ritardo)",
+        "manual_only": "Solo manuale (l'amministratore deve assegnare il turno)"
       }
     },
     "approval_reset_type": {
@@ -2263,7 +2283,7 @@
     },
     "pause_user_chores": {
       "name": "Metti in pausa le attività dell'utente",
-      "description": "Metti in pausa o riprendi l'elaborazione di un'attività per un utente.",
+      "description": "Metti in pausa o riprendi l'elaborazione delle attività per un utente. Quando riprendi, unpause_action controlla se le attività in ritardo vengono riprogrammate per evitare transizioni immediate al ritardo.",
       "fields": {
         "config_entry_id": {
           "name": "ID voce di configurazione (facoltativo)",
@@ -2289,6 +2309,11 @@
           "name": "In pausa fino a",
           "description": "Data di rientro facoltativa. Se impostata, le pulizie riprenderanno automaticamente a mezzanotte successiva a tale data.",
           "example": "2026-06-10T00:00:00+00:00"
+        },
+        "unpause_action": {
+          "name": "Riprendi l'azione",
+          "description": "Si applica solo quando paused=false. Controlla se le attività in ritardo vengono riprogrammate durante la ripresa. Predefinito: ripresa (nessuna riprogrammazione).",
+          "example": "unpause_shift_independent"
         }
       }
     },
@@ -2713,6 +2738,10 @@
           "name": "Compensazione del promemoria dovuto",
           "description": "Durata prima della data di scadenza per l'invio della notifica di promemoria. Formato: '30m', '1h', '1d 6h 30m', ecc. Utilizzare '0' per disattivare i promemoria.",
           "example": "30 metri"
+        },
+        "standby_claim_mode": {
+          "name": "Modalità di richiesta in standby",
+          "description": "Controlla quando i dipendenti in standby possono rivendicare questa attività (in qualsiasi momento, in caso di ritardo, solo manualmente). Si applica solo ai criteri di completamento per i dipendenti primari e in standby."
         }
       }
     },
@@ -2819,6 +2848,10 @@
           "name": "Azione di assegnazione",
           "description": "Come gestire l'elenco assigned_user_names. 'replace' imposta direttamente l'elenco (impostazione predefinita, retrocompatibile). 'add' aggiunge gli utenti elencati agli assegnatari esistenti. 'remove' rimuove gli utenti elencati dagli assegnatari esistenti.",
           "example": "aggiungere"
+        },
+        "standby_claim_mode": {
+          "name": "Modalità di richiesta in standby",
+          "description": "Controlla quando i dipendenti in standby possono rivendicare questa attività (in qualsiasi momento, in caso di ritardo, solo manualmente). Si applica solo ai criteri di completamento per i dipendenti primari e in standby."
         }
       }
     },
@@ -2850,7 +2883,7 @@
     },
     "set_rotation_turn": {
       "name": "Imposta la rotazione",
-      "description": "Assegna manualmente il turno corrente a uno specifico responsabile in un'attività di rotazione. Funziona solo per le attività di rotazione (rotation_simple o rotation_smart). Utilizza l'ID o il nome per l'identificazione.",
+      "description": "Assegna manualmente il turno corrente a uno specifico responsabile in un'attività di rotazione. Funziona solo per le attività di rotazione (rotation_simple, rotation_smart o rotation_primary_standby). Utilizza l'ID o il nome per l'identificazione.",
       "fields": {
         "config_entry_id": {
           "name": "ID voce di configurazione (facoltativo)",
@@ -2886,7 +2919,7 @@
     },
     "reset_rotation": {
       "name": "Reimposta rotazione",
-      "description": "Reimposta il turno di rotazione al primo assegnato. Funziona solo per le mansioni di rotazione (rotazione semplice o rotazione intelligente). Utilizzare ID o nome per l'identificazione.",
+      "description": "Reimposta il turno di rotazione al primo assegnato. Funziona solo per le attività di rotazione (rotation_simple, rotation_smart o rotation_primary_standby). Utilizzare ID o nome per l'identificazione.",
       "fields": {
         "config_entry_id": {
           "name": "ID voce di configurazione (facoltativo)",
@@ -3138,7 +3171,7 @@
     },
     "reschedule_chores_after": {
       "name": "Riprogrammare le faccende domestiche dopo",
-      "description": "Ripianifica una o più attività in modo che la loro prossima data di scadenza cada dopo la data e l'ora specificate. Le attività ricorrenti vengono spostate alla successiva occorrenza programmata dopo il limite. Le attività non ricorrenti con scadenza entro o prima del limite vengono spostate al limite stesso, a meno che non sia abilitata l'opzione skip_non_recurring. Le attività condivise vengono saltate a meno che non sia abilitata l'opzione reschedule_shared.",
+      "description": "Ripianifica le scadenze delle faccende domestiche in modo che cadano dopo la data specificata. Tre opzioni indipendenti controllano quali tipi di faccende vengono riprogrammate: reschedule_independent (impostazione predefinita true), reschedule_primary_standby (impostazione predefinita true), reschedule_shared (impostazione predefinita false).",
       "fields": {
         "config_entry_id": {
           "name": "ID voce di configurazione (facoltativo)",
@@ -3171,9 +3204,19 @@
           "name": "Nomi utente",
           "description": "Elenco facoltativo di nomi degli assegnatari per limitare gli aggiornamenti indipendenti delle attività quando non vengono forniti gli ID utente."
         },
+        "reschedule_independent": {
+          "name": "Riprogrammare le faccende domestiche indipendenti",
+          "description": "Includi incarichi indipendenti (con scadenza per ciascun assegnato). Valore predefinito: true.",
+          "example": "VERO"
+        },
+        "reschedule_primary_standby": {
+          "name": "Riprogrammazione primaria e di riserva",
+          "description": "Includi le attività di standby primario. Valore predefinito: true.",
+          "example": "VERO"
+        },
         "reschedule_shared": {
           "name": "Riprogrammare le faccende domestiche condivise",
-          "description": "Attivando questa opzione, sarà possibile riprogrammare le attività condivise e a rotazione. Questa modifica avrà effetto su tutti gli incaricati di tali attività.",
+          "description": "Includi le attività condivise e a rotazione (semplici/intelligenti). Ciò influisce su tutti gli incaricati di tali attività. Valore predefinito: false.",
           "example": "falso"
         },
         "skip_non_recurring": {
@@ -3268,6 +3311,7 @@
           "completed_by_other": "Completato da Altri",
           "waiting": "In attesa (sportello chiuso)",
           "not_my_turn": "Non è il mio turno (rotazione)",
+          "standby": "Stand-by",
           "missed": "Mancato (Bloccato)",
           "paused": "In pausa"
         },
@@ -3306,7 +3350,8 @@
               "shared_first": "Condiviso (Primo)",
               "shared_all": "Condiviso (Tutti)",
               "rotation_simple": "Rotazione semplice",
-              "rotation_smart": "Rotazione intelligente"
+              "rotation_smart": "Rotazione intelligente",
+              "rotation_primary_standby": "Primario e di riserva"
             }
           },
           "approval_reset_type": {
@@ -3516,6 +3561,8 @@
               "blocked_pending_claim": "Richiesta in sospeso",
               "blocked_waiting_window": "In attesa della finestra temporale prevista",
               "blocked_not_my_turn": "Non è il tuo turno",
+              "blocked_standby": "Sei pronto per questo compito",
+              "standby_available": "Attendi: puoi occuparti di questa incombenza.",
               "blocked_missed_locked": "Mancato e bloccato",
               "blocked_paused": "Le attività sono sospese per questo utente"
             }
@@ -3525,6 +3572,13 @@
           },
           "available_at": {
             "name": "Disponibile presso"
+          },
+          "rotation_cycle_override": {
+            "name": "Sovrascrittura del ciclo di rotazione",
+            "state": {
+              "true": "Aperto a tutti",
+              "false": "Rotazione normale"
+            }
           }
         }
       },
@@ -4220,7 +4274,8 @@
               "shared_first": "Condiviso (solo la prima volta)",
               "shared_all": "Condiviso (Tutti i campi obbligatori)",
               "rotation_simple": "Rotazione semplice",
-              "rotation_smart": "Rotazione intelligente"
+              "rotation_smart": "Rotazione intelligente",
+              "rotation_primary_standby": "Primario e di riserva"
             }
           },
           "approval_reset_type": {
@@ -5332,6 +5387,9 @@
     },
     "chore_not_my_turn": {
       "message": "Questo compito è soggetto a rotazione. Al momento è il turno di un altro assegnato."
+    },
+    "chore_standby": {
+      "message": "Sei un utente di riserva per {chore_name}. L'assegnatario principale ha la priorità."
     },
     "chore_missed_locked": {
       "message": "Questo compito è stato contrassegnato come non svolto e bloccato per il ciclo corrente."

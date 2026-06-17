@@ -148,15 +148,17 @@
               "icon": "Ikona 📋 (mdi:xxx)",
               "default_points": "💰 Dodeljene točke",
               "assigned_user_ids": "👥 Dodeljeno komu",
-              "completion_criteria": "👥 Merila za dokončanje"
+              "completion_criteria": "👥 Merila za dokončanje",
+              "standby_claim_mode": "🔑 Način zahtevka v stanju pripravljenosti"
             },
             "data_description": {
               "name": "Enolično ime, prikazano po celotnem sistemu.",
               "chore_description": "Neobvezna navodila ali podrobnosti o tem, kako opraviti to opravilo.",
               "icon": "Ikone Material Design (npr. mdi:metla, mdi:pomivalni stroj).",
               "default_points": "Točke, pridobljene ob zaključku.",
-              "assigned_user_ids": "Dodeljene osebe, ki lahko vidijo in zahtevajo to opravilo.",
-              "completion_criteria": "Nadzira, kako se opravilo zaključi, ko je dodeljenih več dodeljevalcem: individualno sledenje, skupno dokončanje ali rotacija po vrsti."
+              "assigned_user_ids": "Dodeljene osebe, ki lahko vidijo in zahtevajo to opravilo. Pri rotacijskih opravilih vrstni red dodeljenih oseb določa vrstni red. Za primarne in rezervne opravila je prva dodeljena oseba primarna.",
+              "completion_criteria": "Nadzira, kako se opravilo zaključi, ko je dodeljenih več dodeljevalcem: individualno sledenje, skupno dokončanje ali rotacija po vrsti.",
+              "standby_claim_mode": "Določa, kdaj lahko rezervni deli zahtevajo to opravilo (kadarkoli, ob_preteku_roka, samo_ročno). Velja samo za merila za dokončanje primarnega in rezervnega dela."
             }
           },
           "section_schedule": {
@@ -229,7 +231,8 @@
           "chore_due_window_offset": "⏱️ Rok: Poravnava pred rokom",
           "chore_due_reminder_offset": "🔔 Opomnik za zapadlost: Poravnava pred rokom",
           "show_on_calendar": "📅 Prikaži v koledarju?",
-          "chore_notifications": "🔔 Obvestila o dogodkih (neobvezno)"
+          "chore_notifications": "🔔 Obvestila o dogodkih (neobvezno)",
+          "standby_claim_mode": "🔑 Način zahtevka v stanju pripravljenosti"
         },
         "data_description": {
           "name": "Enolično ime, prikazano po celotnem sistemu.",
@@ -237,7 +240,7 @@
           "icon": "Ikone Material Design (npr. mdi:metla, mdi:pomivalni stroj).",
           "chore_labels": "Oznake za organizacijo opravil (npr. »kuhinja«, »na prostem«). Če niso potrebne, pustite prazno.",
           "default_points": "Točke, pridobljene ob zaključku.",
-          "assigned_user_ids": "Dodeljene osebe, ki lahko vidijo in zahtevajo to opravilo.",
+          "assigned_user_ids": "Dodeljene osebe, ki lahko vidijo in zahtevajo to opravilo. Pri rotacijskih opravilih vrstni red dodeljenih oseb določa vrstni red. Za primarne in rezervne opravila je prva dodeljena oseba primarna.",
           "completion_criteria": "Nadzira, kako se opravilo zaključi, ko je dodeljenih več dodeljevalcem: individualno sledenje, skupno dokončanje ali rotacija po vrsti.",
           "approval_reset_type": "Določa, kdaj se sproži meja cikla odobritve opravila (polnoč, datum zapadlosti, ob zaključku ali ročno sprožitev).",
           "approval_reset_pending_claim_action": "To se zgodi z zahtevki, ki še čakajo na odobritev, ko pride do ponastavitve odobritve.",
@@ -252,7 +255,8 @@
           "chore_due_window_offset": "Ko se stanje opravila spremeni iz »V teku« v »Zakonito«. Oblika: »1d 6h 30m« ali samo »30« za minute. Za onemogočanje vnesite »0«. Primer: »1d« pomeni, da se opravilo prikaže kot »Zakonito« 1 dan pred rokom.",
           "chore_due_reminder_offset": "Kdaj poslati opomnik o zapadlosti. Oblika: »1d 6h 30m« ali samo »30« za minute. Privzeto: 30m (30 minut pred zapadlostjo). Za onemogočanje vnesite »0«.",
           "show_on_calendar": "Prikaži to opravilo v pogledu koledarja.",
-          "chore_notifications": "Kdaj poslati obvestila: Ob zahtevku, ob odobritvi, ob zavrnitvi ali kateri koli kombinaciji."
+          "chore_notifications": "Kdaj poslati obvestila: Ob zahtevku, ob odobritvi, ob zavrnitvi ali kateri koli kombinaciji.",
+          "standby_claim_mode": "Določa, kdaj lahko rezervni deli zahtevajo to opravilo (kadarkoli, ob_preteku_roka, samo_ročno). Velja samo za merila za dokončanje primarnega in rezervnega dela."
         }
       },
       "badge_count": {
@@ -639,15 +643,17 @@
               "icon": "Ikona 📋 (mdi:xxx)",
               "default_points": "💰 Dodeljene točke",
               "assigned_user_ids": "👥 Dodeljeno komu",
-              "completion_criteria": "👥 Merila za dokončanje"
+              "completion_criteria": "👥 Merila za dokončanje",
+              "standby_claim_mode": "🔑 Način zahtevka v stanju pripravljenosti"
             },
             "data_description": {
               "name": "Enolično ime, prikazano po celotnem sistemu.",
               "chore_description": "Neobvezna navodila ali podrobnosti o tem, kako opraviti to opravilo.",
               "icon": "Ikone Material Design (npr. mdi:metla, mdi:pomivalni stroj).",
               "default_points": "Točke, pridobljene ob zaključku.",
-              "assigned_user_ids": "Dodeljene osebe, ki lahko vidijo in zahtevajo to opravilo.",
-              "completion_criteria": "Nadzira, kako se opravilo zaključi, ko je dodeljenih več dodeljevalcem: individualno sledenje, skupno dokončanje ali rotacija po vrsti."
+              "assigned_user_ids": "Dodeljene osebe, ki lahko vidijo in zahtevajo to opravilo. Pri rotacijskih opravilih vrstni red dodeljenih oseb določa vrstni red. Za primarne in rezervne opravila je prva dodeljena oseba primarna.",
+              "completion_criteria": "Nadzira, kako se opravilo zaključi, ko je dodeljenih več dodeljevalcem: individualno sledenje, skupno dokončanje ali rotacija po vrsti.",
+              "standby_claim_mode": "Določa, kdaj lahko rezervni deli zahtevajo to opravilo (kadarkoli, ob_preteku_roka, samo_ročno). Velja samo za merila za dokončanje primarnega in rezervnega dela."
             }
           },
           "section_schedule": {
@@ -721,7 +727,8 @@
           "chore_due_window_offset": "⏱️ Rok: Poravnava pred rokom",
           "chore_due_reminder_offset": "🔔 Opomnik za zapadlost: Poravnava pred rokom",
           "show_on_calendar": "📅 Prikaži v koledarju?",
-          "chore_notifications": "🔔 Obvestila o dogodkih (neobvezno)"
+          "chore_notifications": "🔔 Obvestila o dogodkih (neobvezno)",
+          "standby_claim_mode": "🔑 Način zahtevka v stanju pripravljenosti"
         },
         "data_description": {
           "name": "Enolično ime, prikazano po celotnem sistemu.",
@@ -729,7 +736,7 @@
           "icon": "Ikone Material Design (npr. mdi:metla, mdi:pomivalni stroj).",
           "chore_labels": "Oznake za organizacijo opravil (npr. »kuhinja«, »na prostem«). Če niso potrebne, pustite prazno.",
           "default_points": "Točke, pridobljene ob zaključku.",
-          "assigned_user_ids": "Dodeljene osebe, ki lahko vidijo in zahtevajo to opravilo.",
+          "assigned_user_ids": "Dodeljene osebe, ki lahko vidijo in zahtevajo to opravilo. Pri rotacijskih opravilih vrstni red dodeljenih oseb določa vrstni red. Za primarne in rezervne opravila je prva dodeljena oseba primarna.",
           "completion_criteria": "Nadzira, kako se opravilo zaključi, ko je dodeljenih več dodeljevalcem: individualno sledenje, skupno dokončanje ali rotacija po vrsti.",
           "approval_reset_type": "Določa, kdaj se sproži meja cikla odobritve opravila (polnoč, datum zapadlosti, ob zaključku ali ročno sprožitev).",
           "approval_reset_pending_claim_action": "Nadzira, kaj se zgodi z neodobrenimi zahtevki, ko se sproži meja ponastavitve odobritve.",
@@ -745,7 +752,8 @@
           "chore_due_window_offset": "Ko se stanje opravila spremeni iz »V teku« v »Zakonito«. Oblika: »1d 6h 30m« ali samo »30« za minute. Za onemogočanje vnesite »0«. Primer: »1d« pomeni, da se opravilo prikaže kot »Zakonito« 1 dan pred rokom.",
           "chore_due_reminder_offset": "Kdaj poslati opomnik o zapadlosti. Oblika: »1d 6h 30m« ali samo »30« za minute. Privzeto: 30m (30 minut pred zapadlostjo). Za onemogočanje vnesite »0«.",
           "show_on_calendar": "Prikaži to opravilo v pogledu koledarja.",
-          "chore_notifications": "Kdaj poslati obvestila: Ob zahtevku, ob odobritvi, ob zavrnitvi ali kateri koli kombinaciji."
+          "chore_notifications": "Kdaj poslati obvestila: Ob zahtevku, ob odobritvi, ob zavrnitvi ali kateri koli kombinaciji.",
+          "standby_claim_mode": "Določa, kdaj lahko rezervni deli zahtevajo to opravilo (kadarkoli, ob_preteku_roka, samo_ročno). Velja samo za merila za dokončanje primarnega in rezervnega dela."
         }
       },
       "add_badge": {
@@ -1079,15 +1087,17 @@
               "icon": "Ikona 📋 (mdi:xxx)",
               "default_points": "💰 Dodeljene točke",
               "assigned_user_ids": "👥 Dodeljeno komu",
-              "completion_criteria": "👥 Merila za dokončanje"
+              "completion_criteria": "👥 Merila za dokončanje",
+              "standby_claim_mode": "🔑 Način zahtevka v stanju pripravljenosti"
             },
             "data_description": {
               "name": "Enolično ime, prikazano po celotnem sistemu.",
               "chore_description": "Neobvezna navodila ali podrobnosti o tem, kako opraviti to opravilo.",
               "icon": "Ikone Material Design (npr. mdi:metla, mdi:pomivalni stroj).",
               "default_points": "Točke, pridobljene ob zaključku.",
-              "assigned_user_ids": "Dodeljene osebe, ki lahko vidijo in zahtevajo to opravilo.",
-              "completion_criteria": "Nadzira, kako se opravilo zaključi, ko je dodeljenih več dodeljevalcem: individualno sledenje, skupno dokončanje ali rotacija po vrsti."
+              "assigned_user_ids": "Dodeljene osebe, ki lahko vidijo in zahtevajo to opravilo. Pri rotacijskih opravilih vrstni red dodeljenih oseb določa vrstni red. Za primarne in rezervne opravila je prva dodeljena oseba primarna.",
+              "completion_criteria": "Nadzira, kako se opravilo zaključi, ko je dodeljenih več dodeljevalcem: individualno sledenje, skupno dokončanje ali rotacija po vrsti.",
+              "standby_claim_mode": "Določa, kdaj lahko rezervni deli zahtevajo to opravilo (kadarkoli, ob_preteku_roka, samo_ročno). Velja samo za merila za dokončanje primarnega in rezervnega dela."
             }
           },
           "section_schedule": {
@@ -1162,7 +1172,8 @@
           "chore_due_window_offset": "⏱️ Rok: Poravnava pred rokom",
           "chore_due_reminder_offset": "🔔 Opomnik za zapadlost: Poravnava pred rokom",
           "show_on_calendar": "📅 Prikaži v koledarju?",
-          "chore_notifications": "🔔 Obvestila o dogodkih (neobvezno)"
+          "chore_notifications": "🔔 Obvestila o dogodkih (neobvezno)",
+          "standby_claim_mode": "🔑 Način zahtevka v stanju pripravljenosti"
         },
         "data_description": {
           "name": "Enolično ime, prikazano po celotnem sistemu.",
@@ -1170,7 +1181,7 @@
           "icon": "Ikone Material Design (npr. mdi:metla, mdi:pomivalni stroj).",
           "chore_labels": "Oznake za organizacijo opravil (npr. »kuhinja«, »na prostem«). Če niso potrebne, pustite prazno.",
           "default_points": "Točke, pridobljene ob zaključku.",
-          "assigned_user_ids": "Dodeljene osebe, ki lahko vidijo in zahtevajo to opravilo.",
+          "assigned_user_ids": "Dodeljene osebe, ki lahko vidijo in zahtevajo to opravilo. Pri rotacijskih opravilih vrstni red dodeljenih oseb določa vrstni red. Za primarne in rezervne opravila je prva dodeljena oseba primarna.",
           "completion_criteria": "Nadzira, kako se opravilo zaključi, ko je dodeljenih več dodeljevalcem: individualno sledenje, skupno dokončanje ali rotacija po vrsti.",
           "approval_reset_type": "Določa, kdaj se sproži meja cikla odobritve opravila (polnoč, datum zapadlosti, ob zaključku ali ročno sprožitev).",
           "approval_reset_pending_claim_action": "Nadzira, kaj se zgodi z neodobrenimi zahtevki, ko se sproži meja ponastavitve odobritve.",
@@ -1186,7 +1197,8 @@
           "chore_due_window_offset": "Ko se stanje opravila spremeni iz »V teku« v »Zakonito«. Oblika: »1d 6h 30m« ali samo »30« za minute. Za onemogočanje vnesite »0«. Primer: »1d« pomeni, da se opravilo prikaže kot »Zakonito« 1 dan pred rokom.",
           "chore_due_reminder_offset": "Kdaj poslati opomnik o zapadlosti. Oblika: »1d 6h 30m« ali samo »30« za minute. Privzeto: 30m (30 minut pred zapadlostjo). Za onemogočanje vnesite »0«.",
           "show_on_calendar": "Prikaži to opravilo v pogledu koledarja.",
-          "chore_notifications": "Kdaj poslati obvestila: Ob zahtevku, ob odobritvi, ob zavrnitvi ali kateri koli kombinaciji."
+          "chore_notifications": "Kdaj poslati obvestila: Ob zahtevku, ob odobritvi, ob zavrnitvi ali kateri koli kombinaciji.",
+          "standby_claim_mode": "Določa, kdaj lahko rezervni deli zahtevajo to opravilo (kadarkoli, ob_preteku_roka, samo_ročno). Velja samo za merila za dokončanje primarnega in rezervnega dela."
         }
       },
       "edit_chore_per_user_dates": {
@@ -2056,7 +2068,15 @@
         "independent": "Samostojno (vsak dodeljenec opravi samostojno)",
         "shared_first": "Deljeno prvo (šteje se prvo dokončanje)",
         "rotation_simple": "Preprosta rotacija (samo za imetnike zavihkov, strog vrstni red)",
-        "rotation_smart": "Pametna rotacija (samo za imetnike pravic, ponderirano glede na pravičnost)"
+        "rotation_smart": "Pametna rotacija (samo za imetnike pravic, ponderirano glede na pravičnost)",
+        "rotation_primary_standby": "Primarni in rezervni (primarni privzeti obrat, rezervni, ko je upravičen)"
+      }
+    },
+    "standby_claim_mode": {
+      "options": {
+        "anytime": "Kadarkoli (v stanju pripravljenosti lahko zahtevek uveljavlja takoj)",
+        "on_overdue": "Ob zapadlosti (v stanju pripravljenosti se lahko zahteva, ko je zapadlost zapadla)",
+        "manual_only": "Samo ročno (skrbnik mora dodeliti vrsto)"
       }
     },
     "approval_reset_type": {
@@ -2263,7 +2283,7 @@
     },
     "pause_user_chores": {
       "name": "Začasno ustavi uporabnikova opravila",
-      "description": "Začasno ustavite ali nadaljujte obdelavo opravil za uporabnika.",
+      "description": "Začasno ustavi ali ponovno začasno ustavi obdelavo opravil za uporabnika. Pri preklicu začasne ustavitve unpause_action nadzoruje, ali se zamujena opravila prerazporedijo, da se preprečijo takojšnji prehodi zaradi zamujenega roka.",
       "fields": {
         "config_entry_id": {
           "name": "ID vnosa konfiguracije (neobvezno)",
@@ -2289,6 +2309,11 @@
           "name": "Zaustavljeno do",
           "description": "Neobvezen datum vrnitve. Če je nastavljen, se opravila samodejno nadaljujejo ob polnoči po tem datumu.",
           "example": "2026-06-10T00:00:00+00:00"
+        },
+        "unpause_action": {
+          "name": "Prekliči dejanje",
+          "description": "Velja samo, če je paused=false. Določa, ali se zamujena opravila med prekinitvijo prerazporedijo. Privzeto: prekini (brez prerazporeditve).",
+          "example": "neodvisno_od_premika_unpause"
         }
       }
     },
@@ -2713,6 +2738,10 @@
           "name": "Zamik opomnika za zapadlost",
           "description": "Trajanje pred datumom zapadlosti za pošiljanje opomnika. Oblika: '30 min', '1 ura', '1 dan 6 ur 30 min' itd. Za onemogočanje opomnikov uporabite '0'.",
           "example": "30 m"
+        },
+        "standby_claim_mode": {
+          "name": "Način zahtevka v stanju pripravljenosti",
+          "description": "Določa, kdaj lahko rezervni deli zahtevajo to opravilo (kadarkoli, ob_preteku_roka, samo_ročno). Velja samo za merila za dokončanje primarnega in rezervnega dela."
         }
       }
     },
@@ -2819,6 +2848,10 @@
           "name": "Dejanje dodelitve",
           "description": "Kako ravnati s seznamom assigned_user_names. »replace« nastavi seznam neposredno (privzeto, združljivo s prejšnjimi različicami). »add« doda navedene uporabnike obstoječim dodeljevalcem. »remove« odstrani navedene uporabnike iz obstoječih dodeljevalcev.",
           "example": "dodaj"
+        },
+        "standby_claim_mode": {
+          "name": "Način zahtevka v stanju pripravljenosti",
+          "description": "Določa, kdaj lahko rezervni deli zahtevajo to opravilo (kadarkoli, ob_preteku_roka, samo_ročno). Velja samo za merila za dokončanje primarnega in rezervnega dela."
         }
       }
     },
@@ -2850,7 +2883,7 @@
     },
     "set_rotation_turn": {
       "name": "Nastavi vrtenje",
-      "description": "Ročno dodelite trenutni vrstni red določenemu dodeljevalcu v rotacijskem opravilu. Deluje samo za rotacijska opravila (rotation_simple ali rotation_smart). Za identifikacijo uporabite ID ali ime.",
+      "description": "Ročno dodelite trenutni vrstni red določenemu dodeljevalcu v rotacijski nalogi. Deluje samo za rotacijske naloge (rotation_simple, rotation_smart ali rotation_primary_standby). Za identifikacijo uporabite ID ali ime.",
       "fields": {
         "config_entry_id": {
           "name": "ID vnosa konfiguracije (neobvezno)",
@@ -2886,7 +2919,7 @@
     },
     "reset_rotation": {
       "name": "Ponastavi vrtenje",
-      "description": "Ponastavi rotacijo na prvega dodeljenega prejemnika. Deluje samo za rotacijske naloge (rotation_simple ali rotation_smart). Za identifikacijo uporabite ID ali ime.",
+      "description": "Ponastavi rotacijo na prvo dodeljeno osebo. Deluje samo za rotacijske naloge (rotation_simple, rotation_smart ali rotation_primary_standby). Za identifikacijo uporabite ID ali ime.",
       "fields": {
         "config_entry_id": {
           "name": "ID vnosa konfiguracije (neobvezno)",
@@ -3138,7 +3171,7 @@
     },
     "reschedule_chores_after": {
       "name": "Prestavite opravila po",
-      "description": "Prestavite eno ali več opravil tako, da njihov naslednji rok pade po določenem datumu in uri. Ponavljajoča se opravila premaknejo na naslednjo načrtovano ponovitev po meji. Neponavljajoča se opravila, ki zapadejo na ali pred mejo, se premaknejo na mejo, razen če je omogočena možnost skip_non_recurring. Deljena opravila se preskočijo, razen če je omogočena možnost reschedule_shared.",
+      "description": "Prestavite roke opravil tako, da bodo po določenem datumu. Trije neodvisni preklopniki nadzorujejo, katere vrste opravil se prestavijo: reschedule_independent (privzeto true), reschedule_primary_standby (privzeto true) in reschedule_shared (privzeto false).",
       "fields": {
         "config_entry_id": {
           "name": "ID vnosa konfiguracije (neobvezno)",
@@ -3171,9 +3204,19 @@
           "name": "Uporabniška imena",
           "description": "Neobvezen seznam imen dodeljenih oseb za omejitev neodvisnih posodobitev opravil, če uporabniški ID-ji niso navedeni."
         },
+        "reschedule_independent": {
+          "name": "Prerazpored neodvisnih opravil",
+          "description": "Vključi neodvisna opravila (rok za vsako dodeljevalko). Privzeto je true.",
+          "example": "res"
+        },
+        "reschedule_primary_standby": {
+          "name": "Prerazporedite primarno in rezervno",
+          "description": "Vključi opravila primarne in rezervne enote. Privzeto je true.",
+          "example": "res"
+        },
         "reschedule_shared": {
           "name": "Prestavitev skupnih opravil",
-          "description": "Omogočite to možnost, da omogočite prerazporeditev deljenih in rotacijskih opravil. To vpliva na vse osebe, ki so jim dodeljena ta opravila.",
+          "description": "Vključi deljena in rotacijska (preprosta/pametna) opravila. To vpliva na vse dodeljevalce teh opravil. Privzeta vrednost je »false«.",
           "example": "lažno"
         },
         "skip_non_recurring": {
@@ -3268,6 +3311,7 @@
           "completed_by_other": "Dokončal nekdo drug",
           "waiting": "Čakanje (okno za prijavo ni odprto)",
           "not_my_turn": "Nisem na vrsti (rotacija)",
+          "standby": "V stanju pripravljenosti",
           "missed": "Zgrešeno (zaklenjeno)",
           "paused": "Zaustavljeno"
         },
@@ -3306,7 +3350,8 @@
               "shared_first": "Deljeno (prvo)",
               "shared_all": "Deljeno (vse)",
               "rotation_simple": "Preprosta rotacija",
-              "rotation_smart": "Pametno vrtenje"
+              "rotation_smart": "Pametno vrtenje",
+              "rotation_primary_standby": "Primarno in rezervno"
             }
           },
           "approval_reset_type": {
@@ -3516,6 +3561,8 @@
               "blocked_pending_claim": "Zahtevek v teku",
               "blocked_waiting_window": "Čakanje na zapadli okvir",
               "blocked_not_my_turn": "Nisi na vrsti",
+              "blocked_standby": "Pri tem opravilu čakaš ob strani",
+              "standby_available": "V pripravljenosti – lahko prevzamete to opravilo",
               "blocked_missed_locked": "Zgrešeno in zaklenjeno",
               "blocked_paused": "Opravila so za tega uporabnika zaustavljena"
             }
@@ -3525,6 +3572,13 @@
           },
           "available_at": {
             "name": "Na voljo na"
+          },
+          "rotation_cycle_override": {
+            "name": "Preglasitev rotacijskega cikla",
+            "state": {
+              "true": "Odprto za vse",
+              "false": "Normalno vrtenje"
+            }
           }
         }
       },
@@ -4220,7 +4274,8 @@
               "shared_first": "Deljeno (samo prvo)",
               "shared_all": "Deljeno (vse obvezno)",
               "rotation_simple": "Preprosta rotacija",
-              "rotation_smart": "Pametno vrtenje"
+              "rotation_smart": "Pametno vrtenje",
+              "rotation_primary_standby": "Primarno in rezervno"
             }
           },
           "approval_reset_type": {
@@ -5332,6 +5387,9 @@
     },
     "chore_not_my_turn": {
       "message": "To opravilo je zaklenjeno glede na rotacijo. Trenutno je na vrsti drug dodeljevalec."
+    },
+    "chore_standby": {
+      "message": "Ste rezervni igralec za {chore_name}. Primarni dodeljevalec ima prvo odgovornost."
     },
     "chore_missed_locked": {
       "message": "To opravilo je označeno kot zamujeno in zaklenjeno za trenutni cikel."
