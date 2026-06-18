@@ -970,6 +970,12 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             const.CFOF_USERS_INPUT_CAN_MANAGE: user_profile.get(
                 const.DATA_USER_CAN_MANAGE, False
             ),
+            const.CFOF_USERS_INPUT_NOTIF_CLICK_URL: user_profile.get(
+                const.DATA_USER_NOTIF_CLICK_URL, ""
+            ),
+            const.CFOF_USERS_INPUT_NOTIF_APPROVE_CLICK_URL: user_profile.get(
+                const.DATA_USER_NOTIF_APPROVE_CLICK_URL, ""
+            ),
         }
 
         # On validation error, merge user's attempted input with existing data

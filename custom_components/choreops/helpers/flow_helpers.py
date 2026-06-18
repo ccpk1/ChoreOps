@@ -595,6 +595,16 @@ def _validate_users_inputs_impl(
         data_dict[const.DATA_USER_CHORES_PAUSED_UNTIL] = user_input.get(
             const.CFOF_USERS_INPUT_CHORES_PAUSED_UNTIL
         )
+    if const.CFOF_USERS_INPUT_NOTIF_CLICK_URL in user_input:
+        data_dict[const.DATA_USER_NOTIF_CLICK_URL] = user_input.get(
+            const.CFOF_USERS_INPUT_NOTIF_CLICK_URL,
+            "",
+        )
+    if const.CFOF_USERS_INPUT_NOTIF_APPROVE_CLICK_URL in user_input:
+        data_dict[const.DATA_USER_NOTIF_APPROVE_CLICK_URL] = user_input.get(
+            const.CFOF_USERS_INPUT_NOTIF_APPROVE_CLICK_URL,
+            "",
+        )
 
     # Call shared validation (single source of truth)
     is_update = current_user_id is not None

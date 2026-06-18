@@ -712,6 +712,18 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
                             const.DEFAULT_DASHBOARD_LANGUAGE,
                         )
                     )
+                    assignee_projection[const.DATA_USER_NOTIF_CLICK_URL] = (
+                        user_profile_data.get(
+                            const.DATA_USER_NOTIF_CLICK_URL,
+                            "",
+                        )
+                    )
+                    assignee_projection[const.DATA_USER_NOTIF_APPROVE_CLICK_URL] = (
+                        user_profile_data.get(
+                            const.DATA_USER_NOTIF_APPROVE_CLICK_URL,
+                            "",
+                        )
+                    )
                     self._assignees_temp[internal_id] = assignee_projection
                 else:
                     self._assignees_temp.pop(internal_id, None)
