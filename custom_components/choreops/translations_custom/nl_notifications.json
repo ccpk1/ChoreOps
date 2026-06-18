@@ -30,6 +30,24 @@
     "title": "🎯 Klus die nu af moet",
     "message": "{chore_name} moet nu ingeleverd worden! Voltooi binnen {hours} uur om {points} te verdienen {points_label}"
   },
+  "chore_approved_assignee_no_points": {
+    "message": "{chore_name} goedgekeurd!"
+  },
+  "chore_overdue_assignee_no_points": {
+    "message": "{chore_name} is te laat! Maak het nu af!"
+  },
+  "chore_overdue_steal_available_no_points": {
+    "message": "{chore_name} is te laat en kan gestolen worden! Voltooi het eerst!"
+  },
+  "chore_standby_needed_no_points": {
+    "message": "De taak van {primary_name} {chore_name} is al lang geleden voltooid! Claim hem nu!"
+  },
+  "chore_due_reminder_assignee_no_points": {
+    "message": "{chore_name} is over {minutes} minuten verschuldigd!"
+  },
+  "chore_due_window_assignee_no_points": {
+    "message": "{chore_name} moet nu ingeleverd worden! Voltooi binnen {hours} uur(en)"
+  },
   "reward_approved_assignee": {
     "title": "🎉 Beloning goedgekeurd!",
     "message": "{reward_name} goedgekeurd!"

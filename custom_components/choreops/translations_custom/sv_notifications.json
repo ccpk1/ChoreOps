@@ -30,6 +30,24 @@
     "title": "🎯 Syssla ska vara klar nu",
     "message": "{chore_name} är nu förfallet! Slutför inom {hours} timme(r) för att tjäna {points} {points_label}"
   },
+  "chore_approved_assignee_no_points": {
+    "message": "{chore_name} godkänd!"
+  },
+  "chore_overdue_assignee_no_points": {
+    "message": "{chore_name} är försenad! Slutför det nu"
+  },
+  "chore_overdue_steal_available_no_points": {
+    "message": "{chore_name} är försenad och tillgänglig för stjälning! Slutför den först"
+  },
+  "chore_standby_needed_no_points": {
+    "message": "{primary_name}s syssla {chore_name} är försenad! Hämta den nu"
+  },
+  "chore_due_reminder_assignee_no_points": {
+    "message": "{chore_name} ska förfalla om {minutes} minuter!"
+  },
+  "chore_due_window_assignee_no_points": {
+    "message": "{chore_name} ska vara klar! Slutför inom {hours} timme(r)"
+  },
   "reward_approved_assignee": {
     "title": "🎉 Belöning godkänd!",
     "message": "{reward_name} godkänd!"

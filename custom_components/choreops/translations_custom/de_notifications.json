@@ -30,6 +30,24 @@
     "title": "🎯 Aufgabe jetzt fällig",
     "message": "{chore_name} ist jetzt fällig! Schließe es innerhalb von {hours} Stunden ab, um {points} {points_label} zu erhalten."
   },
+  "chore_approved_assignee_no_points": {
+    "message": "{chore_name} genehmigt!"
+  },
+  "chore_overdue_assignee_no_points": {
+    "message": "{chore_name} ist überfällig! Erledige es jetzt."
+  },
+  "chore_overdue_steal_available_no_points": {
+    "message": "{chore_name} ist überfällig und kann gestohlen werden! Erledige es zuerst."
+  },
+  "chore_standby_needed_no_points": {
+    "message": "{primary_name}s Aufgabe {chore_name} ist überfällig! Jetzt übernehmen!"
+  },
+  "chore_due_reminder_assignee_no_points": {
+    "message": "{chore_name} ist in {minutes} Minuten fällig!"
+  },
+  "chore_due_window_assignee_no_points": {
+    "message": "{chore_name} ist jetzt fällig! Innerhalb von {hours} Stunden abschließen."
+  },
   "reward_approved_assignee": {
     "title": "🎉 Belohnung genehmigt!",
     "message": "{reward_name} genehmigt!"

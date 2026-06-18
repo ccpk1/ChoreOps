@@ -30,6 +30,24 @@
     "title": "🎯 Tasca pendent",
     "message": "{chore_name} ja ha de ser! Completa-ho en {hours} hora(es) per guanyar {points} {points_label}"
   },
+  "chore_approved_assignee_no_points": {
+    "message": "{chore_name} aprovat!"
+  },
+  "chore_overdue_assignee_no_points": {
+    "message": "{chore_name} està endarrerit! Completa-ho ara."
+  },
+  "chore_overdue_steal_available_no_points": {
+    "message": "{chore_name} està endarrerit i disponible per robar! Completa-ho primer."
+  },
+  "chore_standby_needed_no_points": {
+    "message": "La tasca de {primary_name}, {chore_name} , està pendent! Reclama-la ara."
+  },
+  "chore_due_reminder_assignee_no_points": {
+    "message": "{chore_name} s'ha d'entregar en {minutes} minuts!"
+  },
+  "chore_due_window_assignee_no_points": {
+    "message": "{chore_name} ja ha de ser entregat! Completeu-ho en {hours} hora(es)"
+  },
   "reward_approved_assignee": {
     "title": "🎉 Recompensa aprovada!",
     "message": "{reward_name} aprovat!"

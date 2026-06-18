@@ -30,6 +30,24 @@
     "title": "🎯 Tarea pendiente",
     "message": "{chore_name} ¡Ya vence! Complétalo en {hours} hora(s) para ganar {points} {points_label}"
   },
+  "chore_approved_assignee_no_points": {
+    "message": "{chore_name} ¡aprobado!"
+  },
+  "chore_overdue_assignee_no_points": {
+    "message": "{chore_name} ¡Está vencido! Complétalo ahora."
+  },
+  "chore_overdue_steal_available_no_points": {
+    "message": "{chore_name} ¡Está vencido y disponible para robar! ¡Complétalo primero!"
+  },
+  "chore_standby_needed_no_points": {
+    "message": "¡La tarea de {primary_name} {chore_name} está vencida! Reclámala ahora."
+  },
+  "chore_due_reminder_assignee_no_points": {
+    "message": "{chore_name} vence en {minutes} minutos!"
+  },
+  "chore_due_window_assignee_no_points": {
+    "message": "{chore_name} ¡Ya vence! Completar en {hours} hora(s)"
+  },
   "reward_approved_assignee": {
     "title": "🎉 ¡Recompensa aprobada!",
     "message": "{reward_name} ¡aprobado!"

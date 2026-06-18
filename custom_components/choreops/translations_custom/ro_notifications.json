@@ -30,6 +30,24 @@
     "title": "🎯 Treabă acum scadentă",
     "message": "{chore_name} este acum scadent! Finalizați în {hours} oră (ore) pentru a câștiga {points} {points_label}"
   },
+  "chore_approved_assignee_no_points": {
+    "message": "{chore_name} aprobat!"
+  },
+  "chore_overdue_assignee_no_points": {
+    "message": "{chore_name} este întârziat! Completează-l acum"
+  },
+  "chore_overdue_steal_available_no_points": {
+    "message": "{chore_name} este întârziat și disponibil pentru furt! Completați-l mai întâi"
+  },
+  "chore_standby_needed_no_points": {
+    "message": "Sarcina lui {primary_name}, {chore_name} , este întârziată! Revendică-o acum."
+  },
+  "chore_due_reminder_assignee_no_points": {
+    "message": "{chore_name} se predă în {minutes} minute!"
+  },
+  "chore_due_window_assignee_no_points": {
+    "message": "Termen limită de livrare este {chore_name} ! Finalizează în {hours} oră(e)"
+  },
   "reward_approved_assignee": {
     "title": "🎉 Recompensă aprobată!",
     "message": "{reward_name} aprobat!"

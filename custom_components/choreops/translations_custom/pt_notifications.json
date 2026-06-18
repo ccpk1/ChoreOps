@@ -30,6 +30,24 @@
     "title": "🎯 Tarefa a fazer agora",
     "message": "{chore_name} já está disponível! Conclua em {hours} hora(s) para ganhar {points} {points_label}"
   },
+  "chore_approved_assignee_no_points": {
+    "message": "{chore_name} aprovado!"
+  },
+  "chore_overdue_assignee_no_points": {
+    "message": "{chore_name} está atrasado! Complete-o agora"
+  },
+  "chore_overdue_steal_available_no_points": {
+    "message": "{chore_name} está atrasado e disponível para roubar! Complete-o primeiro"
+  },
+  "chore_standby_needed_no_points": {
+    "message": "{primary_name}'s chore {chore_name} is overdue! Claim it now"
+  },
+  "chore_due_reminder_assignee_no_points": {
+    "message": "{chore_name} deve ser entregue em {minutes} minutos!"
+  },
+  "chore_due_window_assignee_no_points": {
+    "message": "{chore_name} já deve ser entregue! Concluir em {hours} hora(s)"
+  },
   "reward_approved_assignee": {
     "title": "🎉 Recompensa aprovada!",
     "message": "{reward_name} aprovado!"

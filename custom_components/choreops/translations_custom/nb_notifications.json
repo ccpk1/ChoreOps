@@ -30,6 +30,24 @@
     "title": "🎯 Gjøremål forfaller nå",
     "message": "{chore_name} forfaller nå! Fullfør innen {hours} time(r) for å tjene {points} {points_label}"
   },
+  "chore_approved_assignee_no_points": {
+    "message": "{chore_name} godkjent!"
+  },
+  "chore_overdue_assignee_no_points": {
+    "message": "{chore_name} er for sent ute! Fullfør nå"
+  },
+  "chore_overdue_steal_available_no_points": {
+    "message": "{chore_name} er for sent ute og tilgjengelig for å stjeles! Fullfør den først"
+  },
+  "chore_standby_needed_no_points": {
+    "message": "{primary_name}s gjøremål {chore_name} er for sent! Hent det nå"
+  },
+  "chore_due_reminder_assignee_no_points": {
+    "message": "{chore_name} forfaller om {minutes} minutter!"
+  },
+  "chore_due_window_assignee_no_points": {
+    "message": "{chore_name} forfaller nå! Fullfør innen {hours} time(r)"
+  },
   "reward_approved_assignee": {
     "title": "🎉 Belønning godkjent!",
     "message": "{reward_name} godkjent!"

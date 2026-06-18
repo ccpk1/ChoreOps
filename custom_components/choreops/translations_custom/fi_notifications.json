@@ -30,6 +30,24 @@
     "title": "🎯 Kotityön eräpäivä",
     "message": "{chore_name} erääntyy! Suorita {hours} tunnin sisällä ansaitaksesi {points} {points_label}"
   },
+  "chore_approved_assignee_no_points": {
+    "message": "{chore_name} hyväksytty!"
+  },
+  "chore_overdue_assignee_no_points": {
+    "message": "{chore_name} on myöhässä! Suorita se nyt"
+  },
+  "chore_overdue_steal_available_no_points": {
+    "message": "{chore_name} on myöhässä ja varastattavissa! Suorita se ensin"
+  },
+  "chore_standby_needed_no_points": {
+    "message": "{primary_name}:n tehtävä {chore_name} on myöhässä! Lunasta se nyt"
+  },
+  "chore_due_reminder_assignee_no_points": {
+    "message": "{chore_name} erääntyy {minutes} minuutin kuluttua!"
+  },
+  "chore_due_window_assignee_no_points": {
+    "message": "{chore_name} erääntyy! Tee se {hours} tunnin sisällä"
+  },
   "reward_approved_assignee": {
     "title": "🎉 Palkinto hyväksytty!",
     "message": "{reward_name} hyväksytty!"

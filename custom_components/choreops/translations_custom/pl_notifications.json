@@ -30,6 +30,24 @@
     "title": "🎯 Obowiązek domowy do oddania teraz",
     "message": "{chore_name} jest teraz należne! Wykonaj w ciągu {hours} godzin, aby zdobyć {points} {points_label}"
   },
+  "chore_approved_assignee_no_points": {
+    "message": "{chore_name} zatwierdzono!"
+  },
+  "chore_overdue_assignee_no_points": {
+    "message": "{chore_name} jest spóźniony! Dokończ teraz"
+  },
+  "chore_overdue_steal_available_no_points": {
+    "message": "{chore_name} jest przeterminowany i dostępny do kradzieży! Najpierw go ukończ."
+  },
+  "chore_standby_needed_no_points": {
+    "message": "Zadanie {primary_name} {chore_name} jest spóźnione! Odbierz je teraz"
+  },
+  "chore_due_reminder_assignee_no_points": {
+    "message": "{chore_name} ma się odbyć za {minutes} minut!"
+  },
+  "chore_due_window_assignee_no_points": {
+    "message": "{chore_name} jest teraz należne! Wykonaj w ciągu {hours} godzin"
+  },
   "reward_approved_assignee": {
     "title": "🎉 Nagroda zatwierdzona!",
     "message": "{reward_name} zatwierdzono!"

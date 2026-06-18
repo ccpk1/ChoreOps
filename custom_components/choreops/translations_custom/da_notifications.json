@@ -30,6 +30,24 @@
     "title": "🎯 Huslige pligter skal udføres nu",
     "message": "{chore_name} forfalder nu! Færdiggør inden for {hours} time(r) for at optjene {points} {points_label}"
   },
+  "chore_approved_assignee_no_points": {
+    "message": "{chore_name} godkendt!"
+  },
+  "chore_overdue_assignee_no_points": {
+    "message": "{chore_name} er for sent! Færdiggør det nu"
+  },
+  "chore_overdue_steal_available_no_points": {
+    "message": "{chore_name} er for sent og kan stjæles! Færdiggør den først"
+  },
+  "chore_standby_needed_no_points": {
+    "message": "{primary_name}s opgave {chore_name} er for sent! Gør krav på den nu"
+  },
+  "chore_due_reminder_assignee_no_points": {
+    "message": "{chore_name} forfalder om {minutes} minutter!"
+  },
+  "chore_due_window_assignee_no_points": {
+    "message": "{chore_name} skal nu afleveres! Færdiggør inden for {hours} time(r)"
+  },
   "reward_approved_assignee": {
     "title": "🎉 Belønning godkendt!",
     "message": "{reward_name} godkendt!"

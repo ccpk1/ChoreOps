@@ -30,6 +30,24 @@
     "title": "🎯 Opravilo čaka na izvedbo",
     "message": "{chore_name} je zdaj rok! Izpolnite v {hours} uri in zaslužite {points} {points_label}"
   },
+  "chore_approved_assignee_no_points": {
+    "message": "{chore_name} odobreno!"
+  },
+  "chore_overdue_assignee_no_points": {
+    "message": "{chore_name} je zamudil! Dokončaj ga zdaj"
+  },
+  "chore_overdue_steal_available_no_points": {
+    "message": "{chore_name} je zapadla in na voljo za krajo! Najprej jo dokončajte."
+  },
+  "chore_standby_needed_no_points": {
+    "message": "Naloga uporabnika {primary_name} {chore_name} je že zapadla! Prevzemite jo zdaj."
+  },
+  "chore_due_reminder_assignee_no_points": {
+    "message": "{chore_name} je rok čez {minutes} minut!"
+  },
+  "chore_due_window_assignee_no_points": {
+    "message": "Rok za oddajo {chore_name} je zdaj! Dokončajte v {hours} uri"
+  },
   "reward_approved_assignee": {
     "title": "🎉 Nagrada odobrena!",
     "message": "{reward_name} odobreno!"

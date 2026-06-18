@@ -30,6 +30,24 @@
     "title": "🎯 Compito da svolgere ora",
     "message": "{chore_name} è ora in scadenza! Completa entro {hours} ore per guadagnare {points} {points_label}"
   },
+  "chore_approved_assignee_no_points": {
+    "message": "{chore_name} approvato!"
+  },
+  "chore_overdue_assignee_no_points": {
+    "message": "{chore_name} è in ritardo! Completalo ora"
+  },
+  "chore_overdue_steal_available_no_points": {
+    "message": "{chore_name} è in ritardo ed è disponibile per essere rubato! Completalo prima"
+  },
+  "chore_standby_needed_no_points": {
+    "message": "Il compito di {primary_name} {chore_name} è in ritardo! Reclamalo ora"
+  },
+  "chore_due_reminder_assignee_no_points": {
+    "message": "{chore_name} è previsto tra {minutes} minuti!"
+  },
+  "chore_due_window_assignee_no_points": {
+    "message": "{chore_name} è ora in scadenza! Completare entro {hours} ore"
+  },
   "reward_approved_assignee": {
     "title": "🎉 Ricompensa approvata!",
     "message": "{reward_name} approvato!"

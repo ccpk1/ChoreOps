@@ -30,6 +30,24 @@
     "title": "🎯 Domáca úloha teraz na splatenie",
     "message": "{chore_name} je teraz splatné! Dokončite do {hours} hodiny a získajte {points} {points_label}"
   },
+  "chore_approved_assignee_no_points": {
+    "message": "{chore_name} schválené!"
+  },
+  "chore_overdue_assignee_no_points": {
+    "message": "{chore_name} je oneskorený! Dokončite ho teraz"
+  },
+  "chore_overdue_steal_available_no_points": {
+    "message": "{chore_name} je po termíne a je k dispozícii na krádež! Dokončite ho ako prvý"
+  },
+  "chore_standby_needed_no_points": {
+    "message": "Úloha od {primary_name} {chore_name} je oneskorená! Vyzdvihnite si ju teraz"
+  },
+  "chore_due_reminder_assignee_no_points": {
+    "message": "{chore_name} je splatné o {minutes} minút!"
+  },
+  "chore_due_window_assignee_no_points": {
+    "message": "{chore_name} je teraz splatné! Dokončite do {hours} hodiny"
+  },
   "reward_approved_assignee": {
     "title": "🎉 Odmena schválená!",
     "message": "{reward_name} schválené!"
