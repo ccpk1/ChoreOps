@@ -3467,6 +3467,12 @@
           "chore_overdue_count": {
             "name": "Försenad (Alla tider)"
           },
+          "chore_avg_overdue_seconds": {
+            "name": "Genomsnittlig förseningstid (hela tiden)"
+          },
+          "chore_longest_overdue_seconds": {
+            "name": "Längsta förfallotid (hela tiden)"
+          },
           "chore_approvals_today": {
             "name": "Godkännanden idag"
           },
@@ -3818,6 +3824,36 @@
           },
           "chore_stat_missed_all_time": {
             "name": "Missade hela tiden"
+          },
+          "chore_stat_avg_overdue_seconds_today": {
+            "name": "Genomsnittligt förfallet idag"
+          },
+          "chore_stat_avg_overdue_seconds_week": {
+            "name": "Genomsnittligt förfallet denna vecka"
+          },
+          "chore_stat_avg_overdue_seconds_month": {
+            "name": "Genomsnittligt förfallet denna månad"
+          },
+          "chore_stat_avg_overdue_seconds_year": {
+            "name": "Genomsnittligt försenat i år"
+          },
+          "chore_stat_avg_overdue_seconds_all_time": {
+            "name": "Genomsnittligt förfallet antal gånger"
+          },
+          "chore_stat_longest_overdue_seconds_today": {
+            "name": "Längst försenad idag"
+          },
+          "chore_stat_longest_overdue_seconds_week": {
+            "name": "Längst försenad denna vecka"
+          },
+          "chore_stat_longest_overdue_seconds_month": {
+            "name": "Längst försenad denna månad"
+          },
+          "chore_stat_longest_overdue_seconds_year": {
+            "name": "Längst försenad i år"
+          },
+          "chore_stat_longest_overdue_seconds_all_time": {
+            "name": "Längst försenade genom tiderna"
           },
           "chore_stat_claimed_today": {
             "name": "Ansökt idag"

@@ -3467,6 +3467,12 @@
           "chore_overdue_count": {
             "name": "Restanțat (dintotdeauna)"
           },
+          "chore_avg_overdue_seconds": {
+            "name": "Durata medie a depășirii termenului (din toate timpurile)"
+          },
+          "chore_longest_overdue_seconds": {
+            "name": "Cea mai lungă durată de întârziere (din toate timpurile)"
+          },
           "chore_approvals_today": {
             "name": "Aprobări astăzi"
           },
@@ -3818,6 +3824,36 @@
           },
           "chore_stat_missed_all_time": {
             "name": "Ratat dintotdeauna"
+          },
+          "chore_stat_avg_overdue_seconds_today": {
+            "name": "Restanță medie astăzi"
+          },
+          "chore_stat_avg_overdue_seconds_week": {
+            "name": "Restanță medie săptămâna aceasta"
+          },
+          "chore_stat_avg_overdue_seconds_month": {
+            "name": "Restanțe medii luna aceasta"
+          },
+          "chore_stat_avg_overdue_seconds_year": {
+            "name": "Restanțe medii în acest an"
+          },
+          "chore_stat_avg_overdue_seconds_all_time": {
+            "name": "Restanțe medii din toate timpurile"
+          },
+          "chore_stat_longest_overdue_seconds_today": {
+            "name": "Cea mai lungă întârziere astăzi"
+          },
+          "chore_stat_longest_overdue_seconds_week": {
+            "name": "Cel mai întârziat din această săptămână"
+          },
+          "chore_stat_longest_overdue_seconds_month": {
+            "name": "Cea mai lungă întârziere din această lună"
+          },
+          "chore_stat_longest_overdue_seconds_year": {
+            "name": "Cel mai întârziat din acest an"
+          },
+          "chore_stat_longest_overdue_seconds_all_time": {
+            "name": "Cea mai lungă întârziere din toate timpurile"
           },
           "chore_stat_claimed_today": {
             "name": "Revendicat astăzi"

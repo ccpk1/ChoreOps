@@ -3467,6 +3467,12 @@
           "chore_overdue_count": {
             "name": "In ritardo (di tutti i tempi)"
           },
+          "chore_avg_overdue_seconds": {
+            "name": "Durata media del ritardo (nel corso del tempo)"
+          },
+          "chore_longest_overdue_seconds": {
+            "name": "Durata di ritardo più lunga (in assoluto)"
+          },
           "chore_approvals_today": {
             "name": "Approvazioni oggi"
           },
@@ -3818,6 +3824,36 @@
           },
           "chore_stat_missed_all_time": {
             "name": "Perso in ogni momento"
+          },
+          "chore_stat_avg_overdue_seconds_today": {
+            "name": "Media in ritardo oggi"
+          },
+          "chore_stat_avg_overdue_seconds_week": {
+            "name": "Media dei pagamenti in ritardo questa settimana"
+          },
+          "chore_stat_avg_overdue_seconds_month": {
+            "name": "Media dei pagamenti in ritardo questo mese"
+          },
+          "chore_stat_avg_overdue_seconds_year": {
+            "name": "In media in ritardo quest'anno"
+          },
+          "chore_stat_avg_overdue_seconds_all_time": {
+            "name": "Media dei ritardi totali"
+          },
+          "chore_stat_longest_overdue_seconds_today": {
+            "name": "Oggi è in ritardo da più tempo"
+          },
+          "chore_stat_longest_overdue_seconds_week": {
+            "name": "Il più atteso di questa settimana"
+          },
+          "chore_stat_longest_overdue_seconds_month": {
+            "name": "L'articolo più in ritardo di questo mese"
+          },
+          "chore_stat_longest_overdue_seconds_year": {
+            "name": "Il più atteso di quest'anno"
+          },
+          "chore_stat_longest_overdue_seconds_all_time": {
+            "name": "Il più grande ritardo di sempre"
           },
           "chore_stat_claimed_today": {
             "name": "Reclamato oggi"

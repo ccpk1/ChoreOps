@@ -3467,6 +3467,12 @@
           "chore_overdue_count": {
             "name": "Endarrerit (de tots els temps)"
           },
+          "chore_avg_overdue_seconds": {
+            "name": "Durada mitjana del venciment (de tots els temps)"
+          },
+          "chore_longest_overdue_seconds": {
+            "name": "Durada més llarga del venciment (de tots els temps)"
+          },
           "chore_approvals_today": {
             "name": "Aprovacions avui"
           },
@@ -3818,6 +3824,36 @@
           },
           "chore_stat_missed_all_time": {
             "name": "Perdut de tots els temps"
+          },
+          "chore_stat_avg_overdue_seconds_today": {
+            "name": "Mitjana de venciment avui"
+          },
+          "chore_stat_avg_overdue_seconds_week": {
+            "name": "Mitjana de venciment aquesta setmana"
+          },
+          "chore_stat_avg_overdue_seconds_month": {
+            "name": "Mitjana de venciment d'aquest mes"
+          },
+          "chore_stat_avg_overdue_seconds_year": {
+            "name": "Mitjana de venciment d'aquest any"
+          },
+          "chore_stat_avg_overdue_seconds_all_time": {
+            "name": "Mitjana de venciment total"
+          },
+          "chore_stat_longest_overdue_seconds_today": {
+            "name": "Més endarrerit avui"
+          },
+          "chore_stat_longest_overdue_seconds_week": {
+            "name": "El més endarrerit d'aquesta setmana"
+          },
+          "chore_stat_longest_overdue_seconds_month": {
+            "name": "El més endarrerit d'aquest mes"
+          },
+          "chore_stat_longest_overdue_seconds_year": {
+            "name": "El més endarrerit d'aquest any"
+          },
+          "chore_stat_longest_overdue_seconds_all_time": {
+            "name": "Més endarrerit de tots els temps"
           },
           "chore_stat_claimed_today": {
             "name": "Reclamat avui"

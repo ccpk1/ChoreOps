@@ -3467,6 +3467,12 @@
           "chore_overdue_count": {
             "name": "Po termíne (za všetky časy)"
           },
+          "chore_avg_overdue_seconds": {
+            "name": "Priemerná doba omeškania (za všetky časy)"
+          },
+          "chore_longest_overdue_seconds": {
+            "name": "Najdlhšie trvanie po splatnosti (celkovo)"
+          },
           "chore_approvals_today": {
             "name": "Schválenia dnes"
           },
@@ -3818,6 +3824,36 @@
           },
           "chore_stat_missed_all_time": {
             "name": "Zmeškané za celý čas"
+          },
+          "chore_stat_avg_overdue_seconds_today": {
+            "name": "Priemerné po termíne dnes"
+          },
+          "chore_stat_avg_overdue_seconds_week": {
+            "name": "Priemerné po termíne tento týždeň"
+          },
+          "chore_stat_avg_overdue_seconds_month": {
+            "name": "Priemerné po termíne splatnosti tento mesiac"
+          },
+          "chore_stat_avg_overdue_seconds_year": {
+            "name": "Priemerné po termíne splatnosti v tomto roku"
+          },
+          "chore_stat_avg_overdue_seconds_all_time": {
+            "name": "Priemerné omeškanie za celý čas"
+          },
+          "chore_stat_longest_overdue_seconds_today": {
+            "name": "Najdlhšie oneskorené dnes"
+          },
+          "chore_stat_longest_overdue_seconds_week": {
+            "name": "Najdlhšie meškanie tento týždeň"
+          },
+          "chore_stat_longest_overdue_seconds_month": {
+            "name": "Najdlhšie oneskorené v tomto mesiaci"
+          },
+          "chore_stat_longest_overdue_seconds_year": {
+            "name": "Najdlhšie meškanie v tomto roku"
+          },
+          "chore_stat_longest_overdue_seconds_all_time": {
+            "name": "Najdlhšie oneskorené všetkých čias"
           },
           "chore_stat_claimed_today": {
             "name": "Nárokované dnes"

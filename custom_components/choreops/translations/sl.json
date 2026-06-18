@@ -3467,6 +3467,12 @@
           "chore_overdue_count": {
             "name": "Zamujeno (ves čas)"
           },
+          "chore_avg_overdue_seconds": {
+            "name": "Povprečno trajanje zamude (ves čas)"
+          },
+          "chore_longest_overdue_seconds": {
+            "name": "Najdaljše trajanje zamude (ves čas)"
+          },
           "chore_approvals_today": {
             "name": "Odobritve danes"
           },
@@ -3818,6 +3824,36 @@
           },
           "chore_stat_missed_all_time": {
             "name": "Ves čas zamujeno"
+          },
+          "chore_stat_avg_overdue_seconds_today": {
+            "name": "Povprečno danes z zamudo"
+          },
+          "chore_stat_avg_overdue_seconds_week": {
+            "name": "Povprečno zamujeno ta teden"
+          },
+          "chore_stat_avg_overdue_seconds_month": {
+            "name": "Povprečno zamujeno ta mesec"
+          },
+          "chore_stat_avg_overdue_seconds_year": {
+            "name": "Povprečno zamujeno letos"
+          },
+          "chore_stat_avg_overdue_seconds_all_time": {
+            "name": "Povprečno število zamud vseh časov"
+          },
+          "chore_stat_longest_overdue_seconds_today": {
+            "name": "Najdaljša zamuda danes"
+          },
+          "chore_stat_longest_overdue_seconds_week": {
+            "name": "Najdlje zamudno ta teden"
+          },
+          "chore_stat_longest_overdue_seconds_month": {
+            "name": "Najdlje zamudno ta mesec"
+          },
+          "chore_stat_longest_overdue_seconds_year": {
+            "name": "Najdaljša zamuda letos"
+          },
+          "chore_stat_longest_overdue_seconds_all_time": {
+            "name": "Najdlje zamujajoč vseh časov"
           },
           "chore_stat_claimed_today": {
             "name": "Zahtevano danes"

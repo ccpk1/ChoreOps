@@ -3467,6 +3467,12 @@
           "chore_overdue_count": {
             "name": "Forfalt (alle tider)"
           },
+          "chore_avg_overdue_seconds": {
+            "name": "Gjennomsnittlig forsinket varighet (hele tiden)"
+          },
+          "chore_longest_overdue_seconds": {
+            "name": "Lengste forsinkede varighet (hele tiden)"
+          },
           "chore_approvals_today": {
             "name": "Godkjenninger i dag"
           },
@@ -3818,6 +3824,36 @@
           },
           "chore_stat_missed_all_time": {
             "name": "Savnet hele tiden"
+          },
+          "chore_stat_avg_overdue_seconds_today": {
+            "name": "Gjennomsnittlig forfalt i dag"
+          },
+          "chore_stat_avg_overdue_seconds_week": {
+            "name": "Gjennomsnittlig forfalt denne uken"
+          },
+          "chore_stat_avg_overdue_seconds_month": {
+            "name": "Gjennomsnittlig forfalt denne måneden"
+          },
+          "chore_stat_avg_overdue_seconds_year": {
+            "name": "Gjennomsnittlig forfalt i år"
+          },
+          "chore_stat_avg_overdue_seconds_all_time": {
+            "name": "Gjennomsnittlig forfalt hele tiden"
+          },
+          "chore_stat_longest_overdue_seconds_today": {
+            "name": "Lengst forsinkede i dag"
+          },
+          "chore_stat_longest_overdue_seconds_week": {
+            "name": "Lengst forsinkede denne uken"
+          },
+          "chore_stat_longest_overdue_seconds_month": {
+            "name": "Lengst forsinkede denne måneden"
+          },
+          "chore_stat_longest_overdue_seconds_year": {
+            "name": "Lengst forsinket i år"
+          },
+          "chore_stat_longest_overdue_seconds_all_time": {
+            "name": "Lengst forsinkede noensinne"
           },
           "chore_stat_claimed_today": {
             "name": "Krevd i dag"

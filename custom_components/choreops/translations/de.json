@@ -3467,6 +3467,12 @@
           "chore_overdue_count": {
             "name": "Überfällig (Allzeit)"
           },
+          "chore_avg_overdue_seconds": {
+            "name": "Durchschnittliche Überfälligkeitsdauer (gesamt)"
+          },
+          "chore_longest_overdue_seconds": {
+            "name": "Längste Überfälligkeitsdauer (aller Zeiten)"
+          },
           "chore_approvals_today": {
             "name": "Genehmigungen heute"
           },
@@ -3818,6 +3824,36 @@
           },
           "chore_stat_missed_all_time": {
             "name": "Immer verpasst"
+          },
+          "chore_stat_avg_overdue_seconds_today": {
+            "name": "Durchschnittliche Überfälligkeit heute"
+          },
+          "chore_stat_avg_overdue_seconds_week": {
+            "name": "Durchschnittliche Überfälligkeit diese Woche"
+          },
+          "chore_stat_avg_overdue_seconds_month": {
+            "name": "Durchschnittliche Überfälligkeit diesen Monat"
+          },
+          "chore_stat_avg_overdue_seconds_year": {
+            "name": "Durchschnittliche Überfälligkeit in diesem Jahr"
+          },
+          "chore_stat_avg_overdue_seconds_all_time": {
+            "name": "Durchschnittliche Überfälligkeit aller Zeiten"
+          },
+          "chore_stat_longest_overdue_seconds_today": {
+            "name": "Längste Überfälligkeit heute"
+          },
+          "chore_stat_longest_overdue_seconds_week": {
+            "name": "Längste Überfälligkeit diese Woche"
+          },
+          "chore_stat_longest_overdue_seconds_month": {
+            "name": "Längste Überfälligkeit diesen Monat"
+          },
+          "chore_stat_longest_overdue_seconds_year": {
+            "name": "Die längste Überfälligkeit in diesem Jahr"
+          },
+          "chore_stat_longest_overdue_seconds_all_time": {
+            "name": "Längste Überfälligkeit aller Zeiten"
           },
           "chore_stat_claimed_today": {
             "name": "Heute beansprucht"

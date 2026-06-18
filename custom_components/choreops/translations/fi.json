@@ -3467,6 +3467,12 @@
           "chore_overdue_count": {
             "name": "Myöhässä (kaikkien aikojen)"
           },
+          "chore_avg_overdue_seconds": {
+            "name": "Keskimääräinen myöhästymisaika (kaikki ajalta)"
+          },
+          "chore_longest_overdue_seconds": {
+            "name": "Pisin myöhästymisaika (kaikkien aikojen)"
+          },
           "chore_approvals_today": {
             "name": "Hyväksynnät tänään"
           },
@@ -3818,6 +3824,36 @@
           },
           "chore_stat_missed_all_time": {
             "name": "Koko ajan missattu"
+          },
+          "chore_stat_avg_overdue_seconds_today": {
+            "name": "Keskim. erääntynyt tänään"
+          },
+          "chore_stat_avg_overdue_seconds_week": {
+            "name": "Keskim. myöhässä tällä viikolla"
+          },
+          "chore_stat_avg_overdue_seconds_month": {
+            "name": "Keskim. erääntyneet tässä kuussa"
+          },
+          "chore_stat_avg_overdue_seconds_year": {
+            "name": "Keskimääräinen erääntynyt tänä vuonna"
+          },
+          "chore_stat_avg_overdue_seconds_all_time": {
+            "name": "Keskim. erääntyneet koko ajan"
+          },
+          "chore_stat_longest_overdue_seconds_today": {
+            "name": "Pisin myöhässä tänään"
+          },
+          "chore_stat_longest_overdue_seconds_week": {
+            "name": "Tämän viikon pisimpään myöhässä"
+          },
+          "chore_stat_longest_overdue_seconds_month": {
+            "name": "Pisin erääntynyt tässä kuussa"
+          },
+          "chore_stat_longest_overdue_seconds_year": {
+            "name": "Tämän vuoden pisimpään myöhässä"
+          },
+          "chore_stat_longest_overdue_seconds_all_time": {
+            "name": "Kaikkien aikojen pisimpään myöhässä"
           },
           "chore_stat_claimed_today": {
             "name": "Väitetty tänään"

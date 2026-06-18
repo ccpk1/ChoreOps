@@ -3467,6 +3467,12 @@
           "chore_overdue_count": {
             "name": "Atrasado (todo o tempo)"
           },
+          "chore_avg_overdue_seconds": {
+            "name": "Duração média do atraso (todo o período)"
+          },
+          "chore_longest_overdue_seconds": {
+            "name": "Maior duração do atraso (todos os tempos)"
+          },
           "chore_approvals_today": {
             "name": "Aprovações hoje"
           },
@@ -3818,6 +3824,36 @@
           },
           "chore_stat_missed_all_time": {
             "name": "Perdi todos os tempos"
+          },
+          "chore_stat_avg_overdue_seconds_today": {
+            "name": "Média de atrasos hoje"
+          },
+          "chore_stat_avg_overdue_seconds_week": {
+            "name": "Média de atrasos desta semana"
+          },
+          "chore_stat_avg_overdue_seconds_month": {
+            "name": "Média de atrasos neste mês"
+          },
+          "chore_stat_avg_overdue_seconds_year": {
+            "name": "Média de atrasos este ano"
+          },
+          "chore_stat_avg_overdue_seconds_all_time": {
+            "name": "Média de atrasos de todos os tempos"
+          },
+          "chore_stat_longest_overdue_seconds_today": {
+            "name": "Mais atrasado hoje"
+          },
+          "chore_stat_longest_overdue_seconds_week": {
+            "name": "Mais atrasado desta semana"
+          },
+          "chore_stat_longest_overdue_seconds_month": {
+            "name": "O mais atrasado deste mês"
+          },
+          "chore_stat_longest_overdue_seconds_year": {
+            "name": "Mais atrasado deste ano"
+          },
+          "chore_stat_longest_overdue_seconds_all_time": {
+            "name": "O mais atrasado de sempre"
           },
           "chore_stat_claimed_today": {
             "name": "Reivindicado hoje"
