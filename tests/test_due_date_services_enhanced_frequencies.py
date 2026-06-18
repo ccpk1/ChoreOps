@@ -38,6 +38,7 @@ from tests.helpers import (
     DATA_CHORE_PER_ASSIGNEE_DUE_DATES,
     DATA_CHORE_RECURRING_FREQUENCY,
     FREQUENCY_CUSTOM_FROM_COMPLETE,
+    FREQUENCY_CUSTOM_FROM_COMPLETE_DATE_ONLY,
     FREQUENCY_DAILY_MULTI,
 )
 from tests.helpers.setup import SetupResult, setup_from_yaml
@@ -432,6 +433,120 @@ class TestDailyMultiDueDateServices:
         # Verify due date advanced
         new_due = get_chore_due_date(coordinator, chore_id)
         assert new_due is not None, "Due date should still exist after skip"
+        new_dt = parse_iso_datetime(new_due)
+        assert new_dt is not None
+
+        # New due should be strictly after time when skip was called
+        assert new_dt > now_before_skip, (
+            f"New due date {new_dt} should be after skip time {now_before_skip}"
+        )
+
+        # Verify it's different from initial (the skip actually did something)
+        assert new_dt != initial_dt, (
+            f"Due date should have changed from {initial_dt} to something else"
+        )
+
+
+# ============================================================================
+# TEST CLASS: CUSTOM_FROM_COMPLETE_DATE_ONLY Due Date Services (Discussion #170)
+# ============================================================================
+
+
+class TestCustomFromCompleteDateOnlyDueDateServices:
+    """Test set_chore_due_date and skip_chore_due_date with CUSTOM_FROM_COMPLETE_DATE_ONLY.
+
+    CUSTOM_FROM_COMPLETE_DATE_ONLY reschedules from the completion date
+    while preserving the original due time.
+    Example: due 6/1 noon, completed 6/2 4pm, interval 7d -> 6/9 noon (not 6/9 4pm).
+
+    Scenario:
+    - EF-12 "Custom From Complete Date Only INDEPENDENT": 7 days, independent
+    """
+
+    @pytest.mark.asyncio
+    async def test_cfdo_ind_set_custom_from_complete_date_only(
+        self,
+        hass: HomeAssistant,
+        setup_enhanced_frequencies: SetupResult,
+    ) -> None:
+        """CFDO-IND-SET: Test set_chore_due_date for INDEPENDENT CUSTOM_FROM_COMPLETE_DATE_ONLY.
+
+        Verifies exact datetime is stored for per-assignee due date.
+        """
+        coordinator = setup_enhanced_frequencies.coordinator
+        zoe_id = setup_enhanced_frequencies.assignee_ids["Zoë"]
+        chore_id = setup_enhanced_frequencies.chore_ids[
+            "Custom From Complete Date Only INDEPENDENT"
+        ]
+
+        chore_info = coordinator.chores_data.get(chore_id, {})
+
+        # Verify this is INDEPENDENT + CUSTOM_FROM_COMPLETE_DATE_ONLY
+        assert (
+            chore_info.get(DATA_CHORE_COMPLETION_CRITERIA)
+            == COMPLETION_CRITERIA_INDEPENDENT
+        )
+        assert (
+            chore_info.get(DATA_CHORE_RECURRING_FREQUENCY)
+            == FREQUENCY_CUSTOM_FROM_COMPLETE_DATE_ONLY
+        )
+
+        # Set a specific due date for Zoë (2:30 PM, 5 days from now)
+        new_due = datetime.now(UTC) + timedelta(days=5)
+        new_due = new_due.replace(hour=14, minute=30, second=0, microsecond=0)
+        await coordinator.chore_manager.set_due_date(
+            chore_id, new_due, assignee_id=zoe_id
+        )
+
+        # Verify per-assignee due date was set with EXACT time
+        assignee_due = get_assignee_due_date_for_chore(coordinator, chore_id, zoe_id)
+        assert assignee_due is not None, "Per-assignee due date should be set"
+
+        parsed_due = parse_iso_datetime(assignee_due)
+        assert parsed_due is not None
+        assert parsed_due.hour == 14, f"Hour should be 14, got {parsed_due.hour}"
+        assert parsed_due.minute == 30, f"Minute should be 30, got {parsed_due.minute}"
+        assert parsed_due.date() == new_due.date(), "Date should match what was set"
+
+    @pytest.mark.asyncio
+    async def test_cfdo_ind_skip_custom_from_complete_date_only(
+        self,
+        hass: HomeAssistant,
+        setup_enhanced_frequencies: SetupResult,
+    ) -> None:
+        """CFDO-IND-SKIP: Test skip_chore_due_date for INDEPENDENT CUSTOM_FROM_COMPLETE_DATE_ONLY.
+
+        EF-12 has custom_interval=7 days.
+        Skip uses dt_add_interval with require_future=True,
+        so result is guaranteed to be after NOW.
+        """
+        coordinator = setup_enhanced_frequencies.coordinator
+        zoe_id = setup_enhanced_frequencies.assignee_ids["Zoë"]
+        chore_id = setup_enhanced_frequencies.chore_ids[
+            "Custom From Complete Date Only INDEPENDENT"
+        ]
+
+        # Verify custom_interval is 7 days
+        interval = get_custom_interval(coordinator, chore_id)
+        assert interval == 7, f"Expected custom_interval=7, got {interval}"
+
+        # Get initial due date
+        initial_due = get_assignee_due_date_for_chore(coordinator, chore_id, zoe_id)
+        assert initial_due is not None, "Scenario should have initial due date set"
+        initial_dt = parse_iso_datetime(initial_due)
+        assert initial_dt is not None
+
+        # Record now before skip
+        now_before_skip = datetime.now(UTC)
+
+        # Skip to next occurrence
+        await coordinator.chore_manager.skip_due_date(chore_id, assignee_id=zoe_id)
+
+        # Verify due date advanced
+        new_due = get_assignee_due_date_for_chore(coordinator, chore_id, zoe_id)
+        assert new_due is not None, "Due date should still exist after skip"
+
+        # Parse and verify
         new_dt = parse_iso_datetime(new_due)
         assert new_dt is not None
 

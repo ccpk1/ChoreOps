@@ -82,6 +82,7 @@
   "custom_1_week": "Op maat gemaakt (1 week)",
   "custom_1_year": "Maatwerk (1 jaar)",
   "custom_from_complete": "Aangepast (Verplaatsen van de voltooiingsdatum)",
+  "custom_from_complete_date_only": "Aangepast (Verplaatsen vanaf voltooiing - alleen datum)",
   "daily": "Dagelijks",
   "daily_multi": "Dagelijks (meerdere keren per dag)",
   "date": "Datum",

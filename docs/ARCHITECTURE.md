@@ -686,6 +686,12 @@ The `engines/schedule.py` module provides a unified scheduling system for chores
 - `add_interval()` → datetime: DST-safe interval arithmetic
 - `snap_to_weekday()` → datetime: Advance to next applicable weekday
 
+**Custom Frequency Modes**:
+
+- `FREQUENCY_CUSTOM` — Reschedule from current due date (preserves date + time)
+- `FREQUENCY_CUSTOM_FROM_COMPLETE` — Reschedule from completion timestamp (shifts date + time)
+- `FREQUENCY_CUSTOM_FROM_COMPLETE_DATE_ONLY` — Reschedule from completion date but preserve original due time. Prevents time drift when chores are completed late — the due date advances from completion, but the time stays at the originally scheduled time.
+
 **Data Flow**: coordinator → RecurrenceEngine.get_occurrences() → calendar events (with RRULE) → entity_helpers adapters → chore/badge logic
 
 ### iCal Compatibility

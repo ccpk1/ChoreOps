@@ -82,6 +82,7 @@
   "custom_1_week": "Custom (1 Week)",
   "custom_1_year": "Custom (1 Year)",
   "custom_from_complete": "Custom (Reschedule from Completion date)",
+  "custom_from_complete_date_only": "Custom (Reschedule from completion - date only)",
   "daily": "Daily",
   "daily_multi": "Daily (Multiple times per day)",
   "date": "Date",

@@ -1825,6 +1825,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         if suggested_values[const.CFOF_CHORES_INPUT_RECURRING_FREQUENCY] in (
             const.FREQUENCY_CUSTOM,
             const.FREQUENCY_CUSTOM_FROM_COMPLETE,
+            const.FREQUENCY_CUSTOM_FROM_COMPLETE_DATE_ONLY,
         ):
             if suggested_values[const.CFOF_CHORES_INPUT_CUSTOM_INTERVAL] is None:
                 suggested_values[const.CFOF_CHORES_INPUT_CUSTOM_INTERVAL] = 1

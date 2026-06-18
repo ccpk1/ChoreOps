@@ -82,6 +82,7 @@
   "custom_1_week": "Personalizat (1 săptămână)",
   "custom_1_year": "Personalizat (1 an)",
   "custom_from_complete": "Personalizat (Reprogramare de la data finalizării)",
+  "custom_from_complete_date_only": "Personalizat (Reprogramare de la finalizare - doar data)",
   "daily": "Zilnic",
   "daily_multi": "Zilnic (de mai multe ori pe zi)",
   "date": "Data",

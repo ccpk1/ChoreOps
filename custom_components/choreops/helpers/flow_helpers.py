@@ -1282,6 +1282,7 @@ def validate_chores_inputs(
     if data_dict[const.DATA_CHORE_RECURRING_FREQUENCY] in (
         const.FREQUENCY_CUSTOM,
         const.FREQUENCY_CUSTOM_FROM_COMPLETE,
+        const.FREQUENCY_CUSTOM_FROM_COMPLETE_DATE_ONLY,
     ):
         data_dict[const.DATA_CHORE_CUSTOM_INTERVAL] = _resolve_form_or_existing(
             const.CFOF_CHORES_INPUT_CUSTOM_INTERVAL,
@@ -1455,6 +1456,7 @@ def transform_chore_cfof_to_data(
     if recurring_freq not in (
         const.FREQUENCY_CUSTOM,
         const.FREQUENCY_CUSTOM_FROM_COMPLETE,
+        const.FREQUENCY_CUSTOM_FROM_COMPLETE_DATE_ONLY,
     ):
         custom_interval = None
         custom_interval_unit = None

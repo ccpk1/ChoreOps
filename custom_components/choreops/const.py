@@ -430,6 +430,7 @@ FREQUENCY_CUSTOM_1_QUARTER: Final = "custom_1_quarter"
 FREQUENCY_CUSTOM_1_WEEK: Final = "custom_1_week"
 FREQUENCY_CUSTOM_1_YEAR: Final = "custom_1_year"
 FREQUENCY_CUSTOM_FROM_COMPLETE: Final = "custom_from_complete"
+FREQUENCY_CUSTOM_FROM_COMPLETE_DATE_ONLY: Final = "custom_from_complete_date_only"
 FREQUENCY_DAILY: Final = "daily"
 FREQUENCY_DAILY_MULTI: Final = "daily_multi"
 FREQUENCY_MONTHLY: Final = "monthly"
@@ -3930,6 +3931,7 @@ CHORE_FREQUENCY_OPTIONS = [
     PERIOD_YEAR_END,
     FREQUENCY_CUSTOM,
     FREQUENCY_CUSTOM_FROM_COMPLETE,
+    FREQUENCY_CUSTOM_FROM_COMPLETE_DATE_ONLY,
 ]
 
 # Frequency options for config flow (excludes DAILY_MULTI which requires helper step)
@@ -3948,6 +3950,7 @@ CHORE_FREQUENCY_OPTIONS_CONFIG_FLOW = [
     PERIOD_YEAR_END,
     FREQUENCY_CUSTOM,
     FREQUENCY_CUSTOM_FROM_COMPLETE,
+    FREQUENCY_CUSTOM_FROM_COMPLETE_DATE_ONLY,
 ]
 
 # Weekday Options

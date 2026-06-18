@@ -495,6 +495,7 @@ from custom_components.choreops.const import (
     # =========================================================================
     FREQUENCY_CUSTOM,
     FREQUENCY_CUSTOM_FROM_COMPLETE,
+    FREQUENCY_CUSTOM_FROM_COMPLETE_DATE_ONLY,
     FREQUENCY_DAILY,
     FREQUENCY_DAILY_MULTI,
     FREQUENCY_MONTHLY,

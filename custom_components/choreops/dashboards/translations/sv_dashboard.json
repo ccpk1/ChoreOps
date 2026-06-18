@@ -82,6 +82,7 @@
   "custom_1_week": "Anpassad (1 vecka)",
   "custom_1_year": "Anpassad (1 år)",
   "custom_from_complete": "Anpassad (Omplanera från slutförandedatum)",
+  "custom_from_complete_date_only": "Anpassad (Omplanera från slutförande - endast datum)",
   "daily": "Dagligen",
   "daily_multi": "Dagligen (flera gånger per dag)",
   "date": "Datum",
