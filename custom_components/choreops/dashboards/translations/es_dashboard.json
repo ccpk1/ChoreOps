@@ -82,6 +82,7 @@
   "custom_1_week": "Personalizado (1 semana)",
   "custom_1_year": "Personalizado (1 año)",
   "custom_from_complete": "Personalizado (Reprogramar a partir de la fecha de finalización)",
+  "custom_from_complete_date_only": "Personalizado (Reprogramar desde la fecha de finalización - solo fecha)",
   "daily": "Diaria",
   "daily_multi": "Diariamente (varias veces al día)",
   "date": "Fecha",

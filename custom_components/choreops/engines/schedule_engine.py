@@ -76,6 +76,7 @@ class RecurrenceEngine:
         const.FREQUENCY_YEARLY,
         const.FREQUENCY_CUSTOM,
         const.FREQUENCY_CUSTOM_FROM_COMPLETE,
+        const.FREQUENCY_CUSTOM_FROM_COMPLETE_DATE_ONLY,
         const.FREQUENCY_CUSTOM_1_MONTH,
         const.FREQUENCY_CUSTOM_1_QUARTER,
         const.FREQUENCY_CUSTOM_1_YEAR,
@@ -402,6 +403,7 @@ class RecurrenceEngine:
         if self._frequency in {
             const.FREQUENCY_CUSTOM,
             const.FREQUENCY_CUSTOM_FROM_COMPLETE,
+            const.FREQUENCY_CUSTOM_FROM_COMPLETE_DATE_ONLY,
         }:
             return self._interval_unit in {
                 const.TIME_UNIT_HOURS,
@@ -711,6 +713,7 @@ class RecurrenceEngine:
         return self._frequency in {
             const.FREQUENCY_CUSTOM,
             const.FREQUENCY_CUSTOM_FROM_COMPLETE,
+            const.FREQUENCY_CUSTOM_FROM_COMPLETE_DATE_ONLY,
             const.FREQUENCY_CUSTOM_1_WEEK,
             const.FREQUENCY_CUSTOM_1_MONTH,
             const.FREQUENCY_CUSTOM_1_QUARTER,
@@ -1126,7 +1129,11 @@ def calculate_next_due_date_from_chore_info(
     custom_unit: str | None = None
 
     # Validate custom frequency parameters for CUSTOM frequencies
-    if freq in (const.FREQUENCY_CUSTOM, const.FREQUENCY_CUSTOM_FROM_COMPLETE):
+    if freq in (
+        const.FREQUENCY_CUSTOM,
+        const.FREQUENCY_CUSTOM_FROM_COMPLETE,
+        const.FREQUENCY_CUSTOM_FROM_COMPLETE_DATE_ONLY,
+    ):
         custom_interval = chore_info.get(const.DATA_CHORE_CUSTOM_INTERVAL)
         custom_unit = chore_info.get(const.DATA_CHORE_CUSTOM_INTERVAL_UNIT)
         if custom_interval is None or custom_unit not in [
@@ -1195,6 +1202,37 @@ def calculate_next_due_date_from_chore_info(
             "datetime",
             dt_add_interval(
                 base_date=base_date,
+                interval_unit=custom_unit,
+                delta=custom_interval,
+                require_future=True,
+                reference_datetime=reference_time,
+                return_type=const.HELPER_RETURN_DATETIME,
+            ),
+        )
+    elif freq == const.FREQUENCY_CUSTOM_FROM_COMPLETE_DATE_ONLY:
+        # Reschedule from completion DATE but preserve original due TIME
+        # e.g., due 6/1 noon, completed 6/2 4pm, interval 3d -> 6/5 noon (not 6/5 4pm)
+        assert custom_unit is not None
+        assert custom_interval is not None
+        base_date = completion_timestamp or current_due_utc
+        if base_date is None:
+            const.LOGGER.warning(
+                "Consolidation Helper - No base date for CUSTOM_FROM_COMPLETE_DATE_ONLY: %s",
+                chore_info.get(const.DATA_CHORE_NAME),
+            )
+            return None
+        # Stamp the original due time onto the completion date
+        due_time = current_due_utc.time()
+        base_with_due_time = base_date.replace(
+            hour=due_time.hour,
+            minute=due_time.minute,
+            second=due_time.second,
+            microsecond=0,
+        )
+        next_due_utc = cast(
+            "datetime",
+            dt_add_interval(
+                base_date=base_with_due_time,
                 interval_unit=custom_unit,
                 delta=custom_interval,
                 require_future=True,

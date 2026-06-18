@@ -82,6 +82,7 @@
   "custom_1_week": "Benutzerdefiniert (1 Woche)",
   "custom_1_year": "Benutzerdefiniert (1 Jahr)",
   "custom_from_complete": "Benutzerdefiniert (Verschiebung des Fertigstellungsdatums)",
+  "custom_from_complete_date_only": "Benutzerdefiniert (Terminverschiebung ab Fertigstellungsdatum)",
   "daily": "Täglich",
   "daily_multi": "Täglich (mehrmals pro Tag)",
   "date": "Datum",

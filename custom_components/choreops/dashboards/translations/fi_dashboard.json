@@ -82,6 +82,7 @@
   "custom_1_week": "Mukautettu (1 viikko)",
   "custom_1_year": "Mukautettu (1 vuosi)",
   "custom_from_complete": "Mukautettu (Ajoita uudelleen valmistumispäivästä)",
+  "custom_from_complete_date_only": "Mukautettu (Aikatauluta uudelleen valmistumisesta - vain päivämäärä)",
   "daily": "Päivittäin",
   "daily_multi": "Päivittäin (useita kertoja päivässä)",
   "date": "Päivämäärä",

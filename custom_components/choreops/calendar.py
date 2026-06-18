@@ -1035,6 +1035,7 @@ class AssigneeScheduleCalendar(CalendarEntity):
             const.FREQUENCY_YEARLY,
             const.FREQUENCY_CUSTOM,
             const.FREQUENCY_CUSTOM_FROM_COMPLETE,
+            const.FREQUENCY_CUSTOM_FROM_COMPLETE_DATE_ONLY,
             const.FREQUENCY_DAILY_MULTI,
         ):
             self._generate_schedule_source_events(

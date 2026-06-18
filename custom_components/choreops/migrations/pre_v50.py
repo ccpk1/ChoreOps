@@ -7403,6 +7403,7 @@ class PreV50Migrator:
         if chore_info[const.DATA_CHORE_RECURRING_FREQUENCY] in (
             const.FREQUENCY_CUSTOM,
             const.FREQUENCY_CUSTOM_FROM_COMPLETE,
+            const.FREQUENCY_CUSTOM_FROM_COMPLETE_DATE_ONLY,
         ):
             chore_info[const.DATA_CHORE_CUSTOM_INTERVAL] = chore_data.get(
                 const.DATA_CHORE_CUSTOM_INTERVAL

@@ -82,6 +82,7 @@
   "custom_1_week": "Tilpasset (1 uge)",
   "custom_1_year": "Tilpasset (1 år)",
   "custom_from_complete": "Brugerdefineret (Omplanlæg fra færdiggørelsesdato)",
+  "custom_from_complete_date_only": "Brugerdefineret (Omplanlæg fra færdiggørelse - kun dato)",
   "daily": "Daglig",
   "daily_multi": "Dagligt (flere gange om dagen)",
   "date": "Dato",

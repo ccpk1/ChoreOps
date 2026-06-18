@@ -1569,6 +1569,7 @@ def validate_chore_data(
     if recurring_frequency in (
         const.FREQUENCY_CUSTOM,
         const.FREQUENCY_CUSTOM_FROM_COMPLETE,
+        const.FREQUENCY_CUSTOM_FROM_COMPLETE_DATE_ONLY,
     ):
         custom_interval = _normalize_custom_interval(
             data.get(const.DATA_CHORE_CUSTOM_INTERVAL)
@@ -1709,6 +1710,7 @@ def build_chore(
     is_custom_frequency = recurring_frequency in (
         const.FREQUENCY_CUSTOM,
         const.FREQUENCY_CUSTOM_FROM_COMPLETE,
+        const.FREQUENCY_CUSTOM_FROM_COMPLETE_DATE_ONLY,
     )
 
     custom_interval = (

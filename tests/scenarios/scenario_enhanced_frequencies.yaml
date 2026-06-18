@@ -236,6 +236,26 @@ chores:
     overdue_handling_type: "at_due_date"
     approval_reset_pending_claim_action: "clear_pending"
     due_date: "+2d15:00"
+
+  # ---------------------------------------------------------------------------
+  # FEATURE 4: CUSTOM_FROM_COMPLETE_DATE_ONLY (Reschedule Discussion #170)
+  # Reschedules from completion date but preserves original due time
+  # ---------------------------------------------------------------------------
+
+  # EF-12: CUSTOM_FROM_COMPLETE_DATE_ONLY - INDEPENDENT
+  - name: "Custom From Complete Date Only INDEPENDENT"
+    assigned_to: ["Zoë", "Max!"]
+    points: 15.0
+    icon: "mdi:calendar-clock"
+    completion_criteria: "independent"
+    recurring_frequency: "custom_from_complete_date_only"
+    custom_interval: 7
+    custom_interval_unit: "days"
+    auto_approve: false
+    approval_reset_type: "at_due_date_once"
+    overdue_handling_type: "at_due_date"
+    approval_reset_pending_claim_action: "clear_pending"
+    due_date: "+3d17:00"
 # =============================================================================
 # CHORE SUMMARY BY FEATURE
 # =============================================================================

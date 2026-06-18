@@ -1498,6 +1498,7 @@ views:
                   'yearly': ui.get('yearly', 'err-yearly'),
                   'custom': ui.get('custom', 'err-custom'),
                   'custom_from_complete': ui.get('custom_from_complete', 'err-custom_from_complete'),
+                  'custom_from_complete_date_only': ui.get('custom_from_complete_date_only', 'err-custom_from_complete_date_only'),
                   'custom_1_week': ui.get('custom_1_week', 'err-custom_1_week'),
                   'custom_1_month': ui.get('custom_1_month', 'err-custom_1_month'),
                   'custom_1_quarter': ui.get('custom_1_quarter', 'err-custom_1_quarter'),

@@ -6421,7 +6421,11 @@ class ChoreManager(BaseManager):
             return True
 
         # Custom intervals: check unit and interval magnitude
-        if frequency in (const.FREQUENCY_CUSTOM, const.FREQUENCY_CUSTOM_FROM_COMPLETE):
+        if frequency in (
+            const.FREQUENCY_CUSTOM,
+            const.FREQUENCY_CUSTOM_FROM_COMPLETE,
+            const.FREQUENCY_CUSTOM_FROM_COMPLETE_DATE_ONLY,
+        ):
             custom_unit = chore_info.get(const.DATA_CHORE_CUSTOM_INTERVAL_UNIT, "")
             custom_interval = chore_info.get(const.DATA_CHORE_CUSTOM_INTERVAL)
             if custom_unit and custom_interval is not None:

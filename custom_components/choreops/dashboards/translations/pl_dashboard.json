@@ -82,6 +82,7 @@
   "custom_1_week": "Własny interwał (1 tydzień)",
   "custom_1_year": "Własny interwał (1 rok)",
   "custom_from_complete": "Własny interwał (Przełóż z daty ukończenia)",
+  "custom_from_complete_date_only": "Niestandardowe (przeplanowanie na podstawie daty ukończenia - tylko data)",
   "daily": "Codziennie",
   "daily_multi": "Codziennie (wiele razy dziennie)",
   "date": "Data",

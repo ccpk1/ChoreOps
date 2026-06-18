@@ -82,6 +82,7 @@
   "custom_1_week": "Tilpasset (1 uke)",
   "custom_1_year": "Tilpasset (1 år)",
   "custom_from_complete": "Egendefinert (Ny frist fra fullføringsdato)",
+  "custom_from_complete_date_only": "Tilpasset (Omplanlegg fra ferdigstillelse - kun dato)",
   "daily": "Daglig",
   "daily_multi": "Daglig (flere ganger per dag)",
   "date": "Dato",
