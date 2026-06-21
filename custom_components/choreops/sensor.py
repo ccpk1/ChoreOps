@@ -556,11 +556,6 @@ async def async_setup_entry(
     # This enables creating new translation sensors when a assignee changes to a new language
     coordinator.ui_manager.register_translation_sensor_callback(async_add_entities)
 
-    await coordinator.ui_manager.async_reconcile_chore_shards_for_users(
-        list(coordinator.assignees_data),
-        registry_only=True,
-    )
-
     # Register callback for dynamic chore/reward sensor creation (services)
     register_chore_reward_callback(async_add_entities)
 
@@ -572,9 +567,24 @@ async def async_setup_entry(
 
     entities.append(SystemDashboardHelperSensor(coordinator, entry))
 
-    # Startup/reload shard helpers must be part of the platform's initial entity
-    # add so their states exist end to end before the main helper republishes
-    # deterministic chore_helper_eids.
+    # First batch: all non-dashboard entities must be registered in HA before
+    # computing the shard plan, so chore status sensor entity IDs are resolvable
+    # in the registry for accurate payload size estimation.
+    async_add_entities(entities)
+
+    # Compute shard plan AFTER entities are registered. At this point the chore
+    # status sensors exist in the entity registry, so _build_chore_rows() returns
+    # real chore_eid values, giving an accurate inline payload size for the
+    # inline-vs-sharded threshold decision.
+    await coordinator.ui_manager.async_reconcile_chore_shards_for_users(
+        list(coordinator.assignees_data),
+        registry_only=True,
+    )
+
+    # Second batch: shard helper and dashboard helper sensors
+    # Shard helpers are added first so their states exist before the main
+    # dashboard helper republishes deterministic chore_helper_eids.
+    dashboard_entities: list[SensorEntity] = []
     for assignee_id, assignee_data in coordinator.assignees_data.items():
         assignee_name = get_item_name_or_log_error(
             "assignee", assignee_id, assignee_data, const.DATA_USER_NAME
@@ -586,19 +596,17 @@ async def async_setup_entry(
             assignee_id,
             const.HELPER_SHARD_FAMILY_CHORES,
         )
-        if plan is None or plan.mode != const.HELPER_SHARD_MODE_SHARDED:
-            continue
-
-        for shard_index in range(1, plan.expected_shard_count + 1):
-            entities.append(
-                AssigneeDashboardChoreShardSensor(
-                    coordinator,
-                    entry,
-                    assignee_id,
-                    assignee_name,
-                    shard_index,
+        if plan is not None and plan.mode == const.HELPER_SHARD_MODE_SHARDED:
+            for shard_index in range(1, plan.expected_shard_count + 1):
+                dashboard_entities.append(
+                    AssigneeDashboardChoreShardSensor(
+                        coordinator,
+                        entry,
+                        assignee_id,
+                        assignee_name,
+                        shard_index,
+                    )
                 )
-            )
 
     # Dashboard helper sensors: Created last to ensure all referenced entities exist
     # This prevents entity ID lookup failures during initial setup
@@ -608,7 +616,7 @@ async def async_setup_entry(
         )
         if not assignee_name:
             continue
-        entities.append(
+        dashboard_entities.append(
             AssigneeDashboardHelperSensor(
                 coordinator,
                 entry,
@@ -618,7 +626,8 @@ async def async_setup_entry(
             )
         )
 
-    async_add_entities(entities)
+    if dashboard_entities:
+        async_add_entities(dashboard_entities)
     coordinator.hass.async_create_task(
         coordinator.ui_manager.async_finalize_chore_shards_for_users(
             list(coordinator.assignees_data),

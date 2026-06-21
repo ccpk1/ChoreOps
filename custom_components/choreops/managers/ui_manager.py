@@ -397,7 +397,7 @@ class UIManager(BaseManager):
         shard_entries: dict[int, er.RegistryEntry] = {}
 
         for entry in entity_registry.entities.values():
-            unique_id = entry.unique_id
+            unique_id = str(entry.unique_id)
             if not unique_id.startswith(prefix) or not unique_id.endswith(suffix):
                 continue
 
