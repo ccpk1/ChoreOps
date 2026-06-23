@@ -2282,6 +2282,10 @@ class ChoreManager(BaseManager):
                 if current_turn_assignee != assignee_id:
                     continue
 
+            # Pause guard: Skip paused users — no due-window notification
+            if self._is_chore_paused_for_assignee(assignee_id, entry["chore_id"]):
+                continue
+
             # Get assignee name for signal emission
             assignee_info: UserData = cast(
                 "UserData", self._coordinator.assignees_data.get(assignee_id, {})
@@ -2329,6 +2333,10 @@ class ChoreManager(BaseManager):
                 )
                 if current_turn_assignee != assignee_id:
                     continue
+
+            # Pause guard: Skip paused users — no reminder notification
+            if self._is_chore_paused_for_assignee(assignee_id, entry["chore_id"]):
+                continue
 
             # Get assignee name for signal emission
             assignee_info: UserData = cast(
