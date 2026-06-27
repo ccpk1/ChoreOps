@@ -1766,6 +1766,8 @@ DEFAULT_POINTS_ADJUST_MINUS_ICON: Final = "mdi:minus-circle-outline"
 DEFAULT_POINTS_ADJUST_MINUS_MULTIPLE_ICON: Final = "mdi:minus-circle-multiple-outline"
 DEFAULT_POINTS_ADJUST_PLUS_ICON: Final = "mdi:plus-circle-outline"
 DEFAULT_POINTS_ADJUST_PLUS_MULTIPLE_ICON: Final = "mdi:plus-circle-multiple-outline"
+DEFAULT_PAUSE_CHORES_ICON: Final = "mdi:pause-circle-outline"
+DEFAULT_RESUME_CHORES_ICON: Final = "mdi:play-circle-outline"
 
 # All entity icons now defined in icons.json for declarative frontend translation
 # ================================================================================================
@@ -2818,6 +2820,8 @@ BUTTON_KC_PREFIX: Final = "button.kc_"
 # Button Unique ID Mid & Suffixes
 # Use SUFFIX pattern for consistent entity unique IDs
 BUTTON_KC_UID_SUFFIX_APPROVE: Final = "_chore_approve"
+BUTTON_KC_UID_SUFFIX_PAUSE_CHORES: Final = "_pause_chores"
+BUTTON_KC_UID_SUFFIX_RESUME_CHORES: Final = "_resume_chores"
 BUTTON_KC_UID_SUFFIX_APPROVE_REWARD: Final = "_reward_approve"
 BUTTON_KC_UID_SUFFIX_CLAIM: Final = "_chore_claim"
 BUTTON_KC_UID_SUFFIX_DISAPPROVE: Final = "_chore_disapprove"
@@ -3913,6 +3917,8 @@ TRANS_KEY_BUTTON_CLAIM_REWARD_BUTTON: Final = "assignee_reward_redeem_button"
 TRANS_KEY_BUTTON_DISAPPROVE_CHORE_BUTTON: Final = "approver_chore_disapprove_button"
 TRANS_KEY_BUTTON_DISAPPROVE_REWARD_BUTTON: Final = "approver_reward_disapprove_button"
 TRANS_KEY_BUTTON_MANUAL_ADJUSTMENT_BUTTON: Final = "approver_points_adjust_button"
+TRANS_KEY_BUTTON_PAUSE_USER_CHORES: Final = "user_chores_pause_button"
+TRANS_KEY_BUTTON_RESUME_USER_CHORES: Final = "user_chores_resume_button"
 TRANS_KEY_BUTTON_PENALTY_BUTTON: Final = "approver_penalty_apply_button"
 
 

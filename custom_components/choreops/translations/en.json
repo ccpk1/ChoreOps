@@ -5277,6 +5277,12 @@
       },
       "approver_points_adjust_button_negative": {
         "name": "Decrement {delta} {points_label}"
+      },
+      "user_chores_pause_button": {
+        "name": "Pause Chores - {user_name}"
+      },
+      "user_chores_resume_button": {
+        "name": "Resume Chores - {user_name}"
       }
     }
   },

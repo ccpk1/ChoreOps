@@ -404,6 +404,30 @@ async def async_setup_entry(
                     )
                 )
 
+    # Create per-user chore Pause/Resume buttons (admin & sick-day control)
+    for assignee_id, assignee_info in coordinator.assignees_data.items():
+        assignee_name = assignee_info.get(
+            const.DATA_USER_NAME, f"{const.TRANS_KEY_LABEL_ASSIGNEE} {assignee_id}"
+        )
+        entities.append(
+            UserChoresPauseButton(
+                coordinator=coordinator,
+                entry=entry,
+                assignee_id=assignee_id,
+                assignee_name=assignee_name,
+                pause=True,
+            )
+        )
+        entities.append(
+            UserChoresPauseButton(
+                coordinator=coordinator,
+                entry=entry,
+                assignee_id=assignee_id,
+                assignee_name=assignee_name,
+                pause=False,
+            )
+        )
+
     # Create reward buttons (Redeem, Approve & Disapprove)
     # Only for default participants or linked profiles with gamification enabled
     for assignee_id, assignee_info in coordinator.assignees_data.items():
@@ -1940,3 +1964,77 @@ class ApproverPointsAdjustButton(ChoreOpsCoordinatorEntity, ButtonEntity):
             const.ATTR_USER_NAME: self._assignee_name,
             "delta": self._delta,
         }
+
+
+class UserChoresPauseButton(ChoreOpsCoordinatorEntity, ButtonEntity):
+    """Pause or resume all of a user's chores (admin / sick-day control).
+
+    Two instances are created per user: ``pause=True`` renders a "Pause"
+    button and ``pause=False`` a "Resume" button. Both delegate to
+    ``ChoreManager.set_user_chores_paused()``, reusing the existing pause
+    engine: while a user is paused no overdue or missed stats accumulate and
+    rotation chores advance past that user.
+    """
+
+    _attr_has_entity_name = True
+
+    def __init__(
+        self,
+        coordinator: ChoreOpsDataCoordinator,
+        entry: ChoreOpsConfigEntry,
+        assignee_id: str,
+        assignee_name: str,
+        pause: bool,
+    ):
+        """Initialize a pause or resume button for a single user.
+
+        Args:
+            coordinator: ChoreOpsDataCoordinator for data access and updates.
+            entry: ChoreOpsConfigEntry for this integration instance.
+            assignee_id: Unique identifier for the user.
+            assignee_name: Display name of the user.
+            pause: True for the Pause button, False for the Resume button.
+        """
+        super().__init__(coordinator)
+        self._entry = entry
+        self._assignee_id = assignee_id
+        self._assignee_name = assignee_name
+        self._pause = pause
+
+        suffix = (
+            const.BUTTON_KC_UID_SUFFIX_PAUSE_CHORES
+            if pause
+            else const.BUTTON_KC_UID_SUFFIX_RESUME_CHORES
+        )
+        self._attr_unique_id = f"{entry.entry_id}_{assignee_id}{suffix}"
+        self._attr_translation_key = (
+            const.TRANS_KEY_BUTTON_PAUSE_USER_CHORES
+            if pause
+            else const.TRANS_KEY_BUTTON_RESUME_USER_CHORES
+        )
+        self._attr_translation_placeholders = {
+            const.TRANS_KEY_BUTTON_ATTR_ASSIGNEE_NAME: assignee_name,
+        }
+        self._attr_icon = (
+            const.DEFAULT_PAUSE_CHORES_ICON
+            if pause
+            else const.DEFAULT_RESUME_CHORES_ICON
+        )
+        self._attr_device_info = create_assignee_device_info_from_coordinator(
+            self.coordinator, assignee_id, assignee_name, entry
+        )
+
+    def press(self) -> None:
+        """Synchronous press - not used, Home Assistant calls async_press."""
+
+    async def async_press(self) -> None:
+        """Pause or resume all of this user's chores."""
+        const.LOGGER.debug(
+            "UserChoresPauseButton.async_press: assignee=%s, pause=%s",
+            self._assignee_id,
+            self._pause,
+        )
+        await self.coordinator.chore_manager.set_user_chores_paused(
+            self._assignee_id,
+            paused=self._pause,
+        )
