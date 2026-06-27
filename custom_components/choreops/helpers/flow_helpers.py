@@ -2713,7 +2713,7 @@ def validate_badge_common_inputs(
 # ----------------------------------------------------------------------------------
 
 
-def build_reward_schema(default=None, assignees_dict=None):
+def build_reward_schema(default=None, assignees_dict=None, chores_dict=None):
     """Build a schema for rewards, keyed by internal_id in the dict.
 
     Note: Uses static defaults to enable field clearing.
@@ -2772,6 +2772,27 @@ def build_reward_schema(default=None, assignees_dict=None):
                 multiple=True,
                 mode=selector.SelectSelectorMode.DROPDOWN,
                 translation_key=const.TRANS_KEY_FLOW_HELPERS_ASSIGNED_USER_IDS,
+            )
+        )
+
+    # Add eligible-chores multi-select: only points from these chores can pay
+    # for the reward. Empty selection = any points may be used (default).
+    if chores_dict:
+        chore_choices = [
+            {"value": chore_id, "label": info.get(const.DATA_CHORE_NAME, chore_id)}
+            for chore_id, info in chores_dict.items()
+        ]
+        fields[
+            vol.Optional(
+                const.CFOF_REWARDS_INPUT_ELIGIBLE_CHORE_IDS,
+                default=default.get(const.CFOF_REWARDS_INPUT_ELIGIBLE_CHORE_IDS, []),
+            )
+        ] = selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=chore_choices,
+                multiple=True,
+                mode=selector.SelectSelectorMode.DROPDOWN,
+                translation_key=const.TRANS_KEY_FLOW_HELPERS_ELIGIBLE_CHORE_IDS,
             )
         )
 

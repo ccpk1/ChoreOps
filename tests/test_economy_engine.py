@@ -406,3 +406,64 @@ class TestPruneLedger:
     def test_default_max_entries(self) -> None:
         """Test default max_entries value."""
         assert EconomyEngine.DEFAULT_MAX_LEDGER_ENTRIES == 50
+
+
+# =============================================================================
+# Test: allocate_debit (restricted-reward per-chore point drawdown)
+# =============================================================================
+
+
+class TestAllocateDebit:
+    """Tests for EconomyEngine.allocate_debit.
+
+    Backs rewards restricted to specific chores (DATA_REWARD_ELIGIBLE_CHORE_IDS).
+    Enforces the "shared / used up" model: points earned from a chore can only
+    be spent once, even when that chore funds more than one reward.
+    """
+
+    def test_sequential_drawdown_across_chores(self) -> None:
+        """Cost spanning multiple chores debits them in order, partial last."""
+        balances = {"a": 3.0, "b": 4.0, "c": 9.0}
+        result = EconomyEngine.allocate_debit(balances, ["a", "b", "c"], 9.0)
+
+        assert result == {"a": 0.0, "b": 0.0, "c": 7.0}
+        assert result is balances  # mutates in place
+
+    def test_shared_points_used_up(self) -> None:
+        """A chore feeding two rewards is depleted once spent (shared model)."""
+        # reading=10 is eligible for both "screen time" and "cash out".
+        balances = {"reading": 10.0, "outside": 5.0, "math": 8.0}
+        # Spend 10 on screen time (eligible: outside, reading, math).
+        EconomyEngine.allocate_debit(balances, ["outside", "reading", "math"], 10.0)
+
+        assert balances == {"reading": 5.0, "outside": 0.0, "math": 8.0}
+        # Cash out (eligible: reading) now sees 5, not the original 10.
+        assert balances["reading"] == 5.0
+
+    def test_exact_balance_zeroes_bucket(self) -> None:
+        """Spending the exact balance leaves zero, not a float-drift remainder."""
+        balances = {"reading": 10.0}
+        EconomyEngine.allocate_debit(balances, ["reading"], 10.0)
+
+        assert balances["reading"] == 0.0
+
+    def test_never_goes_negative(self) -> None:
+        """Requesting more than available drains all buckets without negatives."""
+        balances = {"a": 2.0, "b": 1.0}
+        EconomyEngine.allocate_debit(balances, ["a", "b"], 99.0)
+
+        assert balances == {"a": 0.0, "b": 0.0}
+
+    def test_non_eligible_chores_untouched(self) -> None:
+        """Chores not in the eligible order keep their earnings."""
+        balances = {"reading": 10.0, "dishes": 7.0}
+        EconomyEngine.allocate_debit(balances, ["reading"], 4.0)
+
+        assert balances == {"reading": 6.0, "dishes": 7.0}
+
+    def test_zero_amount_is_noop(self) -> None:
+        """A zero-cost debit leaves balances unchanged."""
+        balances = {"a": 5.0}
+        EconomyEngine.allocate_debit(balances, ["a"], 0.0)
+
+        assert balances == {"a": 5.0}

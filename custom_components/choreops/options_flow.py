@@ -3138,7 +3138,10 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                     # Map field-specific error for form highlighting
                     errors[err.field] = err.translation_key
 
-        schema = fh.build_reward_schema(assignees_dict=coordinator.assignees_data)
+        schema = fh.build_reward_schema(
+            assignees_dict=coordinator.assignees_data,
+            chores_dict=coordinator.chores_data,
+        )
 
         # Pre-populate with all gamified users on first view
         if user_input is None:
@@ -3222,6 +3225,9 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             const.CFOF_REWARDS_INPUT_ASSIGNED_USER_IDS: existing_reward.get(
                 const.DATA_REWARD_ASSIGNED_USER_IDS, []
             ),
+            const.CFOF_REWARDS_INPUT_ELIGIBLE_CHORE_IDS: existing_reward.get(
+                const.DATA_REWARD_ELIGIBLE_CHORE_IDS, []
+            ),
         }
 
         # On validation error, merge user's attempted input with existing data
@@ -3229,7 +3235,10 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             suggested_values.update(user_input)
 
         # Build schema with static defaults
-        schema = fh.build_reward_schema(assignees_dict=coordinator.assignees_data)
+        schema = fh.build_reward_schema(
+            assignees_dict=coordinator.assignees_data,
+            chores_dict=coordinator.chores_data,
+        )
         # Apply values as suggestions
         schema = self.add_suggested_values_to_schema(schema, suggested_values)
 

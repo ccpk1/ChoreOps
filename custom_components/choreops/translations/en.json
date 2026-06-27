@@ -953,7 +953,11 @@
           "description": "Description (optional)",
           "reward_labels": "Reward Labels",
           "icon": "Icon (mdi:xxx)",
-          "assigned_user_ids": "Assigned to"
+          "assigned_user_ids": "Assigned to",
+          "eligible_chore_ids": "Limit to chores (optional)"
+        },
+        "data_description": {
+          "eligible_chore_ids": "If set, this reward can only be paid for with points the assignee earned from the selected chores. Leave empty to allow any points to be used."
         }
       },
       "add_penalty": {
@@ -1425,7 +1429,11 @@
           "description": "Description (optional)",
           "reward_labels": "Reward Labels",
           "icon": "Icon (mdi:xxx)",
-          "assigned_user_ids": "Assigned to"
+          "assigned_user_ids": "Assigned to",
+          "eligible_chore_ids": "Limit to chores (optional)"
+        },
+        "data_description": {
+          "eligible_chore_ids": "If set, this reward can only be paid for with points the assignee earned from the selected chores. Leave empty to allow any points to be used."
         }
       },
       "edit_penalty": {

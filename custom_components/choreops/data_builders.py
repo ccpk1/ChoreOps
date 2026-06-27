@@ -362,6 +362,9 @@ def build_reward(
         icon=str(get_field(const.DATA_REWARD_ICON, const.SENTINEL_EMPTY)),
         reward_labels=list(get_field(const.DATA_REWARD_LABELS, [])),
         assigned_user_ids=list(get_field(const.DATA_REWARD_ASSIGNED_USER_IDS, [])),
+        eligible_chore_ids=list(
+            get_field(const.DATA_REWARD_ELIGIBLE_CHORE_IDS, [])
+        ),
     )
 
 
@@ -384,6 +387,7 @@ _REWARD_DATA_RESET_PRESERVE_FIELDS: frozenset[str] = frozenset(
         const.DATA_REWARD_ICON,
         const.DATA_REWARD_LABELS,
         const.DATA_REWARD_ASSIGNED_USER_IDS,
+        const.DATA_REWARD_ELIGIBLE_CHORE_IDS,
     }
 )
 

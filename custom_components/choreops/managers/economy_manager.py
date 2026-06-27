@@ -388,6 +388,25 @@ class EconomyManager(BaseManager):
                 allow_negative=False,  # Assignees must afford rewards
             )
 
+            # Restricted rewards: draw the spent points down from the specific
+            # chores that funded them so a point can only be spent once.
+            reward = (
+                self._coordinator.rewards_data.get(reward_id) if reward_id else None
+            )
+            eligible = (
+                reward.get(const.DATA_REWARD_ELIGIBLE_CHORE_IDS, [])
+                if reward
+                else []
+            )
+            if eligible:
+                assignee = self._get_assignee(assignee_id)
+                if assignee:
+                    EconomyEngine.allocate_debit(
+                        self._ensure_points_by_chore(assignee),
+                        list(eligible),
+                        cost,
+                    )
+
     async def _on_chore_undone(self, payload: dict[str, Any]) -> None:
         """Handle chore undone event - withdraw points from assignee's balance.
 
@@ -413,6 +432,18 @@ class EconomyManager(BaseManager):
                 reference_id=chore_id,
                 # allow_negative=True by default - undo can go negative
             )
+
+            # Keep the per-chore spendable map in sync when an approval is undone.
+            assignee = self._get_assignee(assignee_id)
+            if assignee and chore_id:
+                by_chore = assignee.get(const.DATA_USER_POINTS_BY_CHORE)
+                if by_chore and chore_id in by_chore:
+                    by_chore[chore_id] = max(
+                        0.0,
+                        EconomyEngine.round_points(
+                            float(by_chore[chore_id]) - points_to_reclaim
+                        ),
+                    )
 
     def _get_assignee(self, assignee_id: str) -> AssigneeData | None:
         """Get assignee data by ID.
@@ -452,6 +483,46 @@ class EconomyManager(BaseManager):
         # StatisticsManager (tenant) creates and writes the period sub-keys
         if const.DATA_USER_POINT_PERIODS not in assignee_data:
             assignee_data[const.DATA_USER_POINT_PERIODS] = {}
+
+    def _ensure_points_by_chore(
+        self, assignee_data: "AssigneeData"
+    ) -> dict[str, float]:
+        """Ensure the per-chore spendable-points map exists (lazy genesis).
+
+        Maps chore_id -> remaining points earned from that chore that have not
+        yet been spent. Backs rewards restricted to specific chores
+        (DATA_REWARD_ELIGIBLE_CHORE_IDS). Created on first chore deposit; not
+        backfilled, so points earned before upgrade count as unrestricted.
+        """
+        if const.DATA_USER_POINTS_BY_CHORE not in assignee_data:
+            assignee_data[const.DATA_USER_POINTS_BY_CHORE] = {}  # type: ignore[typeddict-unknown-key]
+        return assignee_data[const.DATA_USER_POINTS_BY_CHORE]  # type: ignore[typeddict-item]
+
+    def get_available_for_reward(
+        self, assignee_id: str, eligible_chore_ids: list[str] | None
+    ) -> float:
+        """Return the points a assignee may spend on a reward.
+
+        When ``eligible_chore_ids`` is empty or None the reward is unrestricted
+        and the full balance is returned. Otherwise only points still
+        attributed to the listed chores count toward the reward.
+
+        Args:
+            assignee_id: The internal UUID of the assignee.
+            eligible_chore_ids: Chore ids that may fund the reward.
+
+        Returns:
+            Spendable points available for the reward.
+        """
+        assignee = self._get_assignee(assignee_id)
+        if not assignee:
+            return 0.0
+        if not eligible_chore_ids:
+            return self.get_balance(assignee_id)
+        by_chore = assignee.get(const.DATA_USER_POINTS_BY_CHORE, {}) or {}
+        return EconomyEngine.round_points(
+            sum(float(by_chore.get(cid, 0.0)) for cid in eligible_chore_ids)
+        )
 
     def get_balance(self, assignee_id: str) -> float:
         """Get current point balance for a assignee.
@@ -564,6 +635,18 @@ class EconomyManager(BaseManager):
             current_balance, actual_amount
         )
         assignee[const.DATA_USER_POINTS] = new_balance
+
+        # Restricted rewards: tag chore-sourced points by their chore so a
+        # reward limited to specific chores can only be paid from them.
+        if (
+            source == const.POINTS_SOURCE_CHORES
+            and reference_id
+            and actual_amount > 0
+        ):
+            by_chore = self._ensure_points_by_chore(assignee)
+            by_chore[reference_id] = EconomyEngine.round_points(
+                float(by_chore.get(reference_id, 0.0)) + actual_amount
+            )
 
         # Append to ledger and prune
         ledger = self._ensure_ledger(assignee)

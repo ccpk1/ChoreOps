@@ -183,6 +183,36 @@ class EconomyEngine:
         return EconomyEngine.round_points(current_balance + delta)
 
     @staticmethod
+    def allocate_debit(
+        balances: dict[str, float], order: list[str], amount: float
+    ) -> dict[str, float]:
+        """Subtract ``amount`` from ``balances`` across ``order`` sequentially.
+
+        Used to draw down the points a user earned from specific chores when a
+        restricted reward is approved, so any given point can only be spent
+        once. Each chore in ``order`` is debited up to its remaining balance
+        until ``amount`` is exhausted. Mutates and returns ``balances``.
+
+        Args:
+            balances: Mapping of chore_id -> remaining spendable points.
+            order: Chore ids to debit, in priority order.
+            amount: Total points to remove (non-negative).
+
+        Returns:
+            The mutated ``balances`` mapping.
+        """
+        remaining = amount
+        for chore_id in order:
+            if remaining <= 0:
+                break
+            available = float(balances.get(chore_id, 0.0))
+            take = available if available < remaining else remaining
+            if take > 0:
+                balances[chore_id] = EconomyEngine.round_points(available - take)
+                remaining = EconomyEngine.round_points(remaining - take)
+        return balances
+
+    @staticmethod
     def prune_ledger(
         ledger: list[LedgerEntry],
         max_entries: int = DEFAULT_MAX_LEDGER_ENTRIES,

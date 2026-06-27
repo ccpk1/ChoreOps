@@ -133,6 +133,7 @@ class RewardData(TypedDict):
     icon: str
     reward_labels: list[str]
     assigned_user_ids: list[str]
+    eligible_chore_ids: NotRequired[list[str]]
 
 
 class PenaltyData(TypedDict):

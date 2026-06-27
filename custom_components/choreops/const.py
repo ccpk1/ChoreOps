@@ -729,6 +729,9 @@ CFOF_REWARDS_INPUT_ASSIGNED_USER_NAMES: Final = "assigned_user_names"
 CFOF_REWARDS_INPUT_ASSIGNED_USER_IDS: Final = (
     "assigned_user_ids"  # Aligned with DATA_REWARD_ASSIGNED_USER_IDS
 )
+CFOF_REWARDS_INPUT_ELIGIBLE_CHORE_IDS: Final = (
+    "eligible_chore_ids"  # Aligned with DATA_REWARD_ELIGIBLE_CHORE_IDS
+)
 CFOF_REWARDS_INPUT_REWARD_COUNT: Final = "reward_count"
 
 # BONUSES
@@ -1173,6 +1176,7 @@ CUMULATIVE_BADGE_PROGRESS_NEXT_LOWER_THRESHOLD: Final = "next_lower_threshold"
 DATA_USER_POINTS: Final = "points"
 DATA_USER_POINTS_MULTIPLIER: Final = "points_multiplier"
 DATA_USER_LEDGER: Final = "ledger"
+DATA_USER_POINTS_BY_CHORE: Final = "points_by_chore"  # chore_id -> remaining spendable points earned from that chore
 
 DATA_USER_CURRENT_STREAK: Final = "current_streak"
 DATA_USER_LAST_STREAK_DATE: Final = "last_date"
@@ -1672,6 +1676,7 @@ DATA_REWARD_LABELS: Final = "reward_labels"
 DATA_REWARD_NAME: Final = "name"
 DATA_REWARD_TIMESTAMP: Final = "timestamp"
 DATA_REWARD_ASSIGNED_USER_IDS: Final = "assigned_user_ids"
+DATA_REWARD_ELIGIBLE_CHORE_IDS: Final = "eligible_chore_ids"  # Chores whose points can pay for this reward ([] = any)
 
 # BONUSES
 DATA_BONUS_DESCRIPTION: Final = "description"
@@ -3798,6 +3803,7 @@ TRANS_KEY_FLOW_HELPERS_APPROVAL_RESET_PENDING_CLAIM_ACTION: Final = (
 )
 TRANS_KEY_FLOW_HELPERS_APPROVAL_RESET_TYPE: Final = "approval_reset_type"
 TRANS_KEY_FLOW_HELPERS_ASSIGNED_USER_IDS: Final = "assigned_user_ids"
+TRANS_KEY_FLOW_HELPERS_ELIGIBLE_CHORE_IDS: Final = "eligible_chore_ids"
 TRANS_KEY_FLOW_HELPERS_CHORE_NOTIFICATIONS: Final = "chore_notifications"
 TRANS_KEY_FLOW_HELPERS_COMPLETION_CRITERIA: Final = "completion_criteria"
 TRANS_KEY_FLOW_HELPERS_STANDBY_CLAIM_MODE: Final = "standby_claim_mode"

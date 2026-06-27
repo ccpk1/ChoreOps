@@ -336,13 +336,21 @@ class RewardManager(BaseManager):
             )
 
         cost = reward_info.get(const.DATA_REWARD_COST, const.DEFAULT_ZERO)
-        if assignee_info[const.DATA_USER_POINTS] < cost:
+        # Restricted rewards may only be paid with points earned from specific
+        # chores. When eligible_chore_ids is empty the full balance is usable.
+        eligible_chore_ids = reward_info.get(
+            const.DATA_REWARD_ELIGIBLE_CHORE_IDS, []
+        )
+        available_points = self.coordinator.economy_manager.get_available_for_reward(
+            assignee_id, eligible_chore_ids
+        )
+        if available_points < cost:
             raise HomeAssistantError(
                 translation_domain=const.DOMAIN,
                 translation_key=const.TRANS_KEY_ERROR_INSUFFICIENT_POINTS,
                 translation_placeholders={
                     "assignee": assignee_info[const.DATA_USER_NAME],
-                    "current": str(assignee_info[const.DATA_USER_POINTS]),
+                    "current": str(available_points),
                     "required": str(cost),
                 },
             )

@@ -81,7 +81,7 @@ If you like this integration, the best (and free!) thing you can do is click the
 - **Profiles**: flexible roles for every approver and doer in your household
 - **Chores**: individual, shared, first-complete, and rotation models with advanced recurrence and overdue handling
 - **Points/XP**: use any home assistant icon and any term to configure the currency in your household
-- **Rewards**: claim-and-approve redemption workflows with automatic point accounting
+- **Rewards**: claim-and-approve redemption workflows with automatic point accounting, with optional **chore-restricted rewards** (a reward can be limited so it is only payable with points earned from specific chores)
 - **Badges**: cumulative rank-style systems and periodic quest-style systems with streaks and multipliers
 - **Bonuses and penalties**: transparent manual or automated adjustments
 - **Challenges and achievements**: time-bound goals and milestone tracking
