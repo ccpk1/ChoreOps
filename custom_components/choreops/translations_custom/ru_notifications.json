@@ -1,0 +1,164 @@
+{
+  "_comment_assignee_section": "═════════════════════════════════════════════════════════════",
+  "_comment_assignee_desc": "УВЕДОМЛЕНИЯ ДЛЯ НАЗНАЧЕННЫХ ЛИЦ: В игровой форме, от второго лица, в ободряющем тоне с использованием смайликов. Без префикса «ChoreOps:».",
+  "_comment_assignee_footer": "═════════════════════════════════════════════════════════════",
+  "chore_approved_assignee": {
+    "title": "🎉 Одобрено для выполнения домашних обязанностей!",
+    "message": "{chore_name} одобрено! Вы заслужили {points} {points_label}"
+  },
+  "chore_disapproved_assignee": {
+    "title": "↩️ Работа выполнена",
+    "message": "{chore_name} требует доработки."
+  },
+  "chore_overdue_assignee": {
+    "title": "⏰ Просроченное задание",
+    "message": "{chore_name} просрочено! Выполните его сейчас, чтобы получить {points} {points_label}"
+  },
+  "chore_overdue_steal_available": {
+    "title": "⚡ Внимание, домашние дела!",
+    "message": "{chore_name} просрочено и доступно для кражи! Выполните его первым, чтобы получить {points} {points_label}"
+  },
+  "chore_missed_assignee": {
+    "title": "😔 Срок выполнения задания истёк",
+    "message": "{chore_name} истек срок, так и не завершившись."
+  },
+  "chore_due_reminder_assignee": {
+    "title": "⏰ Напоминание о домашних обязанностях",
+    "message": "{chore_name} нужно сдать через {minutes} минут! Стоит {points} {points_label}"
+  },
+  "chore_due_window_assignee": {
+    "title": "🎯 Задание на дом к выполнению",
+    "message": "Срок сдачи: {chore_name} ! Выполните задание в течение {hours} часа(ов), чтобы заработать {points} {points_label}"
+  },
+  "chore_approved_assignee_no_points": {
+    "message": "{chore_name} одобрено!"
+  },
+  "chore_overdue_assignee_no_points": {
+    "message": "{chore_name} просрочено! Завершите сейчас!"
+  },
+  "chore_overdue_steal_available_no_points": {
+    "message": "{chore_name} просрочено и доступно для кражи! Выполните его первым!"
+  },
+  "chore_standby_needed_no_points": {
+    "message": "{primary_name}выполнил поручение {chore_name} , и оно просрочено! Заберите его прямо сейчас!"
+  },
+  "chore_due_reminder_assignee_no_points": {
+    "message": "{chore_name} должно быть сдано через {minutes} минут!"
+  },
+  "chore_due_window_assignee_no_points": {
+    "message": "Срок сдачи: {chore_name} ! Завершите работу в течение {hours} часа(ов)."
+  },
+  "reward_approved_assignee": {
+    "title": "🎉 Награда одобрена!",
+    "message": "{reward_name} одобрено!"
+  },
+  "reward_disapproved_assignee": {
+    "title": "💭 Запрос на вознаграждение возвращен",
+    "message": "{reward_name} на этот раз не было одобрено."
+  },
+  "badge_earned_assignee": {
+    "title": "🥇 Значок получен!",
+    "message": "Вы заслужили значок {badge_name}!"
+  },
+  "achievement_earned_assignee": {
+    "title": "🏆 Достижение заслужено!",
+    "message": "Вы заслужили {achievement_name}! Продолжайте в том же духе!"
+  },
+  "challenge_completed_assignee": {
+    "title": "🏁 Задание выполнено!",
+    "message": "Вы завершили {challenge_name}! Продолжайте в том же духе!"
+  },
+  "penalty_applied_assignee": {
+    "title": "⚠️ Применен штраф",
+    "message": "{penalty_name}: {points} {points_label} вычтено. Давайте вернемся к делу!"
+  },
+  "bonus_applied_assignee": {
+    "title": "⭐ Бонус применен!",
+    "message": "{bonus_name}: Вы заработали бонус {points} {points_label}! Отличная работа!"
+  },
+  "multiplier_changed_assignee": {
+    "title": "⚖️ Множитель обновлен",
+    "message": "Ваш множитель {points_label} изменился с {old_multiplier}x на {new_multiplier}x"
+  },
+  "_comment_approver_section": "═════════════════════════════════════════════════════════════",
+  "_comment_approver_desc": "УВЕДОМЛЕНИЯ ОДОБРЕТЕТЕЛЯ: Информативные, от третьего лица, с указанием действий. Формат: '{assignee_name}: Действие'. Без префикса 'ChoreOps:'.",
+  "_comment_approver_footer": "═════════════════════════════════════════════════════════════",
+  "chore_claimed_approver": {
+    "title": "✋ {assignee_name}: Выполнение домашнего задания",
+    "message": "{assignee_name} заявил {chore_name}"
+  },
+  "chore_reminder_approver": {
+    "title": "⏰ {assignee_name}: Требуется одобрение",
+    "message": "Напоминание: {chore_name} , забронированное пользователем {assignee_name} , ожидает вашего отзыва."
+  },
+  "chore_overdue_approver": {
+    "title": "⚠️ {assignee_name}: Просрочено домашнее задание",
+    "message": "{assignee_name}- задание {chore_name} просрочено (срок выполнения: {due_date})"
+  },
+  "pending_chores_approver": {
+    "title": "📋 {assignee_name}: {count} Ожидает",
+    "message": "{count} дел, ожидающих проверки. Последнее: {latest_chore} (+{points} {points_label})"
+  },
+  "reward_claimed_approver": {
+    "title": "🎁 {assignee_name}: Запрос на вознаграждение",
+    "message": "{assignee_name} запросил {reward_name} для {points} {points_label}"
+  },
+  "reward_reminder_approver": {
+    "title": "⏰ {assignee_name}: Ожидается награда",
+    "message": "Напоминание: запрос {reward_name} от {assignee_name} ожидает вашего одобрения."
+  },
+  "badge_earned_approver": {
+    "title": "🥇 {assignee_name}: Значок получен",
+    "message": "{assignee_name} получил значок {badge_name}!"
+  },
+  "achievement_earned_approver": {
+    "title": "🏆 {assignee_name}: Достижение",
+    "message": "{assignee_name} заработал {achievement_name}"
+  },
+  "challenge_completed_approver": {
+    "title": "🏁 {assignee_name}: Задание выполнено",
+    "message": "{assignee_name} завершено {challenge_name}"
+  },
+  "multiplier_changed_approver": {
+    "title": "⚖️ {assignee_name}: Множитель обновлен",
+    "message": "Множитель {assignee_name} {points_label} изменился с {old_multiplier}x на {new_multiplier}x"
+  },
+  "_comment_system_section": "═════════════════════════════════════════════════════════════",
+  "_comment_system_desc": "УВЕДОМЛЕНИЯ СИСТЕМЫ/АДМИНИСТРАТОРА: Операции по управлению данными",
+  "_comment_system_footer": "═════════════════════════════════════════════════════════════",
+  "data_reset": {
+    "title": "🔄 ChoreOps: Сброс данных",
+    "message": "Системные данные были сброшены."
+  },
+  "data_reset_global": {
+    "title": "🔄 ChoreOps: Полный сброс",
+    "message": "Все системные данные сброшены до значений по умолчанию."
+  },
+  "data_reset_assignee": {
+    "title": "🔄 ChoreOps: Сброс назначенного исполнителя",
+    "message": "Данные сброшены для {assignee_name}"
+  },
+  "data_reset_item_type": {
+    "title": "🔄 ChoreOps: {item_type} Сброс",
+    "message": "Все данные {item_type} были сброшены."
+  },
+  "data_reset_item": {
+    "title": "🔄 ChoreOps: Сброс предмета",
+    "message": "{item_type} '{item_name}' был сброшен"
+  },
+  "_comment_actions_section": "═════════════════════════════════════════════════════════════",
+  "_comment_actions_desc": "КНОПКИ ДЕЙСТВИЯ ДЛЯ УВЕДОМЛЕНИЙ: Более мягкий, ободряющий язык.",
+  "_comment_actions_footer": "═════════════════════════════════════════════════════════════",
+  "actions": {
+    "approve": "✅ Одобрить",
+    "claim": "✋ Я это сделал!",
+    "complete": "✅ Завершено",
+    "disapprove": "↩️ Не одобрить",
+    "remind_30": "⏰ Напоминание через 30 минут",
+    "skip": "⏭️ Пропустить"
+  },
+  "chore_standby_needed": {
+    "title": "🫲 Запрос на ожидание",
+    "message": "Задание {primary_name} {chore_name} просрочено! Заберите его сейчас, чтобы получить {points} {points_label}"
+  }
+}

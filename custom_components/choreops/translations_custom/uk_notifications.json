@@ -1,0 +1,164 @@
+{
+  "_comment_assignee_section": "═════════════════════════════════════════════════════════════════════════",
+  "_comment_assignee_desc": "СПОМИНАННЯ ДЛЯ ПРИЗНАЧЕНИХ: Гейміфікований, від другої особи, підбадьорливий тон з емодзі. БЕЗ префікса «ChoreOps:».",
+  "_comment_assignee_footer": "═════════════════════════════════════════════════════════════════════════",
+  "chore_approved_assignee": {
+    "title": "🎉 Домашнє завдання схвалено!",
+    "message": "{chore_name} схвалено! Ви заробили {points} {points_label}"
+  },
+  "chore_disapproved_assignee": {
+    "title": "↩️ Повернення хатньої роботи",
+    "message": "{chore_name} потребує додаткової роботи."
+  },
+  "chore_overdue_assignee": {
+    "title": "⏰ Прострочено хатню роботу",
+    "message": "{chore_name} прострочено! Виконайте його зараз, щоб отримати {points} {points_label}"
+  },
+  "chore_overdue_steal_available": {
+    "title": "⚡ Сповіщення про хатні справи",
+    "message": "{chore_name} прострочено та доступно для крадіжки! Виконайте це спочатку, щоб заробити {points} {points_label}"
+  },
+  "chore_missed_assignee": {
+    "title": "😔 Термін дії завдання закінчився",
+    "message": "Термін дії {chore_name} закінчився без завершення."
+  },
+  "chore_due_reminder_assignee": {
+    "title": "⏰ Нагадування про домашні справи",
+    "message": "{chore_name} має бути виконано через {minutes} хвилин! Вартість {points} {points_label}"
+  },
+  "chore_due_window_assignee": {
+    "title": "🎯 Термін виконання хатньої роботи",
+    "message": "Термін виконання {chore_name} вже попереду! Виконайте завдання протягом {hours} годин(и), щоб заробити {points} {points_label}"
+  },
+  "chore_approved_assignee_no_points": {
+    "message": "{chore_name} схвалено!"
+  },
+  "chore_overdue_assignee_no_points": {
+    "message": "{chore_name} прострочено! Завершіть це зараз"
+  },
+  "chore_overdue_steal_available_no_points": {
+    "message": "{chore_name} прострочено та доступно для крадіжки! Виконайте це спочатку"
+  },
+  "chore_standby_needed_no_points": {
+    "message": "Завдання {primary_name} {chore_name} прострочено! Заберіть його зараз"
+  },
+  "chore_due_reminder_assignee_no_points": {
+    "message": "{chore_name} має бути виконано через {minutes} хвилин!"
+  },
+  "chore_due_window_assignee_no_points": {
+    "message": "{chore_name} вже має бути виконано! Виконати протягом {hours} годин(и)"
+  },
+  "reward_approved_assignee": {
+    "title": "🎉 Винагороду схвалено!",
+    "message": "{reward_name} схвалено!"
+  },
+  "reward_disapproved_assignee": {
+    "title": "💭 Запит на винагороду повернуто",
+    "message": "{reward_name} цього разу не було схвалено."
+  },
+  "badge_earned_assignee": {
+    "title": "🥇 Значок зароблено!",
+    "message": "Ви заслужили значок {badge_name}!"
+  },
+  "achievement_earned_assignee": {
+    "title": "🏆 Досягнення отримано!",
+    "message": "Ви заробили {achievement_name}! Продовжуйте чудову роботу"
+  },
+  "challenge_completed_assignee": {
+    "title": "🏁 Виклик виконано!",
+    "message": "Ви завершили {challenge_name}! Продовжуйте чудову роботу"
+  },
+  "penalty_applied_assignee": {
+    "title": "⚠️ Застосовано штраф",
+    "message": "{penalty_name}: {points} {points_label} відраховано. Повертаємося до правильного шляху!"
+  },
+  "bonus_applied_assignee": {
+    "title": "⭐ Бонус застосовано!",
+    "message": "{bonus_name}: Ви заробили бонус {points} {points_label}! Чудова робота"
+  },
+  "multiplier_changed_assignee": {
+    "title": "⚖️ Множник оновлено",
+    "message": "Ваш множник {points_label} змінився з {old_multiplier}x на {new_multiplier}x"
+  },
+  "_comment_approver_section": "═════════════════════════════════════════════════════════════════════════",
+  "_comment_approver_desc": "СПОМИНАННЯ ДЛЯ ЗАТВЕРДЖУВАЧІВ: Інформативні, від третьої особи, діючі. Формат: '{assignee_name}: Дія'. БЕЗ префікса 'ChoreOps:'.",
+  "_comment_approver_footer": "═════════════════════════════════════════════════════════════════════════",
+  "chore_claimed_approver": {
+    "title": "✋ {assignee_name}: Дорожнє завдання заявлено",
+    "message": "{assignee_name} заявив {chore_name}"
+  },
+  "chore_reminder_approver": {
+    "title": "⏰ {assignee_name}: Потрібне схвалення",
+    "message": "Нагадування: {chore_name} , заявлений користувачем {assignee_name} , очікує на ваш відгук"
+  },
+  "chore_overdue_approver": {
+    "title": "⚠️ {assignee_name}: Домашнє завдання прострочено",
+    "message": "Завдання {assignee_name} {chore_name} прострочено (термін виконання: {due_date})"
+  },
+  "pending_chores_approver": {
+    "title": "📋 {assignee_name}: {count} Очікує на розгляд",
+    "message": "{count} завдання, що очікують перевірки. Останні: {latest_chore} (+{points} {points_label})"
+  },
+  "reward_claimed_approver": {
+    "title": "🎁 {assignee_name}: Запит на винагороду",
+    "message": "{assignee_name} запитував {reward_name} для {points} {points_label}"
+  },
+  "reward_reminder_approver": {
+    "title": "⏰ {assignee_name}: Очікується винагорода",
+    "message": "Нагадування: {reward_name} запит від {assignee_name} очікує на ваше схвалення"
+  },
+  "badge_earned_approver": {
+    "title": "🥇 {assignee_name}: Значок зароблено",
+    "message": "{assignee_name} отримав значок {badge_name}!"
+  },
+  "achievement_earned_approver": {
+    "title": "🏆 {assignee_name}: Досягнення",
+    "message": "{assignee_name} зароблено {achievement_name}"
+  },
+  "challenge_completed_approver": {
+    "title": "🏁 {assignee_name}: Виклик виконано",
+    "message": "{assignee_name} завершено {challenge_name}"
+  },
+  "multiplier_changed_approver": {
+    "title": "⚖️ {assignee_name}: Множник оновлено",
+    "message": "Множник {assignee_name}для {points_label} змінено з {old_multiplier}x на {new_multiplier}x"
+  },
+  "_comment_system_section": "═════════════════════════════════════════════════════════════════════════",
+  "_comment_system_desc": "СИСТЕМНІ/АДМІНІСТРАТИВНІ ПОВІДОМЛЕННЯ: Операції з керування даними",
+  "_comment_system_footer": "═════════════════════════════════════════════════════════════════════════",
+  "data_reset": {
+    "title": "🔄 Доглядові операції: Скидання даних",
+    "message": "Системні дані скинуто"
+  },
+  "data_reset_global": {
+    "title": "🔄 Доглядальні операції: Повне скидання",
+    "message": "Усі системні дані скинуто до значень за замовчуванням"
+  },
+  "data_reset_assignee": {
+    "title": "🔄 Доглядові операції: Скидання призначень",
+    "message": "Скидання даних для {assignee_name}"
+  },
+  "data_reset_item_type": {
+    "title": "🔄 Домашні справи: {item_type} Скинути",
+    "message": "Усі дані {item_type} скинуто"
+  },
+  "data_reset_item": {
+    "title": "🔄 Доглядальні операції: Скидання предметів",
+    "message": "{item_type} '{item_name}' було скинуто"
+  },
+  "_comment_actions_section": "═════════════════════════════════════════════════════════════════════════",
+  "_comment_actions_desc": "КНОПКИ ДІЙ СПОВЕДІНЬ: М’якша, більш підбадьорлива мова",
+  "_comment_actions_footer": "═════════════════════════════════════════════════════════════════════════",
+  "actions": {
+    "approve": "✅ Схвалити",
+    "claim": "✋ Я це зробив!",
+    "complete": "✅ Завершено",
+    "disapprove": "↩️ Не схвалювати",
+    "remind_30": "⏰ Нагадати через 30 хв",
+    "skip": "⏭️ Пропустити"
+  },
+  "chore_standby_needed": {
+    "title": "🫲 Запит на режим очікування",
+    "message": "Завдання {primary_name} {chore_name} прострочено! Замовте його зараз, щоб заробити {points} {points_label}"
+  }
+}
