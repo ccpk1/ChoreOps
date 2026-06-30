@@ -1267,3 +1267,55 @@ class TestCumulativeBadgeMultiplierTransitions:
             assignee_progress.get(const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_STATUS)
             == const.CUMULATIVE_BADGE_STATE_GRACE
         )
+
+    async def test_deleting_cumulative_badge_resets_multiplier(
+        self,
+        hass: HomeAssistant,
+        setup_badges,  # noqa: F811
+    ) -> None:
+        """Deleting a cumulative badge must reset the multiplier for assignees.
+
+        Issue #198: Deleting a badge with a multiplier left the stale value
+        in the assignee's DATA_USER_POINTS_MULTIPLIER because delete_badge()
+        removed the badge from badges_data before remove_awarded_badges_by_id
+        could detect its type and trigger update_point_multiplier_for_assignee.
+        """
+        coordinator = setup_badges.coordinator
+        gamification_manager = coordinator.gamification_manager
+        max_id = get_assignee_by_name(coordinator, "Max!")
+        badge_id = get_badge_by_name(coordinator, "Team Player Badge")
+
+        # Set a 2.0x multiplier on the badge
+        badge_awards = coordinator.badges_data[badge_id].setdefault(
+            const.DATA_BADGE_AWARDS, {}
+        )
+        badge_awards[const.DATA_BADGE_AWARDS_POINT_MULTIPLIER] = 2.0
+
+        # Put the badge in Max!'s badges_earned and badge's earned_by list
+        assignee_data = coordinator.assignees_data[max_id]
+        assignee_data.setdefault(const.DATA_USER_BADGES_EARNED, {})[badge_id] = {
+            const.DATA_USER_BADGES_EARNED_NAME: coordinator.badges_data[badge_id][
+                const.DATA_BADGE_NAME
+            ],
+        }
+        coordinator.badges_data[badge_id].setdefault(
+            const.DATA_BADGE_EARNED_BY, []
+        ).append(max_id)
+
+        # Apply the multiplier
+        gamification_manager.update_point_multiplier_for_assignee(max_id)
+        await hass.async_block_till_done()
+
+        assert assignee_data[const.DATA_USER_POINTS_MULTIPLIER] == 2.0, (
+            "Multiplier should be 2.0 before badge deletion"
+        )
+
+        # Delete the badge
+        gamification_manager.delete_badge(badge_id)
+        await hass.async_block_till_done()
+
+        # Verify multiplier reset to default
+        assert (
+            assignee_data[const.DATA_USER_POINTS_MULTIPLIER]
+            == const.DEFAULT_ASSIGNEE_POINTS_MULTIPLIER
+        ), "Multiplier should reset to default after badge deletion"
