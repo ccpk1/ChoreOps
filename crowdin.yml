@@ -12,8 +12,6 @@ files:
     languages_mapping:
       two_letters_code:
         "no": nb
-        "py": ru
-        "yk": uk
 
   # 2. Report Translations (custom translations directory)
   # Maps: /translations_custom/en_report.json -> /translations_custom/fr_report.json
@@ -22,8 +20,6 @@ files:
     languages_mapping:
       two_letters_code:
         "no": nb
-        "py": ru
-        "yk": uk
 
   # 3. Notification Translations (custom translations directory)
   # Maps: /translations_custom/en_notifications.json -> /translations_custom/fr_notifications.json
@@ -32,5 +28,3 @@ files:
     languages_mapping:
       two_letters_code:
         "no": nb
-        "py": ru
-        "yk": uk
