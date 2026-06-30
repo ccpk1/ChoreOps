@@ -1309,24 +1309,26 @@ def calculate_next_due_date_from_chore_info(
             "base_date": current_due_utc.isoformat(),
         }
         pe_engine = RecurrenceEngine(pe_config)
-        next_due_utc = pe_engine.advance_period_end_preserve_time(current_due_utc)
-        if next_due_utc is None:
+        pe_result = pe_engine.advance_period_end_preserve_time(current_due_utc)
+        if pe_result is None:
             return None
         # Ensure result is after reference time
         ref_utc = reference_time or dt_now_utc()
         pe_iteration = 0
         while (
-            next_due_utc <= ref_utc
+            pe_result <= ref_utc
             and pe_iteration < const.MAX_DATE_CALCULATION_ITERATIONS
         ):
             pe_iteration += 1
-            prev = next_due_utc
-            next_due_utc = pe_engine.advance_period_end_preserve_time(next_due_utc)
-            if next_due_utc is None or next_due_utc == prev:
-                next_due_utc = None
+            prev = pe_result
+            next_pe = pe_engine.advance_period_end_preserve_time(pe_result)
+            if next_pe is None or next_pe == prev:
+                pe_result = None
                 break
-        if next_due_utc is None:
+            pe_result = next_pe
+        if pe_result is None:
             return None
+        next_due_utc = pe_result
     else:
         next_due_utc = cast(
             "datetime",
