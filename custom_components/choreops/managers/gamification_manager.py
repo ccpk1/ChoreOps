@@ -4946,12 +4946,22 @@ class GamificationManager(BaseManager):
             )
 
         badge_name = badges_data[badge_id].get(const.DATA_BADGE_NAME, badge_id)
+        badge_type = badges_data[badge_id].get(const.DATA_BADGE_TYPE)
+        earned_by = list(badges_data[badge_id].get(const.DATA_BADGE_EARNED_BY, []))
 
         # Delete from storage
         del self.coordinator._data[const.DATA_BADGES][badge_id]
 
         # Remove awarded badges from assignees (this manager has the method)
         self.remove_awarded_badges_by_id(badge_id=badge_id)
+
+        # Recalculate multiplier for assignees that had this badge earned,
+        # since remove_awarded_badges_by_id can no longer find the badge data.
+        # Must happen after deletion from badges_data so get_cumulative_badge_levels
+        # does not match the deleted badge via threshold check.
+        if badge_type == const.BADGE_TYPE_CUMULATIVE:
+            for assignee_id in earned_by:
+                self.update_point_multiplier_for_assignee(assignee_id)
 
         # Sync badge progress for all assignees after badge deletion
         # Phase 3A: cumulative progress computed on-read (no storage write needed)
