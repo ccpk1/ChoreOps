@@ -27,10 +27,13 @@ from homeassistant.helpers.start import async_at_started
 
 from .. import const, data_builders as db
 from ..engines.gamification_engine import GamificationEngine
+from ..engines.schedule_engine import RecurrenceEngine
 from ..helpers import entity_helpers as eh
 from ..helpers.entity_helpers import get_item_id_by_name, remove_entities_by_item_id
 from ..utils.dt_utils import (
     HELPER_RETURN_DATETIME_LOCAL,
+    as_local,
+    as_utc,
     dt_add_interval,
     dt_next_schedule,
     dt_now_utc_iso,
@@ -58,6 +61,7 @@ if TYPE_CHECKING:
         ChallengeProgress,
         EvaluationContext,
         EvaluationResult,
+        ScheduleConfig,
         UserData,
     )
 
@@ -1745,6 +1749,25 @@ class GamificationManager(BaseManager):
                     return_type=const.HELPER_RETURN_ISO_DATE,
                 )
                 return str(custom_result) if custom_result else None
+            return None
+
+        if recurring_frequency in RecurrenceEngine.PERIOD_END_FREQUENCIES:
+            # Use RecurrenceEngine for period-end badge cycles.
+            # Returns 23:59 local time on the period-end date, then extracts
+            # the local date for the date-only badge cycle output.
+            pe_config: ScheduleConfig = {
+                "frequency": recurring_frequency,
+                "base_date": current_end_iso,
+            }
+            pe_engine = RecurrenceEngine(pe_config)
+            current_end_dt = dt_parse(current_end_iso)
+            if not isinstance(current_end_dt, datetime):
+                return None
+            next_dt = pe_engine.get_next_occurrence(
+                after=as_utc(current_end_dt), require_future=True
+            )
+            if next_dt:
+                return as_local(next_dt).date().isoformat()
             return None
 
         next_result = dt_next_schedule(

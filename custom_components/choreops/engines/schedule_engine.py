@@ -676,6 +676,56 @@ class RecurrenceEngine:
             seconds=const.END_OF_DAY_SECOND,
         )
 
+    def advance_period_end_preserve_time(
+        self, current_due_utc: datetime, periods: int = 1
+    ) -> datetime | None:
+        """Advance by N periods and snap to period end, preserving the original time.
+
+        Unlike _calculate_period_end (which returns 23:59 local time for calendar/badges),
+        this method preserves the time component of the input datetime and only snaps
+        the DATE to the end of the next period.
+
+        Used for chore rescheduling where the due time should remain consistent
+        (e.g., June 30 5PM MONTH_END -> July 31 5PM, not July 31 23:59).
+
+        Args:
+            current_due_utc: Current due datetime in UTC (time component preserved).
+            periods: Number of periods to advance (default 1).
+
+        Returns:
+            UTC datetime with the time from current_due_utc preserved and the
+            date snapped to the end of the advanced period.
+        """
+        freq = self._frequency
+        local_dt = as_local(current_due_utc)
+
+        if freq == const.PERIOD_MONTH_END:
+            result = local_dt + relativedelta(months=periods)
+            last_day = monthrange(result.year, result.month)[1]
+            result = result.replace(day=last_day)
+        elif freq == const.PERIOD_WEEK_END:
+            result = local_dt + timedelta(weeks=periods)
+            days_until_sunday = (const.SUNDAY_WEEKDAY_INDEX - result.weekday()) % 7
+            result = result + timedelta(days=days_until_sunday)
+        elif freq == const.PERIOD_QUARTER_END:
+            result = local_dt + relativedelta(months=3 * periods)
+            last_month = (
+                (result.month - 1) // const.MONTHS_PER_QUARTER + 1
+            ) * const.MONTHS_PER_QUARTER
+            last_day = monthrange(result.year, last_month)[1]
+            result = result.replace(month=last_month, day=last_day)
+        elif freq == const.PERIOD_YEAR_END:
+            result = local_dt + relativedelta(years=periods)
+            result = result.replace(
+                month=const.LAST_MONTH_OF_YEAR, day=const.LAST_DAY_OF_DECEMBER
+            )
+        elif freq == const.PERIOD_DAY_END:
+            result = local_dt + timedelta(days=periods)
+        else:
+            return None
+
+        return as_utc(result)
+
     # =========================================================================
     # Private: applicable_days handling
     # =========================================================================
@@ -1249,6 +1299,34 @@ def calculate_next_due_date_from_chore_info(
         if result is None:
             return None
         next_due_utc = result
+    elif freq in RecurrenceEngine.PERIOD_END_FREQUENCIES:
+        # Period-end: snap DATE to period end, preserve TIME from original due
+        # e.g., June 30 5PM MONTH_END -> July 31 5PM (not July 31 23:59)
+        if not current_due_utc:
+            return None
+        pe_config: ScheduleConfig = {
+            "frequency": freq,
+            "base_date": current_due_utc.isoformat(),
+        }
+        pe_engine = RecurrenceEngine(pe_config)
+        next_due_utc = pe_engine.advance_period_end_preserve_time(current_due_utc)
+        if next_due_utc is None:
+            return None
+        # Ensure result is after reference time
+        ref_utc = reference_time or dt_now_utc()
+        pe_iteration = 0
+        while (
+            next_due_utc <= ref_utc
+            and pe_iteration < const.MAX_DATE_CALCULATION_ITERATIONS
+        ):
+            pe_iteration += 1
+            prev = next_due_utc
+            next_due_utc = pe_engine.advance_period_end_preserve_time(next_due_utc)
+            if next_due_utc is None or next_due_utc == prev:
+                next_due_utc = None
+                break
+        if next_due_utc is None:
+            return None
     else:
         next_due_utc = cast(
             "datetime",
