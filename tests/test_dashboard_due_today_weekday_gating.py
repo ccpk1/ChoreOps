@@ -42,10 +42,14 @@ def test_due_today_summary_counts_matching_no_due_date_daily() -> None:
         {
             "chores_data": {
                 "chore-1": {
+                    const.DATA_CHORE_NAME: "Chore 1",
+                    const.DATA_CHORE_ASSIGNED_USER_IDS: ["assignee-1"],
                     const.DATA_CHORE_RECURRING_FREQUENCY: const.FREQUENCY_DAILY,
                     const.DATA_CHORE_APPLICABLE_DAYS: [today_weekday],
                 },
                 "chore-2": {
+                    const.DATA_CHORE_NAME: "Chore 2",
+                    const.DATA_CHORE_ASSIGNED_USER_IDS: ["assignee-1"],
                     const.DATA_CHORE_RECURRING_FREQUENCY: const.FREQUENCY_DAILY,
                     const.DATA_CHORE_APPLICABLE_DAYS: [(today_weekday + 1) % 7],
                 },

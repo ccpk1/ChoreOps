@@ -3439,6 +3439,26 @@ class ChoreManager(BaseManager):
         ):
             reset_events = self._reset_chore_to_pending_internal(chore_id)
 
+        # Clean up removed assignees' stale DATA_USER_CHORE_DATA entries
+        # (Issue #205 — prevents "Due Today" count from remaining inflated
+        # after removing a user from a chore).
+        if const.DATA_CHORE_ASSIGNED_USER_IDS in updates:
+            old_assignees = set(
+                cast("list[str]", existing.get(const.DATA_CHORE_ASSIGNED_USER_IDS, []))
+            )
+            removed_assignees = old_assignees - set(cast("list[str]", new_assigned))
+            if removed_assignees:
+                for removed_id in removed_assignees:
+                    assignee_info = self._coordinator.assignees_data.get(removed_id)
+                    if assignee_info:
+                        assignee_info.get(const.DATA_USER_CHORE_DATA, {}).pop(
+                            chore_id, None
+                        )
+                const.LOGGER.debug(
+                    "Cleaned up chore_data for removed assignees: %s",
+                    sorted(removed_assignees),
+                )
+
         # NOTE: Badge recalculation is handled by GamificationManager via
         # SIGNAL_SUFFIX_CHORE_UPDATED event (Platinum Architecture: event-driven)
 
@@ -4379,6 +4399,15 @@ class ChoreManager(BaseManager):
         completed, overdue, missed, and blocked-by-other variants do not count.
         A waiting-window chore may still count when it is otherwise due today.
         """
+        # Phase 3B Guard Rail: verify assignee is still assigned to the chore
+        # Prevents stale DATA_USER_CHORE_DATA entries from inflating "Due Today"
+        # after a user is removed from a chore (Issue #205).
+        chore_info: ChoreData | dict[str, Any] = self._coordinator.chores_data.get(
+            chore_id, {}
+        )
+        if assignee_id not in chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, []):
+            return False
+
         context = status_context or self.get_chore_status_context(assignee_id, chore_id)
         display_state = cast("str | None", context.get(const.CHORE_CTX_STATE))
         claim_mode = cast("str | None", context.get(const.CHORE_CTX_CLAIM_MODE))
@@ -4419,9 +4448,8 @@ class ChoreManager(BaseManager):
                 )
 
         if not due_today and not is_due:
-            chore_info: ChoreData | dict[str, Any] = self._coordinator.chores_data.get(
-                chore_id, {}
-            )
+            # Re-fetch chore_info for the no-due-date daily check
+            # (already fetched for assignment guard above)
             if not self.no_due_date_daily_matches_today(chore_info, assignee_id):
                 return False
 
