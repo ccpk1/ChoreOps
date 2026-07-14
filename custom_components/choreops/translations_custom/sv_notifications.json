@@ -99,6 +99,9 @@
     "title": "📋 {assignee_name}: {count} Väntar",
     "message": "{count} sysslor väntar på granskning. Senaste: {latest_chore} (+{points} {points_label})"
   },
+  "pending_chores_approver_no_points": {
+    "message": "{count} sysslor väntar på granskning. Senaste: {latest_chore}"
+  },
   "reward_claimed_approver": {
     "title": "🎁 {assignee_name}: Belöningsförfrågan",
     "message": "{assignee_name} begärde {reward_name} för {points} {points_label}"

@@ -99,6 +99,9 @@
     "title": "📋 {assignee_name}: {count} In sospeso",
     "message": "{count} incarichi in attesa di revisione. Ultimi: {latest_chore} (+{points} {points_label})"
   },
+  "pending_chores_approver_no_points": {
+    "message": "{count} incarichi in attesa di revisione. Ultimo: {latest_chore}"
+  },
   "reward_claimed_approver": {
     "title": "🎁 {assignee_name}: Richiesta di ricompensa",
     "message": "{assignee_name} ha richiesto {reward_name} per {points} {points_label}"

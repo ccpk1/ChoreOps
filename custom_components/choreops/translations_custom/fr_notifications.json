@@ -99,6 +99,9 @@
     "title": "📋 {assignee_name}: {count} En attente",
     "message": "{count} chores awaiting review. Latest: {latest_chore} (+{points} {points_label})"
   },
+  "pending_chores_approver_no_points": {
+    "message": "{count} tâches en attente de validation. Dernière : {latest_chore}"
+  },
   "reward_claimed_approver": {
     "title": "🎁 {assignee_name}: Demande de récompense",
     "message": "{assignee_name} a demandé {reward_name} pour {points} {points_label}"

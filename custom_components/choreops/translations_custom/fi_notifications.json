@@ -99,6 +99,9 @@
     "title": "📋 {assignee_name}: {count} Odottaa",
     "message": "{count} tehtävää odottaa arviointia. Viimeisin: {latest_chore} (+{points} {points_label})"
   },
+  "pending_chores_approver_no_points": {
+    "message": "{count} askareita odottaa tarkistusta. Viimeisimmät: {latest_chore}"
+  },
   "reward_claimed_approver": {
     "title": "🎁 {assignee_name}: Palkintopyyntö",
     "message": "{assignee_name} pyysi {reward_name} kohteelle {points} {points_label}"

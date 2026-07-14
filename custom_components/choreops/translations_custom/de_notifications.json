@@ -99,6 +99,9 @@
     "title": "📋 {assignee_name}: {count} Ausstehend",
     "message": "{count} Aufgaben, die noch überprüft werden müssen. Aktuell: {latest_chore} (+{points} {points_label})"
   },
+  "pending_chores_approver_no_points": {
+    "message": "{count} Aufgaben, die noch überprüft werden müssen. Aktuell: {latest_chore}"
+  },
   "reward_claimed_approver": {
     "title": "🎁 {assignee_name}: Belohnungsanfrage",
     "message": "{assignee_name} hat {reward_name} für {points} {points_label} angefordert."
