@@ -2205,36 +2205,6 @@ TRANS_KEY_NOTIF_MESSAGE_CHORE_DUE_WINDOW_ASSIGNEE: Final = (
     "notification_message_chore_due_window_assignee"
 )
 
-# Non-gamified variants (no {points} or {points_label} references)
-TRANS_KEY_NOTIF_MESSAGE_CHORE_APPROVED_ASSIGNEE_NO_POINTS: Final = (
-    "notification_message_chore_approved_assignee_no_points"
-)
-TRANS_KEY_NOTIF_MESSAGE_CHORE_OVERDUE_ASSIGNEE_NO_POINTS: Final = (
-    "notification_message_chore_overdue_assignee_no_points"
-)
-TRANS_KEY_NOTIF_MESSAGE_CHORE_OVERDUE_STEAL_AVAILABLE_NO_POINTS: Final = (
-    "notification_message_chore_overdue_steal_available_no_points"
-)
-TRANS_KEY_NOTIF_MESSAGE_CHORE_STANDBY_NEEDED_NO_POINTS: Final = (
-    "notification_message_chore_standby_needed_no_points"
-)
-TRANS_KEY_NOTIF_MESSAGE_CHORE_DUE_REMINDER_ASSIGNEE_NO_POINTS: Final = (
-    "notification_message_chore_due_reminder_assignee_no_points"
-)
-TRANS_KEY_NOTIF_MESSAGE_CHORE_DUE_WINDOW_ASSIGNEE_NO_POINTS: Final = (
-    "notification_message_chore_due_window_assignee_no_points"
-)
-
-# Mapping from gamified message keys to their non-gamified alternatives
-NOTIF_NON_GAMIFIED_MESSAGE_KEYS: Final[dict[str, str]] = {
-    TRANS_KEY_NOTIF_MESSAGE_CHORE_APPROVED_ASSIGNEE: TRANS_KEY_NOTIF_MESSAGE_CHORE_APPROVED_ASSIGNEE_NO_POINTS,
-    TRANS_KEY_NOTIF_MESSAGE_CHORE_OVERDUE_ASSIGNEE: TRANS_KEY_NOTIF_MESSAGE_CHORE_OVERDUE_ASSIGNEE_NO_POINTS,
-    TRANS_KEY_NOTIF_MESSAGE_CHORE_OVERDUE_STEAL_AVAILABLE: TRANS_KEY_NOTIF_MESSAGE_CHORE_OVERDUE_STEAL_AVAILABLE_NO_POINTS,
-    TRANS_KEY_NOTIF_MESSAGE_CHORE_STANDBY_NEEDED: TRANS_KEY_NOTIF_MESSAGE_CHORE_STANDBY_NEEDED_NO_POINTS,
-    TRANS_KEY_NOTIF_MESSAGE_CHORE_DUE_REMINDER_ASSIGNEE: TRANS_KEY_NOTIF_MESSAGE_CHORE_DUE_REMINDER_ASSIGNEE_NO_POINTS,
-    TRANS_KEY_NOTIF_MESSAGE_CHORE_DUE_WINDOW_ASSIGNEE: TRANS_KEY_NOTIF_MESSAGE_CHORE_DUE_WINDOW_ASSIGNEE_NO_POINTS,
-}
-
 # Assignee: Reward Notifications
 TRANS_KEY_NOTIF_TITLE_REWARD_APPROVED_ASSIGNEE: Final = (
     "notification_title_reward_approved_assignee"
@@ -2333,6 +2303,40 @@ TRANS_KEY_NOTIF_TITLE_REWARD_CLAIMED_APPROVER: Final = (
 TRANS_KEY_NOTIF_MESSAGE_REWARD_CLAIMED_APPROVER: Final = (
     "notification_message_reward_claimed_approver"
 )
+
+# Non-gamified variants (no {points} or {points_label} references)
+TRANS_KEY_NOTIF_MESSAGE_CHORE_APPROVED_ASSIGNEE_NO_POINTS: Final = (
+    "notification_message_chore_approved_assignee_no_points"
+)
+TRANS_KEY_NOTIF_MESSAGE_CHORE_OVERDUE_ASSIGNEE_NO_POINTS: Final = (
+    "notification_message_chore_overdue_assignee_no_points"
+)
+TRANS_KEY_NOTIF_MESSAGE_CHORE_OVERDUE_STEAL_AVAILABLE_NO_POINTS: Final = (
+    "notification_message_chore_overdue_steal_available_no_points"
+)
+TRANS_KEY_NOTIF_MESSAGE_CHORE_STANDBY_NEEDED_NO_POINTS: Final = (
+    "notification_message_chore_standby_needed_no_points"
+)
+TRANS_KEY_NOTIF_MESSAGE_CHORE_DUE_REMINDER_ASSIGNEE_NO_POINTS: Final = (
+    "notification_message_chore_due_reminder_assignee_no_points"
+)
+TRANS_KEY_NOTIF_MESSAGE_CHORE_DUE_WINDOW_ASSIGNEE_NO_POINTS: Final = (
+    "notification_message_chore_due_window_assignee_no_points"
+)
+TRANS_KEY_NOTIF_MESSAGE_PENDING_CHORES_APPROVER_NO_POINTS: Final = (
+    "notification_message_pending_chores_approver_no_points"
+)
+
+# Mapping from gamified message keys to their non-gamified alternatives
+NOTIF_NON_GAMIFIED_MESSAGE_KEYS: Final[dict[str, str]] = {
+    TRANS_KEY_NOTIF_MESSAGE_CHORE_APPROVED_ASSIGNEE: TRANS_KEY_NOTIF_MESSAGE_CHORE_APPROVED_ASSIGNEE_NO_POINTS,
+    TRANS_KEY_NOTIF_MESSAGE_CHORE_OVERDUE_ASSIGNEE: TRANS_KEY_NOTIF_MESSAGE_CHORE_OVERDUE_ASSIGNEE_NO_POINTS,
+    TRANS_KEY_NOTIF_MESSAGE_CHORE_OVERDUE_STEAL_AVAILABLE: TRANS_KEY_NOTIF_MESSAGE_CHORE_OVERDUE_STEAL_AVAILABLE_NO_POINTS,
+    TRANS_KEY_NOTIF_MESSAGE_CHORE_STANDBY_NEEDED: TRANS_KEY_NOTIF_MESSAGE_CHORE_STANDBY_NEEDED_NO_POINTS,
+    TRANS_KEY_NOTIF_MESSAGE_CHORE_DUE_REMINDER_ASSIGNEE: TRANS_KEY_NOTIF_MESSAGE_CHORE_DUE_REMINDER_ASSIGNEE_NO_POINTS,
+    TRANS_KEY_NOTIF_MESSAGE_CHORE_DUE_WINDOW_ASSIGNEE: TRANS_KEY_NOTIF_MESSAGE_CHORE_DUE_WINDOW_ASSIGNEE_NO_POINTS,
+    TRANS_KEY_NOTIF_MESSAGE_PENDING_CHORES_APPROVER: TRANS_KEY_NOTIF_MESSAGE_PENDING_CHORES_APPROVER_NO_POINTS,
+}
 
 TRANS_KEY_NOTIF_TITLE_REWARD_REMINDER_APPROVER: Final = (
     "notification_title_reward_reminder_approver"
