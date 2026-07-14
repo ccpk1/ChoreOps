@@ -147,6 +147,10 @@ class StatisticsManager(BaseManager):
         self.listen(const.SIGNAL_SUFFIX_CHORE_STATUS_RESET, self._on_chore_status_reset)
         self.listen(const.SIGNAL_SUFFIX_CHORE_UNDONE, self._on_chore_undone)
 
+        # Structural lifecycle events — refresh cache so summary counts
+        # (current_due_today etc.) reflect assignment changes (Issue #205).
+        self.listen(const.SIGNAL_SUFFIX_CHORE_UPDATED, self._on_chore_updated)
+
         # Subscribe to reward approval events
         self.listen(const.SIGNAL_SUFFIX_REWARD_APPROVED, self._on_reward_approved)
         self.listen(const.SIGNAL_SUFFIX_REWARD_CLAIMED, self._on_reward_claimed)
@@ -917,6 +921,27 @@ class StatisticsManager(BaseManager):
                 assignee_id,
                 chore_id,
             )
+
+    async def _on_chore_updated(self, payload: dict[str, Any]) -> None:
+        """Handle CHORE_UPDATED event — refresh all assignee chore caches.
+
+        Assignment changes can affect the "Due Today" count for multiple
+        assignees.  Rather than tracking old/new assignment lists here,
+        we refresh all caches — the operation is cheap for assignees whose
+        chore_data is empty or unaffected.
+
+        Uses Transactional Flush pattern: synchronous refresh then notify sensors.
+
+        Args:
+            payload: Event data containing chore_id and chore_name.
+        """
+        for assignee_id in self._coordinator.assignees_data:
+            self._refresh_chore_cache(assignee_id)
+        self._coordinator.async_set_updated_data(self._coordinator._data)
+        const.LOGGER.debug(
+            "StatisticsManager._on_chore_updated: chore=%s",
+            payload.get("chore_id", ""),
+        )
 
     async def _on_reward_approved(self, payload: dict[str, Any]) -> None:
         """Handle REWARD_APPROVED signal.
