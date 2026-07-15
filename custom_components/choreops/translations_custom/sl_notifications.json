@@ -99,6 +99,9 @@
     "title": "📋 {assignee_name}: {count} V teku",
     "message": "{count} opravila, ki čakajo na pregled. Zadnja: {latest_chore} (+{points} {points_label})"
   },
+  "pending_chores_approver_no_points": {
+    "message": "{count} opravila, ki čakajo na pregled. Zadnje: {latest_chore}"
+  },
   "reward_claimed_approver": {
     "title": "🎁 {assignee_name}: Zahteva za nagrado",
     "message": "{assignee_name} zahteval {reward_name} za {points} {points_label}"

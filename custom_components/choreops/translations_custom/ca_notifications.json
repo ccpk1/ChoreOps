@@ -99,6 +99,9 @@
     "title": "📋 {assignee_name}: {count} Pendent",
     "message": "{count} tasques pendents de revisió. Últimes: {latest_chore} (+{points} {points_label})"
   },
+  "pending_chores_approver_no_points": {
+    "message": "{count} tasques pendents de revisió. Últimes: {latest_chore}"
+  },
   "reward_claimed_approver": {
     "title": "🎁 {assignee_name}: Sol·licitud de recompensa",
     "message": "{assignee_name} ha sol·licitat {reward_name} per a {points} {points_label}"

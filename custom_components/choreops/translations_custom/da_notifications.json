@@ -99,6 +99,9 @@
     "title": "📋 {assignee_name}: {count} Afventer",
     "message": "{count} pligter afventer gennemgang. Seneste: {latest_chore} (+{points} {points_label})"
   },
+  "pending_chores_approver_no_points": {
+    "message": "{count} pligter afventer gennemgang. Seneste: {latest_chore}"
+  },
   "reward_claimed_approver": {
     "title": "🎁 {assignee_name}: Belønningsanmodning",
     "message": "{assignee_name} anmodede om {reward_name} for {points} {points_label}"

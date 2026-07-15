@@ -99,6 +99,9 @@
     "title": "📋 {assignee_name}: {count} Čaká sa",
     "message": "{count} domáce práce čakajúce na kontrolu. Najnovšie: {latest_chore} (+{points} {points_label})"
   },
+  "pending_chores_approver_no_points": {
+    "message": "{count} domáce práce čakajúce na kontrolu. Najnovšie: {latest_chore}"
+  },
   "reward_claimed_approver": {
     "title": "🎁 {assignee_name}: Žiadosť o odmenu",
     "message": "{assignee_name} požiadal o {reward_name} pre {points} {points_label}"

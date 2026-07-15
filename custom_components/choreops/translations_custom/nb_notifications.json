@@ -99,6 +99,9 @@
     "title": "📋 {assignee_name}: {count} Venter",
     "message": "{count} gjøremål venter på gjennomgang. Siste: {latest_chore} (+{points} {points_label})"
   },
+  "pending_chores_approver_no_points": {
+    "message": "{count} gjøremål venter på gjennomgang. Siste: {latest_chore}"
+  },
   "reward_claimed_approver": {
     "title": "🎁 {assignee_name}: Belønningsforespørsel",
     "message": "{assignee_name} ba om {reward_name} for {points} {points_label}"

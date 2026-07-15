@@ -99,6 +99,9 @@
     "title": "📋 {assignee_name}: {count} În așteptare",
     "message": "{count} treburi casnice care așteaptă revizuire. Cele mai recente: {latest_chore} (+{points} {points_label})"
   },
+  "pending_chores_approver_no_points": {
+    "message": "{count} treburi care așteaptă revizuire. Cele mai recente: {latest_chore}"
+  },
   "reward_claimed_approver": {
     "title": "🎁 {assignee_name}: Cerere de recompensă",
     "message": "{assignee_name} a solicitat {reward_name} pentru {points} {points_label}"

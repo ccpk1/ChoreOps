@@ -1,0 +1,5538 @@
+{
+  "title": "编舞",
+  "config": {
+    "step": {
+      "intro": {
+        "title": "欢迎来到 ChoreOps",
+        "description": "此向导将引导您完成 ChoreOps 的设置。\n\n ℹ️ [快速入门指南]({documentation_url})"
+      },
+      "data_recovery": {
+        "title": "数据恢复选项",
+        "description": "已找到 ChoreOps 数据：\n{storage_path}\n\n已找到 {backup_count} 个备份文件。\n\n您想做什么？\n\n ℹ️ [了解更多关于备份和恢复的信息]({documentation_url})",
+        "data": {
+          "backup_selection": "选择选项"
+        }
+      },
+      "paste_json_input": {
+        "title": "导入 JSON 数据",
+        "description": "请粘贴以下任一位置的完整 JSON 内容：\n\n• ChoreOps 数据文件 (choreops_data)\n• 诊断下载文件\n\n系统将根据需要自动检测并解包格式。原始存储数据和诊断导出格式均受支持。",
+        "data": {
+          "json_data": "JSON 数据"
+        },
+        "data_description": {
+          "json_data": "请将完整的 JSON 内容粘贴到此处。接受来自 choreops_data 文件或诊断导出的数据（自动解包额外结构）。"
+        }
+      },
+      "points_label": {
+        "title": "点标签",
+        "description": "选择积分的标签和图标。",
+        "data": {
+          "points_label": "点标签",
+          "points_icon": "积分图标",
+          "default_chore_points": "每项家务的默认积分"
+        },
+        "data_description": {
+          "default_chore_points": "创建家务时使用的默认积分值，除非您为该家务设置自定义积分。"
+        }
+      },
+      "reconfigure": {
+        "title": "重新配置系统设置",
+        "description": "更新系统设置，例如积分标签和图标。",
+        "data": {
+          "points_label": "点标签",
+          "points_icon": "积分图标",
+          "default_chore_points": "每项家务的默认积分",
+          "update_interval": "更新间隔（分钟）",
+          "calendar_show_period": "日历显示周期（天）",
+          "retention_daily": "每日保留时间（天）",
+          "retention_weekly": "每周留存率（周）",
+          "retention_monthly": "月度留存率（月）",
+          "retention_yearly": "年度留存率（年）",
+          "points_adjust_values": "点调整值（管道分隔）"
+        },
+        "data_description": {
+          "points_label": "积分标签（例如，“积分”、“星星”、“金币”）",
+          "points_icon": "MDI 积分图标（例如，“mdi:star”、“mdi:coin”、“mdi:trophy”）",
+          "default_chore_points": "创建家务时使用的默认积分值，除非设置了自定义积分。",
+          "update_interval": "数据更新频率（最低：1 分钟）",
+          "calendar_show_period": "日历中要显示的历史日期（至少 1 天）",
+          "retention_daily": "每日汇总数据保留天数",
+          "retention_weekly": "每周汇总数据保留数周",
+          "retention_monthly": "保留月度汇总数据的月份",
+          "retention_yearly": "保留年度汇总数据的年数",
+          "points_adjust_values": "手动调节按钮的竖线分隔值（例如，+1.0|-1.0|+10.0|-10.0）"
+        }
+      },
+      "user_count": {
+        "title": "用户数量",
+        "description": "最初您想定义多少用户？",
+        "data": {
+          "user_count": "用户数量"
+        }
+      },
+      "users": {
+        "title": "用户定义",
+        "description": "请输入每个用户个人资料的详细信息。",
+        "sections": {
+          "section_identity_profile": {
+            "name": "身份和个人资料",
+            "description": "核心身份、账户关联和个性化设置。",
+            "data": {
+              "name": "姓名",
+              "ha_user_id": "家庭助手用户",
+              "dashboard_language": "语言",
+              "mobile_notify_service": "通知",
+              "notif_click_url": "通知点击 URL"
+            },
+            "data_description": {
+              "name": "此用户个人资料的唯一名称。",
+              "ha_user_id": "可选：将此配置文件关联到 Home Assistant 用户。如果禁用自助服务终端模式，共享设备的领取和兑换操作将依赖于此关联。",
+              "dashboard_language": "用于仪表盘内容和通知的语言。",
+              "mobile_notify_service": "选择通知服务，或留空以禁用通知。",
+              "notif_click_url": "点击通知时要打开的网址（可选）。留空则使用默认行为。"
+            }
+          },
+          "section_system_usage": {
+            "name": "系统使用情况",
+            "description": "用于日常家务和游戏化操作的控制。",
+            "data": {
+              "can_be_assigned": "可以分配",
+              "enable_chore_workflow": "已启用工作流",
+              "enable_gamification": "游戏化赋能"
+            },
+            "data_description": {
+              "can_be_assigned": "允许将家务分配给此用户。",
+              "enable_chore_workflow": "启用对已分配任务的认领/拒绝工作流程操作。",
+              "enable_gamification": "可参与积分、徽章和奖励活动。"
+            }
+          },
+          "section_admin_approval": {
+            "name": "管理和审批选项",
+            "description": "更高权限的审批和管理控制。",
+            "data": {
+              "can_approve": "可以批准",
+              "can_manage": "可以管理",
+              "associated_user_ids": "关联用户",
+              "notif_approve_click_url": "批准通知点击 URL",
+              "chores_paused": "暂停家务",
+              "chores_paused_until": "暂停直到"
+            },
+            "data_description": {
+              "can_approve": "允许执行批准和否决操作。",
+              "can_manage": "允许执行需要更高权限的管理操作。",
+              "associated_user_ids": "此审批人/管理员负责监督用户进行审批操作。",
+              "notif_approve_click_url": "用于审批通知的可选 URL。审批任务或奖励时，此 URL 将覆盖常规通知点击链接的 URL。",
+              "chores_paused": "暂停家务处理。不会累积逾期或遗漏的统计数据。",
+              "chores_paused_until": "可选的返回日期。如果设置，家务将在该日期后的午夜自动恢复。"
+            }
+          }
+        }
+      },
+      "chore_count": {
+        "title": "家务活数量",
+        "description": "你想定义多少项家务？",
+        "data": {
+          "chore_count": "家务活数量"
+        }
+      },
+      "chores": {
+        "title": "添加家务",
+        "description": "创建一项新的家务，包括积分、任务分配和重复性安排。",
+        "sections": {
+          "section_root_form": {
+            "name": "定义",
+            "description": "身份、分配和核心合同设置。",
+            "data": {
+              "name": "📋 家务名称",
+              "chore_description": "📋 描述（可选）",
+              "icon": "📋 图标 (mdi:xxx)",
+              "default_points": "💰 获得的积分",
+              "assigned_user_ids": "👥 分配给",
+              "completion_criteria": "👥 完成标准",
+              "standby_claim_mode": "🔑待机声明模式"
+            },
+            "data_description": {
+              "name": "系统中显示的唯一名称。",
+              "chore_description": "完成这项家务的可选说明或细节。",
+              "icon": "Material Design 图标（例如，mdi:broom，mdi:dishwasher）。",
+              "default_points": "完成任务后可获得积分。",
+              "assigned_user_ids": "能够查看并认领此任务的人员。对于轮换任务，分配人员的顺序决定轮换顺序。对于主要和备用任务，第一个分配人员为主任务人员。",
+              "completion_criteria": "控制当分配多个任务人员时如何完成任务：个人跟踪、共同完成或轮流完成。",
+              "standby_claim_mode": "控制备用服务器何时可以承担此任务（随时、逾期、仅限手动）。仅适用于主服务器和备用服务器的完成条件。"
+            }
+          },
+          "section_schedule": {
+            "name": "日程",
+            "description": "时间、访问窗口和重复间隔设置。",
+            "data": {
+              "recurring_frequency": "🔄 时间表：频率",
+              "due_date": "📅 日程安排：截止日期（可选）",
+              "clear_due_date": "🗑️ 明确截止日期",
+              "applicable_days": "📅 日程安排：适用日期（可选）",
+              "chore_due_window_offset": "⏱️ 截止日期窗口：截止日期前偏移",
+              "chore_claim_lock_until_window": "🔒 锁定索赔直至到期日窗口开启？",
+              "custom_interval": "🔄 日程安排：自定义间隔（自定义频率）",
+              "custom_interval_unit": "🔄 日程安排：自定义间隔单元"
+            },
+            "data_description": {
+              "recurring_frequency": "家务重复频率：每日、每周、每月、每年、自定义或无。",
+              "due_date": "可选截止日期。可与周期性安排结合使用。",
+              "clear_due_date": "选中此框可移除此任务的截止日期。",
+              "applicable_days": "所有日期留空。仅选择要限制的特定日期。",
+              "chore_due_window_offset": "当家务状态从“待处理”变为“到期”时，格式为“1天6小时30分钟”或仅输入“30”（表示分钟）。输入“0”可禁用此功能。例如：“1天”表示家务在截止日期前1天显示为“到期”。",
+              "chore_claim_lock_until_window": "启用此功能后，受让人不能在截止日期前领取此任务。",
+              "custom_interval": "重复次数之间的间隔时间单位数（例如，3 表示“每 3 周一次”）。仅与自定义频率一起使用。",
+              "custom_interval_unit": "自定义时间间隔的时间单位（天、周、月）。仅与自定义频率一起使用。"
+            }
+          },
+          "section_advanced_configurations": {
+            "name": "高级配置",
+            "description": "生命周期自动化、通知、可见性和元数据。",
+            "data": {
+              "approval_reset_type": "➡️ 允许完成次数和审批重置时间",
+              "approval_reset_pending_claim_action": "➡️ 待处理索赔在审批重置时进行处理",
+              "auto_approve": "✅ 自动批准索赔？",
+              "overdue_handling_type": "⏰ 逾期：处理",
+              "chore_due_reminder_offset": "🔔 到期提醒：请在到期日前进行抵扣",
+              "chore_notifications": "🔔 通知事件（可选）",
+              "show_on_calendar": "📅 在日历上显示？",
+              "chore_labels": "📋 标签（可选）"
+            },
+            "data_description": {
+              "approval_reset_type": "控制任务审批周期边界何时触发（午夜、截止日期、完成时或手动触发）。",
+              "approval_reset_pending_claim_action": "当审批重置发生时，仍在等待审批的索赔就会发生这种情况。",
+              "auto_approve": "启用此功能后，索赔申请无需审批人审核即可立即获得批准。",
+              "overdue_handling_type": "到期后的操作：隐藏逾期状态、保持逾期状态直至被认领，或在下一个审批周期重置为待处理状态。",
+              "chore_due_reminder_offset": "何时发送到期提醒通知。格式：'1天6小时30分钟' 或 '30'（分钟）。默认值：30分钟（到期前30分钟）。输入 '0' 可禁用此功能。",
+              "chore_notifications": "何时发送通知：索赔时、批准时、拒绝时或任何组合时。",
+              "show_on_calendar": "在日历视图中显示此任务。",
+              "chore_labels": "用于整理家务的标签（例如，“厨房”、“户外”）。如果不需要，请留空。"
+            }
+          }
+        },
+        "data": {
+          "name": "📋 家务名称",
+          "chore_description": "📋 描述（可选）",
+          "icon": "📋 图标 (mdi:xxx)",
+          "chore_labels": "📋 标签（可选）",
+          "default_points": "💰 获得的积分",
+          "assigned_user_ids": "👥 分配给",
+          "completion_criteria": "👥 完成标准",
+          "approval_reset_type": "➡️ 允许完成次数和审批重置时间",
+          "approval_reset_pending_claim_action": "➡️ 待处理索赔在审批重置时进行处理",
+          "overdue_handling_type": "⏰ 逾期：处理",
+          "chore_claim_lock_until_window": "🔒 锁定索赔直至到期日窗口开启？",
+          "auto_approve": "✅ 自动批准索赔？",
+          "recurring_frequency": "🔄 时间表：频率",
+          "custom_interval": "🔄 日程安排：自定义间隔（自定义频率）",
+          "custom_interval_unit": "🔄 日程安排：自定义间隔单元",
+          "applicable_days": "📅 日程安排：适用日期（可选）",
+          "due_date": "📅 日程安排：截止日期（可选）",
+          "chore_due_window_offset": "⏱️ 截止日期窗口：截止日期前偏移",
+          "chore_due_reminder_offset": "🔔 到期提醒：请在到期日前进行抵扣",
+          "show_on_calendar": "📅 在日历上显示？",
+          "chore_notifications": "🔔 通知事件（可选）",
+          "standby_claim_mode": "🔑待机声明模式"
+        },
+        "data_description": {
+          "name": "系统中显示的唯一名称。",
+          "chore_description": "完成这项家务的可选说明或细节。",
+          "icon": "Material Design 图标（例如，mdi:broom，mdi:dishwasher）。",
+          "chore_labels": "用于整理家务的标签（例如，“厨房”、“户外”）。如果不需要，请留空。",
+          "default_points": "完成任务后可获得积分。",
+          "assigned_user_ids": "能够查看并认领此任务的人员。对于轮换任务，分配人员的顺序决定轮换顺序。对于主要和备用任务，第一个分配人员为主任务人员。",
+          "completion_criteria": "控制当分配多个任务人员时如何完成任务：个人跟踪、共同完成或轮流完成。",
+          "approval_reset_type": "控制任务审批周期边界何时触发（午夜、截止日期、完成时或手动触发）。",
+          "approval_reset_pending_claim_action": "当审批重置发生时，仍在等待审批的索赔就会发生这种情况。",
+          "overdue_handling_type": "到期后的操作：隐藏逾期状态、保持逾期状态直至被认领，或在下一个审批周期重置为待处理状态。",
+          "chore_claim_lock_until_window": "启用此功能后，受让人不能在截止日期前领取此任务。",
+          "auto_approve": "启用此功能后，索赔申请无需审批人审核即可立即获得批准。",
+          "recurring_frequency": "家务重复频率：每日、每周、每月、每年、自定义或无。",
+          "custom_interval": "重复次数之间的间隔时间单位数（例如，3 表示“每 3 周一次”）。仅与自定义频率一起使用。",
+          "custom_interval_unit": "自定义时间间隔的时间单位（天、周、月）。仅与自定义频率一起使用。",
+          "applicable_days": "所有日期留空。仅选择要限制的特定日期。",
+          "due_date": "可选截止日期。可与周期性安排结合使用。",
+          "chore_due_window_offset": "当家务状态从“待处理”变为“到期”时，格式为“1天6小时30分钟”或仅输入“30”（表示分钟）。输入“0”可禁用此功能。例如：“1天”表示家务在截止日期前1天显示为“到期”。",
+          "chore_due_reminder_offset": "何时发送到期提醒通知。格式：'1天6小时30分钟' 或 '30'（分钟）。默认值：30分钟（到期前30分钟）。输入 '0' 可禁用此功能。",
+          "show_on_calendar": "在日历视图中显示此任务。",
+          "chore_notifications": "何时发送通知：索赔时、批准时、拒绝时或任何组合时。",
+          "standby_claim_mode": "控制备用服务器何时可以承担此任务（随时、逾期、仅限手动）。仅适用于主服务器和备用服务器的完成条件。"
+        }
+      },
+      "badge_count": {
+        "title": "徽章数量",
+        "description": "你想定义多少个徽章？",
+        "data": {
+          "badge_count": "徽章数量"
+        }
+      },
+      "badges": {
+        "title": "添加累计徽章",
+        "description": "配置累积徽章的详细信息。这些徽章奖励达到终身积分阈值的受让人，并支持维护周期，以鼓励持续提升绩效。\n\n ℹ️ [配置指南]({documentation_url})",
+        "data": {
+          "badge_name": "徽章名称",
+          "badge_description": "徽章描述（可选）",
+          "badge_labels": "标签（可选）",
+          "icon": "徽章图标（mdi:xxx）",
+          "target_type": "🎯 目标：目标类型",
+          "threshold_value": "🎯 目标：阈值",
+          "maintenance_rules": "🎯 目标：维护积分（可选）",
+          "occasion_type": "🎉 场合类型",
+          "associated_achievement": "🏆 相关成就",
+          "selected_chores": "🧹 已记录的家务（可选）",
+          "assigned_user_ids": "🧒 分配给",
+          "award_items": "🎁 奖励：选择积分、奖励、奖金、倍数（可选）",
+          "award_points": "🎁 奖励：积分奖励（可选）",
+          "points_multiplier": "🎁 奖励：积分倍增（默认💎 1.0倍）",
+          "recurring_frequency": "🔄 维护周期：频率",
+          "custom_interval": "🔄 维护周期：自定义间隔（自定义频率需要此项）",
+          "custom_interval_unit": "🔄 维护周期：自定义间隔单元（自定义频率需要此项）",
+          "start_date": "🔄 重置周期：开始日期（可选）",
+          "end_date": "🔄 维护周期：结束日期（可选）",
+          "grace_period_days": "🔄 维护周期：宽限期（天数）（可选）"
+        },
+        "data_description": {
+          "badge_name": "请为徽章输入一个唯一的名称。该名称将显示在系统中。",
+          "badge_description": "（可选）请提供徽章用途或评判标准的描述。",
+          "badge_labels": "添加标签以对徽章进行分类或标记（可选）。",
+          "icon": "使用 Material Design 图标（例如 mdi:star）为徽章指定图标。",
+          "target_type": "选择此徽章的目标类型（例如，积分或家务数量）。",
+          "threshold_value": "设置获得此徽章所需的终身总积分。",
+          "maintenance_rules": "指定在维护周期内保留徽章所需的最低积分及其有效倍数（可选）。",
+          "occasion_type": "选择此徽章的场合类型（例如，节日、生日）。",
+          "associated_achievement": "将此徽章关联到一项成就以便进行追踪。",
+          "selected_chores": "选择可获得此徽章积分的家务。如果要跟踪所有已分配的家务，请留空（可选）。",
+          "assigned_user_ids": "将此徽章分配给指定的负责人以便进行跟踪。",
+          "award_items": "从积分、奖励、加成或积分倍率中选择一项或多项。所有选定的项目将在获得徽章时授予或应用。（可选）",
+          "award_points": "如果奖励方式为积分，请指定获得此徽章时要应用的积分数量。（可选）",
+          "points_multiplier": "如果倍数奖励是选定的奖励，请设置此徽章激活期间所获积分的倍数（例如，1.5 倍）。",
+          "recurring_frequency": "启用维护周期，要求在周期结束前获得指定的最低积分。（例如，每周、每月）。",
+          "custom_interval": "指定自定义频率的天数、周数、月数等（例如，如果设置为 3 周，则输入 3）。仅适用于自定义频率。",
+          "custom_interval_unit": "选择自定义间隔的单位（例如，天、周）。仅适用于自定义频率。",
+          "start_date": "设置开始日期（可选）。",
+          "end_date": "选择维护周期结束日期。（可选）",
+          "grace_period_days": "指定在周期结束后，受训人员为达到降级前所需的积分，额外给予多少天。（可选）"
+        }
+      },
+      "reward_count": {
+        "title": "奖励数量",
+        "description": "你想设定多少种奖励？",
+        "data": {
+          "reward_count": "奖励数量"
+        }
+      },
+      "rewards": {
+        "title": "定义奖励",
+        "description": "请填写每项奖励的详细信息。",
+        "data": {
+          "name": "奖励名称",
+          "internal_id": "内部 ID",
+          "cost": "奖励成本",
+          "description": "描述（可选）",
+          "reward_labels": "奖励标签",
+          "icon": "图标（mdi:xxx）"
+        }
+      },
+      "penalty_count": {
+        "title": "罚球次数",
+        "description": "你想定义多少种处罚？",
+        "data": {
+          "penalty_count": "罚分"
+        }
+      },
+      "penalties": {
+        "title": "定义处罚",
+        "description": "请填写每项处罚的详细信息。",
+        "data": {
+          "name": "罚球名称",
+          "penalty_description": "描述（可选）",
+          "penalty_labels": "处罚标签",
+          "internal_id": "内部 ID",
+          "penalty_points": "罚分（负分）",
+          "icon": "图标（mdi:xxx）"
+        }
+      },
+      "bonus_count": {
+        "title": "奖金数量",
+        "description": "你想定义多少种奖金？",
+        "data": {
+          "bonus_count": "奖励计入"
+        }
+      },
+      "bonuses": {
+        "title": "定义奖金",
+        "description": "请填写每项奖金的详细信息。",
+        "data": {
+          "name": "奖励名称",
+          "bonus_description": "描述（可选）",
+          "bonus_labels": "奖励标签",
+          "internal_id": "内部 ID",
+          "bonus_points": "奖励积分",
+          "icon": "图标（mdi:xxx）"
+        }
+      },
+      "achievement_count": {
+        "title": "成就数量",
+        "description": "你想定义多少项成就？",
+        "data": {
+          "achievement_count": "成就计数"
+        }
+      },
+      "achievements": {
+        "title": "定义成就",
+        "description": "请填写每项成就的详细信息。",
+        "data": {
+          "name": "成就名称",
+          "description": "描述（可选）",
+          "achievement_labels": "成就标签",
+          "icon": "图标（mdi:xxx）",
+          "assigned_user_ids": "分配给",
+          "type": "成就类型",
+          "selected_chore_id": "选择相关家务",
+          "criteria": "评判标准（可选）",
+          "target_value": "达成目标",
+          "reward_points": "完成成就可获得额外积分",
+          "internal_id": "内部 ID"
+        }
+      },
+      "challenge_count": {
+        "title": "挑战数量",
+        "description": "你想定义多少个挑战？",
+        "data": {
+          "challenge_count": "挑战次数"
+        }
+      },
+      "challenges": {
+        "title": "定义挑战",
+        "description": "请填写每项挑战的详细信息。",
+        "data": {
+          "name": "挑战名称",
+          "description": "描述（可选）",
+          "challenge_labels": "挑战标签",
+          "icon": "图标（mdi:xxx）",
+          "assigned_user_ids": "分配给",
+          "type": "挑战类型",
+          "selected_chore_id": "选择与挑战相关的家务（可选）",
+          "criteria": "评判标准（可选）",
+          "target_value": "挑战目标",
+          "reward_points": "完成挑战可获得额外积分",
+          "start_date": "开始日期",
+          "end_date": "结束日期",
+          "internal_id": "内部 ID"
+        }
+      },
+      "finish": {
+        "title": "审核与完成",
+        "description": "检查设置：\n{summary}\n点击提交完成。"
+      }
+    },
+    "error": {
+      "a_chore_must_be_selected": "必须选择一项家务。",
+      "badge_requires_assignment": "此徽章至少需要指定一名受让人。",
+      "error_badge_achievement_required": "要获得与成就相关的徽章，必须先选择一项成就。",
+      "error_badge_occasion_type_required": "特殊场合徽章需要指定场合类型。",
+      "target_threshold_required": "需要目标阈值",
+      "invalid_maintenance_rules": "维护规则值无效",
+      "error_badge_challenge_required": "要获得与挑战相关的徽章，必须先选择一个挑战。",
+      "error_award_points_minimum": "奖励积分必须大于零。",
+      "error_award_invalid_multiplier": "积分倍数必须大于零",
+      "invalid_award_item_selected": "一项或多项选定的奖励项目无效",
+      "start_date_required": "需要填写开始日期。",
+      "end_date_required": "必须填写结束日期。",
+      "end_date_before_start_date": "结束日期必须晚于开始日期",
+      "duplicate_achievement": "已存在一项同名成就",
+      "duplicate_badge": "已存在同名徽章",
+      "duplicate_challenge": "这个名字已经存在一个挑战。",
+      "duplicate_chore": "已经存在一项同名任务了。",
+      "duplicate_assignee": "已存在同名受让人",
+      "duplicate_approver": "已存在同名用户",
+      "duplicate_penalty": "已存在一个同名的处罚",
+      "duplicate_reward": "已存在一个以此命名的奖励",
+      "duplicate_bonus": "已经存在一个同名奖励。",
+      "due_date_in_past": "截止日期必须在未来。",
+      "end_date_in_past": "结束日期必须为未来日期。",
+      "end_date_not_after_start_date": "结束日期必须晚于开始日期",
+      "err_end_before_start": "结束日期必须晚于开始日期",
+      "err_name_duplicate": "这个名字已经存在一个挑战。",
+      "err_name_required": "挑战名称为必填项",
+      "err_dates_required": "需要填写开始日期和结束日期。",
+      "err_invalid_date": "挑战日期无效",
+      "err_target_invalid": "挑战目标值必须大于零",
+      "err_points_negative": "挑战奖励积分不能为负数。",
+      "err_points_invalid": "挑战奖励积分无效",
+      "achievement_no_assignees_assigned": "至少要为该项成就指定一名负责人。",
+      "challenge_no_assignees_assigned": "至少要指派一名受让人参与这项挑战。",
+      "invalid_achievement_count": "无效的成就计数",
+      "invalid_achievement_name": "无效的成就名称",
+      "invalid_achievement_reward_points": "成就奖励积分必须为零或大于零，且最多保留两位小数。",
+      "invalid_badge": "无效徽章",
+      "invalid_badge_count": "徽章数量无效",
+      "invalid_badge_name": "无效的徽章名称",
+      "invalid_challenge_count": "无效挑战计数",
+      "invalid_challenge_name": "无效的挑战名称",
+      "invalid_chore": "无效的杂务",
+      "invalid_chore_count": "无效的家务计数",
+      "rotation_min_assignees": "轮换任务至少需要 2 名指定人员。",
+      "invalid_chore_name": "无效的家务名称",
+      "custom_interval_required": "自定义频率需要自定义间隔。",
+      "custom_interval_invalid": "自定义间隔必须是大于零的整数。",
+      "custom_interval_unit_required": "自定义频率需要自定义间隔单位",
+      "custom_interval_unit_invalid": "自定义时间间隔单位必须为小时、天、周或月。",
+      "invalid_points": "分数必须为零或大于零。",
+      "invalid_overdue_reset_combination": "“到期后重置”的逾期处理方式仅适用于午夜重置类型。请为审批重置类型选择“午夜（一次）”或“午夜（重复）”。",
+      "invalid_due_date": "无效的到期日",
+      "date_required_for_frequency": "此重复频率需要设置截止日期。清除日期仅适用于“无”或“每日”频率。",
+      "invalid_end_date": "结束日期无效。",
+      "invalid_assignee_count": "受让人数量无效",
+      "invalid_assignee_name": "无效的受让人姓名",
+      "invalid_user_count": "用户计数无效",
+      "invalid_approver_name": "无效的用户名",
+      "no_assignees_assigned": "至少要指派一名人员负责这项任务。",
+      "invalid_penalty": "无效处罚",
+      "invalid_penalty_count": "无效的处罚计数",
+      "invalid_penalty_name": "无效的处罚名称",
+      "invalid_reward": "无效奖励",
+      "invalid_reward_count": "无效奖励计数",
+      "invalid_reward_name": "无效的奖励名称",
+      "invalid_reward_cost": "奖励成本必须大于等于零（最多保留两位小数）。",
+      "invalid_reward_assigned_users": "一个或多个已分配用户无效",
+      "mixed_reward_assignment_sentinel": "不能将“所有用户”与特定用户混用",
+      "invalid_bonus": "无效奖金",
+      "invalid_bonus_count": "无效奖金计数",
+      "invalid_bonus_name": "无效的奖励名称",
+      "invalid_start_date": "起始日期无效。",
+      "start_date_in_past": "开始日期必须在未来。",
+      "points_label_required": "点标签是必需的",
+      "corrupt_file": "所选文件包含无效的 JSON，无法读取。",
+      "invalid_structure": "所选文件缺少必需的数据结构。",
+      "file_not_found": "找不到所选文件。",
+      "invalid_selection": "请选择一个有效选项。",
+      "invalid_input": "您输入的内容无效。请检查您的输入并重试。",
+      "duplicate_name": "此名称已存在，请选择其他名称。",
+      "invalid_date_range": "日期范围无效。结束日期必须晚于开始日期。",
+      "missing_required": "缺少必填字段。请提供所有必填信息。",
+      "invalid_format": "格式无效。请检查您的输入并重试。",
+      "usage_requires_assignment_or_approval": "启用“可分配”或“可批准”。",
+      "associated_users_require_approval": "只有启用“可批准”选项后，才能设置“关联用户”。",
+      "approval_requires_associated_users": "启用“可审批”功能时，至少需要一个关联的受让人/用户。",
+      "chore_options_require_assignment": "家务工作流程和游戏化选项需要先启用“允许将家务分配给我”。",
+      "invalid_update_interval": "更新间隔无效。必须为正整数。",
+      "invalid_calendar_show_period": "无效的日历显示周期。周期必须为正整数。",
+      "invalid_default_chore_points": "默认家务积分无效。必须是大于 0 的正数，最多保留两位小数。",
+      "invalid_retention_period": "保留期限无效。必须为正整数。",
+      "invalid_points_adjust_values": "无效点会调整数值。必须是一个列表。"
+    },
+    "abort": {
+      "single_instance_allowed": "只能配置一个 ChoreOps 实例。",
+      "already_configured": "ChoreOps 数据已成功恢复。您现在可以重新加载集成。",
+      "file_not_found": "找不到选定的备份文件。",
+      "corrupt_file": "所选文件包含无效的 JSON，无法读取。",
+      "invalid_structure": "所选文件缺少所需的 ChoreOps 数据结构。",
+      "reconfigure_failed": "重新配置失败，请重试。",
+      "reconfigure_successful": "系统设置已成功更新。"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "ChoreOps选项",
+        "description": "管理您的家庭事务、游戏化引擎和系统偏好设置。\n\n ℹ️ [查看文档]({documentation_url}) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ❤️ _[支持 ChoreOps]({sponsor_url})_",
+        "data": {
+          "menu_selection": "选择一个选项"
+        }
+      },
+      "manage_entity": {
+        "title": "选择操作",
+        "description": "添加、编辑或删除选项。",
+        "data": {
+          "manage_action": "选择操作"
+        }
+      },
+      "challenge_coming_soon": {
+        "title": "挑战即将到来",
+        "description": "挑战功能将在未来的更新中推出。\n\n迁移过程中，现有的挑战记录将转换为等效的周期性徽章跟踪，以尽可能保留用户的意图和进度行为。此版本中已移除与挑战关联的徽章。\n\n ℹ️ [配置指南]({documentation_url})",
+        "data": {}
+      },
+      "select_entity": {
+        "title": "选择 {entity_type}",
+        "description": "选择你要 {entity_type} 的 {action}。",
+        "data": {
+          "entity_name": "姓名"
+        }
+      },
+      "manage_points": {
+        "title": "编辑点设置",
+        "description": "更改 ChoreOps 中使用的每项家务的标签、图标和默认积分。\n\n ℹ️ [配置指南]({documentation_url})",
+        "data": {
+          "points_label": "点标签",
+          "points_icon": "积分图标",
+          "default_chore_points": "每项家务的默认积分"
+        },
+        "data_description": {
+          "default_chore_points": "当未指定自定义积分时，新任务使用的默认积分值。必须是大于 0 的正数，最多保留两位小数。"
+        }
+      },
+      "add_user": {
+        "title": "添加用户",
+        "description": "请提供新用户配置文件的详细信息。\n\n{user_access_warning}\n\n ℹ️ [配置指南]({documentation_url})",
+        "sections": {
+          "section_identity_profile": {
+            "name": "身份和个人资料",
+            "description": "核心身份、账户关联和个性化设置。",
+            "data": {
+              "name": "姓名",
+              "ha_user_id": "家庭助手用户",
+              "dashboard_language": "语言",
+              "mobile_notify_service": "通知",
+              "notif_click_url": "通知点击 URL"
+            },
+            "data_description": {
+              "name": "此用户个人资料的唯一名称。",
+              "ha_user_id": "可选：将此配置文件关联到 Home Assistant 用户。如果禁用自助服务终端模式，共享设备的领取和兑换操作将依赖于此关联。",
+              "dashboard_language": "用于仪表盘内容和通知的语言。",
+              "mobile_notify_service": "选择通知服务，或留空以禁用通知。",
+              "notif_click_url": "点击通知时要打开的网址（可选）。留空则使用默认行为。"
+            }
+          },
+          "section_system_usage": {
+            "name": "系统使用情况",
+            "description": "用于日常家务和游戏化操作的控制。",
+            "data": {
+              "can_be_assigned": "可以分配",
+              "enable_chore_workflow": "工作流已启用",
+              "enable_gamification": "游戏化赋能"
+            },
+            "data_description": {
+              "can_be_assigned": "允许将家务分配给此用户。",
+              "enable_chore_workflow": "启用对已分配任务的认领/拒绝工作流程操作。",
+              "enable_gamification": "可参与积分、徽章和奖励活动。"
+            }
+          },
+          "section_admin_approval": {
+            "name": "管理和审批选项",
+            "description": "更高权限的审批和管理控制。",
+            "data": {
+              "can_approve": "可以批准",
+              "can_manage": "可以管理",
+              "associated_user_ids": "关联用户",
+              "notif_approve_click_url": "批准通知点击 URL",
+              "chores_paused": "暂停家务",
+              "chores_paused_until": "暂停直到"
+            },
+            "data_description": {
+              "can_approve": "允许执行批准和否决操作。",
+              "can_manage": "允许执行需要更高权限的管理操作。",
+              "associated_user_ids": "此审批人/管理员负责监督用户进行审批操作。",
+              "notif_approve_click_url": "用于审批通知的可选 URL。审批任务或奖励时，此 URL 将覆盖常规通知点击链接的 URL。",
+              "chores_paused": "暂停家务处理。不会累积逾期或遗漏的统计数据。",
+              "chores_paused_until": "可选的返回日期。如果设置，家务将在该日期后的午夜自动恢复。"
+            }
+          }
+        }
+      },
+      "add_chore": {
+        "title": "添加家务",
+        "description": "创建包含积分、任务分配和重复计划的新家务。\n\n ℹ️ [配置指南]({documentation_url})",
+        "sections": {
+          "section_root_form": {
+            "name": "定义",
+            "description": "身份、分配和核心合同设置。",
+            "data": {
+              "name": "📋 家务名称",
+              "chore_description": "📋 描述（可选）",
+              "icon": "📋 图标 (mdi:xxx)",
+              "default_points": "💰 获得的积分",
+              "assigned_user_ids": "👥 分配给",
+              "completion_criteria": "👥 完成标准",
+              "standby_claim_mode": "🔑待机声明模式"
+            },
+            "data_description": {
+              "name": "系统中显示的唯一名称。",
+              "chore_description": "完成这项家务的可选说明或细节。",
+              "icon": "Material Design 图标（例如，mdi:broom，mdi:dishwasher）。",
+              "default_points": "完成任务后可获得积分。",
+              "assigned_user_ids": "能够查看并认领此任务的人员。对于轮换任务，分配人员的顺序决定轮换顺序。对于主要和备用任务，第一个分配人员为主任务人员。",
+              "completion_criteria": "控制当分配多个任务人员时如何完成任务：个人跟踪、共同完成或轮流完成。",
+              "standby_claim_mode": "控制备用服务器何时可以承担此任务（随时、逾期、仅限手动）。仅适用于主服务器和备用服务器的完成条件。"
+            }
+          },
+          "section_schedule": {
+            "name": "日程",
+            "description": "时间、访问窗口和重复间隔设置。",
+            "data": {
+              "recurring_frequency": "🔄 时间表：频率",
+              "due_date": "📅 日程安排：截止日期（可选）",
+              "clear_due_date": "🗑️ 明确截止日期",
+              "applicable_days": "📅 日程安排：适用日期（可选）",
+              "chore_due_window_offset": "⏱️ 截止日期窗口：截止日期前偏移",
+              "chore_claim_lock_until_window": "🔒 锁定索赔直至到期日窗口开启？",
+              "custom_interval": "🔄 日程安排：自定义间隔（自定义频率）",
+              "custom_interval_unit": "🔄 日程安排：自定义间隔单元"
+            },
+            "data_description": {
+              "recurring_frequency": "家务重复频率：每日、每周、每月、每年、自定义或无。如果您选择“每日 - 每天多次”，则会显示一个附加屏幕，供您配置具体时间。",
+              "due_date": "可选截止日期。可与循环日程结合使用。对于独立完成的家务，此功能可用作模板——将出现一个额外的屏幕，允许每个用户设置单独的日期。",
+              "clear_due_date": "选中此框可移除此任务的截止日期。",
+              "applicable_days": "所有日期留空。仅选择要限制的特定日期。",
+              "chore_due_window_offset": "当家务状态从“待处理”变为“到期”时，格式为“1天6小时30分钟”或仅输入“30”（表示分钟）。输入“0”可禁用此功能。例如：“1天”表示家务在截止日期前1天显示为“到期”。",
+              "chore_claim_lock_until_window": "启用此功能后，受让人不能在截止日期前领取此任务。",
+              "custom_interval": "重复次数之间的间隔时间单位数（例如，3 表示“每 3 周一次”）。仅与自定义频率一起使用。",
+              "custom_interval_unit": "自定义时间间隔的时间单位（天、周、月）。仅与自定义频率一起使用。"
+            }
+          },
+          "section_advanced_configurations": {
+            "name": "高级配置",
+            "description": "生命周期自动化、通知、可见性和元数据。",
+            "data": {
+              "approval_reset_type": "➡️ 允许完成次数和审批重置时间",
+              "approval_reset_pending_claim_action": "➡️ 待处理索赔在审批重置时进行处理",
+              "auto_approve": "✅ 自动批准索赔？",
+              "overdue_handling_type": "⏰ 逾期：处理",
+              "chore_due_reminder_offset": "🔔 到期提醒：请在到期日前进行抵扣",
+              "chore_notifications": "🔔 通知事件（可选）",
+              "show_on_calendar": "📅 在日历上显示？",
+              "chore_labels": "📋 标签（可选）"
+            },
+            "data_description": {
+              "approval_reset_type": "控制任务审批周期边界何时触发（午夜、截止日期、完成时或手动触发）。",
+              "approval_reset_pending_claim_action": "控制在审批重置边界触发时，未获批准的索赔会发生什么情况。",
+              "auto_approve": "启用此功能后，索赔申请无需审批人审核即可立即获得批准。",
+              "overdue_handling_type": "控制到期日过后会发生什么，以及在审批重置边界处逾期任务会发生什么。",
+              "chore_due_reminder_offset": "何时发送到期提醒通知。格式：'1天6小时30分钟' 或 '30'（分钟）。默认值：30分钟（到期前30分钟）。输入 '0' 可禁用此功能。",
+              "chore_notifications": "何时发送通知：索赔时、批准时、拒绝时，或任何组合时。",
+              "show_on_calendar": "在日历视图中显示此任务。",
+              "chore_labels": "用于整理家务的标签（例如，“厨房”、“户外”）。如果不需要，请留空。"
+            }
+          }
+        },
+        "data": {
+          "name": "📋 家务名称",
+          "chore_description": "📋 描述（可选）",
+          "icon": "📋 图标 (mdi:xxx)",
+          "chore_labels": "📋 标签（可选）",
+          "default_points": "💰 获得的积分",
+          "assigned_user_ids": "👥 分配给",
+          "completion_criteria": "👥 完成标准",
+          "approval_reset_type": "➡️ 允许完成次数和审批重置时间",
+          "approval_reset_pending_claim_action": "➡️ 待处理索赔在审批重置时进行处理",
+          "overdue_handling_type": "⏰ 逾期：处理",
+          "chore_claim_lock_until_window": "🔒 锁定索赔直至到期日窗口开启？",
+          "auto_approve": "✅ 自动批准索赔？",
+          "recurring_frequency": "🔄 时间表：频率",
+          "custom_interval": "🔄 日程安排：自定义间隔（自定义频率）",
+          "custom_interval_unit": "🔄 日程安排：自定义间隔单元",
+          "applicable_days": "📅 日程安排：适用日期（可选）",
+          "due_date": "📅 日程安排：截止日期（可选）",
+          "clear_due_date": "🗑️ 明确截止日期",
+          "chore_due_window_offset": "⏱️ 截止日期窗口：截止日期前偏移",
+          "chore_due_reminder_offset": "🔔 到期提醒：请在到期日前进行抵扣",
+          "show_on_calendar": "📅 在日历上显示？",
+          "chore_notifications": "🔔 通知事件（可选）",
+          "standby_claim_mode": "🔑待机声明模式"
+        },
+        "data_description": {
+          "name": "系统中显示的唯一名称。",
+          "chore_description": "完成这项家务的可选说明或细节。",
+          "icon": "Material Design 图标（例如，mdi:broom，mdi:dishwasher）。",
+          "chore_labels": "用于整理家务的标签（例如，“厨房”、“户外”）。如果不需要，请留空。",
+          "default_points": "完成任务后可获得积分。",
+          "assigned_user_ids": "能够查看并认领此任务的人员。对于轮换任务，分配人员的顺序决定轮换顺序。对于主要和备用任务，第一个分配人员为主任务人员。",
+          "completion_criteria": "控制当分配多个任务人员时如何完成任务：个人跟踪、共同完成或轮流完成。",
+          "approval_reset_type": "控制任务审批周期边界何时触发（午夜、截止日期、完成时或手动触发）。",
+          "approval_reset_pending_claim_action": "控制在审批重置边界触发时，未获批准的索赔会发生什么情况。",
+          "overdue_handling_type": "控制到期日过后会发生什么，以及在审批重置边界处逾期任务会发生什么。",
+          "chore_claim_lock_until_window": "启用此功能后，受让人不能在截止日期前领取此任务。",
+          "auto_approve": "启用此功能后，索赔申请无需审批人审核即可立即获得批准。",
+          "recurring_frequency": "家务重复频率：每日、每周、每月、每年、自定义或无。如果您选择“每日 - 每天多次”，则会显示一个额外的屏幕，供您配置具体时间。",
+          "custom_interval": "重复次数之间的间隔时间单位数（例如，3 表示“每 3 周一次”）。仅与自定义频率一起使用。",
+          "custom_interval_unit": "自定义时间间隔的时间单位（天、周、月）。仅与自定义频率一起使用。",
+          "applicable_days": "所有日期留空。仅选择要限制的特定日期。",
+          "due_date": "可选截止日期。可与循环日程结合使用。对于独立完成的家务，此功能可用作模板——将出现一个额外的屏幕，允许每个用户设置单独的日期。",
+          "clear_due_date": "选中此框可移除此任务的截止日期。",
+          "chore_due_window_offset": "当家务状态从“待处理”变为“到期”时，格式为“1天6小时30分钟”或仅输入“30”（表示分钟）。输入“0”可禁用此功能。例如：“1天”表示家务在截止日期前1天显示为“到期”。",
+          "chore_due_reminder_offset": "何时发送到期提醒通知。格式：'1天6小时30分钟' 或 '30'（分钟）。默认值：30分钟（到期前30分钟）。输入 '0' 可禁用此功能。",
+          "show_on_calendar": "在日历视图中显示此任务。",
+          "chore_notifications": "何时发送通知：索赔时、批准时、拒绝时，或任何组合时。",
+          "standby_claim_mode": "控制备用服务器何时可以承担此任务（随时、逾期、仅限手动）。仅适用于主服务器和备用服务器的完成条件。"
+        }
+      },
+      "add_badge": {
+        "title": "添加徽章",
+        "description": "请提供新徽章所需的类型。",
+        "data": {
+          "badge_type": "徽章类型"
+        }
+      },
+      "add_badge_cumulative": {
+        "title": "添加累计徽章",
+        "description": "配置累积徽章的详细信息。这些徽章奖励达到终身积分阈值的受让人，并支持维护周期，以鼓励持续提升绩效。\n\n ℹ️ [配置指南]({documentation_url})",
+        "data": {
+          "badge_name": "徽章名称",
+          "badge_description": "徽章描述（可选）",
+          "badge_labels": "标签（可选）",
+          "icon": "徽章图标（mdi:xxx）",
+          "target_type": "🎯 目标：目标类型",
+          "threshold_value": "🎯 目标：阈值",
+          "maintenance_rules": "🎯 目标：维护积分（可选）",
+          "occasion_type": "🎉 场合类型",
+          "associated_achievement": "🏆 相关成就",
+          "selected_chores": "🧹 已记录的家务（可选）",
+          "assigned_user_ids": "🧒 分配给",
+          "award_items": "🎁 奖励：选择积分、奖励、奖金、倍数（可选）",
+          "award_points": "🎁 奖励：积分奖励（可选）",
+          "points_multiplier": "🎁 奖励：积分倍增（默认💎 1.0倍）",
+          "recurring_frequency": "🔄 维护周期：频率",
+          "custom_interval": "🔄 维护周期：自定义间隔（自定义频率需要此项）",
+          "custom_interval_unit": "🔄 维护周期：自定义间隔单元（自定义频率需要此项）",
+          "start_date": "🔄 重置周期：开始日期（可选）",
+          "end_date": "🔄 维护周期：结束日期（可选）",
+          "grace_period_days": "🔄 维护周期：宽限期（天数）（可选）"
+        },
+        "data_description": {
+          "badge_name": "请为徽章输入一个唯一的名称。该名称将显示在系统中。",
+          "badge_description": "（可选）请提供徽章用途或评判标准的描述。",
+          "badge_labels": "添加标签以对徽章进行分类或标记（可选）。",
+          "icon": "使用 Material Design 图标（例如 mdi:star）为徽章指定图标。",
+          "target_type": "选择此徽章的目标类型（例如，积分或家务数量）。",
+          "threshold_value": "设置获得此徽章所需的终身总积分。",
+          "maintenance_rules": "指定在维护周期内保留徽章所需的最低积分及其有效倍数（可选）。",
+          "occasion_type": "选择此徽章的场合类型（例如，节日、生日）。",
+          "associated_achievement": "将此徽章关联到一项成就以便进行追踪。",
+          "selected_chores": "选择可获得此徽章积分的家务。留空则可记录所有已分配的家务（可选）。",
+          "assigned_user_ids": "将此徽章分配给指定的负责人以便进行跟踪。",
+          "award_items": "从积分、奖励、加成或积分倍率中选择一项或多项。所有选定的项目将在获得徽章时授予或应用。（可选）",
+          "award_points": "如果奖励方式为积分，请指定获得此徽章时要应用的积分数量。（可选）",
+          "points_multiplier": "如果倍数奖励是选定的奖励，请设置此徽章激活期间所获积分的倍数（例如，1.5 倍）。",
+          "recurring_frequency": "启用维护周期，要求在周期结束前获得指定的最低积分。（例如，每周、每月）。",
+          "custom_interval": "指定自定义频率的天数、周数、月数等（例如，如果设置为 3 周，则输入 3）。仅适用于自定义频率。",
+          "custom_interval_unit": "选择自定义间隔的单位（例如，天、周）。仅适用于自定义频率。",
+          "start_date": "设置开始日期（可选）。",
+          "end_date": "选择维护周期结束日期。（可选）",
+          "grace_period_days": "指定在周期结束后，受训人员为达到降级前所需的积分，额外给予多少天。（可选）"
+        }
+      },
+      "add_badge_daily": {
+        "title": "添加每日徽章",
+        "description": "配置每日徽章的详细信息。这些徽章用于奖励完成每日任务或达到每日目标的受命人员。\n\n ℹ️ [徽章概览]({documentation_url})",
+        "data": {
+          "badge_name": "徽章名称",
+          "badge_description": "徽章描述（可选）",
+          "badge_labels": "标签（可选）",
+          "icon": "徽章图标（mdi:xxx）",
+          "target_type": "🎯每日目标：目标类型",
+          "threshold_value": "🎯每日目标：阈值",
+          "selected_chores": "🧹 已记录的家务（可选）",
+          "assigned_user_ids": "🧒 分配给",
+          "award_items": "🎁 奖励：选择积分、奖励、奖金、惩罚（可选）",
+          "award_points": "🎁 奖励：积分奖励（可选）"
+        },
+        "data_description": {
+          "badge_name": "请为徽章输入一个唯一的名称。该名称将显示在系统中。",
+          "badge_description": "（可选）请提供徽章用途或评判标准的描述。",
+          "badge_labels": "添加标签以对徽章进行分类或标记（可选）。",
+          "icon": "使用 Material Design 图标（例如 mdi:star）为徽章指定图标。",
+          "target_type": "选择此徽章的每日目标类型（例如，积分、家务数量或天数）。",
+          "threshold_value": "设置获得此徽章所需的每日积分、家务数量或天数。对于“天数”目标类型，请输入 1，因为徽章是按日评估的（例如，一天内完成所有选定的家务可得 1 分）。",
+          "selected_chores": "选择可获得此徽章积分的家务。如果要跟踪所有已分配的家务，请留空（可选）。",
+          "assigned_user_ids": "将此徽章分配给指定的负责人以便进行跟踪。",
+          "award_items": "从积分、奖励、加成或惩罚中选择一项或多项。所有选定的项目将在获得徽章时授予或应用。惩罚仅在徽章未在截止日期或重置日期前获得时才会应用。（可选）",
+          "award_points": "如果奖励方式为积分，请指定获得此徽章时要应用的积分数量。（可选）"
+        }
+      },
+      "add_badge_periodic": {
+        "title": "添加周期徽章",
+        "description": "配置周期性徽章的详细信息。这些徽章用于奖励在规定时间内达到阈值的受让人，并支持重置周期以持续评估绩效。\n\n ℹ️ [配置指南]({documentation_url})",
+        "data": {
+          "badge_name": "徽章名称",
+          "badge_description": "徽章描述（可选）",
+          "badge_labels": "标签（可选）",
+          "icon": "徽章图标（mdi:xxx）",
+          "target_type": "🎯 目标：目标类型",
+          "threshold_value": "🎯 目标：阈值",
+          "maintenance_rules": "🎯 目标：维护积分（可选）",
+          "occasion_type": "🎉 场合类型",
+          "associated_achievement": "🏆 相关成就",
+          "selected_chores": "🧹 已记录的家务（可选）",
+          "assigned_user_ids": "🧒 分配给",
+          "award_items": "🎁 奖励：选择积分、奖励、奖金、惩罚（可选）",
+          "award_points": "🎁 奖励：积分奖励（可选）",
+          "recurring_frequency": "🔄 重置周期：频率",
+          "custom_interval": "🔄 重置周期：自定义间隔（自定义频率需要此项）",
+          "custom_interval_unit": "🔄 重置周期：自定义间隔单位（自定义频率需要此项）",
+          "start_date": "🔄 重置周期：开始日期（可选）",
+          "end_date": "🔄 重置周期：结束日期（可选）"
+        },
+        "data_description": {
+          "badge_name": "请为徽章输入一个唯一的名称。该名称将显示在系统中。",
+          "badge_description": "（可选）请提供徽章用途或评判标准的描述。",
+          "badge_labels": "添加标签以对徽章进行分类或标记（可选）。",
+          "icon": "使用 Material Design 图标（例如 mdi:star）为徽章指定图标。",
+          "target_type": "选择此徽章的目标类型（例如，积分、家务数量、天数或连续天数）。",
+          "threshold_value": "设定在规定时间内获得此徽章所需的总积分、家务数量或天数（例如，连续完成多项家务）。",
+          "maintenance_rules": "指定重置周期内保留徽章及其有效倍数所需的最低分数（可选）。",
+          "occasion_type": "选择此徽章的场合类型（例如，节日、生日）。",
+          "associated_achievement": "将此徽章关联到一项成就以便进行追踪。",
+          "selected_chores": "选择可获得此徽章积分的家务。如果要跟踪所有已分配的家务，请留空（可选）。",
+          "assigned_user_ids": "将此徽章分配给指定的负责人以便进行跟踪。",
+          "award_items": "从积分、奖励、加成或惩罚中选择一项或多项。所有选定的项目将在获得徽章时授予或应用。惩罚仅在徽章未在截止日期或重置日期前获得时才会应用。（可选）",
+          "award_points": "如果奖励方式为积分，请指定获得此徽章时要应用的积分数量。（可选）",
+          "recurring_frequency": "定义此徽章的重置时间表（例如，每周、每月）。",
+          "custom_interval": "指定自定义频率的天数、周数、月数等（例如，如果设置 3 周，则为 3）。",
+          "custom_interval_unit": "选择自定义时间间隔的单位（例如，天、周）。",
+          "start_date": "设置重置周期的开始日期（可选）。",
+          "end_date": "设置重置周期的结束日期（可选）。"
+        }
+      },
+      "add_badge_achievement": {
+        "title": "添加与成就关联的徽章",
+        "description": "配置与成就关联的徽章的详细信息。这些徽章用于奖励完成特定成就的受让人。\n\n ℹ️ [徽章概览]({documentation_url})",
+        "data": {
+          "badge_name": "徽章名称",
+          "badge_description": "徽章描述（可选）",
+          "badge_labels": "标签（可选）",
+          "icon": "徽章图标（mdi:xxx）",
+          "associated_achievement": "🏆 相关成就",
+          "assigned_user_ids": "🧒 分配给",
+          "award_items": "🎁 奖励：选择积分、奖励、奖金（可选）",
+          "award_points": "🎁 奖励：积分奖励（可选）"
+        },
+        "data_description": {
+          "badge_name": "请为徽章输入一个唯一的名称。该名称将显示在系统中。",
+          "badge_description": "（可选）请提供徽章用途或评判标准的描述。",
+          "badge_labels": "添加标签以对徽章进行分类或标记（可选）。",
+          "icon": "使用 Material Design 图标（例如 mdi:star）为徽章指定图标。",
+          "associated_achievement": "将此徽章与特定成就关联以便跟踪。",
+          "assigned_user_ids": "将此徽章分配给指定的负责人以便进行跟踪。",
+          "award_items": "从积分、奖励或加成中选择一项或多项。所有选定的项目将在获得徽章时发放或应用。仅当未在截止日期或重置日期前获得徽章时才会受到处罚。（可选）",
+          "award_points": "如果奖励方式为积分，请指定获得此徽章时要应用的积分数量。（可选）"
+        }
+      },
+      "add_badge_special": {
+        "title": "添加特殊场合徽章",
+        "description": "配置为特殊场合创建的徽章的详细信息。这些徽章用于奖励受赠者在生日或节日等活动期间获得的奖励。\n\n ℹ️ [徽章概览]({documentation_url})",
+        "data": {
+          "badge_name": "徽章名称",
+          "badge_description": "徽章描述（可选）",
+          "badge_labels": "标签（可选）",
+          "icon": "徽章图标（mdi:xxx）",
+          "occasion_type": "🎉 场合类型",
+          "end_date": "🎉 特殊场合日期",
+          "recurring_frequency": "🔄 重复出现：频率",
+          "custom_interval": "🔄 重复：自定义间隔（自定义频率需要此项）",
+          "custom_interval_unit": "🔄 重复：自定义间隔单位（自定义频率必需）",
+          "start_date": "🔄 重复：开始日期（可选）",
+          "grace_period_days": "🔄 续期：宽限期（天数）（可选）",
+          "assigned_user_ids": "🧒 分配给",
+          "award_items": "🎁 奖励：选择积分、奖励、奖金（可选）",
+          "award_points": "🎁 奖励：积分奖励（可选）"
+        },
+        "data_description": {
+          "badge_name": "请为徽章输入一个唯一的名称。该名称将显示在系统中。",
+          "badge_description": "（可选）请提供徽章用途或评判标准的描述。",
+          "badge_labels": "添加标签以对徽章进行分类或标记（可选）。",
+          "icon": "使用 Material Design 图标（例如 mdi:star）为徽章指定图标。",
+          "occasion_type": "选择此徽章的场合类型（例如，节日、生日）。",
+          "end_date": "确定活动日期。",
+          "recurring_frequency": "定义此徽章的重置时间表（例如，每周、每月）。",
+          "custom_interval": "指定自定义频率的天数、周数、月数等（例如，如果设置 3 周，则为 3）。",
+          "custom_interval_unit": "选择自定义时间间隔的单位（例如，天、周）。",
+          "start_date": "设置重置周期的开始日期（可选）。",
+          "grace_period_days": "指定在周期结束后，受派人员在降职前达到所需积分的额外天数（可选）。",
+          "assigned_user_ids": "将此徽章分配给指定的负责人以便进行跟踪。",
+          "award_items": "从积分、奖励或加成中选择一项或多项。所有选定的项目将在获得徽章时发放或应用。仅当未在截止日期或重置日期前获得徽章时才会受到处罚。（可选）",
+          "award_points": "如果奖励方式为积分，请指定获得此徽章时要应用的积分数量。（可选）"
+        }
+      },
+      "add_reward": {
+        "title": "添加奖励",
+        "description": "请提供新奖励的详细信息。\n\n ℹ️ [配置指南]({documentation_url})",
+        "data": {
+          "name": "奖励名称",
+          "internal_id": "内部 ID",
+          "cost": "奖励成本",
+          "description": "描述（可选）",
+          "reward_labels": "奖励标签",
+          "icon": "图标（mdi:xxx）",
+          "assigned_user_ids": "分配给"
+        }
+      },
+      "add_penalty": {
+        "title": "加罚",
+        "description": "请提供新处罚的详细信息。\n\n ℹ️ [配置指南]({documentation_url})",
+        "data": {
+          "name": "罚球名称",
+          "penalty_description": "描述（可选）",
+          "penalty_labels": "处罚标签",
+          "internal_id": "内部 ID",
+          "penalty_points": "罚分（负分）",
+          "icon": "图标（mdi:xxx）"
+        }
+      },
+      "add_bonus": {
+        "title": "额外奖励",
+        "description": "请提供新奖励的详细信息。\n\n ℹ️ [配置指南]({documentation_url})",
+        "data": {
+          "name": "奖励名称",
+          "bonus_description": "描述（可选）",
+          "bonus_labels": "奖励标签",
+          "internal_id": "内部 ID",
+          "bonus_points": "奖励积分",
+          "icon": "图标（mdi:xxx）"
+        }
+      },
+      "add_achievement": {
+        "title": "定义成就",
+        "description": "请输入每项成就的详细信息。\n\n ℹ️ [配置指南]({documentation_url})",
+        "data": {
+          "name": "成就名称",
+          "description": "描述（可选）",
+          "achievement_labels": "成就标签",
+          "icon": "图标（mdi:xxx）",
+          "assigned_user_ids": "分配给",
+          "type": "成就类型",
+          "selected_chore_id": "选择相关家务",
+          "criteria": "评判标准（可选）",
+          "target_value": "达成目标",
+          "reward_points": "完成成就可获得额外积分",
+          "internal_id": "内部 ID"
+        }
+      },
+      "add_challenge": {
+        "title": "定义挑战",
+        "description": "请输入每个挑战的详细信息。\n\n ℹ️ [配置指南]({documentation_url})",
+        "data": {
+          "name": "挑战名称",
+          "description": "描述（可选）",
+          "challenge_labels": "挑战标签",
+          "icon": "图标（mdi:xxx）",
+          "assigned_user_ids": "分配给",
+          "type": "挑战类型",
+          "selected_chore_id": "选择与挑战相关的家务（可选）",
+          "criteria": "评判标准（可选）",
+          "target_value": "挑战目标",
+          "reward_points": "完成挑战可获得额外积分",
+          "start_date": "开始日期",
+          "end_date": "结束日期",
+          "internal_id": "内部 ID"
+        }
+      },
+      "edit_user": {
+        "title": "编辑用户",
+        "description": "修改所选用户配置文件的详细信息。\n\n{user_access_warning}\n\n ℹ️ [配置指南]({documentation_url})",
+        "sections": {
+          "section_identity_profile": {
+            "name": "身份和个人资料",
+            "description": "核心身份、账户关联和个性化设置。",
+            "data": {
+              "name": "姓名",
+              "ha_user_id": "家庭助手用户",
+              "dashboard_language": "语言",
+              "mobile_notify_service": "通知",
+              "notif_click_url": "通知点击 URL"
+            },
+            "data_description": {
+              "name": "此用户个人资料的唯一名称。",
+              "ha_user_id": "可选：将此配置文件关联到 Home Assistant 用户。如果禁用自助服务终端模式，共享设备的领取和兑换操作将依赖于此关联。",
+              "dashboard_language": "用于仪表盘内容和通知的语言。",
+              "mobile_notify_service": "选择通知服务，或留空以禁用通知。",
+              "notif_click_url": "点击通知时要打开的网址（可选）。留空则使用默认行为。"
+            }
+          },
+          "section_system_usage": {
+            "name": "系统使用情况",
+            "description": "用于日常家务和游戏化操作的控制。",
+            "data": {
+              "can_be_assigned": "可以分配",
+              "enable_chore_workflow": "已启用工作流",
+              "enable_gamification": "游戏化赋能"
+            },
+            "data_description": {
+              "can_be_assigned": "允许将家务分配给此用户。",
+              "enable_chore_workflow": "启用对已分配任务的认领/拒绝工作流程操作。",
+              "enable_gamification": "可参与积分、徽章和奖励活动。"
+            }
+          },
+          "section_admin_approval": {
+            "name": "管理和审批选项",
+            "description": "更高权限的审批和管理控制。",
+            "data": {
+              "can_approve": "可以批准",
+              "can_manage": "可以管理",
+              "associated_user_ids": "关联用户",
+              "notif_approve_click_url": "批准通知点击 URL",
+              "chores_paused": "暂停家务",
+              "chores_paused_until": "暂停直到"
+            },
+            "data_description": {
+              "can_approve": "允许执行批准和否决操作。",
+              "can_manage": "允许执行需要更高权限的管理操作。",
+              "associated_user_ids": "此审批人/管理员负责监督用户进行审批操作。",
+              "notif_approve_click_url": "用于审批通知的可选 URL。审批任务或奖励时，此 URL 将覆盖常规通知点击链接的 URL。",
+              "chores_paused": "暂停家务处理。不会累积逾期或遗漏的统计数据。",
+              "chores_paused_until": "可选的返回日期。如果设置，家务将在该日期后的午夜自动恢复。"
+            }
+          }
+        }
+      },
+      "edit_chore": {
+        "title": "编辑杂务",
+        "description": "修改所选家务的详细信息。\n\n ℹ️ [配置指南]({documentation_url})",
+        "sections": {
+          "section_root_form": {
+            "name": "定义",
+            "description": "身份、分配和核心合同设置。",
+            "data": {
+              "name": "📋 家务名称",
+              "chore_description": "📋 描述（可选）",
+              "icon": "📋 图标 (mdi:xxx)",
+              "default_points": "💰 获得的积分",
+              "assigned_user_ids": "👥 分配给",
+              "completion_criteria": "👥 完成标准",
+              "standby_claim_mode": "🔑待机声明模式"
+            },
+            "data_description": {
+              "name": "系统中显示的唯一名称。",
+              "chore_description": "完成这项家务的可选说明或细节。",
+              "icon": "Material Design 图标（例如，mdi:broom，mdi:dishwasher）。",
+              "default_points": "完成任务后可获得积分。",
+              "assigned_user_ids": "能够查看并认领此任务的人员。对于轮换任务，分配人员的顺序决定轮换顺序。对于主要和备用任务，第一个分配人员为主任务人员。",
+              "completion_criteria": "控制当分配多个任务人员时如何完成任务：个人跟踪、共同完成或轮流完成。",
+              "standby_claim_mode": "控制备用服务器何时可以承担此任务（随时、逾期、仅限手动）。仅适用于主服务器和备用服务器的完成条件。"
+            }
+          },
+          "section_schedule": {
+            "name": "日程",
+            "description": "时间、访问窗口和重复间隔设置。",
+            "data": {
+              "recurring_frequency": "🔄 时间表：频率",
+              "due_date": "📅 日程安排：截止日期（可选）",
+              "clear_due_date": "🗑️ 明确截止日期",
+              "applicable_days": "📅 日程安排：适用日期（可选）",
+              "chore_due_window_offset": "⏱️ 截止日期窗口：截止日期前偏移",
+              "chore_claim_lock_until_window": "🔒 锁定索赔直至到期日窗口开启？",
+              "custom_interval": "🔄 日程安排：自定义间隔（自定义频率）",
+              "custom_interval_unit": "🔄 日程安排：自定义间隔单元"
+            },
+            "data_description": {
+              "recurring_frequency": "家务重复频率：每日、每周、每月、每年、自定义或无。如果您选择“每日 - 每天多次”，则会显示一个额外的屏幕，供您配置具体时间。",
+              "due_date": "可选截止日期。可与循环日程结合使用。对于独立完成的家务，此功能可用作模板——将出现一个额外的屏幕，允许每个用户设置单独的日期。",
+              "clear_due_date": "选中此框可移除此任务的截止日期。",
+              "applicable_days": "所有日期留空。仅选择要限制的特定日期。",
+              "chore_due_window_offset": "当家务状态从“待处理”变为“到期”时，格式为“1天6小时30分钟”或仅输入“30”（表示分钟）。输入“0”可禁用此功能。例如：“1天”表示家务在截止日期前1天显示为“到期”。",
+              "chore_claim_lock_until_window": "启用此功能后，受让人不能在截止日期前领取此任务。",
+              "custom_interval": "重复次数之间的间隔时间单位数（例如，3 表示“每 3 周一次”）。仅与自定义频率一起使用。",
+              "custom_interval_unit": "自定义时间间隔的时间单位（天、周、月）。仅与自定义频率一起使用。"
+            }
+          },
+          "section_advanced_configurations": {
+            "name": "高级配置",
+            "description": "生命周期自动化、通知、可见性和元数据。",
+            "data": {
+              "approval_reset_type": "➡️ 允许完成次数和审批重置时间",
+              "approval_reset_pending_claim_action": "➡️ 待处理索赔在审批重置时进行处理",
+              "auto_approve": "✅ 自动批准索赔？",
+              "overdue_handling_type": "⏰ 逾期：处理",
+              "chore_due_reminder_offset": "🔔 到期提醒：请在到期日前进行抵扣",
+              "chore_notifications": "🔔 通知事件（可选）",
+              "show_on_calendar": "📅 在日历上显示？",
+              "chore_labels": "📋 标签（可选）"
+            },
+            "data_description": {
+              "approval_reset_type": "控制任务审批周期边界何时触发（午夜、截止日期、完成时或手动触发）。",
+              "approval_reset_pending_claim_action": "控制在审批重置边界触发时，未获批准的索赔会发生什么情况。",
+              "auto_approve": "启用此功能后，索赔申请无需审批人审核即可立即获得批准。",
+              "overdue_handling_type": "控制到期日过后会发生什么，以及在审批重置边界处逾期任务会发生什么。",
+              "chore_due_reminder_offset": "何时发送到期提醒通知。格式：'1天6小时30分钟' 或 '30'（分钟）。默认值：30分钟（到期前30分钟）。输入 '0' 可禁用此功能。",
+              "chore_notifications": "何时发送通知：索赔时、批准时、拒绝时，或任何组合时。",
+              "show_on_calendar": "在日历视图中显示此任务。",
+              "chore_labels": "用于整理家务的标签（例如，“厨房”、“户外”）。如果不需要，请留空。"
+            }
+          }
+        },
+        "data": {
+          "name": "📋 家务名称",
+          "chore_description": "📋 描述（可选）",
+          "icon": "📋 图标 (mdi:xxx)",
+          "chore_labels": "📋 标签（可选）",
+          "internal_id": "内部 ID",
+          "default_points": "💰 获得的积分",
+          "assigned_user_ids": "👥 分配给",
+          "completion_criteria": "👥 完成标准",
+          "approval_reset_type": "➡️ 允许完成次数和审批重置时间",
+          "approval_reset_pending_claim_action": "➡️ 待处理索赔在审批重置时进行处理",
+          "overdue_handling_type": "⏰ 逾期：处理",
+          "chore_claim_lock_until_window": "🔒 锁定索赔直至到期日窗口开启？",
+          "auto_approve": "✅ 自动批准索赔？",
+          "recurring_frequency": "🔄 时间表：频率",
+          "custom_interval": "🔄 日程安排：自定义间隔（自定义频率）",
+          "custom_interval_unit": "🔄 日程安排：自定义间隔单元",
+          "applicable_days": "📅 日程安排：适用日期（可选）",
+          "due_date": "📅 日程安排：截止日期（可选）",
+          "clear_due_date": "🗑️ 明确截止日期",
+          "chore_due_window_offset": "⏱️ 截止日期窗口：截止日期前偏移",
+          "chore_due_reminder_offset": "🔔 到期提醒：请在到期日前进行抵扣",
+          "show_on_calendar": "📅 在日历上显示？",
+          "chore_notifications": "🔔 通知事件（可选）",
+          "standby_claim_mode": "🔑待机声明模式"
+        },
+        "data_description": {
+          "name": "系统中显示的唯一名称。",
+          "chore_description": "完成这项家务的可选说明或细节。",
+          "icon": "Material Design 图标（例如，mdi:broom，mdi:dishwasher）。",
+          "chore_labels": "用于整理家务的标签（例如，“厨房”、“户外”）。如果不需要，请留空。",
+          "default_points": "完成任务后可获得积分。",
+          "assigned_user_ids": "能够查看并认领此任务的人员。对于轮换任务，分配人员的顺序决定轮换顺序。对于主要和备用任务，第一个分配人员为主任务人员。",
+          "completion_criteria": "控制当分配多个任务人员时如何完成任务：个人跟踪、共同完成或轮流完成。",
+          "approval_reset_type": "控制任务审批周期边界何时触发（午夜、截止日期、完成时或手动触发）。",
+          "approval_reset_pending_claim_action": "控制在审批重置边界触发时，未获批准的索赔会发生什么情况。",
+          "overdue_handling_type": "控制到期日过后会发生什么，以及在审批重置边界处逾期任务会发生什么。",
+          "chore_claim_lock_until_window": "启用此功能后，受让人不能在截止日期前领取此任务。",
+          "auto_approve": "启用此功能后，索赔申请无需审批人审核即可立即获得批准。",
+          "recurring_frequency": "家务重复频率：每日、每周、每月、每年、自定义或无。如果您选择“每日 - 每天多次”，则会显示一个附加屏幕，供您配置具体时间。",
+          "custom_interval": "重复次数之间的间隔时间单位数（例如，3 表示“每 3 周一次”）。仅与自定义频率一起使用。",
+          "custom_interval_unit": "自定义时间间隔的时间单位（天、周、月）。仅与自定义频率一起使用。",
+          "applicable_days": "所有日期留空。仅选择要限制的特定日期。",
+          "due_date": "可选截止日期。可与循环日程结合使用。对于独立完成的家务，此功能可用作模板——将出现一个额外的屏幕，允许每个用户设置单独的日期。",
+          "clear_due_date": "选中此框可移除此任务的截止日期。",
+          "chore_due_window_offset": "当家务状态从“待处理”变为“到期”时，格式为“1天6小时30分钟”或仅输入“30”（表示分钟）。输入“0”可禁用此功能。例如：“1天”表示家务在截止日期前1天显示为“到期”。",
+          "chore_due_reminder_offset": "何时发送到期提醒通知。格式：'1天6小时30分钟' 或 '30'（分钟）。默认值：30分钟（到期前30分钟）。输入 '0' 可禁用此功能。",
+          "show_on_calendar": "在日历视图中显示此任务。",
+          "chore_notifications": "何时发送通知：索赔时、批准时、拒绝时，或任何组合时。",
+          "standby_claim_mode": "控制备用服务器何时可以承担此任务（随时、逾期、仅限手动）。仅适用于主服务器和备用服务器的完成条件。"
+        }
+      },
+      "edit_chore_per_user_dates": {
+        "title": "编辑每个用户的截止日期： {chore_name}",
+        "description": "为每个分配的用户设置单独的截止日期。主编辑表单上的日期字段可用作**模板**，方便您使用下方的复选框快速将同一日期应用于所有用户，或者将其留空并在此处单独设置日期。\n\n字段显示如下： {assignee_names}。留空表示没有截止日期。{template_date}\n\n ℹ️ [高级指南]({documentation_url})",
+        "data": {
+          "apply_template_to_all": "将模板日期应用于所有用户"
+        },
+        "data_description": {
+          "apply_template_to_all": "选中此框，可将主任务编辑页面上设置的日期应用于所有已分配的任务负责人，覆盖他们各自的日期。"
+        }
+      },
+      "chores_daily_multi": {
+        "title": "设定每日时间： {chore_name}",
+        "description": "Enter the times when this chore should be available each day. Use 24-hour format (HH:MM) separated by | (pipe).\n\n**Example:** 07:00|12:00|18:00 for morning, midday, and evening.\n\n**Requirements:**\n- Minimum 2 times, maximum 6 times\n- Times must be in 24-hour format (00:00 to 23:59)\n- Separate multiple times with | (pipe character)\n\n**Note:** If you set a due date on the main form, only the date portion is used. The times you enter below will determine when the chore is available each day.",
+        "data": {
+          "daily_multi_times": "《每日时报》"
+        },
+        "data_description": {
+          "daily_multi_times": "请以24小时制格式输入2-6个时间，并用竖线（|）分隔。例如：08:00|17:00 表示上午和下午。"
+        }
+      },
+      "edit_chore_per_user_details": {
+        "title": "每个受让人的日程安排： {chore_name}",
+        "description": "为分配给此任务的每位负责人配置单独的日程安排设置。主表单值用作**模板**——使用复选框将其应用于所有负责人，或单独自定义每位负责人的设置。\n\n**注意：**并非以下所有字段都适用于每项任务。表单会根据完成模式、频率以及是否设置了截止日期动态显示相关选项。\n\n**每日（多次）格式：**如果显示，请以 24 小时制格式输入 2-6 次，并用竖线 (|) 分隔。示例：08:00|17:00\n\n指派人： {assignee_names}{template_info}\n\n ℹ️ [高级指南]({documentation_url})",
+        "data": {
+          "apply_days_to_all": "对所有受让人应用模板天数",
+          "apply_times_to_all": "将模板时间应用于所有受让人",
+          "apply_template_to_all": "将模板日期应用于所有受让人"
+        },
+        "data_description": {
+          "apply_days_to_all": "请勾选主表格中适用于所有指定受让人的日期。",
+          "apply_times_to_all": "请检查是否使用主表单中列出的每日时间安排，并将其分配给所有指定的受让人。",
+          "apply_template_to_all": "检查是否将主任务单上设定的日期应用到所有已分配的任务人身上。"
+        }
+      },
+      "edit_badge_cumulative": {
+        "title": "编辑累计徽章",
+        "description": "配置累积徽章的详细信息。这些徽章奖励达到终身积分阈值的受让人，并支持维护周期，以鼓励持续提升绩效。\n\n ℹ️ [配置指南]({documentation_url})",
+        "data": {
+          "badge_name": "徽章名称",
+          "badge_description": "徽章描述（可选）",
+          "badge_labels": "标签（可选）",
+          "icon": "徽章图标（mdi:xxx）",
+          "target_type": "🎯 目标：目标类型",
+          "threshold_value": "🎯 目标：阈值",
+          "maintenance_rules": "🎯 目标：维护积分（可选）",
+          "occasion_type": "🎉 场合类型",
+          "associated_achievement": "🏆 相关成就",
+          "selected_chores": "🧹 已记录的家务（可选）",
+          "assigned_user_ids": "🧒 分配给",
+          "award_items": "🎁 奖励：选择积分、奖励、奖金、倍数（可选）",
+          "award_points": "🎁 奖励：积分奖励（可选）",
+          "points_multiplier": "🎁 奖励：积分倍增（默认💎 1.0倍）",
+          "recurring_frequency": "🔄 维护周期：频率",
+          "custom_interval": "🔄 维护周期：自定义间隔（自定义频率需要此项）",
+          "custom_interval_unit": "🔄 维护周期：自定义间隔单元（自定义频率需要此项）",
+          "start_date": "🔄 重置周期：开始日期（可选）",
+          "end_date": "🔄 维护周期：结束日期（可选）",
+          "grace_period_days": "🔄 维护周期：宽限期（天数）（可选）"
+        },
+        "data_description": {
+          "badge_name": "请为徽章输入一个唯一的名称。该名称将显示在系统中。",
+          "badge_description": "（可选）请提供徽章用途或评判标准的描述。",
+          "badge_labels": "添加标签以对徽章进行分类或标记（可选）。",
+          "icon": "使用 Material Design 图标（例如 mdi:star）为徽章指定图标。",
+          "target_type": "选择此徽章的目标类型（例如，积分或家务数量）。",
+          "threshold_value": "设置获得此徽章所需的终身总积分。",
+          "maintenance_rules": "指定在维护周期内保留徽章所需的最低积分及其有效倍数（可选）。",
+          "occasion_type": "选择此徽章的场合类型（例如，节日、生日）。",
+          "associated_achievement": "将此徽章关联到一项成就以便进行追踪。",
+          "selected_chores": "选择可获得此徽章积分的家务。如果要跟踪所有已分配的家务，请留空（可选）。",
+          "assigned_user_ids": "将此徽章分配给指定的负责人以便进行跟踪。",
+          "award_items": "从积分、奖励、加成或积分倍率中选择一项或多项。所有选定的项目将在获得徽章时授予或应用。（可选）",
+          "award_points": "如果奖励方式为积分，请指定获得此徽章时要应用的积分数量。（可选）",
+          "points_multiplier": "如果倍数奖励是选定的奖励，请设置此徽章激活期间所获积分的倍数（例如，1.5 倍）。",
+          "recurring_frequency": "启用维护周期，要求在周期结束前获得指定的最低积分。（例如，每周、每月）。",
+          "custom_interval": "指定自定义频率的天数、周数、月数等（例如，如果设置为 3 周，则输入 3）。仅适用于自定义频率。",
+          "custom_interval_unit": "选择自定义间隔的单位（例如，天、周）。仅适用于自定义频率。",
+          "start_date": "设置开始日期（可选）。",
+          "end_date": "选择维护周期结束日期。（可选）",
+          "grace_period_days": "指定在周期结束后，受训人员为达到降级前所需的积分，额外给予多少天。（可选）"
+        }
+      },
+      "edit_badge_daily": {
+        "title": "编辑每日徽章",
+        "description": "配置每日徽章的详细信息。这些徽章用于奖励完成每日任务或达到每日目标的受命人员。\n\n ℹ️ [徽章概览]({documentation_url})",
+        "data": {
+          "badge_name": "徽章名称",
+          "badge_description": "徽章描述（可选）",
+          "badge_labels": "标签（可选）",
+          "icon": "徽章图标（mdi:xxx）",
+          "target_type": "🎯每日目标：目标类型",
+          "threshold_value": "🎯每日目标：阈值",
+          "selected_chores": "🧹 已记录的家务（可选）",
+          "assigned_user_ids": "🧒 分配给",
+          "award_items": "🎁 奖励：选择积分、奖励、奖金、惩罚（可选）",
+          "award_points": "🎁 奖励：积分奖励（可选）"
+        },
+        "data_description": {
+          "badge_name": "请为徽章输入一个唯一的名称。该名称将显示在系统中。",
+          "badge_description": "（可选）请提供徽章用途或评判标准的描述。",
+          "badge_labels": "添加标签以对徽章进行分类或标记（可选）。",
+          "icon": "使用 Material Design 图标（例如 mdi:star）为徽章指定图标。",
+          "target_type": "选择此徽章的每日目标类型（例如，积分、家务数量或天数）。",
+          "threshold_value": "设置获得此徽章所需的每日积分、家务数量或天数。对于“天数”目标类型，请输入 1，因为徽章是按日评估的（例如，一天内完成所有选定的家务可得 1 分）。",
+          "selected_chores": "选择可获得此徽章积分的家务。如果要跟踪所有已分配的家务，请留空（可选）。",
+          "assigned_user_ids": "将此徽章分配给指定的负责人以便进行跟踪。",
+          "award_items": "从积分、奖励、加成或惩罚中选择一项或多项。所有选定的项目将在获得徽章时授予或应用。惩罚仅在徽章未在截止日期或重置日期前获得时才会应用。（可选）",
+          "award_points": "如果奖励方式为积分，请指定获得此徽章时要应用的积分数量。（可选）"
+        }
+      },
+      "edit_badge_periodic": {
+        "title": "编辑周期徽章",
+        "description": "配置周期性徽章的详细信息。这些徽章用于奖励在规定时间内达到阈值的受让人，并支持重置周期以持续评估绩效。\n\n ℹ️ [配置指南]({documentation_url})",
+        "data": {
+          "badge_name": "徽章名称",
+          "badge_description": "徽章描述（可选）",
+          "badge_labels": "标签（可选）",
+          "icon": "徽章图标（mdi:xxx）",
+          "target_type": "🎯 目标：目标类型",
+          "threshold_value": "🎯 目标：阈值",
+          "maintenance_rules": "🎯 目标：维护积分（可选）",
+          "occasion_type": "🎉 场合类型",
+          "associated_achievement": "🏆 相关成就",
+          "selected_chores": "🧹 已记录的家务（可选）",
+          "assigned_user_ids": "🧒 分配给",
+          "award_items": "🎁 奖励：选择积分、奖励、奖金、惩罚（可选）",
+          "award_points": "🎁 奖励：积分奖励（可选）",
+          "recurring_frequency": "🔄 重置周期：频率",
+          "custom_interval": "🔄 重置周期：自定义间隔（自定义频率需要此项）",
+          "custom_interval_unit": "🔄 重置周期：自定义间隔单位（自定义频率需要此项）",
+          "start_date": "🔄 重置周期：开始日期（可选）",
+          "end_date": "🔄 重置周期：结束日期（可选）"
+        },
+        "data_description": {
+          "badge_name": "请为徽章输入一个唯一的名称。该名称将显示在系统中。",
+          "badge_description": "（可选）请提供徽章用途或评判标准的描述。",
+          "badge_labels": "添加标签以对徽章进行分类或标记（可选）。",
+          "icon": "使用 Material Design 图标（例如 mdi:star）为徽章指定图标。",
+          "target_type": "选择此徽章的目标类型（例如，积分、家务数量、天数或连续天数）。",
+          "threshold_value": "设定在规定时间内获得此徽章所需的总积分、家务数量或天数（例如，连续完成多项家务）。",
+          "maintenance_rules": "指定重置周期内保留徽章及其有效倍数所需的最低分数（可选）。",
+          "occasion_type": "选择此徽章的场合类型（例如，节日、生日）。",
+          "associated_achievement": "将此徽章关联到一项成就以便进行追踪。",
+          "selected_chores": "选择可获得此徽章积分的家务。如果要跟踪所有已分配的家务，请留空（可选）。",
+          "assigned_user_ids": "将此徽章分配给指定的负责人以便进行跟踪。",
+          "award_items": "从积分、奖励、加成或惩罚中选择一项或多项。所有选定的项目将在获得徽章时授予或应用。惩罚仅在徽章未在截止日期或重置日期前获得时才会应用。（可选）",
+          "award_points": "如果奖励方式为积分，请指定获得此徽章时要应用的积分数量。（可选）",
+          "recurring_frequency": "定义此徽章的重置时间表（例如，每周、每月）。",
+          "custom_interval": "指定自定义频率的天数、周数、月数等（例如，如果设置 3 周，则为 3）。",
+          "custom_interval_unit": "选择自定义时间间隔的单位（例如，天、周）。",
+          "start_date": "设置重置周期的开始日期（可选）。",
+          "end_date": "设置重置周期的结束日期（可选）。"
+        }
+      },
+      "edit_badge_achievement": {
+        "title": "编辑成就关联徽章",
+        "description": "配置与成就关联的徽章的详细信息。这些徽章用于奖励完成特定成就的受让人。\n\n ℹ️ [徽章概览]({documentation_url})",
+        "data": {
+          "badge_name": "徽章名称",
+          "badge_description": "徽章描述（可选）",
+          "badge_labels": "标签（可选）",
+          "icon": "徽章图标（mdi:xxx）",
+          "associated_achievement": "🏆 相关成就",
+          "assigned_user_ids": "🧒 分配给",
+          "award_items": "🎁 奖励：选择积分、奖励、奖金（可选）",
+          "award_points": "🎁 奖励：积分奖励（可选）"
+        },
+        "data_description": {
+          "badge_name": "请为徽章输入一个唯一的名称。该名称将显示在系统中。",
+          "badge_description": "（可选）请提供徽章用途或评判标准的描述。",
+          "badge_labels": "添加标签以对徽章进行分类或标记（可选）。",
+          "icon": "使用 Material Design 图标（例如 mdi:star）为徽章指定图标。",
+          "associated_achievement": "将此徽章与特定成就关联以便跟踪。",
+          "assigned_user_ids": "将此徽章分配给指定的负责人以便进行跟踪。",
+          "award_items": "从积分、奖励或加成中选择一项或多项。所有选定的项目将在获得徽章时发放或应用。仅当未在截止日期或重置日期前获得徽章时才会受到处罚。（可选）",
+          "award_points": "如果奖励方式为积分，请指定获得此徽章时要应用的积分数量。（可选）"
+        }
+      },
+      "edit_badge_special": {
+        "title": "编辑特殊场合徽章",
+        "description": "配置为特殊场合创建的徽章的详细信息。这些徽章用于奖励受赠者在生日或节日等活动期间获得的奖励。\n\n ℹ️ [徽章概览]({documentation_url})",
+        "data": {
+          "badge_name": "徽章名称",
+          "badge_description": "徽章描述（可选）",
+          "badge_labels": "标签（可选）",
+          "icon": "徽章图标（mdi:xxx）",
+          "occasion_type": "🎉 场合类型",
+          "end_date": "🎉 特殊场合日期",
+          "recurring_frequency": "🔄 重复出现：频率",
+          "custom_interval": "🔄 重复：自定义间隔（自定义频率需要此项）",
+          "custom_interval_unit": "🔄 重复：自定义间隔单位（自定义频率必需）",
+          "start_date": "🔄 重复：开始日期（可选）",
+          "grace_period_days": "🔄 续期：宽限期（天数）（可选）",
+          "assigned_user_ids": "🧒 分配给",
+          "award_items": "🎁 奖励：选择积分、奖励、奖金（可选）",
+          "award_points": "🎁 奖励：积分奖励（可选）"
+        },
+        "data_description": {
+          "badge_name": "请为徽章输入一个唯一的名称。该名称将显示在系统中。",
+          "badge_description": "（可选）请提供徽章用途或评判标准的描述。",
+          "badge_labels": "添加标签以对徽章进行分类或标记（可选）。",
+          "icon": "使用 Material Design 图标（例如 mdi:star）为徽章指定图标。",
+          "occasion_type": "选择此徽章的场合类型（例如，节日、生日）。",
+          "end_date": "确定活动日期。",
+          "recurring_frequency": "定义此徽章的重置时间表（例如，每周、每月）。",
+          "custom_interval": "指定自定义频率的天数、周数、月数等（例如，如果设置 3 周，则为 3）。",
+          "custom_interval_unit": "选择自定义时间间隔的单位（例如，天、周）。",
+          "start_date": "设置重置周期的开始日期（可选）。",
+          "grace_period_days": "指定在周期结束后，受派人员在降职前达到所需积分的额外天数（可选）。",
+          "assigned_user_ids": "将此徽章分配给指定的负责人以便进行跟踪。",
+          "award_items": "从积分、奖励或加成中选择一项或多项。所有选定的项目将在获得徽章时发放或应用。仅当未在截止日期或重置日期前获得徽章时才会受到处罚。（可选）",
+          "award_points": "如果奖励方式为积分，请指定获得此徽章时要应用的积分数量。（可选）"
+        }
+      },
+      "edit_reward": {
+        "title": "编辑奖励",
+        "description": "修改所选奖励的详细信息。\n\n ℹ️ [配置指南]({documentation_url})",
+        "data": {
+          "name": "奖励名称",
+          "internal_id": "内部 ID",
+          "cost": "奖励成本",
+          "description": "描述（可选）",
+          "reward_labels": "奖励标签",
+          "icon": "图标（mdi:xxx）",
+          "assigned_user_ids": "分配给"
+        }
+      },
+      "edit_penalty": {
+        "title": "编辑处罚",
+        "description": "修改所选处罚的详细信息。\n\n ℹ️ [配置指南]({documentation_url})",
+        "data": {
+          "name": "罚球名称",
+          "penalty_description": "描述（可选）",
+          "penalty_labels": "处罚标签",
+          "internal_id": "内部 ID",
+          "penalty_points": "罚分（负分）",
+          "icon": "图标（mdi:xxx）"
+        }
+      },
+      "edit_bonus": {
+        "title": "编辑奖励",
+        "description": "修改所选奖励的详细信息。\n\n ℹ️ [配置指南]({documentation_url})",
+        "data": {
+          "name": "奖励名称",
+          "bonus_description": "描述（可选）",
+          "bonus_labels": "奖励标签",
+          "internal_id": "内部 ID",
+          "bonus_points": "奖励积分",
+          "icon": "图标（mdi:xxx）"
+        }
+      },
+      "edit_achievement": {
+        "title": "定义成就",
+        "description": "请输入每项成就的详细信息。\n\n ℹ️ [配置指南]({documentation_url})",
+        "data": {
+          "name": "成就名称",
+          "description": "描述（可选）",
+          "achievement_labels": "成就标签",
+          "icon": "图标（mdi:xxx）",
+          "assigned_user_ids": "分配给",
+          "type": "成就类型",
+          "selected_chore_id": "选择相关家务",
+          "criteria": "评判标准（可选）",
+          "target_value": "达成目标",
+          "reward_points": "完成成就可获得额外积分",
+          "internal_id": "内部 ID"
+        }
+      },
+      "edit_challenge": {
+        "title": "定义挑战",
+        "description": "请输入每个挑战的详细信息。\n\n ℹ️ [配置指南]({documentation_url})",
+        "data": {
+          "name": "挑战名称",
+          "description": "描述（可选）",
+          "challenge_labels": "挑战标签",
+          "icon": "图标（mdi:xxx）",
+          "assigned_user_ids": "分配给",
+          "type": "挑战类型",
+          "selected_chore_id": "选择与挑战相关的家务（可选）",
+          "criteria": "评判标准（可选）",
+          "target_value": "挑战目标",
+          "reward_points": "完成挑战可获得额外积分",
+          "start_date": "开始日期",
+          "end_date": "结束日期",
+          "internal_id": "内部 ID"
+        }
+      },
+      "delete_user": {
+        "title": "删除用户",
+        "description": "您确定要删除用户 {user_name} 吗？",
+        "data": {}
+      },
+      "delete_chore": {
+        "title": "删除家务",
+        "description": "你确定要删除这项任务吗？ {chore_name}",
+        "data": {}
+      },
+      "delete_badge": {
+        "title": "删除徽章",
+        "description": "您确定要删除徽章 {badge_name} 吗？",
+        "data": {}
+      },
+      "delete_reward": {
+        "title": "删除奖励",
+        "description": "您确定要删除奖励 {reward_name}吗？",
+        "data": {}
+      },
+      "delete_penalty": {
+        "title": "删除处罚",
+        "description": "你确定要删除处罚 {penalty_name}吗？",
+        "data": {}
+      },
+      "delete_bonus": {
+        "title": "删除奖励",
+        "description": "您确定要删除奖励 {bonus_name} 吗？",
+        "data": {}
+      },
+      "delete_achievement": {
+        "title": "删除成就",
+        "description": "您确定要删除成就 {achievement_name}吗？",
+        "data": {}
+      },
+      "delete_challenge": {
+        "title": "删除挑战",
+        "description": "你确定要删除挑战 {challenge_name} 吗？",
+        "data": {}
+      },
+      "dashboard_generator": {
+        "title": "仪表盘操作",
+        "description": "创建、更新或删除 ChoreOps Lovelace 控制面板。\n\n ℹ️ [控制面板配置指南]({documentation_url})\n\n{dashboard_status_message}",
+        "data": {
+          "dashboard_action": "行动",
+          "dashboard_release_selection": "仪表盘发布版本"
+        },
+        "data_description": {
+          "dashboard_action": "选择一个操作：创建新仪表板、更新现有仪表板上的视图或删除仪表板。",
+          "dashboard_release_selection": "选择当前已安装的版本、最新的稳定版本或明确的兼容版本标签。"
+        }
+      },
+      "dashboard_missing_dependencies": {
+        "title": "查看仪表板变更",
+        "description": "在应用仪表板更改之前，请检查所选模板的依赖项状态和模板首选项。\n\n ℹ️ [仪表板配置指南]({documentation_url})\n\n**可用自定义项**\n{dashboard_template_preferences}\n\n**缺少必需的依赖项**\n{dashboard_missing_required_dependencies}\n\n**缺少推荐的依赖项**\n{dashboard_missing_recommended_dependencies}\n\n**访问控制警告**\n{dashboard_access_warning}",
+        "data": {
+          "dashboard_dependency_bypass": "🚫 继续（缺少必要条件）",
+          "dashboard_access_warning_ack": "⚠️ 照常继续（所选用户未关联）"
+        },
+        "data_description": {
+          "dashboard_dependency_bypass": "确认缺少必需的依赖项，并继续操作。在安装必需的依赖项之前，仪表板可能无法渲染或运行异常。",
+          "dashboard_access_warning_ack": "请注意，在信息亭模式禁用期间，部分用户可能未关联 Home Assistant 用户。在关联这些用户或启用信息亭模式之前，共享设备上的“领取”和“兑换”按钮可能无法正常工作。"
+        }
+      },
+      "dashboard_create": {
+        "title": "创建仪表盘",
+        "description": "输入仪表盘名称，然后继续配置。\n\n ℹ️ [配置指南]({documentation_url})",
+        "data": {
+          "dashboard_name": "仪表盘名称"
+        },
+        "data_description": {
+          "dashboard_name": "仪表盘名称（显示在侧边栏中）。建议名称：家务"
+        }
+      },
+      "dashboard_update_select": {
+        "title": "更新仪表盘",
+        "description": "选择现有的 ChoreOps 控制面板进行更新和重新配置。",
+        "data": {
+          "dashboard_update_selection": "仪表盘更新"
+        },
+        "data_description": {
+          "dashboard_update_selection": "选择要更新的现有仪表板。"
+        }
+      },
+      "dashboard_configure": {
+        "title": "配置仪表盘",
+        "description": "配置仪表板部分，适用于 **{dashboard}**（模式： {mode}）。\n\n ℹ️ [配置指南]({documentation_url})",
+        "sections": {
+          "section_assignee_views": {
+            "name": "用户视图",
+            "description": "选择仪表盘模板以及要包含的用户。",
+            "data": {
+              "dashboard_template_profile": "用户仪表盘模板",
+              "dashboard_assignee_selection": "用户"
+            },
+            "data_description": {
+              "dashboard_template_profile": "用于选定用户视图的清单定义模板。",
+              "dashboard_assignee_selection": "选择要包含在此仪表板中的用户。"
+            }
+          },
+          "section_admin_views": {
+            "name": "管理员视图",
+            "description": "选择要生成的后台管理界面以及谁可以查看该界面。",
+            "data": {
+              "dashboard_admin_mode": "管理员布局",
+              "dashboard_admin_template_global": "共享管理仪表盘模板",
+              "dashboard_admin_template_per_assignee": "用户级管理仪表盘模板",
+              "dashboard_admin_view_visibility": "管理员视图可见性"
+            },
+            "data_description": {
+              "dashboard_admin_mode": "选择管理员布局：无、共享、按用户或两者都有。",
+              "dashboard_admin_template_global": "当管理布局包含共享内容时，使用清单定义的模板。",
+              "dashboard_admin_template_per_assignee": "当管理布局包含每个用户时，使用清单定义的模板。",
+              "dashboard_admin_view_visibility": "控制谁可以查看管理员视图。审批者关联可见性使用关联的审批者高可用性用户。"
+            }
+          },
+          "section_access_sidebar": {
+            "name": "仪表盘配置",
+            "description": "控制图标、仅限管理员访问和侧边栏可见性。",
+            "data": {
+              "dashboard_icon": "仪表盘图标",
+              "dashboard_require_admin": "仅限管理员",
+              "dashboard_show_in_sidebar": "添加到侧边栏"
+            },
+            "data_description": {
+              "dashboard_icon": "此仪表盘的侧边栏图标。",
+              "dashboard_require_admin": "限制只有管理员用户才能访问控制面板。",
+              "dashboard_show_in_sidebar": "在 Home Assistant 侧边栏中显示此仪表盘。"
+            }
+          },
+          "section_template_version": {
+            "name": "模板版本",
+            "description": "选择更新模式如何选择兼容的仪表盘模板。",
+            "data": {
+              "dashboard_release_selection": "仪表盘模板版本"
+            },
+            "data_description": {
+              "dashboard_release_selection": "选择当前已安装的版本、最新的稳定版本或明确的兼容版本标签。"
+            }
+          }
+        },
+        "data": {
+          "dashboard_template_profile": "受让人仪表盘模板",
+          "dashboard_assignee_selection": "受让人",
+          "dashboard_admin_mode": "管理员布局",
+          "dashboard_admin_template_global": "共享管理仪表盘模板",
+          "dashboard_admin_template_per_assignee": "每个受让人的管理仪表盘模板",
+          "dashboard_admin_view_visibility": "管理员视图可见性",
+          "dashboard_icon": "仪表盘图标",
+          "dashboard_require_admin": "仅限管理员",
+          "dashboard_show_in_sidebar": "添加到侧边栏",
+          "dashboard_release_selection": "仪表盘模板版本"
+        },
+        "data_description": {
+          "dashboard_template_profile": "用于选定受让人视图的清单定义模板。",
+          "dashboard_assignee_selection": "选择要包含在此仪表板中的负责人。",
+          "dashboard_admin_mode": "选择管理员布局：无、共享、按用户或两者都有。",
+          "dashboard_admin_template_global": "当管理布局包含共享内容时，使用清单定义的模板。",
+          "dashboard_admin_template_per_assignee": "当管理布局包含“按用户”时，使用清单定义的模板。",
+          "dashboard_admin_view_visibility": "控制谁可以查看管理员视图。审批者关联可见性使用关联的审批者高可用性用户。",
+          "dashboard_icon": "此仪表盘的侧边栏图标。",
+          "dashboard_require_admin": "限制只有管理员用户才能访问控制面板。",
+          "dashboard_show_in_sidebar": "在 Home Assistant 侧边栏中显示此仪表盘。",
+          "dashboard_release_selection": "选择当前已安装的版本、最新的稳定版本或明确的兼容版本标签。"
+        }
+      },
+      "dashboard_delete": {
+        "title": "删除仪表盘",
+        "description": "选择要删除的 ChoreOps 控制面板。\n\n⚠️ 此操作无法撤销。",
+        "data": {
+          "dashboard_update_selection": "仪表板"
+        },
+        "data_description": {
+          "dashboard_update_selection": "选择要永久删除的仪表板。"
+        }
+      },
+      "dashboard_delete_confirm": {
+        "title": "确认删除",
+        "description": "⚠️ **警告：** 以下仪表盘将被永久删除：\n\n**{dashboards}**\n\n这将从侧边栏移除仪表盘并删除所有配置。\n\n点击“提交”以确认删除。",
+        "data": {}
+      },
+      "manage_general_options": {
+        "title": "一般选项",
+        "description": "管理 ChoreOps 集成的常规设置。\n\n ℹ️ [了解更多常规选项]({documentation_url})",
+        "data": {
+          "dashboard_points_precision": "仪表盘点位精度",
+          "default_chore_points": "每项家务的默认积分",
+          "points_adjust_values": "手动点火正时调整按钮值",
+          "update_interval": "更新间隔",
+          "calendar_show_period": "日历中显示的天数",
+          "retention_periods": "数据保留周期（每日|每周|每月|每年）",
+          "retention_daily": "每日数据保留时间（天）",
+          "retention_weekly": "每周数据保留时间（周）",
+          "retention_monthly": "每月数据保留时间（月）",
+          "retention_yearly": "年度数据保留期限（年）",
+          "show_legacy_entities": "显示额外实体",
+          "kiosk_mode": "启用受让人索赔自助服务模式",
+          "admin_approval_bypass": "允许 Home Assistant 管理员帐户进行批准",
+          "backups_max_retained": "最大备份保留量",
+          "backup_action_selection": "备份操作"
+        },
+        "data_description": {
+          "dashboard_points_precision": "选择如何在支持的仪表盘中显示积分。此操作仅更改仪表盘格式，不会更改存储的积分值或计算方式。",
+          "default_chore_points": "当未指定自定义积分时，新任务使用的默认积分值。",
+          "points_adjust_values": "手动点位调整按钮的数值列表。每个数值之间用“|”分隔。",
+          "update_interval": "ChoreOps 内部状态更新的间隔时间（分钟）。",
+          "calendar_show_period": "在日历中显示未来已安排的家务和挑战的天数。",
+          "retention_periods": "数据保留周期格式为：每日|每周|每月|每年（例如：'7|4|12|3'）。每个值必须为正整数。",
+          "retention_daily": "清理前要保留的每日历史数据天数。最少 1 天，最多 90 天。",
+          "retention_weekly": "清理前要保留的每周历史数据周数。最少 1 周，最多 52 周。",
+          "retention_monthly": "清理前要保留的月度历史数据月份数。最少 1 个月，最多 24 个月。",
+          "retention_yearly": "清理前要保留的年度历史数据年数。最少 1 年，最多 10 年。",
+          "show_legacy_entities": "显示额外的实体，例如传感器和选择器，这些实体现在已整合到仪表板辅助传感器中。为了向后兼容现有自动化流程，这些实体是可选的。",
+          "kiosk_mode": "允许在共享墙面平板电脑上启用受让人任务/奖励领取按钮，而无需控制面板用户与受让人的 Home Assistant 用户链接匹配。安全警告：任何有权访问该设备的人都可以提交受让人任务/奖励领取申请。",
+          "admin_approval_bypass": "启用此功能后，Home Assistant 管理员帐户可以使用集成中的家务和奖励审批操作。禁用此功能后，管理员帐户即使拥有 Home Assistant 管理员身份，也无法审批家务或奖励。",
+          "backups_max_retained": "每个标签保留的最大备份文件数（例如，5 个手动备份，5 个数据重置备份）。每次创建新备份后，较旧的备份将自动删除。设置为 0 可完全禁用自动备份。",
+          "backup_action_selection": "选择备份管理操作：创建手动备份、删除备份或从备份还原。"
+        }
+      },
+      "backup_actions": {
+        "title": "备份管理",
+        "description": "管理您的 ChoreOps 数据备份。当前状态： {backup_count} 个备份，使用 {storage_size} MB。",
+        "data": {
+          "backup_action_selection": "选择操作"
+        },
+        "data_description": {
+          "backup_action_selection": "选择备份管理操作。"
+        }
+      },
+      "backup_actions_menu": {
+        "title": "备份操作",
+        "description": "管理您的 ChoreOps 数据备份。",
+        "data": {
+          "backup_action_selection": "选择操作"
+        },
+        "data_description": {
+          "backup_action_selection": "选择备份管理操作：创建、删除、还原或返回菜单。"
+        }
+      },
+      "create_manual_backup": {
+        "title": "创建手动备份",
+        "description": "创建 ChoreOps 数据的新备份。\n\n当前备份： {backup_count}\n保留设置： {retention} 备份",
+        "data": {
+          "confirm": "确认备份创建"
+        }
+      },
+      "select_backup_to_delete": {
+        "title": "选择要删除的备份",
+        "description": "选择要删除的备份文件。\n\n可用备份： {backup_count}"
+      },
+      "select_backup_to_restore": {
+        "title": "选择备份以进行恢复",
+        "description": "选择要恢复的备份文件。\n\n可用备份： {backup_count}\n\n⚠️ 这将替换您当前的数据！",
+        "data": {
+          "backup_selection": "选择备份"
+        },
+        "data_description": {
+          "backup_selection": "选择要恢复的备份文件。"
+        }
+      },
+      "restore_backup": {
+        "title": "数据恢复选项",
+        "description": "已在以下位置找到现有 ChoreOps 数据：\n{storage_path}\n\n找到 {backup_count} 个备份文件。\n\n您想做什么？",
+        "data": {
+          "backup_selection": "选择选项"
+        }
+      },
+      "paste_json_restore": {
+        "title": "导入 JSON 数据",
+        "description": "请粘贴以下任一位置的完整 JSON 内容：\n\n• ChoreOps 数据文件 (choreops_data)\n• 诊断下载文件\n\n系统将根据需要自动检测并解包格式。原始存储数据和诊断导出格式均受支持。",
+        "data": {
+          "json_data": "JSON 数据"
+        },
+        "data_description": {
+          "json_data": "请将完整的 JSON 内容粘贴到此处。接受来自 choreops_data 文件或诊断导出的数据（自动解包额外结构）。"
+        }
+      },
+      "create_backup_confirm": {
+        "title": "创建手动备份",
+        "description": "手动备份您当前的 ChoreOps 数据？",
+        "data": {
+          "confirm": "确认"
+        }
+      },
+      "create_backup_success": {
+        "title": "备份已创建",
+        "description": "手动备份创建成功： {backup_filename}",
+        "data": {
+          "continue": "继续"
+        }
+      },
+      "delete_backup_confirm": {
+        "title": "确认备份删除",
+        "description": "⚠️ 您即将永久删除此备份：\n\n{backup_filename}\n\n此操作无法撤销。",
+        "data": {
+          "confirm": "确认删除"
+        }
+      },
+      "restore_backup_confirm": {
+        "title": "恢复备份",
+        "description": "您确定要恢复此备份吗？\n\n文件： {backup_filename}\n\n恢复前，系统将备份您当前的数据。恢复后，集成功能将重新加载。",
+        "data": {
+          "confirm": "确认恢复"
+        }
+      }
+    },
+    "error": {
+      "a_chore_must_be_selected": "必须选择一项家务。",
+      "badge_requires_assignment": "此徽章至少需要指定一名受让人。",
+      "error_badge_achievement_required": "要获得与成就相关的徽章，必须先选择一项成就。",
+      "error_badge_occasion_type_required": "特殊场合徽章需要指定场合类型。",
+      "target_threshold_required": "需要目标阈值",
+      "invalid_maintenance_rules": "维护规则值无效",
+      "error_badge_challenge_required": "要获得与挑战相关的徽章，必须先选择一个挑战。",
+      "error_award_points_minimum": "奖励积分必须大于零。",
+      "error_award_invalid_multiplier": "积分倍数必须大于零",
+      "invalid_award_item_selected": "一项或多项选定的奖励项目无效",
+      "start_date_required": "需要填写开始日期。",
+      "end_date_required": "必须填写结束日期。",
+      "end_date_before_start_date": "结束日期必须晚于开始日期",
+      "duplicate_achievement": "已存在一项同名成就",
+      "duplicate_badge": "已存在同名徽章",
+      "duplicate_challenge": "这个名字已经存在一个挑战。",
+      "duplicate_chore": "已经存在一项同名任务了。",
+      "duplicate_assignee": "已存在同名受让人",
+      "duplicate_approver": "已存在同名用户",
+      "duplicate_penalty": "已存在一个同名的处罚",
+      "duplicate_reward": "已存在一个以此命名的奖励",
+      "duplicate_bonus": "已经存在一个同名奖励。",
+      "usage_requires_assignment_or_approval": "启用“可分配”或“可批准”。",
+      "associated_users_require_approval": "只有启用“可批准”选项后，才能设置“关联用户”。",
+      "approval_requires_associated_users": "启用“可审批”功能时，至少需要一个关联的受让人/用户。",
+      "due_date_in_past": "截止日期必须在未来。",
+      "end_date_in_past": "结束日期必须为未来日期。",
+      "end_date_not_after_start_date": "结束日期必须晚于开始日期",
+      "err_end_before_start": "结束日期必须晚于开始日期",
+      "err_name_duplicate": "这个名字已经存在一个挑战。",
+      "err_name_required": "挑战名称为必填项",
+      "err_dates_required": "需要填写开始日期和结束日期。",
+      "err_invalid_date": "挑战日期无效",
+      "err_target_invalid": "挑战目标值必须大于零",
+      "err_points_negative": "挑战奖励积分不能为负数。",
+      "err_points_invalid": "挑战奖励积分无效",
+      "invalid_badge": "无效徽章",
+      "invalid_badge_count": "徽章数量无效",
+      "invalid_chore": "无效的杂务",
+      "invalid_chore_count": "无效的家务计数",
+      "invalid_chore_name": "无效的家务名称",
+      "invalid_points": "分数必须为零或大于零。",
+      "invalid_overdue_reset_combination": "“到期后重置”的逾期处理方式仅适用于午夜重置类型。请为审批重置类型选择“午夜（一次）”或“午夜（重复）”。",
+      "invalid_due_date": "无效的到期日",
+      "date_required_for_frequency": "此重复频率需要设置截止日期。清除日期仅适用于“无”或“每日”频率。",
+      "invalid_end_date": "结束日期无效。",
+      "invalid_assignee_count": "受让人数量无效",
+      "invalid_assignee_name": "无效的受让人姓名",
+      "no_assignees_assigned": "至少要指派一名人员负责这项任务。",
+      "achievement_no_assignees_assigned": "至少要为该项成就指定一名负责人。",
+      "challenge_no_assignees_assigned": "至少要指派一名受让人参与这项挑战。",
+      "invalid_penalty": "无效处罚",
+      "invalid_penalty_count": "无效的处罚计数",
+      "invalid_bonus": "无效奖金",
+      "invalid_bonus_count": "无效奖金计数",
+      "invalid_reward": "无效奖励",
+      "invalid_reward_count": "无效奖励计数",
+      "invalid_start_date": "起始日期无效。",
+      "start_date_in_past": "开始日期必须在未来。",
+      "points_label_required": "点标签是必需的",
+      "corrupt_file": "所选文件包含无效的 JSON，无法读取。",
+      "invalid_structure": "所选文件缺少必需的数据结构。",
+      "file_not_found": "找不到所选文件。",
+      "invalid_selection": "请选择一个有效选项。",
+      "invalid_default_chore_points": "默认家务积分无效。必须为正整数。",
+      "error_daily_multi_requires_compatible_reset": "“每天多次”的频率与午夜重置类型不兼容，因为它们只会在午夜重置一次批准。",
+      "error_daily_multi_independent_multi_assignees": "“每日多次”频率且独立完成时，除非已为每个受让人配置了不同的完成时间，否则必须指定一名受让人。请在“每个受让人”设置中为每个受让人配置不同的完成时间。",
+      "error_daily_multi_times_required": "对于“每天多次”的频率，需要提供时间列表。",
+      "error_daily_multi_times_invalid_format": "时间格式无效。请使用 24 小时制格式 (HH:MM)，并用 | 分隔 (例如，08:00|17:00)。",
+      "error_daily_multi_times_too_few": "“每日多次”频率至少需要2次。单次使用则使用常规的“每日”频率即可。",
+      "error_daily_multi_times_too_many": "对于“每天多次”的频率，每天最多允许 6 次。",
+      "error_daily_multi_due_date_required": "“每日多次”的频率需要设置截止日期。日期决定了日程安排的开始时间，时间则决定了每天的可用时间段。",
+      "rotation_min_assignees": "轮换任务至少需要 2 名指定人员。",
+      "error_allow_steal_incompatible": "允许窃取逾期处理仅与轮换任务（rotation_simple 或 rotation_smart）、“每天一次”重置类型兼容，并且需要一个截止日期来定义窃取窗口何时打开。",
+      "error_at_due_date_reset_requires_due_date": "“到期日”审批重置类型（单次或多次）需要设置到期日。如果没有到期日，审批重置将永远不会触发，任务将无限期地保持已批准状态。",
+      "error_per_assignee_applicable_days_invalid": "一个或多个受让人的适用日期格式无效。日期必须为 0-6（星期一至星期日）的整数，且不能重复。",
+      "error_per_assignee_daily_multi_times_invalid": "一个或多个受让人的每日时间格式无效。请使用 24 小时制格式，并用 | 分隔（例如，08:00|17:00）。",
+      "dashboard_exists": "此URL路径对应的仪表盘已存在。请使用“更新仪表盘”选项。",
+      "dashboard_template_error": "获取仪表盘模板失败。请检查网络连接或稍后重试。",
+      "dashboard_render_error": "仪表盘模板渲染失败。这可能表明模板存在错误。",
+      "dashboard_save_error": "仪表盘保存到 Home Assistant 失败。请查看系统日志了解详情。",
+      "dashboard_release_incompatible": "所选仪表盘版本与您已安装的 ChoreOps 版本不兼容。",
+      "dashboard_no_name": "请输入仪表盘的名称。",
+      "dashboard_no_assignees": "请至少选择一名受让人或启用“包含管理员选项卡”。",
+      "dashboard_no_dashboards": "请至少选择一个仪表板进行删除。",
+      "dashboard_no_assignees_no_admin": "至少选择一名受让人，或者选择除“无”以外的管理员布局。",
+      "dashboard_admin_global_template_required": "当管理布局包含共享时，需要共享管理模板。",
+      "dashboard_admin_per_assignee_template_required": "当管理布局包含“按用户”选项时，需要使用“按用户”管理模板。",
+      "dashboard_admin_per_assignee_needs_assignees": "每个用户的管理布局至少需要选择一个用户。",
+      "dashboard_dependency_ack_required": "启用“仍然继续”以继续，或者返回并先安装缺失的必需依赖项。",
+      "dashboard_access_warning_ack_required": "确认访问控制警告以继续，或者返回并链接受影响的用户或启用自助服务终端模式。",
+      "dashboard_nonselectable_templates": "一个或多个选定的模板无法生成。",
+      "dashboard_release_strict_pin_failed": "所选的仪表板版本必须精确锁定，但在执行时没有有效的版本参考。请在步骤 1 中重新选择版本，然后重试。",
+      "dashboard_release_asset_prep_failed": "无法准备所选的在线仪表板资源。请选择其他版本或使用最新的兼容/当前本地模板重试。"
+    },
+    "abort": {
+      "invalid_action": "无效操作",
+      "invalid_achievement": "无效成就",
+      "invalid_badge": "无效徽章",
+      "invalid_badge_type": "无效的徽章类型",
+      "invalid_challenge": "无效质询",
+      "invalid_chore": "无效家务",
+      "invalid_entity": "无效实体",
+      "invalid_assignee": "无效受让人",
+      "invalid_approver": "无效审批人",
+      "invalid_penalty": "无效处罚",
+      "invalid_reward": "无效奖励",
+      "invalid_bonus": "无效奖金",
+      "no_assignee": "当前未设置任何受让人进行编辑。请先添加一个条目。",
+      "no_approver": "当前未设置任何编辑审批人。请先添加一条记录。",
+      "no_chore": "当前没有待办事项可供编辑。请先添加一项。",
+      "no_badge": "当前没有徽章可供编辑。请先添加一个条目。",
+      "no_reward": "奖励尚未设置，无法编辑。请先添加一条记录。",
+      "no_penalty": "编辑不设任何惩罚。请先添加一条记录。",
+      "no_bonus": "未设置任何奖励条目供编辑。请先添加一个条目。",
+      "no_achievement": "当前没有可编辑的成就。请先添加一个条目。",
+      "no_challenge": "当前没有可编辑的挑战项目。请先添加一个参赛作品。",
+      "setup_complete": "设置完成",
+      "backup_restored": "备份已成功恢复。集成已使用恢复的数据重新加载。",
+      "no_dashboards_to_delete": "未找到 ChoreOps 控制面板。请先使用“管理控制面板”创建一个。"
+    }
+  },
+  "selector": {
+    "main_menu": {
+      "options": {
+        "manage_points": "管理积分",
+        "manage_user": "管理用户",
+        "manage_approver": "管理用户",
+        "manage_chore": "管理家务",
+        "manage_badge": "管理徽章",
+        "manage_reward": "管理奖励",
+        "manage_penalty": "管理处罚",
+        "manage_bonus": "管理奖金",
+        "manage_achievement": "管理成就",
+        "manage_challenge": "应对挑战",
+        "dashboard_generator": "管理仪表盘",
+        "general_options": "一般选项",
+        "done": "完成设置"
+      }
+    },
+    "dashboard_action": {
+      "options": {
+        "create": "创建新仪表盘",
+        "update": "更新现有仪表盘视图",
+        "delete": "删除仪表盘",
+        "exit": "出口"
+      }
+    },
+    "dashboard_assignee_selection": {
+      "options": {}
+    },
+    "dashboard_update_selection": {
+      "options": {}
+    },
+    "dashboard_template_profile": {
+      "options": {}
+    },
+    "dashboard_admin_mode": {
+      "options": {
+        "none": "没有任何",
+        "global": "共享",
+        "per_assignee": "每用户",
+        "both": "两个都"
+      }
+    },
+    "dashboard_admin_view_visibility": {
+      "options": {
+        "all_users": "所有用户",
+        "linked_approvers": "仅限关联审批人"
+      }
+    },
+    "dashboard_release_selection": {
+      "options": {
+        "current_installed": "当前已安装",
+        "latest_stable": "最新稳定版",
+        "latest_compatible": "最新兼容版本（推荐）"
+      }
+    },
+    "manage_actions": {
+      "options": {
+        "add": "添加",
+        "edit": "编辑",
+        "delete": "删除",
+        "back": "返回主菜单"
+      }
+    },
+    "backup_actions_menu": {
+      "options": {
+        "select_backup_action": "选择备份操作...",
+        "create_backup": "💾 立即创建备份",
+        "delete_backup": "🗑️ 删除备份",
+        "restore_backup": "🔄 从备份恢复",
+        "return_to_menu": "↩️ 返回主菜单"
+      }
+    },
+    "dashboard_points_precision": {
+      "options": {
+        "fixed_0": "仅限整数",
+        "adaptive": "自适应（仅在需要时显示小数）",
+        "fixed_1": "始终保留一位小数",
+        "fixed_2": "始终保留两位小数"
+      }
+    },
+    "select_backup_to_delete": {
+      "options": {
+        "cancel": "↩️ 取消（返回备份菜单）"
+      }
+    },
+    "select_backup_to_restore": {
+      "options": {
+        "cancel": "↩️ 取消（返回备份菜单）"
+      }
+    },
+    "badge_type": {
+      "options": {
+        "cumulative": "累计",
+        "daily": "日常的",
+        "periodic": "周期性",
+        "achievement_linked": "成就关联",
+        "special_occasion": "特殊场合"
+      }
+    },
+    "target_type": {
+      "options": {
+        "points": "积分",
+        "points_all_time": "得分（历史总得分）",
+        "points_chores": "家务劳动得分",
+        "chore_count": "家务活数量",
+        "days_all_chores": "选定家务完成天数",
+        "days_80pct_chores": "完成所选家务的天数（80%）",
+        "days_all_chores_no_overdue": "已完成指定家务的天数（无逾期）",
+        "days_all_due_chores": "选定日期 待办事项完成情况",
+        "days_80pct_due_chores": "已完成80%的指定待办事项",
+        "days_all_due_chores_no_overdue": "选定日期 已完成任务（无逾期）",
+        "days_min_3_chores": "至少完成3项家务的天数",
+        "days_min_5_chores": "至少完成5项家务的天数",
+        "days_min_7_chores": "至少完成7项家务",
+        "streak_all_chores": "连胜：已完成指定家务",
+        "streak_80pct_chores": "完成率：已完成 80% 的指定家务",
+        "streak_all_chores_no_overdue": "记录：已完成指定家务（无逾期）",
+        "streak_80pct_due_chores": "完成率：已完成 80% 的指定待办事项",
+        "streak_all_due_chores_no_overdue": "连续完成记录：已完成指定待办事项（无逾期）"
+      }
+    },
+    "award_items": {
+      "options": {
+        "points": "积分",
+        "multiplier": "积分倍增器"
+      }
+    },
+    "award_mode": {
+      "options": {
+        "award_none": "没有任何",
+        "award_points": "积分",
+        "award_reward": "报酬",
+        "award_points_reward": "积分与奖励"
+      }
+    },
+    "reset_type": {
+      "options": {
+        "year_end": "年末",
+        "quarter": "季刊",
+        "monthly": "月度",
+        "custom_1_year": "自定义：1 年期限",
+        "custom_1_month": "自定义：1 个月期限"
+      }
+    },
+    "completion_criteria": {
+      "options": {
+        "shared_all": "共享全部（所有受让人必须一起完成）",
+        "independent": "独立完成（每个受让人独立完成）",
+        "shared_first": "共享优先（首次完成计入）",
+        "rotation_simple": "旋转简单（仅限旋转支架，严格顺序）",
+        "rotation_smart": "轮换智能（仅限回合持有者，公平性加权）",
+        "rotation_primary_standby": "主备（默认主轮，备用轮在符合条件时使用）"
+      }
+    },
+    "standby_claim_mode": {
+      "options": {
+        "anytime": "随时（待命者可立即领取）",
+        "on_overdue": "逾期（待命人员可在逾期时提出索赔）",
+        "manual_only": "仅限手动操作（管理员必须分配回合）"
+      }
+    },
+    "approval_reset_type": {
+      "options": {
+        "at_midnight_once": "每天一次 - 午夜重置",
+        "at_midnight_multi": "每天多次 - 午夜重置",
+        "at_due_date_once": "每个周期一次 - 到期时重置",
+        "at_due_date_multi": "每个周期多次 - 到期时重置",
+        "upon_completion": "无限次完成 - 完成后重置",
+        "manual": "仅支持手动重置 - 不支持自动重置"
+      }
+    },
+    "overdue_handling_type": {
+      "options": {
+        "never_overdue": "永不逾期",
+        "at_due_date": "逾期直至完成",
+        "at_due_date_clear_at_approval_reset": "逾期直至批准重置",
+        "at_due_date_clear_immediate_on_late": "逾期未完成（立即清除逾期审批）",
+        "at_due_date_clear_and_mark_missed": "逾期待审批重置（标记为未决）",
+        "at_due_date_mark_missed_and_lock": "锁定直至批准重置（防止索赔，标记为错过）",
+        "at_due_date_allow_steal": "允许偷窃直至批准重置（仅限轮换）"
+      }
+    },
+    "approval_reset_pending_claim_action": {
+      "options": {
+        "hold_pending": "暂缓索赔状态（等待批准/拒绝）",
+        "clear_pending": "清除待处理索赔",
+        "auto_approve_pending": "自动批准待处理的索赔"
+      }
+    },
+    "chore_notifications": {
+      "options": {
+        "notify_on_claim": "索赔通知",
+        "notify_on_approval": "批准后通知",
+        "notify_on_disapproval": "收到不批准通知",
+        "notify_on_due_window": "到期窗口开始时通知",
+        "notify_due_reminder": "在到期提醒时间通知",
+        "notify_on_overdue": "逾期通知"
+      }
+    },
+    "recurring_frequency": {
+      "options": {
+        "none": "没有任何",
+        "daily": "日常的",
+        "daily_multi": "每日（一天多次）",
+        "weekly": "每周",
+        "biweekly": "双周",
+        "monthly": "月度",
+        "quarterly": "季刊",
+        "yearly": "每年",
+        "custom": "风俗",
+        "custom_from_complete": "自定义（重新安排完成日期）",
+        "custom_from_complete_date_only": "自定义（仅限重新安排完成日期）",
+        "custom_1_week": "定制：1 周",
+        "custom_1_month": "自定义：1 个月",
+        "custom_1_quarter": "自定义：1 季度",
+        "custom_1_year": "定制：1 年",
+        "week_end": "周末",
+        "month_end": "月末",
+        "quarter_end": "季度末",
+        "year_end": "年末"
+      }
+    },
+    "occasion_type": {
+      "options": {
+        "birthday": "生日",
+        "holiday": "假期",
+        "custom": "风俗"
+      }
+    },
+    "custom_interval_unit": {
+      "options": {
+        "hours": "小时",
+        "days": "天",
+        "weeks": "周",
+        "months": "月份"
+      }
+    },
+    "applicable_days": {
+      "options": {
+        "mon": "周一",
+        "tue": "周二",
+        "wed": "周三",
+        "thu": "周四",
+        "fri": "星期五",
+        "sat": "周六",
+        "sun": "星期日"
+      }
+    },
+    "threshold_type": {
+      "options": {
+        "points": "积分",
+        "chore_count": "家务活数量"
+      }
+    },
+    "daily_threshold_type": {
+      "options": {
+        "points": "积分",
+        "chore_count": "家务活数量"
+      }
+    },
+    "data_recovery_selection": {
+      "options": {
+        "cancel": "↩️ 取消（返回备份菜单）",
+        "start_fresh": "🆕 从头开始（创建现有数据的备份）",
+        "current_active": "📂 使用当前活动数据文件",
+        "migrate_from_kidschores": "🔄 从 KidsChores 迁移（非破坏性复制）",
+        "paste_json": "📋 从数据文件或诊断信息中粘贴 JSON 数据"
+      }
+    }
+  },
+  "services": {
+    "claim_chore": {
+      "name": "领取杂务",
+      "description": "受让人认领一项任务，并将其标记为“已认领”，以便审批人审核。",
+      "fields": {
+        "config_entry_id": {
+          "name": "配置条目 ID（可选）",
+          "description": "如果您有多个 ChoreOps 配置，请使用此选项。它针对的是特定的一个配置。",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "配置项名称（可选）",
+          "description": "如果您有多个 ChoreOps 设置，并且每个设置都有唯一的名称，请使用此选项。如果名称重复，请使用配置条目 ID。",
+          "example": "家庭家务"
+        },
+        "user_name": {
+          "name": "用户名",
+          "description": "领取任务的用户的姓名。",
+          "example": "爱丽丝"
+        },
+        "chore_name": {
+          "name": "家务名称",
+          "description": "要认领的家务名称。",
+          "example": "洗碗"
+        }
+      }
+    },
+    "approve_chore": {
+      "name": "批准家务",
+      "description": "审批人批准这项任务，并给予积分。",
+      "fields": {
+        "config_entry_id": {
+          "name": "配置条目 ID（可选）",
+          "description": "如果您有多个 ChoreOps 配置，请使用此选项。它针对的是特定的一个配置。",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "配置项名称（可选）",
+          "description": "如果您有多个 ChoreOps 设置，并且每个设置都有唯一的名称，请使用此选项。如果名称重复，请使用配置条目 ID。",
+          "example": "家庭家务"
+        },
+        "approver_name": {
+          "name": "审批人姓名",
+          "description": "审批人批准了这项任务。",
+          "example": "妈妈"
+        },
+        "user_name": {
+          "name": "用户名",
+          "description": "执行该任务的用户的姓名。",
+          "example": "爱丽丝"
+        },
+        "chore_name": {
+          "name": "家务名称",
+          "description": "获批的家务名称。",
+          "example": "洗碗"
+        },
+        "points_awarded": {
+          "name": "获得的积分",
+          "description": "要奖励的分数（可选；默认为家务的分数）。",
+          "example": "3"
+        }
+      }
+    },
+    "disapprove_chore": {
+      "name": "不赞成家务",
+      "description": "审批人否决了分配给受让人的任务，撤销了该任务的状态。",
+      "fields": {
+        "config_entry_id": {
+          "name": "配置条目 ID（可选）",
+          "description": "如果您有多个 ChoreOps 配置，请使用此选项。它针对的是特定的一个配置。",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "配置项名称（可选）",
+          "description": "如果您有多个 ChoreOps 设置，并且每个设置都有唯一的名称，请使用此选项。如果名称重复，请使用配置条目 ID。",
+          "example": "家庭家务"
+        },
+        "approver_name": {
+          "name": "审批人姓名",
+          "description": "审批者不赞成这项任务。",
+          "example": "妈妈"
+        },
+        "user_name": {
+          "name": "用户名",
+          "description": "任务被拒的用户的姓名。",
+          "example": "爱丽丝"
+        },
+        "chore_name": {
+          "name": "家务名称",
+          "description": "被不赞成的家务名称。",
+          "example": "洁净室"
+        }
+      }
+    },
+    "pause_user_chores": {
+      "name": "暂停用户任务",
+      "description": "暂停或恢复用户的家务处理。恢复时，unpause_action 控制是否重新安排逾期家务，以防止立即发生逾期转换。",
+      "fields": {
+        "config_entry_id": {
+          "name": "配置条目 ID（可选）",
+          "description": "如果您有多个 ChoreOps 配置，请使用此选项。它针对的是特定的一个配置。",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "配置项名称（可选）",
+          "description": "如果您有多个 ChoreOps 设置，并且每个设置都有唯一的名称，请使用此选项。如果名称重复，请使用配置条目 ID。",
+          "example": "家庭家务"
+        },
+        "user_name": {
+          "name": "用户名",
+          "description": "要暂停或恢复其任务的用户的姓名。",
+          "example": "莎拉"
+        },
+        "paused": {
+          "name": "暂停",
+          "description": "真表示暂停家务，假表示恢复家务。",
+          "example": "真的"
+        },
+        "paused_until": {
+          "name": "暂停直到",
+          "description": "可选的返回日期。如果设置，家务将在该日期后的午夜自动恢复。",
+          "example": "2026-06-10T00:00:00+00:00"
+        },
+        "unpause_action": {
+          "name": "取消暂停操作",
+          "description": "仅当 paused=false 时生效。控制在取消暂停期间是否重新安排逾期任务。默认值：取消暂停（不重新安排）。",
+          "example": "unpause_shift_independent"
+        }
+      }
+    },
+    "redeem_reward": {
+      "name": "兑换奖励",
+      "description": "审批人为受让人兑换奖励时会扣除积分。",
+      "fields": {
+        "config_entry_id": {
+          "name": "配置条目 ID（可选）",
+          "description": "如果您有多个 ChoreOps 配置，请使用此选项。它针对的是特定的一个配置。",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "配置项名称（可选）",
+          "description": "如果您有多个 ChoreOps 设置，并且每个设置都有唯一的名称，请使用此选项。如果名称重复，请使用配置条目 ID。",
+          "example": "家庭家务"
+        },
+        "approver_name": {
+          "name": "审批人姓名",
+          "description": "批准人授权兑换奖励。",
+          "example": "妈妈"
+        },
+        "user_name": {
+          "name": "用户名",
+          "description": "用户正在兑换奖励。",
+          "example": "爱丽丝"
+        },
+        "reward_name": {
+          "name": "奖励名称",
+          "description": "待兑换奖励的名称。",
+          "example": "额外屏幕时间"
+        }
+      }
+    },
+    "approve_reward": {
+      "name": "批准奖励",
+      "description": "审批人批准受让人申领的奖励。",
+      "fields": {
+        "config_entry_id": {
+          "name": "配置条目 ID（可选）",
+          "description": "如果您有多个 ChoreOps 配置，请使用此选项。它针对的是特定的一个配置。",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "配置项名称（可选）",
+          "description": "如果您有多个 ChoreOps 设置，并且每个设置都有唯一的名称，请使用此选项。如果名称重复，请使用配置条目 ID。",
+          "example": "家庭家务"
+        },
+        "approver_name": {
+          "name": "审批人姓名",
+          "description": "审批人批准奖励。",
+          "example": "妈妈"
+        },
+        "user_name": {
+          "name": "用户名",
+          "description": "正在兑换奖励的用户。",
+          "example": "爱丽丝"
+        },
+        "reward_name": {
+          "name": "奖励名称",
+          "description": "获批的奖励名称。",
+          "example": "额外屏幕时间"
+        },
+        "cost_override": {
+          "name": "成本超额",
+          "description": "可选的成本覆盖设置。如果省略，则使用奖励的默认成本。设置为 0 表示免费授予（例如徽章奖励）。适用于情境感知定价（周末、特殊场合等）。"
+        }
+      }
+    },
+    "disapprove_reward": {
+      "name": "不赞成奖励",
+      "description": "审批人否决了受让人的奖励兑换申请。",
+      "fields": {
+        "config_entry_id": {
+          "name": "配置条目 ID（可选）",
+          "description": "如果您有多个 ChoreOps 配置，请使用此选项。它针对的是特定的一个配置。",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "配置项名称（可选）",
+          "description": "如果您有多个 ChoreOps 设置，并且每个设置都有唯一的名称，请使用此选项。如果名称重复，请使用配置条目 ID。",
+          "example": "家庭家务"
+        },
+        "approver_name": {
+          "name": "审批人姓名",
+          "description": "审批人否决了奖励。",
+          "example": "爸爸"
+        },
+        "user_name": {
+          "name": "用户名",
+          "description": "奖励兑换申请被拒绝的用户。",
+          "example": "爱丽丝"
+        },
+        "reward_name": {
+          "name": "奖励名称",
+          "description": "被否决的奖励名称。",
+          "example": "额外屏幕时间"
+        }
+      }
+    },
+    "apply_penalty": {
+      "name": "施加处罚",
+      "description": "审批人施加处罚以扣除分数。",
+      "fields": {
+        "config_entry_id": {
+          "name": "配置条目 ID（可选）",
+          "description": "如果您有多个 ChoreOps 配置，请使用此选项。它针对的是特定的一个配置。",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "配置项名称（可选）",
+          "description": "如果您有多个 ChoreOps 设置，并且每个设置都有唯一的名称，请使用此选项。如果名称重复，请使用配置条目 ID。",
+          "example": "家庭家务"
+        },
+        "approver_name": {
+          "name": "审批人姓名",
+          "description": "批准处罚的人员。",
+          "example": "爸爸"
+        },
+        "user_name": {
+          "name": "用户名",
+          "description": "受到处罚的用户。",
+          "example": "爱丽丝"
+        },
+        "penalty_name": {
+          "name": "罚球名称",
+          "description": "要适用的处罚名称。",
+          "example": "大声喊叫"
+        }
+      }
+    },
+    "apply_bonus": {
+      "name": "申请奖励",
+      "description": "审批人根据审批结果给受让人发放奖金，授予积分。",
+      "fields": {
+        "config_entry_id": {
+          "name": "配置条目 ID（可选）",
+          "description": "如果您有多个 ChoreOps 配置，请使用此选项。它针对的是特定的一个配置。",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "配置项名称（可选）",
+          "description": "如果您有多个 ChoreOps 设置，并且每个设置都有唯一的名称，请使用此选项。如果名称重复，请使用配置条目 ID。",
+          "example": "家庭家务"
+        },
+        "approver_name": {
+          "name": "审批人姓名",
+          "description": "负责审批奖金发放的审批人。",
+          "example": "妈妈"
+        },
+        "user_name": {
+          "name": "用户名",
+          "description": "获得奖励的用户。",
+          "example": "爱丽丝"
+        },
+        "bonus_name": {
+          "name": "奖励名称",
+          "description": "要申请的奖励名称。",
+          "example": "特别有帮助"
+        }
+      }
+    },
+    "manual_adjust_points": {
+      "name": "手动调节点",
+      "description": "使用带符号整数金额和记录在账簿中的必要理由，手动调整用户的积分。",
+      "fields": {
+        "config_entry_id": {
+          "name": "配置条目 ID（可选）",
+          "description": "如果您有多个 ChoreOps 配置，请使用此选项。它针对的是特定的一个配置。",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "配置项名称（可选）",
+          "description": "如果您有多个 ChoreOps 设置，并且每个设置都有唯一的名称，请使用此选项。如果名称重复，请使用配置条目 ID。",
+          "example": "家庭家务"
+        },
+        "approver_name": {
+          "name": "审批人姓名（可选）",
+          "description": "执行手动调整的演员的可选显示名称。",
+          "example": "爸爸"
+        },
+        "user_id": {
+          "name": "用户 ID（可选）",
+          "description": "目标用户的内部 UUID。请提供 user_id 或 user_name。",
+          "example": "018f1c2a-1234-4f8a-9b6d-123456789abc"
+        },
+        "user_name": {
+          "name": "用户名（可选）",
+          "description": "目标用户的显示名称。请提供 user_id 或 user_name。",
+          "example": "佐伊"
+        },
+        "amount": {
+          "name": "数量",
+          "description": "带符号的整数点数用于调整（例如 10 或 -10；不允许为 0）。",
+          "example": "-10"
+        },
+        "reason": {
+          "name": "原因",
+          "description": "必须在交易账目项目名称中记录必要原因。",
+          "example": "帮兄弟姐妹做作业"
+        }
+      }
+    },
+    "create_reward": {
+      "name": "创造奖励",
+      "description": "通过程序创建新的奖励。",
+      "fields": {
+        "config_entry_id": {
+          "name": "配置条目 ID（可选）",
+          "description": "如果您有多个 ChoreOps 配置，请使用此选项。它针对的是特定的一个配置。",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "配置项名称（可选）",
+          "description": "如果您有多个 ChoreOps 设置，并且每个设置都有唯一的名称，请使用此选项。如果名称重复，请使用配置条目 ID。",
+          "example": "家庭家务"
+        },
+        "name": {
+          "name": "姓名",
+          "description": "奖励的名称。",
+          "example": "额外屏幕时间"
+        },
+        "cost": {
+          "name": "成本",
+          "description": "领取奖励所需的积分。",
+          "example": "10"
+        },
+        "description": {
+          "name": "描述",
+          "description": "奖励描述（可选）。",
+          "example": "额外使用平板电脑 30 分钟"
+        },
+        "icon": {
+          "name": "图标",
+          "description": "奖励图标。",
+          "example": "mdi:礼物"
+        },
+        "labels": {
+          "name": "标签",
+          "description": "用于对奖励进行分组的标签。",
+          "example": "['周末', '特别']"
+        },
+        "assigned_user_names": {
+          "name": "分配给",
+          "description": "此奖励将分配给用户显示名称。使用 [\"*\"] 表示所有用户。传递空列表表示不分配给任何用户。",
+          "example": "['佐伊'，'麦克斯！']"
+        }
+      }
+    },
+    "update_reward": {
+      "name": "更新奖励",
+      "description": "更新现有奖励（支持部分更新）。",
+      "fields": {
+        "config_entry_id": {
+          "name": "配置条目 ID（可选）",
+          "description": "如果您有多个 ChoreOps 配置，请使用此选项。它针对的是特定的一个配置。",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "配置项名称（可选）",
+          "description": "如果您有多个 ChoreOps 设置，并且每个设置都有唯一的名称，请使用此选项。如果名称重复，请使用配置条目 ID。",
+          "example": "家庭家务"
+        },
+        "id": {
+          "name": "奖励ID",
+          "description": "要更新的奖励的内部 ID。可以使用 ID 或名称。",
+          "example": "abc123-def456-789..."
+        },
+        "name": {
+          "name": "姓名",
+          "description": "要更新的奖励名称，或奖励的新名称。",
+          "example": "额外屏幕时间"
+        },
+        "cost": {
+          "name": "成本",
+          "description": "更新后的成本值。",
+          "example": "15"
+        },
+        "description": {
+          "name": "描述",
+          "description": "更新后的描述。",
+          "example": "额外使用平板电脑 45 分钟"
+        },
+        "icon": {
+          "name": "图标",
+          "description": "图标已更新。",
+          "example": "mdi:star"
+        },
+        "labels": {
+          "name": "标签",
+          "description": "标签已更新。",
+          "example": "['高级', '特级']"
+        },
+        "assigned_user_names": {
+          "name": "分配给",
+          "description": "此奖励将分配用户显示名称。使用 [\"*\"] 表示所有用户。传递一个空列表可移除所有已分配的用户。省略此参数则保持当前分配不变。",
+          "example": "['佐伊'，'麦克斯！']"
+        }
+      }
+    },
+    "delete_reward": {
+      "name": "删除奖励",
+      "description": "按ID或名称删除奖励。",
+      "fields": {
+        "config_entry_id": {
+          "name": "配置条目 ID（可选）",
+          "description": "如果您有多个 ChoreOps 配置，请使用此选项。它针对的是特定的一个配置。",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "配置项名称（可选）",
+          "description": "如果您有多个 ChoreOps 设置，并且每个设置都有唯一的名称，请使用此选项。如果名称重复，请使用配置条目 ID。",
+          "example": "家庭家务"
+        },
+        "id": {
+          "name": "奖励ID",
+          "description": "要删除的奖励的内部 ID。可以使用 ID 或名称。",
+          "example": "abc123-def456-789..."
+        },
+        "name": {
+          "name": "姓名",
+          "description": "要删除的奖励名称。",
+          "example": "额外屏幕时间"
+        }
+      }
+    },
+    "create_chore": {
+      "name": "创建家务",
+      "description": "创建一项新的任务，让被分配人员完成该任务以获得积分。",
+      "fields": {
+        "config_entry_id": {
+          "name": "配置条目 ID（可选）",
+          "description": "如果您有多个 ChoreOps 配置，请使用此选项。它针对的是特定的一个配置。",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "配置项名称（可选）",
+          "description": "如果您有多个 ChoreOps 设置，并且每个设置都有唯一的名称，请使用此选项。如果名称重复，请使用配置条目 ID。",
+          "example": "家庭家务"
+        },
+        "name": {
+          "name": "家务名称",
+          "description": "要完成的任务的名称。",
+          "example": "洁净室"
+        },
+        "assigned_user_names": {
+          "name": "分配给",
+          "description": "列出要分配此任务的受让人姓名。使用 [\"*\"] 表示所有可分配用户。传递空列表则创建不包含任何受让人的列表。",
+          "example": "['艾玛'，'杰克']"
+        },
+        "points": {
+          "name": "积分",
+          "description": "完成家务后获得积分。",
+          "example": "10"
+        },
+        "description": {
+          "name": "描述",
+          "description": "（可选）任务描述。",
+          "example": "铺床、收玩具、吸尘"
+        },
+        "icon": {
+          "name": "图标",
+          "description": "用于表示家务的 Material Design 图标。",
+          "example": "mdi：扫帚"
+        },
+        "labels": {
+          "name": "标签",
+          "description": "用于对家务进行分类的可选标签。",
+          "example": "['日常', '卧室']"
+        },
+        "frequency": {
+          "name": "频率",
+          "description": "家务重复频率：无、每日、每日多次、每周、每两周、每月、每季度、每年、自定义、自定义完成或周期结束（周末、月末、季度末、年末）。",
+          "example": "日常的"
+        },
+        "applicable_days": {
+          "name": "适用日期",
+          "description": "一周中哪些日子适合做这项家务。",
+          "example": "['星期一', '星期三', '星期五']"
+        },
+        "completion_criteria": {
+          "name": "完成标准",
+          "description": "控制当分配多个任务人员时如何完成任务：个人跟踪、共同完成或轮流完成。",
+          "example": "独立的"
+        },
+        "approval_reset_type": {
+          "name": "批准重置类型",
+          "description": "控制任务审批周期边界何时触发（午夜、截止日期、完成时或手动触发）。",
+          "example": "午夜一次"
+        },
+        "pending_claims": {
+          "name": "待决索赔行动",
+          "description": "控制在审批重置边界触发时，未获批准的索赔会发生什么情况。",
+          "example": "待处理"
+        },
+        "overdue_handling": {
+          "name": "逾期处理",
+          "description": "控制到期日过后会发生什么，以及在审批重置边界处逾期任务会发生什么。",
+          "example": "到期日"
+        },
+        "chore_claim_lock_until_window": {
+          "name": "锁定索赔直至窗口开启",
+          "description": "如果属实，受让人不能在到期日之前提出这项任务的要求。",
+          "example": "错误的"
+        },
+        "auto_approve": {
+          "name": "自动批准",
+          "description": "如果属实，则认领的任务将自动获得批准。",
+          "example": "错误的"
+        },
+        "due_date": {
+          "name": "到期日",
+          "description": "家务任务的截止日期（可选）。请使用日期/时间选择器选择有效的日期和时间。",
+          "example": "2025-03-01T23:59:00Z"
+        },
+        "due_window_offset": {
+          "name": "由于窗口偏移",
+          "description": "待办事项进入“到期”状态时，距离截止日期还有多长时间。格式：“30分钟”、“1小时”、“1天6小时30分钟”等。使用“0”可禁用到期窗口功能。",
+          "example": "30米"
+        },
+        "due_reminder_offset": {
+          "name": "到期提醒抵扣",
+          "description": "发送提醒通知的截止日期前剩余时间。格式：'30分钟'、'1小时'、'1天6小时30分钟'等。使用'0'禁用提醒。",
+          "example": "30米"
+        },
+        "standby_claim_mode": {
+          "name": "待机索赔模式",
+          "description": "控制备用服务器何时可以承担此任务（随时、逾期、仅限手动）。仅适用于主服务器和备用服务器的完成条件。"
+        }
+      }
+    },
+    "update_chore": {
+      "name": "更新任务",
+      "description": "更新现有家务的属性。请提供 ID 或名称来标识家务。只会更新提供的字段。",
+      "fields": {
+        "config_entry_id": {
+          "name": "配置条目 ID（可选）",
+          "description": "如果您有多个 ChoreOps 配置，请使用此选项。它针对的是特定的一个配置。",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "配置项名称（可选）",
+          "description": "如果您有多个 ChoreOps 设置，并且每个设置都有唯一的名称，请使用此选项。如果名称重复，请使用配置条目 ID。",
+          "example": "家庭家务"
+        },
+        "id": {
+          "name": "家务 ID",
+          "description": "要更新的任务的内部 ID（名称的替代名称）。",
+          "example": "abc-123-def-456"
+        },
+        "name": {
+          "name": "家务名称（标识符）",
+          "description": "要更新的任务名称（代替 ID）。比 ID 更便于用户理解。",
+          "example": "洁净室"
+        },
+        "assigned_user_names": {
+          "name": "分配给",
+          "description": "新的任务分配人列表。使用 [\"*\"] 表示所有可分配用户。传递空列表以移除所有已分配用户。省略此参数将保持当前分配不变。",
+          "example": "['艾玛'，'杰克']"
+        },
+        "points": {
+          "name": "积分",
+          "description": "这项家务任务的新积分值。",
+          "example": "15"
+        },
+        "description": {
+          "name": "描述",
+          "description": "对这项家务的新描述。",
+          "example": "铺床、整理书桌、吸尘"
+        },
+        "icon": {
+          "name": "图标",
+          "description": "用于表示家务的全新 Material Design 图标。",
+          "example": "mdi：真空"
+        },
+        "labels": {
+          "name": "标签",
+          "description": "这项家务活的新标签。",
+          "example": "['每周', '清洁']"
+        },
+        "frequency": {
+          "name": "频率",
+          "description": "新的重复频率：无、每日、每日多次、每周、每两周、每月、每季度、每年、自定义、自定义（从完整开始）或周期结束（周末、月末、季度末、年末）。",
+          "example": "每周"
+        },
+        "applicable_days": {
+          "name": "适用日期",
+          "description": "新的一周日期，该项家务也适用于这些日期。",
+          "example": "['周六', '周日']"
+        },
+        "approval_reset_type": {
+          "name": "批准重置类型",
+          "description": "新增家务重置类型。",
+          "example": "到期日"
+        },
+        "pending_claims": {
+          "name": "待决索赔行动",
+          "description": "当任务重置时，对未决索赔采取新的行动。",
+          "example": "清除待处理"
+        },
+        "overdue_handling": {
+          "name": "逾期处理",
+          "description": "新的逾期处理行为。",
+          "example": "永不逾期"
+        },
+        "chore_claim_lock_until_window": {
+          "name": "锁定索赔直至窗口开启",
+          "description": "如果属实，受让人不能在到期日之前提出这项任务的要求。",
+          "example": "真的"
+        },
+        "auto_approve": {
+          "name": "自动批准",
+          "description": "新增自动批准设置。",
+          "example": "真的"
+        },
+        "due_date": {
+          "name": "到期日",
+          "description": "新的家务截止日期。请使用日期/时间选择器选择有效的日期和时间。",
+          "example": "2025-04-01T18:00:00Z"
+        },
+        "due_window_offset": {
+          "name": "由于窗口偏移",
+          "description": "新的截止日期窗口偏移量。任务进入“截止日期”状态时，截止日期前的剩余时间。格式：'30分钟'、'1小时'、'1天6小时30分钟'等。使用'0'禁用此功能。",
+          "example": "1小时"
+        },
+        "due_reminder_offset": {
+          "name": "到期提醒抵扣",
+          "description": "新的到期提醒偏移量。发送提醒通知的到期日前持续时间。格式：'30m'、'1h'、'1d 6h 30m' 等。使用 '0' 禁用此功能。",
+          "example": "30米"
+        },
+        "assignment_action": {
+          "name": "指派行动",
+          "description": "如何处理 assigned_user_names 列表。“replace”直接设置列表（默认，向后兼容）。“add”将列表中的用户添加到现有受让人列表中。“remove”从现有受让人列表中移除列表中的用户。",
+          "example": "添加"
+        },
+        "standby_claim_mode": {
+          "name": "待机声明模式",
+          "description": "控制备用服务器何时可以承担此任务（随时、逾期、仅限手动）。仅适用于主服务器和备用服务器的完成条件。"
+        }
+      }
+    },
+    "delete_chore": {
+      "name": "删除家务",
+      "description": "按任务编号或名称删除任务。所有与受让人相关的状态和历史记录都将被删除。",
+      "fields": {
+        "config_entry_id": {
+          "name": "配置条目 ID（可选）",
+          "description": "如果您有多个 ChoreOps 配置，请使用此选项。它针对的是特定的一个配置。",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "配置项名称（可选）",
+          "description": "如果您有多个 ChoreOps 设置，并且每个设置都有唯一的名称，请使用此选项。如果名称重复，请使用配置条目 ID。",
+          "example": "家庭家务"
+        },
+        "id": {
+          "name": "家务 ID",
+          "description": "要删除的任务的内部 ID。可以使用 ID 或名称。",
+          "example": "abc123-def456-789..."
+        },
+        "name": {
+          "name": "姓名",
+          "description": "要删除的任务名称。",
+          "example": "洁净室"
+        }
+      }
+    },
+    "set_rotation_turn": {
+      "name": "设置旋转",
+      "description": "手动将当前轮班分配给轮班任务中的特定人员。仅适用于轮班任务（rotation_simple、rotation_smart 或 rotation_primary_standby）。可以使用 ID 或姓名进行标识。",
+      "fields": {
+        "config_entry_id": {
+          "name": "配置条目 ID（可选）",
+          "description": "如果您有多个 ChoreOps 配置，请使用此选项。它针对的是特定的一个配置。",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "配置项名称（可选）",
+          "description": "如果您有多个 ChoreOps 设置，并且每个设置都有唯一的名称，请使用此选项。如果名称重复，请使用配置条目 ID。",
+          "example": "家庭家务"
+        },
+        "chore_id": {
+          "name": "家务 ID",
+          "description": "轮班任务的内部 ID。如果提供了 chore_name，则此项为可选。",
+          "example": "abc123-def456-789..."
+        },
+        "chore_name": {
+          "name": "家务名称",
+          "description": "轮值任务名称。如果提供了 chore_id，则此项为可选。",
+          "example": "干净的卧室"
+        },
+        "user_id": {
+          "name": "用户身份",
+          "description": "要分配任务的用户的内部 ID。必须分配给此任务。如果提供了 user_name，则此项为可选。",
+          "example": "xyz789-abc123-456..."
+        },
+        "user_name": {
+          "name": "用户名",
+          "description": "要分配任务的用户的姓名。必须分配给该用户才能执行此任务。如果提供了 user_id，则此项为可选。",
+          "example": "爱丽丝"
+        }
+      }
+    },
+    "reset_rotation": {
+      "name": "重置旋转",
+      "description": "将轮班安排重置为第一个指定的负责人。仅适用于轮班任务（rotation_simple、rotation_smart 或 rotation_primary_standby）。可以使用 ID 或名称进行标识。",
+      "fields": {
+        "config_entry_id": {
+          "name": "配置条目 ID（可选）",
+          "description": "如果您有多个 ChoreOps 配置，请使用此选项。它针对的是特定的一个配置。",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "配置项名称（可选）",
+          "description": "如果您有多个 ChoreOps 设置，并且每个设置都有唯一的名称，请使用此选项。如果名称重复，请使用配置条目 ID。",
+          "example": "家庭家务"
+        },
+        "chore_id": {
+          "name": "家务 ID",
+          "description": "要重置的轮班任务的内部 ID。如果提供了 chore_name，则此项为可选。",
+          "example": "abc123-def456-789..."
+        },
+        "chore_name": {
+          "name": "家务名称",
+          "description": "要重置的轮班任务名称。如果提供了 chore_id，则此项为可选。",
+          "example": "干净的卧室"
+        }
+      }
+    },
+    "open_rotation_cycle": {
+      "name": "开放式旋转循环",
+      "description": "启用轮换周期覆盖功能，有效期为一个周期，允许任何指定的受让人无需考虑轮换顺序即可领取领件。覆盖功能将在下次审批后清除。可使用 ID 或姓名进行识别。",
+      "fields": {
+        "config_entry_id": {
+          "name": "配置条目 ID（可选）",
+          "description": "如果您有多个 ChoreOps 配置，请使用此选项。它针对的是特定的一个配置。",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "配置项名称（可选）",
+          "description": "如果您有多个 ChoreOps 设置，并且每个设置都有唯一的名称，请使用此选项。如果名称重复，请使用配置条目 ID。",
+          "example": "家庭家务"
+        },
+        "chore_id": {
+          "name": "家务 ID",
+          "description": "要打开的轮班任务的内部 ID。如果提供了 chore_name，则此项为可选。",
+          "example": "abc123-def456-789..."
+        },
+        "chore_name": {
+          "name": "家务名称",
+          "description": "要开启的轮换任务名称。如果提供了 chore_id，则此项为可选。",
+          "example": "干净的卧室"
+        }
+      }
+    },
+    "generate_activity_report": {
+      "name": "生成活动报告",
+      "description": "根据账本历史记录生成 7 天活动报告。支持可选的用户筛选、可选的通知发送和可选的 HTML 转换，同时仍返回结构化的响应有效负载。",
+      "fields": {
+        "config_entry_id": {
+          "name": "配置条目 ID（可选）",
+          "description": "如果您有多个 ChoreOps 配置，请使用此选项。它针对的是特定的一个配置。",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "配置项名称（可选）",
+          "description": "如果您有多个 ChoreOps 设置，并且每个设置都有唯一的名称，请使用此选项。如果名称重复，请使用配置条目 ID。",
+          "example": "家庭家务"
+        },
+        "user_name": {
+          "name": "用户名",
+          "description": "可选筛选条件，仅生成单个用户的报告。"
+        },
+        "report_language": {
+          "name": "报告语言",
+          "description": "报告文本的可选语言代码。如果设置了 user_name，则回退到选定的用户语言；如果未设置，则回退到英语。"
+        },
+        "report_title": {
+          "name": "报告标题",
+          "description": "Markdown 输出的可选标题覆盖。"
+        },
+        "notify_service": {
+          "name": "通知服务",
+          "description": "可选的通知目标（例如 notify.family）用于发送报告。"
+        },
+        "output_format": {
+          "name": "输出格式",
+          "description": "响应有效负载中仅返回 Markdown、仅返回 HTML 或同时返回 Markdown 和 HTML。"
+        }
+      }
+    },
+    "manage_ui_control": {
+      "name": "管理用户界面控件",
+      "description": "创建、更新或删除持久化的 UI 控件值。默认情况下，此操作会针对某个用户的 ui_preferences 存储桶。使用 ui_control_target: shared_admin 可将值写入 data/meta 下的共享管理 UI 控件存储桶。使用空键执行删除操作可清除所选目标的所有已存储值。",
+      "fields": {
+        "config_entry_id": {
+          "name": "配置条目 ID（可选）",
+          "description": "如果您有多个 ChoreOps 配置，请使用此选项。它针对的是特定的一个配置。",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "配置项名称（可选）",
+          "description": "如果您有多个 ChoreOps 设置，并且每个设置都有唯一的名称，请使用此选项。如果名称重复，请使用配置条目 ID。",
+          "example": "家庭家务"
+        },
+        "user_id": {
+          "name": "用户身份",
+          "description": "可选的内部用户 ID 目标。仅限高级用户。如果同时提供了 user_id 和 user_name，则以 user_id 为准。",
+          "example": "abc123-def456"
+        },
+        "user_name": {
+          "name": "用户名",
+          "description": "可选的用户名目标。当未提供 user_id 时为必填项。",
+          "example": "爱丽丝"
+        },
+        "ui_control_target": {
+          "name": "UI 控件目标",
+          "description": "选择是针对单个用户还是共享的管理员 UI 控件组。如果选择 shared_admin，则无需提供 user_id 或 user_name。",
+          "example": "用户"
+        },
+        "ui_control_action": {
+          "name": "UI 控件操作",
+          "description": "选择是创建、更新还是删除已存储的 UI 控件值。",
+          "example": "更新"
+        },
+        "key": {
+          "name": "关键路径",
+          "description": "以斜杠分隔的 UI 控件路径，例如 gamification/rewards/header_collapse。仅当执行删除操作时才留空，以清除所选目标的所有已存储值。",
+          "example": "游戏化/奖励/标题折叠"
+        },
+        "value": {
+          "name": "价值",
+          "description": "要存储用于创建或更新的值。删除操作会忽略此字段。"
+        }
+      }
+    },
+    "reset_chores_to_pending_state": {
+      "name": "重置待办事项状态",
+      "description": "手动将所有任务重置为待处理状态，删除所有认领和审批。",
+      "fields": {
+        "config_entry_id": {
+          "name": "配置条目 ID（可选）",
+          "description": "如果您有多个 ChoreOps 配置，请使用此选项。它针对的是特定的一个配置。",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "配置项名称（可选）",
+          "description": "如果您有多个 ChoreOps 设置，并且每个设置都有唯一的名称，请使用此选项。如果名称重复，请使用配置条目 ID。",
+          "example": "家庭家务"
+        }
+      }
+    },
+    "reset_transactional_data": {
+      "name": "重置交易数据",
+      "description": "在保留配置（指派人、任务、奖励等）的情况下重置运行时/事务数据。重置前会自动在 .storage 目录中创建名为 choreops_data_timestamp_reset 的备份。可以使用 scope 参数指定特定指派人或域。为确保安全，需要将 confirm_destructive 参数设置为 true。",
+      "fields": {
+        "config_entry_id": {
+          "name": "配置条目 ID（可选）",
+          "description": "如果您有多个 ChoreOps 配置，请使用此选项。它针对的是特定的一个配置。",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "配置项名称（可选）",
+          "description": "如果您有多个 ChoreOps 设置，并且每个设置都有唯一的名称，请使用此选项。如果名称重复，请使用配置条目 ID。",
+          "example": "家庭家务"
+        },
+        "confirm_destructive": {
+          "name": "确认破坏性",
+          "description": "必须设置为 true 以确认您要继续重置。这是一项安全机制。"
+        },
+        "scope": {
+          "name": "范围",
+          "description": "重置范围：'global' 重置所有数据，'user' 仅重置特定用户的数据。"
+        },
+        "user_name": {
+          "name": "用户名",
+          "description": "如果作用域为“用户”，则为必填项。要重置其数据的用户名。"
+        },
+        "item_type": {
+          "name": "物品类型",
+          "description": "可选筛选器，仅重置特定域（例如，仅积分或仅家务）。"
+        },
+        "item_name": {
+          "name": "物品名称",
+          "description": "可选过滤器，用于重置 item_type 域中的特定项目。"
+        }
+      }
+    },
+    "reset_overdue_chores": {
+      "name": "重置逾期家务",
+      "description": "将逾期家务重置为“待处理”状态，并根据其重复频率和之前的截止日期重新安排。您可以选择提供 chore_id（或 chore_name）来重置特定家务，也可以选择提供 user_name 来仅为该用户重置家务。",
+      "fields": {
+        "config_entry_id": {
+          "name": "配置条目 ID（可选）",
+          "description": "如果您有多个 ChoreOps 配置，请使用此选项。它针对的是特定的一个配置。",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "配置项名称（可选）",
+          "description": "如果您有多个 ChoreOps 设置，并且每个设置都有唯一的名称，请使用此选项。如果名称重复，请使用配置条目 ID。",
+          "example": "家庭家务"
+        },
+        "chore_id": {
+          "name": "家务 ID",
+          "description": "要重置的任务的内部 ID（如果提供了 chore_name，则此项为可选）。",
+          "example": "abc123"
+        },
+        "chore_name": {
+          "name": "家务名称",
+          "description": "要重置的家务名称（如果提供了 chore_id，则此项为可选）。",
+          "example": "洗碗"
+        },
+        "user_name": {
+          "name": "用户名",
+          "description": "要重置的目标用户。",
+          "example": "爱丽丝"
+        }
+      }
+    },
+    "set_chore_due_date": {
+      "name": "设置/重置家务截止日期",
+      "description": "设置（或清除）家务的截止日期。请提供家务名称，并可根据需要设置新的截止日期。如果未提供截止日期，则现有截止日期将被清除。服务将拒绝过去设置的截止日期。对于独立家务，您可以选择提供用户名，以便仅为该用户设置截止日期。",
+      "fields": {
+        "config_entry_id": {
+          "name": "配置条目 ID（可选）",
+          "description": "如果您有多个 ChoreOps 配置，请使用此选项。它针对的是特定的一个配置。",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "配置项名称（可选）",
+          "description": "如果您有多个 ChoreOps 设置，并且每个设置都有唯一的名称，请使用此选项。如果名称重复，请使用配置条目 ID。",
+          "example": "家庭家务"
+        },
+        "chore_name": {
+          "name": "家务名称",
+          "description": "需要更新的任务名称",
+          "example": "洗碗"
+        },
+        "due_date": {
+          "name": "到期日",
+          "description": "新的任务截止日期。请使用日期/时间选择器选择有效的日期和时间（以您所在的时区为准）。留空则取消截止日期设置。",
+          "example": "2025-03-01T23:59:00Z"
+        },
+        "user_name": {
+          "name": "用户名",
+          "description": "对于独立任务，请指定要设置截止日期的用户。如果省略，则为分配给该任务的所有人员设置截止日期。",
+          "example": "爱丽丝"
+        },
+        "user_id": {
+          "name": "用户身份",
+          "description": "用户的内部 ID。仅限高级用户 - 请使用用户名代替。",
+          "example": "abc123-def456"
+        }
+      }
+    },
+    "reschedule_chores_after": {
+      "name": "事后重新安排家务",
+      "description": "重新安排家务截止日期，使其在指定日期之后。三个独立的开关控制哪些类型的家务要重新安排：reschedule_independent（默认为 true）、reschedule_primary_standby（默认为 true）、reschedule_shared（默认为 false）。",
+      "fields": {
+        "config_entry_id": {
+          "name": "配置条目 ID（可选）",
+          "description": "如果您有多个 ChoreOps 配置，请使用此选项。它针对的是特定的一个配置。",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "配置项名称（可选）",
+          "description": "如果您有多个 ChoreOps 设置，并且每个设置都有唯一的名称，请使用此选项。如果名称重复，请使用配置条目 ID。",
+          "example": "家庭家务"
+        },
+        "after": {
+          "name": "后",
+          "description": "截止日期和时间。在此日期或之前到期的家务活将被考虑重新安排。",
+          "example": "2026-07-14T18:00:00Z"
+        },
+        "chore_ids": {
+          "name": "家务编号",
+          "description": "可选的家务任务 ID 列表。如果提供，这些 ID 的优先级高于 chore_names。"
+        },
+        "chore_names": {
+          "name": "家务名称",
+          "description": "当未提供 chore_ids 时，要定位的家务名称列表（可选）。"
+        },
+        "user_ids": {
+          "name": "用户ID",
+          "description": "可选的受让人 ID 列表，用于限制独立任务更新。如果提供，这些 ID 的优先级高于用户名。"
+        },
+        "user_names": {
+          "name": "用户名",
+          "description": "可选的受让人姓名列表，用于在未提供 user_id 时限制独立任务更新。"
+        },
+        "reschedule_independent": {
+          "name": "重新安排独立家务",
+          "description": "包含独立任务（每个任务负责人设定截止日期）。默认值为真。",
+          "example": "真的"
+        },
+        "reschedule_primary_standby": {
+          "name": "重新安排主备",
+          "description": "包含主要备用任务。默认值为 true。",
+          "example": "真的"
+        },
+        "reschedule_shared": {
+          "name": "重新安排共同家务",
+          "description": "包含共享和轮换（简单/智能）家务。这将影响所有被指派负责这些家务的人员。默认值为 false。",
+          "example": "错误的"
+        },
+        "skip_non_recurring": {
+          "name": "跳过非重复性家务",
+          "description": "启用此功能可使非重复性家务保持不变，而不是将其截止日期移至边界。",
+          "example": "错误的"
+        },
+        "allow_long_recurrences": {
+          "name": "允许长时间重复",
+          "description": "允许重新安排每月、每季度、每年以及其他长周期重复事件。默认值为 false，以防止意外的大幅度跳跃。",
+          "example": "真的"
+        }
+      }
+    },
+    "skip_chore_due_date": {
+      "name": "跳过家务截止日期",
+      "description": "跳过当前重复性任务的截止日期。此服务会根据任务的重复频率立即重新安排其截止日期，并将其状态重置为“待处理”。所有待处理的认领或审批都将被移除。对于独立任务，您可以选择性地提供 user_name，以便仅对该用户跳过此任务。",
+      "fields": {
+        "config_entry_id": {
+          "name": "配置条目 ID（可选）",
+          "description": "如果您有多个 ChoreOps 配置，请使用此选项。它针对的是特定的一个配置。",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "配置项名称（可选）",
+          "description": "如果您有多个 ChoreOps 设置，并且每个设置都有唯一的名称，请使用此选项。如果名称重复，请使用配置条目 ID。",
+          "example": "家庭家务"
+        },
+        "chore_id": {
+          "name": "家务 ID",
+          "description": "要重置的任务的内部 ID（如果提供了 chore_name，则此项为可选）。",
+          "example": "abc123"
+        },
+        "chore_name": {
+          "name": "家务名称",
+          "description": "要重置的家务名称（如果提供了 chore_id，则此项为可选）。",
+          "example": "洗碗"
+        },
+        "user_name": {
+          "name": "用户名",
+          "description": "对于独立任务，请指定要跳过截止日期的用户。如果省略，则所有分配给此任务的用户的截止日期都将跳过。",
+          "example": "爱丽丝"
+        },
+        "user_id": {
+          "name": "用户身份",
+          "description": "用户的内部 ID。仅限高级用户 - 请使用用户名代替。",
+          "example": "abc123-def456"
+        },
+        "mark_as_missed": {
+          "name": "标记为未收到",
+          "description": "如果属实，则将此次跳过记录为受让人未完成的任务。这有助于将故意跳过的任务与自动重置的逾期任务区分开来。"
+        }
+      }
+    },
+    "remove_awarded_badges": {
+      "name": "移除已授予的徽章",
+      "description": "移除所有被指派人员的所有已授予徽章。您也可以选择提供徽章名称，以重置所有被指派人员的特定徽章。使用用户名可以重置特定用户的所有徽章。同时使用两者可以重置特定用户的特定徽章。",
+      "fields": {
+        "config_entry_id": {
+          "name": "配置条目 ID（可选）",
+          "description": "如果您有多个 ChoreOps 配置，请使用此选项。它针对的是特定的一个配置。",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "配置项名称（可选）",
+          "description": "如果您有多个 ChoreOps 设置，并且每个设置都有唯一的名称，请使用此选项。如果名称重复，请使用配置条目 ID。",
+          "example": "家庭家务"
+        },
+        "user_name": {
+          "name": "用户名",
+          "description": "用户获得的徽章将被移除。",
+          "example": "鲍勃"
+        },
+        "badge_name": {
+          "name": "徽章名称",
+          "description": "要移除的徽章名称。",
+          "example": "家务主管"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "assignee_chore_status_sensor": {
+        "name": "任务状态 - {chore_name}",
+        "state": {
+          "pending": "待办的",
+          "completed": "完全的",
+          "claimed": "声称",
+          "due": "到期的",
+          "overdue": "逾期",
+          "completed_by_other": "由其他人完成",
+          "waiting": "等待中（到期窗口未打开）",
+          "not_my_turn": "轮不到我（轮换）",
+          "standby": "支持",
+          "missed": "错过（已锁定）",
+          "paused": "暂停"
+        },
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_chore_status": "用户特定的任务生命周期状态、性能统计信息和配置元数据"
+            }
+          },
+          "user_name": {
+            "name": "用户名"
+          },
+          "chore_name": {
+            "name": "家务名称"
+          },
+          "chore_icon": {
+            "name": "家务图标"
+          },
+          "description": {
+            "name": "描述"
+          },
+          "assigned_user_names": {
+            "name": "分配给"
+          },
+          "labels": {
+            "name": "标签"
+          },
+          "default_points": {
+            "name": "默认点数"
+          },
+          "completion_criteria": {
+            "name": "完成标准",
+            "state": {
+              "independent": "独立的",
+              "shared_first": "共享（第一）",
+              "shared_all": "共享（全部）",
+              "rotation_simple": "简单旋转",
+              "rotation_smart": "智能旋转",
+              "rotation_primary_standby": "主备"
+            }
+          },
+          "approval_reset_type": {
+            "name": "批准重置类型",
+            "state": {
+              "at_midnight_once": "午夜（一次）",
+              "at_midnight_multi": "午夜（多语种）",
+              "at_due_date_once": "到期日（一次）",
+              "at_due_date_multi": "到期日（多）",
+              "upon_completion": "完成后",
+              "manual": "仅限手动复位"
+            }
+          },
+          "approval_reset_pending_claim_action": {
+            "name": "审批重置待处理索赔操作",
+            "state": {
+              "hold_pending": "暂缓索赔状态（等待批准/拒绝）",
+              "clear_pending": "清除待处理索赔",
+              "auto_approve_pending": "自动批准待处理的索赔"
+            }
+          },
+          "overdue_handling_type": {
+            "name": "逾期处理类型",
+            "state": {
+              "never_overdue": "永不逾期",
+              "at_due_date": "逾期直至完成",
+              "at_due_date_clear_at_approval_reset": "逾期直至批准重置",
+              "at_due_date_clear_immediate_on_late": "逾期未完成（立即清除逾期审批）",
+              "at_due_date_clear_and_mark_missed": "逾期待审批重置（标记为未决）",
+              "at_due_date_mark_missed_and_lock": "锁定直至批准重置（防止索赔，标记为错过）",
+              "at_due_date_allow_steal": "允许偷窃直至批准重置（仅限轮换）"
+            }
+          },
+          "chore_claim_lock_until_window": {
+            "name": "锁定索赔直至到期日窗口开启",
+            "state": {
+              "true": "是的",
+              "false": "不"
+            }
+          },
+          "chore_due_window_offset": {
+            "name": "由于窗口偏移"
+          },
+          "auto_approve": {
+            "name": "自动批准索赔",
+            "state": {
+              "true": "是的",
+              "false": "不"
+            }
+          },
+          "recurring_frequency": {
+            "name": "重复频率",
+            "state": {
+              "none": "没有任何",
+              "daily": "日常的",
+              "daily_multi": "每日（一天多次）",
+              "weekly": "每周",
+              "biweekly": "双周",
+              "monthly": "月度",
+              "quarterly": "季刊",
+              "yearly": "每年",
+              "custom": "风俗",
+              "custom_from_complete": "自定义（重新安排完成日期）",
+              "custom_from_complete_date_only": "自定义（仅限重新安排完成日期）",
+              "custom_1_week": "定制：1 周",
+              "custom_1_month": "自定义：1 个月",
+              "custom_1_quarter": "自定义：1 季度",
+              "custom_1_year": "定制：1 年"
+            }
+          },
+          "applicable_days": {
+            "name": "适用日期",
+            "state": {
+              "mon": "周一",
+              "tue": "周二",
+              "wed": "周三",
+              "thu": "周四",
+              "fri": "星期五",
+              "sat": "周六",
+              "sun": "星期日"
+            }
+          },
+          "due_date": {
+            "name": "到期日"
+          },
+          "custom_frequency_interval": {
+            "name": "自定义频率间隔"
+          },
+          "custom_frequency_unit": {
+            "name": "定制频率单元",
+            "state": {
+              "days": "天",
+              "weeks": "周",
+              "months": "月份"
+            }
+          },
+          "chore_points_earned": {
+            "name": "累计得分"
+          },
+          "chore_approvals_count": {
+            "name": "审批（所有时间）"
+          },
+          "chore_claims_count": {
+            "name": "索赔（所有时间）"
+          },
+          "chore_completed_count": {
+            "name": "已完成（全部时间）"
+          },
+          "chore_disapproved_count": {
+            "name": "反对意见（所有时间）"
+          },
+          "chore_overdue_count": {
+            "name": "逾期（所有时间）"
+          },
+          "chore_avg_overdue_seconds": {
+            "name": "平均逾期时长（所有时间）"
+          },
+          "chore_longest_overdue_seconds": {
+            "name": "最长逾期时长（历史数据）"
+          },
+          "chore_approvals_today": {
+            "name": "今日审批"
+          },
+          "chore_current_streak": {
+            "name": "当前连胜"
+          },
+          "chore_longest_streak": {
+            "name": "最长连胜"
+          },
+          "chore_last_longest_streak_date": {
+            "name": "最长连续日期"
+          },
+          "chore_current_missed_streak": {
+            "name": "当前未接连连败"
+          },
+          "chore_longest_missed_streak": {
+            "name": "最长未达标纪录"
+          },
+          "chore_missed_count": {
+            "name": "错过（所有时间）"
+          },
+          "chore_last_missed": {
+            "name": "上次错过"
+          },
+          "last_claimed": {
+            "name": "最后认领"
+          },
+          "last_approved": {
+            "name": "最后批准"
+          },
+          "last_completed": {
+            "name": "最后完成时间"
+          },
+          "last_disapproved": {
+            "name": "最后不批准"
+          },
+          "last_overdue": {
+            "name": "上次逾期"
+          },
+          "global_state": {
+            "name": "全球状态",
+            "state": {
+              "pending": "待办的",
+              "completed": "完全的",
+              "claimed": "声称",
+              "overdue": "逾期",
+              "completed_in_part": "已完成（部分）",
+              "claimed_in_part": "声称（部分）",
+              "independent": "独立的",
+              "due": "到期的",
+              "waiting": "等待",
+              "missed": "错过（已锁定）"
+            }
+          },
+          "can_claim": {
+            "name": "可申领",
+            "state": {
+              "true": "是的",
+              "false": "不"
+            }
+          },
+          "can_approve": {
+            "name": "可以批准",
+            "state": {
+              "true": "是的",
+              "false": "不"
+            }
+          },
+          "approve_button_eid": {
+            "name": "批准按钮实体 ID"
+          },
+          "disapprove_button_eid": {
+            "name": "拒绝按钮实体 ID"
+          },
+          "claim_button_eid": {
+            "name": "认领按钮实体 ID"
+          },
+          "due_window_start": {
+            "name": "到期窗口开始"
+          },
+          "time_until_due": {
+            "name": "到期日"
+          },
+          "time_until_overdue": {
+            "name": "逾期时间"
+          },
+          "claim_mode": {
+            "name": "声明模式",
+            "state": {
+              "claimable": "可索赔",
+              "steal_available": "低价出售",
+              "blocked_completed_by_other": "由其他人完成",
+              "blocked_already_approved": "已批准",
+              "blocked_pending_claim": "待决索赔",
+              "blocked_waiting_window": "等待合适的时机",
+              "blocked_not_my_turn": "还没轮到你呢",
+              "blocked_standby": "你随时准备执行这项任务",
+              "standby_available": "待命——你可以认领这项任务",
+              "blocked_missed_locked": "错过并锁定",
+              "blocked_paused": "该用户的家务已暂停"
+            }
+          },
+          "turn_user_name": {
+            "name": "用户名"
+          },
+          "available_at": {
+            "name": "可购买"
+          },
+          "rotation_cycle_override": {
+            "name": "旋转周期覆盖",
+            "state": {
+              "true": "向所有人开放",
+              "false": "正常旋转"
+            }
+          }
+        }
+      },
+      "assignee_points_sensor": {
+        "name": "{points}",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_points": "当前积分余额及详细的赚取和消费统计数据"
+            }
+          },
+          "user_name": {
+            "name": "用户名"
+          },
+          "points_multiplier": {
+            "name": "积分倍增器"
+          },
+          "point_stat_points_earned_today": {
+            "name": "今日所得"
+          },
+          "point_stat_points_earned_week": {
+            "name": "本周收入"
+          },
+          "point_stat_points_earned_month": {
+            "name": "本月收入"
+          },
+          "point_stat_points_earned_year": {
+            "name": "今年获得的收益"
+          },
+          "point_stat_points_earned_all_time": {
+            "name": "获得所有时间"
+          },
+          "point_stat_points_by_source_today": {
+            "name": "据今日来源"
+          },
+          "point_stat_points_by_source_week": {
+            "name": "本周消息来源"
+          },
+          "point_stat_points_by_source_month": {
+            "name": "本月按来源分类"
+          },
+          "point_stat_points_by_source_year": {
+            "name": "今年按来源划分"
+          },
+          "point_stat_points_by_source_all_time": {
+            "name": "按来源所有时间"
+          },
+          "point_stat_points_spent_today": {
+            "name": "今天花了多少钱"
+          },
+          "point_stat_points_spent_week": {
+            "name": "本周过得"
+          },
+          "point_stat_points_spent_month": {
+            "name": "本月支出"
+          },
+          "point_stat_points_spent_year": {
+            "name": "今年都花在了哪里"
+          },
+          "point_stat_points_spent_all_time": {
+            "name": "花费所有时间"
+          },
+          "point_stat_points_net_today": {
+            "name": "今日网络"
+          },
+          "point_stat_points_net_week": {
+            "name": "本周网络"
+          },
+          "point_stat_points_net_month": {
+            "name": "本月净收入"
+          },
+          "point_stat_points_net_year": {
+            "name": "今年净值"
+          },
+          "point_stat_points_net_all_time": {
+            "name": "所有时间"
+          },
+          "point_stat_points_earning_streak_current": {
+            "name": "当前盈利连胜"
+          },
+          "point_stat_points_earning_streak_longest": {
+            "name": "最长盈利记录"
+          },
+          "point_stat_avg_points_per_day_week": {
+            "name": "平均每天（每周）"
+          },
+          "point_stat_avg_points_per_day_month": {
+            "name": "平均每日（月）"
+          },
+          "point_stat_avg_points_per_chore": {
+            "name": "每项家务平均费用"
+          },
+          "point_stat_highest_balance_all_time": {
+            "name": "史上最高余额"
+          }
+        }
+      },
+      "assignee_points_max_ever_sensor": {
+        "name": "最大值 {points} 曾经",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_sensor_points_max_ever_extra": "有史以来达到的最高积分余额（额外）"
+            }
+          }
+        }
+      },
+      "system_chore_approvals_sensor": {
+        "name": "已完成家务 - 总计",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_sensor_chore_approvals_all_time_extra": "家务任务审批总数（额外）"
+            }
+          }
+        }
+      },
+      "system_chore_approvals_daily_sensor": {
+        "name": "每日家务完成情况",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_sensor_chore_approvals_today_extra": "今日家务审批数量（额外）"
+            }
+          }
+        }
+      },
+      "system_chore_approvals_weekly_sensor": {
+        "name": "每周完成的家务",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_sensor_chore_approvals_week_extra": "本周家务审批通过次数（额外数据）"
+            }
+          }
+        }
+      },
+      "system_chore_approvals_monthly_sensor": {
+        "name": "每月完成的家务",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_sensor_chore_approvals_month_extra": "本月家务任务批准数量（额外）"
+            }
+          }
+        }
+      },
+      "assignee_chores_sensor": {
+        "name": "家务",
+        "unit_of_measurement": "家务",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_chores": "历年完成的家务总数及详细统计数据"
+            }
+          },
+          "user_name": {
+            "name": "用户名"
+          },
+          "chore_stat_approved_today": {
+            "name": "今日批准"
+          },
+          "chore_stat_approved_week": {
+            "name": "本周已批准"
+          },
+          "chore_stat_approved_month": {
+            "name": "本月已批准"
+          },
+          "chore_stat_approved_year": {
+            "name": "今年已获批准"
+          },
+          "chore_stat_approved_all_time": {
+            "name": "一直都已批准"
+          },
+          "chore_stat_most_completed_chore_all_time": {
+            "name": "完成次数最多的家务（历年）"
+          },
+          "chore_stat_most_completed_chore_week": {
+            "name": "完成最多的家务（每周）"
+          },
+          "chore_stat_most_completed_chore_month": {
+            "name": "每月完成最多的家务"
+          },
+          "chore_stat_most_completed_chore_year": {
+            "name": "年度完成最多的家务"
+          },
+          "chore_stat_total_points_from_chores_today": {
+            "name": "今日家务积分"
+          },
+          "chore_stat_total_points_from_chores_week": {
+            "name": "本周家务积分"
+          },
+          "chore_stat_total_points_from_chores_month": {
+            "name": "本月家务积分"
+          },
+          "chore_stat_total_points_from_chores_year": {
+            "name": "今年做家务获得的积分"
+          },
+          "chore_stat_total_points_from_chores_all_time": {
+            "name": "家务总积分"
+          },
+          "chore_stat_overdue_today": {
+            "name": "今天逾期了"
+          },
+          "chore_stat_missed_today": {
+            "name": "今天错过了"
+          },
+          "chore_stat_overdue_week": {
+            "name": "本周逾期"
+          },
+          "chore_stat_missed_week": {
+            "name": "本周错过"
+          },
+          "chore_stat_overdue_month": {
+            "name": "本月逾期"
+          },
+          "chore_stat_missed_month": {
+            "name": "本月错过"
+          },
+          "chore_stat_overdue_year": {
+            "name": "今年逾期了"
+          },
+          "chore_stat_missed_year": {
+            "name": "今年错过了"
+          },
+          "chore_stat_overdue_count_all_time": {
+            "name": "逾期至今"
+          },
+          "chore_stat_missed_all_time": {
+            "name": "错过所有时间"
+          },
+          "chore_stat_avg_overdue_seconds_today": {
+            "name": "今日平均逾期天数"
+          },
+          "chore_stat_avg_overdue_seconds_week": {
+            "name": "本周平均逾期金额"
+          },
+          "chore_stat_avg_overdue_seconds_month": {
+            "name": "本月平均逾期金额"
+          },
+          "chore_stat_avg_overdue_seconds_year": {
+            "name": "今年平均逾期金额"
+          },
+          "chore_stat_avg_overdue_seconds_all_time": {
+            "name": "平均逾期时间（历年）"
+          },
+          "chore_stat_longest_overdue_seconds_today": {
+            "name": "今天逾期时间最长"
+          },
+          "chore_stat_longest_overdue_seconds_week": {
+            "name": "本周逾期时间最长"
+          },
+          "chore_stat_longest_overdue_seconds_month": {
+            "name": "本月逾期时间最长"
+          },
+          "chore_stat_longest_overdue_seconds_year": {
+            "name": "今年最迟延的"
+          },
+          "chore_stat_longest_overdue_seconds_all_time": {
+            "name": "史上最长逾期"
+          },
+          "chore_stat_claimed_today": {
+            "name": "今天已领取"
+          },
+          "chore_stat_claimed_week": {
+            "name": "本周认领"
+          },
+          "chore_stat_claimed_month": {
+            "name": "本月已认领"
+          },
+          "chore_stat_claimed_year": {
+            "name": "今年已申报"
+          },
+          "chore_stat_claimed_all_time": {
+            "name": "已认领"
+          },
+          "chore_stat_disapproved_today": {
+            "name": "今日不赞成"
+          },
+          "chore_stat_disapproved_week": {
+            "name": "本周不赞成"
+          },
+          "chore_stat_disapproved_month": {
+            "name": "本月未获批准"
+          },
+          "chore_stat_disapproved_year": {
+            "name": "今年未获批准"
+          },
+          "chore_stat_disapproved_all_time": {
+            "name": "始终不赞成"
+          },
+          "chore_stat_completed_today": {
+            "name": "今天完成"
+          },
+          "chore_stat_completed_week": {
+            "name": "本周完成"
+          },
+          "chore_stat_completed_month": {
+            "name": "本月已完成"
+          },
+          "chore_stat_completed_year": {
+            "name": "今年已完成"
+          },
+          "chore_stat_completed_all_time": {
+            "name": "已完成所有时间"
+          },
+          "chore_stat_points_today": {
+            "name": "今日积分"
+          },
+          "chore_stat_points_week": {
+            "name": "本周积分"
+          },
+          "chore_stat_points_month": {
+            "name": "本月积分"
+          },
+          "chore_stat_points_year": {
+            "name": "今年的积分"
+          },
+          "chore_stat_points_all_time": {
+            "name": "总得分"
+          },
+          "chore_stat_top_chores_week": {
+            "name": "本周最主要家务"
+          },
+          "chore_stat_top_chores_month": {
+            "name": "每月最主要的家务"
+          },
+          "chore_stat_top_chores_year": {
+            "name": "年度最佳家务"
+          },
+          "chore_stat_chores_completed_today": {
+            "name": "今天完成"
+          },
+          "chore_stat_chores_completed_week": {
+            "name": "本周完成"
+          },
+          "chore_stat_chores_completed_month": {
+            "name": "本月已完成"
+          },
+          "chore_stat_chores_completed_year": {
+            "name": "今年已完成"
+          },
+          "chore_stat_current_due_today": {
+            "name": "今日到期"
+          },
+          "chore_stat_current_overdue": {
+            "name": "当前逾期"
+          },
+          "chore_stat_current_claimed": {
+            "name": "当前已申报金额"
+          },
+          "chore_stat_current_approved": {
+            "name": "当前已批准"
+          },
+          "chore_stat_longest_streak_week": {
+            "name": "最长连续周数"
+          },
+          "chore_stat_longest_streak_month": {
+            "name": "最长连续记录（月）"
+          },
+          "chore_stat_longest_streak_year": {
+            "name": "最长连胜纪录（年）"
+          },
+          "chore_stat_longest_streak_all_time": {
+            "name": "最长连胜纪录（历史最高）"
+          },
+          "chore_stat_longest_streak": {
+            "name": "最长连胜"
+          },
+          "chore_stat_longest_missed_streak": {
+            "name": "最长未达标纪录"
+          },
+          "chore_stat_avg_per_day_week": {
+            "name": "平均每天（每周）"
+          },
+          "chore_stat_avg_per_day_month": {
+            "name": "平均每日（月）"
+          },
+          "chore_stat_avg_per_day_year": {
+            "name": "平均每日（年）"
+          }
+        }
+      },
+      "assignee_badges_sensor": {
+        "name": "徽章",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_user_badges": "获得的最高徽章和实时累计进度，包括所有徽章类型的活跃周期和奖励历史记录"
+            }
+          },
+          "user_name": {
+            "name": "用户名"
+          },
+          "labels": {
+            "name": "标签"
+          },
+          "all_earned_badges": {
+            "name": "所有已获得的徽章"
+          },
+          "highest_badge_threshold_value": {
+            "name": "最高徽章门槛"
+          },
+          "points_to_next_badge": {
+            "name": "获得下一枚徽章的积分"
+          },
+          "current_badge_name": {
+            "name": "当前徽章名称"
+          },
+          "current_badge_eid": {
+            "name": "当前徽章实体 ID"
+          },
+          "highest_earned_badge_name": {
+            "name": "获得的最高徽章名称"
+          },
+          "next_higher_badge_name": {
+            "name": "下一个更高级别的徽章名称"
+          },
+          "next_higher_badge_eid": {
+            "name": "下一个更高级别的徽章实体 ID"
+          },
+          "next_lower_badge_name": {
+            "name": "下一个较低级别的徽章名称"
+          },
+          "next_lower_badge_eid": {
+            "name": "下一个下级徽章实体 ID"
+          },
+          "badge_status": {
+            "name": "徽章状态",
+            "state": {
+              "active": "积极的",
+              "grace": "宽限期",
+              "demoted": "降职"
+            }
+          },
+          "last_awarded_date": {
+            "name": "上次授予日期"
+          },
+          "award_count": {
+            "name": "获奖数量"
+          },
+          "description": {
+            "name": "描述"
+          },
+          "baseline_points": {
+            "name": "基线点"
+          },
+          "cycle_points": {
+            "name": "循环点"
+          },
+          "maintenance_grace_end_date": {
+            "name": "维护宽限期结束日期"
+          },
+          "maintenance_points_required": {
+            "name": "所需维护点"
+          },
+          "maintenance_end_date": {
+            "name": "维护结束日期"
+          },
+          "maintenance_points_remaining": {
+            "name": "剩余维护点数"
+          },
+          "reset_schedule": {
+            "name": "重置计划"
+          },
+          "target": {
+            "name": "目标"
+          },
+          "awards": {
+            "name": "奖项"
+          }
+        }
+      },
+      "system_badge_sensor": {
+        "name": "徽章 - {badge_name}",
+        "unit_of_measurement": "用户",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_badge": "获得此徽章的用户数量，徽章配置包括类型、目标、奖励和分配用户。"
+            }
+          },
+          "badge_name": {
+            "name": "徽章名称"
+          },
+          "description": {
+            "name": "描述"
+          },
+          "badge_type": {
+            "name": "徽章类型",
+            "state": {
+              "cumulative": "累计",
+              "achievement": "成就",
+              "challenge": "挑战",
+              "daily": "日常的",
+              "periodic": "周期性",
+              "special": "特别的"
+            }
+          },
+          "labels": {
+            "name": "标签"
+          },
+          "earned_user_names": {
+            "name": "用户收益"
+          },
+          "assigned_user_names": {
+            "name": "分配给"
+          },
+          "target": {
+            "name": "目标"
+          },
+          "associated_achievement": {
+            "name": "相关成就"
+          },
+          "associated_challenge": {
+            "name": "相关挑战"
+          },
+          "occasion_type": {
+            "name": "场合类型"
+          },
+          "required_chores": {
+            "name": "必须完成的家务"
+          },
+          "badge_awards": {
+            "name": "徽章奖励"
+          },
+          "reset_schedule": {
+            "name": "重置计划"
+          }
+        }
+      },
+      "assignee_badge_progress_sensor": {
+        "name": "徽章进度 - {badge_name}",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_badge_progress": "徽章进度百分比（0-100）跟踪您获得此徽章的完成情况，包括标准状态、日期和授予历史记录。"
+            }
+          },
+          "user_name": {
+            "name": "用户名"
+          },
+          "badge_name": {
+            "name": "徽章名称"
+          },
+          "badge_type": {
+            "name": "徽章类型",
+            "state": {
+              "cumulative": "累计",
+              "achievement": "成就",
+              "challenge": "挑战",
+              "daily": "日常的",
+              "periodic": "周期性",
+              "special": "特别的"
+            }
+          },
+          "status": {
+            "name": "地位",
+            "state": {
+              "inactive": "非活跃状态",
+              "active": "积极的",
+              "completed": "完全的"
+            }
+          },
+          "target_type": {
+            "name": "目标类型",
+            "state": {
+              "chores": "家务",
+              "points": "积分",
+              "days": "天",
+              "achievement": "成就",
+              "challenge": "挑战"
+            }
+          },
+          "threshold_value": {
+            "name": "目标阈值"
+          },
+          "recurring_frequency": {
+            "name": "重复频率",
+            "state": {
+              "none": "没有任何",
+              "daily": "日常的",
+              "weekly": "每周",
+              "biweekly": "双周",
+              "monthly": "月度"
+            }
+          },
+          "start_date": {
+            "name": "开始日期"
+          },
+          "end_date": {
+            "name": "结束日期"
+          },
+          "last_update_day": {
+            "name": "最后更新日期"
+          },
+          "overall_progress": {
+            "name": "总体进展"
+          },
+          "criteria_met": {
+            "name": "符合标准",
+            "state": {
+              "true": "是的",
+              "false": "不"
+            }
+          },
+          "last_awarded": {
+            "name": "上次获奖"
+          },
+          "award_count": {
+            "name": "获奖数量"
+          },
+          "description": {
+            "name": "描述"
+          },
+          "labels": {
+            "name": "标签"
+          },
+          "target": {
+            "name": "目标"
+          },
+          "required_chores": {
+            "name": "必须完成的家务"
+          },
+          "tracked_chores": {
+            "name": "跟踪家务"
+          },
+          "awards": {
+            "name": "奖项"
+          },
+          "reset_schedule": {
+            "name": "重置计划"
+          },
+          "associated_achievement": {
+            "name": "相关成就"
+          },
+          "associated_challenge": {
+            "name": "相关挑战"
+          },
+          "occasion_type": {
+            "name": "场合类型"
+          },
+          "system_badge_eid": {
+            "name": "系统徽章实体 ID"
+          }
+        }
+      },
+      "system_chores_pending_approval_sensor": {
+        "name": "待审批的家务",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_sensor_chores_pending_approval_extra": "所有用户待审批任务数量（额外数据）"
+            }
+          }
+        }
+      },
+      "system_rewards_pending_approval_sensor": {
+        "name": "待审批奖励",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_sensor_rewards_pending_approval_extra": "所有用户待审批奖励数量（额外）"
+            }
+          }
+        }
+      },
+      "system_chore_shared_state_sensor": {
+        "name": "{chore_name} - 全球状态",
+        "state": {
+          "pending": "待办的",
+          "completed": "完全的",
+          "claimed": "声称",
+          "due": "到期的",
+          "overdue": "逾期",
+          "completed_in_part": "已完成（部分）",
+          "claimed_in_part": "声称（部分）",
+          "independent": "独立的",
+          "waiting": "等待",
+          "missed": "错过（已锁定）"
+        },
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_shared_chore": "共享任务的全局完成状态，包含所有已分配用户的汇总统计信息"
+            }
+          },
+          "chore_name": {
+            "name": "家务名称"
+          },
+          "chore_icon": {
+            "name": "家务图标"
+          },
+          "description": {
+            "name": "描述"
+          },
+          "assigned_user_names": {
+            "name": "分配给"
+          },
+          "labels": {
+            "name": "标签"
+          },
+          "default_points": {
+            "name": "默认点数"
+          },
+          "completion_criteria": {
+            "name": "完成标准",
+            "state": {
+              "independent": "独立的",
+              "shared_first": "共享（仅限第一位）",
+              "shared_all": "共享（全部必填）",
+              "rotation_simple": "简单旋转",
+              "rotation_smart": "智能旋转",
+              "rotation_primary_standby": "主备"
+            }
+          },
+          "approval_reset_type": {
+            "name": "批准重置类型",
+            "state": {
+              "at_midnight_once": "午夜（一次）",
+              "at_midnight_multi": "午夜（多语种）",
+              "at_due_date_once": "到期日（一次）",
+              "at_due_date_multi": "到期日（多）",
+              "upon_completion": "完成后",
+              "manual": "仅限手动复位"
+            }
+          },
+          "recurring_frequency": {
+            "name": "重复频率",
+            "state": {
+              "none": "没有任何",
+              "daily": "日常的",
+              "weekly": "每周",
+              "biweekly": "双周",
+              "monthly": "月度",
+              "custom": "风俗"
+            }
+          },
+          "applicable_days": {
+            "name": "适用日期",
+            "state": {
+              "mon": "周一",
+              "tue": "周二",
+              "wed": "周三",
+              "thu": "周四",
+              "fri": "星期五",
+              "sat": "周六",
+              "sun": "星期日"
+            }
+          },
+          "due_date": {
+            "name": "到期日"
+          },
+          "custom_frequency_interval": {
+            "name": "自定义频率间隔"
+          },
+          "custom_frequency_unit": {
+            "name": "定制频率单元",
+            "state": {
+              "days": "天",
+              "weeks": "周",
+              "months": "月份"
+            }
+          },
+          "chore_approvals_today": {
+            "name": "今日审批（所有用户）"
+          },
+          "last_claimed": {
+            "name": "最后认领"
+          },
+          "last_approved": {
+            "name": "最后批准"
+          },
+          "last_completed": {
+            "name": "最后完成时间"
+          },
+          "chore_claimed_by": {
+            "name": "声称"
+          },
+          "chore_completed_by": {
+            "name": "完成者"
+          },
+          "due_window_start": {
+            "name": "到期窗口开始"
+          },
+          "time_until_due": {
+            "name": "到期时间"
+          },
+          "time_until_overdue": {
+            "name": "逾期时间"
+          }
+        }
+      },
+      "assignee_reward_status_sensor": {
+        "name": "奖励状态 - {reward_name}",
+        "state": {
+          "locked": "已锁定",
+          "available": "可用的",
+          "requested": "已请求",
+          "approved": "得到正式认可的",
+          "unknown": "未知",
+          "none": "没有任何"
+        },
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_reward_status": "奖励兑换状态，包括领取历史记录和操作按钮"
+            }
+          },
+          "user_name": {
+            "name": "用户名"
+          },
+          "reward_name": {
+            "name": "奖励名称"
+          },
+          "description": {
+            "name": "描述"
+          },
+          "cost": {
+            "name": "成本"
+          },
+          "pending_claims": {
+            "name": "待处理索赔"
+          },
+          "last_claimed": {
+            "name": "最后认领"
+          },
+          "last_approved": {
+            "name": "最后批准"
+          },
+          "last_completed": {
+            "name": "最后完成时间"
+          },
+          "last_disapproved": {
+            "name": "最后被否决"
+          },
+          "claimed_today": {
+            "name": "今日索赔"
+          },
+          "claimed_week": {
+            "name": "本周索赔"
+          },
+          "claimed_month": {
+            "name": "本月索赔"
+          },
+          "claimed_year": {
+            "name": "今年的索赔"
+          },
+          "claimed_all_time": {
+            "name": "历年索赔"
+          },
+          "approved_today": {
+            "name": "今日批准"
+          },
+          "approved_week": {
+            "name": "本周已批准"
+          },
+          "approved_month": {
+            "name": "本月已批准"
+          },
+          "approved_year": {
+            "name": "今年已获批准"
+          },
+          "approved_all_time": {
+            "name": "一直都已批准"
+          },
+          "disapproved_today": {
+            "name": "今日不赞成"
+          },
+          "disapproved_week": {
+            "name": "本周不赞成"
+          },
+          "disapproved_month": {
+            "name": "本月未获批准"
+          },
+          "disapproved_year": {
+            "name": "今年未获批准"
+          },
+          "disapproved_all_time": {
+            "name": "始终不赞成"
+          },
+          "points_spent_today": {
+            "name": "今日花费积分"
+          },
+          "points_spent_week": {
+            "name": "本周花费的积分"
+          },
+          "points_spent_month": {
+            "name": "本月已花费积分"
+          },
+          "points_spent_year": {
+            "name": "今年花费的积分"
+          },
+          "points_spent_all_time": {
+            "name": "累计得分"
+          },
+          "approval_rate": {
+            "name": "批准率（%）"
+          },
+          "claim_rate_week": {
+            "name": "平均每日（每周）索赔数量"
+          },
+          "claim_rate_month": {
+            "name": "平均每日索赔数量（月）"
+          },
+          "claim_button_eid": {
+            "name": "认领按钮实体 ID"
+          },
+          "approve_button_eid": {
+            "name": "批准按钮实体 ID"
+          },
+          "disapprove_button_eid": {
+            "name": "拒绝按钮实体 ID"
+          },
+          "labels": {
+            "name": "标签"
+          }
+        }
+      },
+      "assignee_penalty_applied_sensor": {
+        "name": "已施加处罚 - {penalty_name}",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_sensor_penalty_applied": "用户受到处罚的次数"
+            }
+          },
+          "user_name": {
+            "name": "用户名"
+          },
+          "penalty_name": {
+            "name": "罚球名称"
+          },
+          "description": {
+            "name": "描述"
+          },
+          "penalty_points": {
+            "name": "罚分"
+          },
+          "labels": {
+            "name": "标签"
+          }
+        }
+      },
+      "assignee_bonus_applied_sensor": {
+        "name": "奖励适用 - {bonus_name}",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_sensor_bonus_applied": "用户获得奖励的次数"
+            }
+          },
+          "user_name": {
+            "name": "用户名"
+          },
+          "bonus_name": {
+            "name": "奖励名称"
+          },
+          "description": {
+            "name": "描述"
+          },
+          "bonus_points": {
+            "name": "奖励积分"
+          },
+          "labels": {
+            "name": "标签"
+          }
+        }
+      },
+      "assignee_points_earned_daily_sensor": {
+        "name": "每日获得的积分",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_sensor_points_earned_today_extra": "用户今日获得的积分（额外）"
+            }
+          }
+        }
+      },
+      "assignee_points_earned_weekly_sensor": {
+        "name": "每周获得的积分",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_sensor_points_earned_week_extra": "本周用户获得的积分（额外）"
+            }
+          }
+        }
+      },
+      "assignee_points_earned_monthly_sensor": {
+        "name": "每月获得的积分",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_sensor_points_earned_month_extra": "用户本月获得的积分（额外）"
+            }
+          }
+        }
+      },
+      "system_achievement_sensor": {
+        "name": "成就 - {achievement_name}",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_achievement": "汇总所有已分配用户的成就进度百分比（0-100），成就配置包括类型、目标、标准以及已获得成就的用户列表。"
+            }
+          },
+          "achievement_name": {
+            "name": "成就名称"
+          },
+          "description": {
+            "name": "描述"
+          },
+          "assigned_user_names": {
+            "name": "分配给"
+          },
+          "type": {
+            "name": "类型",
+            "state": {
+              "chore_total": "家务总计",
+              "chore_streak": "家务连续完成",
+              "daily_minimum": "每日最低消费"
+            }
+          },
+          "associated_chore": {
+            "name": "相关家务"
+          },
+          "criteria": {
+            "name": "标准"
+          },
+          "target_value": {
+            "name": "目标"
+          },
+          "reward_points": {
+            "name": "奖励积分"
+          },
+          "earned_user_names": {
+            "name": "赚取"
+          },
+          "labels": {
+            "name": "标签"
+          }
+        }
+      },
+      "system_challenge_sensor": {
+        "name": "挑战 - {challenge_name}",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_challenge": "挑战进度百分比（0-100%）汇总了指定日期范围内所有已分配用户的挑战进度，挑战配置包括类型、目标、标准、日期以及已完成挑战的用户列表。"
+            }
+          },
+          "challenge_name": {
+            "name": "挑战名称"
+          },
+          "description": {
+            "name": "描述"
+          },
+          "assigned_user_names": {
+            "name": "分配给"
+          },
+          "type": {
+            "name": "类型",
+            "state": {
+              "total_within_window": "窗口内总数",
+              "daily_minimum": "每日最低消费"
+            }
+          },
+          "associated_chore": {
+            "name": "相关家务"
+          },
+          "criteria": {
+            "name": "标准"
+          },
+          "target_value": {
+            "name": "目标"
+          },
+          "reward_points": {
+            "name": "奖励积分"
+          },
+          "start_date": {
+            "name": "开始日期"
+          },
+          "end_date": {
+            "name": "结束日期"
+          },
+          "earned_user_names": {
+            "name": "赚取"
+          },
+          "labels": {
+            "name": "标签"
+          }
+        }
+      },
+      "assignee_achievement_progress_sensor": {
+        "name": "成就进度 - {achievement_name}",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_achievement_progress": "单个用户获得此成就的进度百分比（0-100%），包括当前原始进度数和奖励状态"
+            }
+          },
+          "user_name": {
+            "name": "用户名"
+          },
+          "achievement_name": {
+            "name": "成就名称"
+          },
+          "description": {
+            "name": "描述"
+          },
+          "assigned_user_names": {
+            "name": "分配给"
+          },
+          "type": {
+            "name": "类型",
+            "state": {
+              "chore_total": "家务总计",
+              "chore_streak": "家务连续完成",
+              "daily_minimum": "每日最低消费"
+            }
+          },
+          "associated_chore": {
+            "name": "相关家务"
+          },
+          "criteria": {
+            "name": "标准"
+          },
+          "target_value": {
+            "name": "目标"
+          },
+          "reward_points": {
+            "name": "奖励积分"
+          },
+          "raw_progress": {
+            "name": "原始进度"
+          },
+          "awarded": {
+            "name": "获奖",
+            "state": {
+              "true": "是的",
+              "false": "不"
+            }
+          },
+          "labels": {
+            "name": "标签"
+          }
+        }
+      },
+      "assignee_challenge_progress_sensor": {
+        "name": "进度 - {challenge_name}",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_challenge_progress": "用户在指定日期范围内完成此挑战的进度百分比（0-100%），包括当前原始进度计数和奖励状态"
+            }
+          },
+          "user_name": {
+            "name": "用户名"
+          },
+          "challenge_name": {
+            "name": "挑战名称"
+          },
+          "description": {
+            "name": "描述"
+          },
+          "assigned_user_names": {
+            "name": "分配给"
+          },
+          "type": {
+            "name": "类型",
+            "state": {
+              "total_within_window": "窗口内总数",
+              "daily_minimum": "每日最低消费"
+            }
+          },
+          "associated_chore": {
+            "name": "相关家务"
+          },
+          "criteria": {
+            "name": "标准"
+          },
+          "target_value": {
+            "name": "目标"
+          },
+          "reward_points": {
+            "name": "奖励积分"
+          },
+          "start_date": {
+            "name": "开始日期"
+          },
+          "end_date": {
+            "name": "结束日期"
+          },
+          "raw_progress": {
+            "name": "原始进度"
+          },
+          "awarded": {
+            "name": "获奖",
+            "state": {
+              "true": "是的",
+              "false": "不"
+            }
+          },
+          "labels": {
+            "name": "标签"
+          }
+        }
+      },
+      "assignee_chore_streak_sensor": {
+        "name": "最高家务连续完成率",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_sensor_chore_streak_extra": "用户最高家务完成连胜纪录（额外）"
+            }
+          },
+          "streaks_by_achievement": {
+            "name": "按成就划分的连胜"
+          }
+        }
+      },
+      "system_dashboard_translation_sensor": {
+        "name": "仪表盘翻译（{language}）",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_dashboard_translation": "为仪表盘显示提供本地化用户界面翻译"
+            }
+          },
+          "ui_translations": {
+            "name": "用户界面翻译"
+          },
+          "language": {
+            "name": "语言"
+          }
+        }
+      },
+      "system_dashboard_helper_sensor": {
+        "name": "仪表盘助手",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_system_dashboard_helper": "汇总共享管理员卡的共享管理员仪表板状态"
+            }
+          },
+          "ui_control": {
+            "name": "用户界面控件"
+          },
+          "integration_entry_id": {
+            "name": "集成条目 ID"
+          },
+          "dashboard_lookup_key": {
+            "name": "仪表盘查找键"
+          },
+          "user_dashboard_helpers": {
+            "name": "用户仪表盘助手"
+          },
+          "language": {
+            "name": "语言"
+          },
+          "translation_sensor_eid": {
+            "name": "翻译传感器实体 ID"
+          }
+        }
+      },
+      "assignee_dashboard_helper_sensor": {
+        "name": "UI仪表盘助手",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_dashboard_helper": "汇总所有用户数据以供仪表盘使用"
+            }
+          },
+          "chores": {
+            "name": "家务"
+          },
+          "rewards": {
+            "name": "奖励"
+          },
+          "ui_control": {
+            "name": "用户界面控件"
+          },
+          "badges": {
+            "name": "徽章"
+          },
+          "bonuses": {
+            "name": "奖金"
+          },
+          "penalties": {
+            "name": "处罚"
+          },
+          "achievements": {
+            "name": "成就"
+          },
+          "challenges": {
+            "name": "挑战"
+          },
+          "ui_translations": {
+            "name": "用户界面翻译"
+          },
+          "points_buttons": {
+            "name": "积分按钮"
+          },
+          "pending_approvals": {
+            "name": "待审批"
+          },
+          "core_sensors": {
+            "name": "核心传感器"
+          },
+          "dashboard_config": {
+            "name": "仪表盘配置"
+          },
+          "dashboard_helpers": {
+            "name": "仪表盘助手"
+          },
+          "shard_runtime": {
+            "name": "家务清单运行时长"
+          },
+          "chores_by_label": {
+            "name": "按标签分类的家务"
+          },
+          "user_name": {
+            "name": "用户名"
+          },
+          "language": {
+            "name": "语言"
+          }
+        }
+      },
+      "assignee_dashboard_chore_list_helper_sensor": {
+        "name": "UI仪表盘任务列表 {shard_index}",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_dashboard_chore_shard_helper": "当用户的完整任务列表过长，无法在主助手窗口中显示时，提供一个用于仪表板显示的任务列表。"
+            }
+          },
+          "chores": {
+            "name": "家务"
+          },
+          "shard_index": {
+            "name": "家务清单编号"
+          },
+          "shard_count": {
+            "name": "全部家务清单"
+          },
+          "helper_contract_version": {
+            "name": "助手合约版本"
+          }
+        }
+      }
+    },
+    "select": {
+      "kc_select_base": {
+        "name": "选择基础"
+      },
+      "system_chores_select": {
+        "name": "选择家务",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_select_chores": "下拉菜单，用于从所有可用家务中选择家务"
+            }
+          }
+        }
+      },
+      "system_rewards_select": {
+        "name": "选择奖励",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_select_rewards": "下拉菜单，可从所有可用奖励中选择奖励。"
+            }
+          }
+        }
+      },
+      "system_penalties_select": {
+        "name": "选择罚球",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_select_penalties": "下拉菜单，用于从所有可用的处罚中选择处罚"
+            }
+          }
+        }
+      },
+      "system_bonuses_select": {
+        "name": "选择奖励",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_select_bonuses": "下拉菜单，可从所有可用奖金中选择奖金"
+            }
+          }
+        }
+      },
+      "system_dashboard_admin_assignee_select": {
+        "name": "管理员控制面板用户选择器",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_system_dashboard_admin_user": "管理员仪表盘卡的系统级用户选择器"
+            }
+          },
+          "dashboard_helper_eid": {
+            "name": "仪表盘助手实体 ID"
+          },
+          "selected_user_slug": {
+            "name": "选定用户别名"
+          },
+          "selected_user_name": {
+            "name": "已选用户名"
+          }
+        }
+      },
+      "assignee_dashboard_helper_chores_select": {
+        "name": "UI仪表盘家务清单助手",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_select_user_chores": "用户选择任务以进行仪表板筛选"
+            }
+          },
+          "user_name": {
+            "name": "用户名"
+          }
+        }
+      }
+    },
+    "calendar": {
+      "assignee_schedule_calendar": {
+        "name": "日历",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_calendar_schedule": "显示用户家务安排和截止日期的日历"
+            }
+          },
+          "user_name": {
+            "name": "用户名"
+          }
+        }
+      }
+    },
+    "datetime": {
+      "assignee_dashboard_helper_datetime_picker": {
+        "name": "UI仪表盘日期助手",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_datetime_dashboard_helper": "用于仪表盘 UI 筛选和导航的日期选择辅助工具"
+            }
+          },
+          "user_name": {
+            "name": "用户名"
+          }
+        }
+      }
+    },
+    "button": {
+      "assignee_chore_claim_button": {
+        "name": "领取任务 - {chore_name}",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_button_chore_claim": "用户声称已完成分配的任务"
+            }
+          },
+          "user_name": {
+            "name": "用户名"
+          },
+          "chore_name": {
+            "name": "家务名称"
+          },
+          "labels": {
+            "name": "标签"
+          }
+        }
+      },
+      "approver_chore_approve_button": {
+        "name": "批准家务 - {chore_name}",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_button_chore_approve": "审批人批准所申报的任务"
+            }
+          },
+          "user_name": {
+            "name": "用户名"
+          },
+          "chore_name": {
+            "name": "家务名称"
+          },
+          "labels": {
+            "name": "标签"
+          }
+        }
+      },
+      "approver_chore_disapprove_button": {
+        "name": "不赞成这项家务 - {chore_name}",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_button_chore_disapprove": "审批人不批准所声称的家务"
+            }
+          },
+          "user_name": {
+            "name": "用户名"
+          },
+          "chore_name": {
+            "name": "家务名称"
+          },
+          "labels": {
+            "name": "标签"
+          }
+        }
+      },
+      "assignee_reward_redeem_button": {
+        "name": "领取奖励 - {reward_name}",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_button_reward_redeem": "用户使用积分兑换奖励"
+            }
+          },
+          "user_name": {
+            "name": "用户名"
+          },
+          "reward_name": {
+            "name": "奖励名称"
+          },
+          "labels": {
+            "name": "标签"
+          }
+        }
+      },
+      "approver_reward_approve_button": {
+        "name": "批准奖励 - {reward_name}",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_button_reward_approve": "审批人批准已兑换的奖励"
+            }
+          },
+          "user_name": {
+            "name": "用户名"
+          },
+          "reward_name": {
+            "name": "奖励名称"
+          },
+          "labels": {
+            "name": "标签"
+          }
+        }
+      },
+      "approver_reward_disapprove_button": {
+        "name": "不批准奖励 - {reward_name}",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_button_reward_disapprove": "审批人不批准已兑换的奖励"
+            }
+          },
+          "user_name": {
+            "name": "用户名"
+          },
+          "reward_name": {
+            "name": "奖励名称"
+          },
+          "labels": {
+            "name": "标签"
+          }
+        }
+      },
+      "approver_penalty_apply_button": {
+        "name": "施加处罚 - {penalty_name}",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_button_penalty_apply": "审批人施加处罚（扣分）"
+            }
+          },
+          "user_name": {
+            "name": "用户名"
+          },
+          "penalty_name": {
+            "name": "罚球名称"
+          },
+          "labels": {
+            "name": "标签"
+          }
+        }
+      },
+      "approver_bonus_apply_button": {
+        "name": "领取奖励 - {bonus_name}",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_button_bonus_apply": "审批人应用奖励（加分）"
+            }
+          },
+          "user_name": {
+            "name": "用户名"
+          },
+          "bonus_name": {
+            "name": "奖励名称"
+          },
+          "labels": {
+            "name": "标签"
+          }
+        }
+      },
+      "approver_points_adjust_button": {
+        "name": "调整 {delta} {points_label}",
+        "state_attributes": {
+          "purpose": {
+            "name": "目的",
+            "state": {
+              "purpose_button_points_adjust": "审批人手动调整用户积分"
+            }
+          },
+          "user_name": {
+            "name": "用户名"
+          },
+          "delta": {
+            "name": "调整金额"
+          },
+          "points_label": {
+            "name": "积分类型"
+          }
+        }
+      },
+      "approver_points_adjust_button_positive": {
+        "name": "增量 {delta} {points_label}"
+      },
+      "approver_points_adjust_button_negative": {
+        "name": "递减 {delta} {points_label}"
+      }
+    }
+  },
+  "exceptions": {
+    "assignee_not_found_by_name": {
+      "message": "未找到名为 {name} 的受让人"
+    },
+    "approver_not_found_by_name": {
+      "message": "未找到名为 {name} 的审批人"
+    },
+    "error_msg_no_entry_found": {
+      "message": "配置中未找到匹配项。"
+    },
+    "ui_control_target_required": {
+      "message": "提供 user_id 或 user_name 以定位特定用户。"
+    },
+    "ui_control_invalid_target": {
+      "message": "无效的 ui_control_target {target}。允许的目标：user、shared_admin。"
+    },
+    "ui_control_shared_admin_context_invalid": {
+      "message": "当 ui_control_target 为 shared_admin 时，请勿提供 user_id 或 user_name。"
+    },
+    "ui_control_invalid_action": {
+      "message": "无效的 UI 控件操作 {action}。允许的操作：创建、更新、删除。"
+    },
+    "ui_control_invalid_key": {
+      "message": "无效的 UI 控件键路径 {key}。请使用斜杠分隔的路径，例如 gamification/rewards/header_collapse。仅在删除操作中允许使用空键。"
+    },
+    "ui_control_value_required": {
+      "message": "{action} 操作需要值字段。"
+    },
+    "ui_control_key_already_exists": {
+      "message": "用户 {user_name}的 UI 控制键 {key} 已存在。请改用更新操作。"
+    },
+    "ui_control_key_not_found": {
+      "message": "未找到用户 {user_name} 的 UI 控件键 {key}。"
+    },
+    "service_target_ambiguous": {
+      "message": "已加载多个 ChoreOps 条目。请提供 config_entry_id。可用条目： {available_entries}"
+    },
+    "service_target_title_not_found": {
+      "message": "未找到标题为 {title}的唯一已加载 ChoreOps 条目。请改用 config_entry_id。"
+    },
+    "dashboard_status_preparing_release_assets": {
+      "message": "准备选定的在线仪表板资产"
+    },
+    "dashboard_status_release_asset_prep_failed": {
+      "message": "在线资源准备失败。请选择其他版本或使用最新的兼容/当前本地模板。"
+    },
+    "dashboard_status_release_applied": {
+      "message": "已在本地应用版本 {release_ref} ({execution_source})。重新加载集成或重启 Home Assistant 以刷新仪表盘翻译传感器。"
+    },
+    "dashboard_status_updated": {
+      "message": "已更新 {url_path} (views={view_count}, release_selection={release_selection})"
+    },
+    "dashboard_status_created": {
+      "message": "创建 {url_path} (assignees={assignee_count}, admin_mode={admin_mode})"
+    },
+    "dashboard_status_required_dependencies_still_missing": {
+      "message": "仪表板所需的依赖项仍然缺失；返回配置阶段"
+    },
+    "dashboard_status_required_dependencies_bypassed": {
+      "message": "用户绕过了缺少必需依赖项的操作。"
+    },
+    "dashboard_status_recommended_dependencies_missing": {
+      "message": "缺少推荐依赖项（将继续生成）： {dependency_list}"
+    },
+    "dashboard_status_nonselectable_templates": {
+      "message": "选定的模板无法生成：\n{template_list}"
+    },
+    "dashboard_status_deleted": {
+      "message": "已删除 {url_path}"
+    },
+    "dashboard_status_delete_failed": {
+      "message": "删除 {url_path}失败： {error}"
+    },
+    "dashboard_label_none": {
+      "message": "- 没有任何"
+    },
+    "dashboard_label_preferences_guide": {
+      "message": "偏好设置指南"
+    },
+    "dashboard_label_preferences_guide_not_provided": {
+      "message": "未提供偏好设置指南"
+    },
+    "user_non_kiosk_unlinked_warning": {
+      "message": "⚠️ **访问警告：** 自助服务终端模式已禁用，且此用户未关联任何 Home Assistant 用户。在您关联 Home Assistant 用户或启用自助服务终端模式之前，共享设备的领取和兑换按钮可能无法正常工作。"
+    },
+    "dashboard_unlinked_users_warning": {
+      "message": "⚠️ 自助服务终端模式已禁用，并且以下选定用户没有关联 Home Assistant 用户：\n{user_list}\n\n在关联这些用户或启用自助服务终端模式之前，共享设备上的“领取”和“兑换”按钮可能无法正常工作。"
+    },
+    "not_authorized_action": {
+      "message": "您无权代表此受让人执行 {action}。"
+    },
+    "not_authorized_action_global": {
+      "message": "您无权 {action}。"
+    },
+    "calendar_create_not_supported": {
+      "message": "此日历不支持创建事件。"
+    },
+    "calendar_delete_not_supported": {
+      "message": "此日历不支持删除事件。"
+    },
+    "calendar_update_not_supported": {
+      "message": "此日历不支持更新事件。"
+    },
+    "not_found": {
+      "message": "{entity_type} {name} 未找到"
+    },
+    "not_assigned": {
+      "message": "{entity} 未分配给 {assignee}"
+    },
+    "rotation_no_turn_holder": {
+      "message": "轮流值班的家务活必须指定一名值班负责人。"
+    },
+    "rotation_invalid_order": {
+      "message": "轮换顺序必须是一个非空的受让人 ID 列表。"
+    },
+    "rotation_duplicate_in_order": {
+      "message": "轮换顺序中不能包含重复的受让人。"
+    },
+    "rotation_unassigned_in_order": {
+      "message": "所有按轮换顺序分配的人员都必须被分配到这项任务中。"
+    },
+    "rotation_min_assignees": {
+      "message": "轮换任务至少需要 2 名指定人员。"
+    },
+    "not_rotation": {
+      "message": "这项任务不在轮换模式下"
+    },
+    "assignee_not_assigned": {
+      "message": "受让人未负责此项工作。"
+    },
+    "no_assigned_assignees": {
+      "message": "这项任务没有指派任何人负责。"
+    },
+    "insufficient_points": {
+      "message": "{assignee} 拥有 {current} 个积分，但需要 {required} 个积分"
+    },
+    "already_claimed": {
+      "message": "{entity} 已被认领"
+    },
+    "chore_claimed_by_other": {
+      "message": "这项任务已被 {claimed_by}认领。"
+    },
+    "chore_already_approved": {
+      "message": "任务今天已获批准。请在批准重置期后重试。"
+    },
+    "chore_pending_claim": {
+      "message": "Chore有一项待审批的索赔申请，目前正等待批准或驳回。"
+    },
+    "chore_waiting": {
+      "message": "这项任务现在还不能领取，截止日期尚未到来。"
+    },
+    "chore_not_my_turn": {
+      "message": "这项任务已锁定轮值，目前轮到另一位分配人员了。"
+    },
+    "chore_standby": {
+      "message": "您是 {chore_name}的候补人员。主要负责人负有首要责任。"
+    },
+    "chore_missed_locked": {
+      "message": "这项任务已被标记为未完成，并在当前周期内锁定。"
+    },
+    "chore_completed_by_other": {
+      "message": "这项任务已由另一名受派人员在本期间完成。"
+    },
+    "invalid_status": {
+      "message": "{entity} 状态为 {status}，预期为 {expected}"
+    },
+    "entity_mismatch": {
+      "message": "{provided} 与 {expected} 不匹配"
+    },
+    "invalid_frequency": {
+      "message": "重复频率 {frequency} 无效"
+    },
+    "chore_overdue_for_assignee": {
+      "message": "家务 {chore_name} 已逾期，截止日期为 {assignee_name}"
+    },
+    "assignee_not_assigned_to_chore": {
+      "message": "受让人 {assignee_name} 未被分配到家务 {chore_name}"
+    },
+    "shared_chore_cannot_have_assignee": {
+      "message": "无法为共享家务指定受让人 {chore_name}。共享家务对所有受让人都只有一个截止日期。"
+    },
+    "reward_not_found": {
+      "message": "未找到 ID 为 {reward_id} 的奖励"
+    },
+    "required_field": {
+      "message": "必须提供 {field}"
+    },
+    "invalid_date_format": {
+      "message": "日期格式无效。请提供有效的日期字符串（例如，YYYY-MM-DD 或 ISO 8601 日期时间格式）。"
+    },
+    "date_in_past": {
+      "message": "截止日期不能是过去的日期，请提供一个未来的日期。"
+    },
+    "missing_chore": {
+      "message": "必须提供家务编号或家务名称。"
+    },
+    "missing_chore_identifier": {
+      "message": "必须提供 chore_id 或 chore_name 来识别家务。"
+    },
+    "chore_not_found": {
+      "message": "未找到 ID 为 {chore_id} 的任务。"
+    },
+    "completion_criteria_immutable": {
+      "message": "家务创建后无法更改完成条件。如果需要不同的完成条件，请删除并重新创建家务。"
+    },
+    "missing_reward_identifier": {
+      "message": "必须提供 reward_id 或 reward_name 来标识要更新的奖励。"
+    },
+    "missing_field": {
+      "message": "{entity} 缺少必填字段 {field}"
+    },
+    "invalid_date": {
+      "message": "日期 {field} {date} 无效"
+    },
+    "date_constraint": {
+      "message": "{constraint} 违规： {detail}"
+    },
+    "operation_failed": {
+      "message": "{operation} 失败： {reason}"
+    },
+    "configuration_error": {
+      "message": "配置错误： {detail}"
+    },
+    "data_reset_confirmation_required": {
+      "message": "您必须将 confirm_destructive 设置为 true 才能继续执行数据重置"
+    },
+    "data_reset_assignee_not_found": {
+      "message": "未找到受让人 {assignee_name}"
+    },
+    "data_reset_item_not_found": {
+      "message": "{item_type} {item_name} 未找到"
+    },
+    "data_reset_invalid_scope": {
+      "message": "无效的作用域 {scope}。必须为：global、assignee、item_type 或 item。"
+    },
+    "data_reset_invalid_item_type": {
+      "message": "无效的 item_type {item_type}。必须为：assignees、chores、rewards、bades、achievements、challenges、pencilities 或 bonus。"
+    },
+    "notif_title_data_reset": {
+      "message": "交易数据重置"
+    },
+    "notif_message_data_reset_global": {
+      "message": "所有运行时数据已重置。配置已保留。"
+    },
+    "notif_message_data_reset_assignee": {
+      "message": "{assignee_name}的数据重置完成。积分、统计数据和进度均已清除。"
+    },
+    "notif_message_data_reset_item_type": {
+      "message": "所有 {item_type}的数据重置完成。运行时数据已清除。"
+    },
+    "notif_message_data_reset_item": {
+      "message": "{item_name}的数据重置完成。运行时数据已清除。"
+    },
+    "notif_title_chore_missed": {
+      "message": "家务没做完"
+    },
+    "notif_message_chore_missed": {
+      "message": "{assignee_name} 没做家务： {chore_name}"
+    },
+    "chore_paused": {
+      "message": "该用户的家务处理当前已暂停。"
+    }
+  }
+}
