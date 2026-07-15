@@ -2925,49 +2925,53 @@ class NotificationManager(BaseManager):
             tag_identifiers=(chore_id, target_assignee_id),
         )
 
-        # Build approver actions
-        approver_actions: list[dict[str, str]] = []
-        approver_actions.extend(
-            self.build_complete_action(target_assignee_id, chore_id, self.entry_id)
-        )
-        approver_actions.extend(
-            self.build_skip_action(target_assignee_id, chore_id, self.entry_id)
-        )
-        approver_actions.extend(
-            self.build_remind_action(target_assignee_id, chore_id, self.entry_id)
-        )
-
-        # Get assignee name from payload (ChoreManager always provides it)
-        original_assignee_name = payload.get("user_name", "")
-        if not original_assignee_name:
-            const.LOGGER.error(
-                "CHORE_OVERDUE notification missing user_name in payload for target_user=%s, chore_id=%s",
-                target_assignee_id,
-                chore_id,
+        # Skip approver notification for standby entries — the chore isn't theirs.
+        # Standbys are being asked to cover; only the primary should trigger
+        # an approver "overdue" alert.
+        if overdue_message_type != const.CHORE_OVERDUE_NOTIFICATION_TYPE_STANDBY_NEEDED:
+            # Build approver actions
+            approver_actions: list[dict[str, str]] = []
+            approver_actions.extend(
+                self.build_complete_action(target_assignee_id, chore_id, self.entry_id)
             )
-            return
+            approver_actions.extend(
+                self.build_skip_action(target_assignee_id, chore_id, self.entry_id)
+            )
+            approver_actions.extend(
+                self.build_remind_action(target_assignee_id, chore_id, self.entry_id)
+            )
 
-        # Get approver's language for datetime formatting
-        # Note: notify_approvers_translated handles per-approver language internally,
-        # but we format with system default here since the message_data is shared
-        approver_language = self.hass.config.language
-        formatted_due_date_approver = dt_format_short(
-            due_dt, language=approver_language
-        )
+            # Get assignee name from payload (ChoreManager always provides it)
+            original_assignee_name = payload.get("user_name", "")
+            if not original_assignee_name:
+                const.LOGGER.error(
+                    "CHORE_OVERDUE notification missing user_name in payload for target_user=%s, chore_id=%s",
+                    target_assignee_id,
+                    chore_id,
+                )
+                return
 
-        await self.notify_approvers_translated(
-            target_assignee_id,
-            title_key=const.TRANS_KEY_NOTIF_TITLE_CHORE_OVERDUE_APPROVER,
-            message_key=const.TRANS_KEY_NOTIF_MESSAGE_CHORE_OVERDUE_APPROVER,
-            message_data={
-                "assignee_name": original_assignee_name,  # Use original assignee name from payload
-                "chore_name": chore_name,
-                "due_date": formatted_due_date_approver,
-            },
-            actions=approver_actions,
-            tag_type=const.NOTIFY_TAG_TYPE_STATUS,
-            tag_identifiers=(chore_id, target_assignee_id),
-        )
+            # Get approver's language for datetime formatting
+            # Note: notify_approvers_translated handles per-approver language internally,
+            # but we format with system default here since the message_data is shared
+            approver_language = self.hass.config.language
+            formatted_due_date_approver = dt_format_short(
+                due_dt, language=approver_language
+            )
+
+            await self.notify_approvers_translated(
+                target_assignee_id,
+                title_key=const.TRANS_KEY_NOTIF_TITLE_CHORE_OVERDUE_APPROVER,
+                message_key=const.TRANS_KEY_NOTIF_MESSAGE_CHORE_OVERDUE_APPROVER,
+                message_data={
+                    "assignee_name": original_assignee_name,  # Use original assignee name from payload
+                    "chore_name": chore_name,
+                    "due_date": formatted_due_date_approver,
+                },
+                actions=approver_actions,
+                tag_type=const.NOTIFY_TAG_TYPE_STATUS,
+                tag_identifiers=(chore_id, target_assignee_id),
+            )
 
         # Record notification sent (persists to storage)
         self._record_chore_notification_sent(target_assignee_id, chore_id, "overdue")
@@ -3055,44 +3059,53 @@ class NotificationManager(BaseManager):
             tag_identifiers=(chore_id, assignee_id),
         )
 
-        # Build approver actions (complete/skip still available for approvers)
-        approver_actions: list[dict[str, str]] = []
-        approver_actions.extend(
-            self.build_complete_action(assignee_id, chore_id, self.entry_id)
-        )
-        approver_actions.extend(
-            self.build_skip_action(assignee_id, chore_id, self.entry_id)
-        )
+        # Skip approver notification for standbys in primary-standby mode.
+        # The standby didn't miss the chore — only the primary did.
+        is_standby_in_rotation = False
+        if chore_info and ChoreEngine.is_rotation_mode(chore_info):
+            current_turn = chore_info.get(const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID)
+            if current_turn and current_turn != assignee_id:
+                is_standby_in_rotation = True
 
-        # Get assignee name from payload (ChoreManager always provides it)
-        assignee_name_payload = payload.get("user_name", "")
-        if not assignee_name_payload:
-            const.LOGGER.error(
-                "CHORE_MISSED notification missing user_name in payload for user_id=%s, chore_id=%s",
-                assignee_id,
-                chore_id,
+        if not is_standby_in_rotation:
+            # Build approver actions (complete/skip still available for approvers)
+            approver_actions: list[dict[str, str]] = []
+            approver_actions.extend(
+                self.build_complete_action(assignee_id, chore_id, self.entry_id)
             )
-            return
+            approver_actions.extend(
+                self.build_skip_action(assignee_id, chore_id, self.entry_id)
+            )
 
-        # Format due date for approvers
-        approver_language = self.hass.config.language
-        formatted_due_date_approver = dt_format_short(
-            due_dt, language=approver_language
-        )
+            # Get assignee name from payload (ChoreManager always provides it)
+            assignee_name_payload = payload.get("user_name", "")
+            if not assignee_name_payload:
+                const.LOGGER.error(
+                    "CHORE_MISSED notification missing user_name in payload for user_id=%s, chore_id=%s",
+                    assignee_id,
+                    chore_id,
+                )
+                return
 
-        await self.notify_approvers_translated(
-            assignee_id,
-            title_key=const.TRANS_KEY_NOTIF_TITLE_CHORE_MISSED_ASSIGNEE,
-            message_key=const.TRANS_KEY_NOTIF_MESSAGE_CHORE_MISSED_ASSIGNEE,
-            message_data={
-                "assignee_name": assignee_name_payload,
-                "chore_name": chore_name,
-                "due_date": formatted_due_date_approver,
-            },
-            actions=approver_actions,
-            tag_type=const.NOTIFY_TAG_TYPE_STATUS,
-            tag_identifiers=(chore_id, assignee_id),
-        )
+            # Format due date for approvers
+            approver_language = self.hass.config.language
+            formatted_due_date_approver = dt_format_short(
+                due_dt, language=approver_language
+            )
+
+            await self.notify_approvers_translated(
+                assignee_id,
+                title_key=const.TRANS_KEY_NOTIF_TITLE_CHORE_MISSED_ASSIGNEE,
+                message_key=const.TRANS_KEY_NOTIF_MESSAGE_CHORE_MISSED_ASSIGNEE,
+                message_data={
+                    "assignee_name": assignee_name_payload,
+                    "chore_name": chore_name,
+                    "due_date": formatted_due_date_approver,
+                },
+                actions=approver_actions,
+                tag_type=const.NOTIFY_TAG_TYPE_STATUS,
+                tag_identifiers=(chore_id, assignee_id),
+            )
 
         # Record notification sent (persists to storage)
         self._record_chore_notification_sent(assignee_id, chore_id, "missed")
