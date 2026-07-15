@@ -99,6 +99,9 @@
     "title": "📋 {assignee_name}: {count} Очікує на розгляд",
     "message": "{count} завдання, що очікують перевірки. Останні: {latest_chore} (+{points} {points_label})"
   },
+  "pending_chores_approver_no_points": {
+    "message": "{count} завдання, що очікують перевірки. Останні: {latest_chore}"
+  },
   "reward_claimed_approver": {
     "title": "🎁 {assignee_name}: Запит на винагороду",
     "message": "{assignee_name} запитував {reward_name} для {points} {points_label}"

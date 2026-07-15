@@ -1,0 +1,167 @@
+{
+  "_comment_assignee_section": "══════════════════════════════════════════════════════════════════",
+  "_comment_assignee_desc": "受让人通知：采用游戏化、第二人称、鼓励性的语气，并配以表情符号。不使用“ChoreOps:”前缀。",
+  "_comment_assignee_footer": "══════════════════════════════════════════════════════════════════",
+  "chore_approved_assignee": {
+    "title": "🎉 家务活已批准！",
+    "message": "{chore_name} 已批准！您获得了 {points} {points_label}"
+  },
+  "chore_disapproved_assignee": {
+    "title": "↩️ 家务已完成",
+    "message": "{chore_name} 还需要更多改进。"
+  },
+  "chore_overdue_assignee": {
+    "title": "⏰ 家务逾期未完成",
+    "message": "{chore_name} 已过期！立即完成即可获得 {points} {points_label}"
+  },
+  "chore_overdue_steal_available": {
+    "title": "⚡家务提醒",
+    "message": "{chore_name} 已过期，可以偷取！先完成它即可获得 {points} {points_label}"
+  },
+  "chore_missed_assignee": {
+    "title": "😔 任务已过期",
+    "message": "{chore_name} 已过期，未完成。"
+  },
+  "chore_due_reminder_assignee": {
+    "title": "⏰ 家务提醒",
+    "message": "{chore_name} 将在 {minutes} 分钟后到期！价值 {points} {points_label}"
+  },
+  "chore_due_window_assignee": {
+    "title": "🎯 家务活现在到期",
+    "message": "{chore_name} 现已截止！请在 {hours} 小时内完成，即可获得 {points} {points_label} 奖励。"
+  },
+  "chore_approved_assignee_no_points": {
+    "message": "{chore_name} 已批准！"
+  },
+  "chore_overdue_assignee_no_points": {
+    "message": "{chore_name} 已逾期！请立即完成。"
+  },
+  "chore_overdue_steal_available_no_points": {
+    "message": "{chore_name} 已经过期，可以偷走了！先完成它"
+  },
+  "chore_standby_needed_no_points": {
+    "message": "{primary_name}的家务 {chore_name} 已经逾期了！现在就去领取吧！"
+  },
+  "chore_due_reminder_assignee_no_points": {
+    "message": "{chore_name} 将在 {minutes} 分钟后到期！"
+  },
+  "chore_due_window_assignee_no_points": {
+    "message": "{chore_name} 已截止！请在 {hours} 小时内完成。"
+  },
+  "reward_approved_assignee": {
+    "title": "🎉奖励已批准！",
+    "message": "{reward_name} 已批准！"
+  },
+  "reward_disapproved_assignee": {
+    "title": "💭奖励申请已退回",
+    "message": "{reward_name} 这次没有获得批准。"
+  },
+  "badge_earned_assignee": {
+    "title": "🥇获得徽章！",
+    "message": "你获得了 {badge_name} 徽章！"
+  },
+  "achievement_earned_assignee": {
+    "title": "🏆 获得成就！",
+    "message": "你获得了 {achievement_name}！继续加油！"
+  },
+  "challenge_completed_assignee": {
+    "title": "挑战完成！",
+    "message": "你完成了 {challenge_name}！继续加油！"
+  },
+  "penalty_applied_assignee": {
+    "title": "⚠️ 已施加处罚",
+    "message": "扣除了 {penalty_name}: {points} {points_label} 。让我们回到正题！"
+  },
+  "bonus_applied_assignee": {
+    "title": "⭐ 奖励已生效！",
+    "message": "{bonus_name}：您获得了 {points} 奖金 {points_label}！干得好！"
+  },
+  "multiplier_changed_assignee": {
+    "title": "⚖️ 倍率已更新",
+    "message": "Your {points_label} multiplier changed from {old_multiplier}x to {new_multiplier}x"
+  },
+  "_comment_approver_section": "══════════════════════════════════════════════════════════════════",
+  "_comment_approver_desc": "审批人通知：信息丰富、第三人称、可操作。格式：'{assignee_name}: 操作'。无“ChoreOps:”前缀。",
+  "_comment_approver_footer": "══════════════════════════════════════════════════════════════════",
+  "chore_claimed_approver": {
+    "title": "✋ {assignee_name}: 已认领家务",
+    "message": "{assignee_name} 已认领 {chore_name}"
+  },
+  "chore_reminder_approver": {
+    "title": "⏰ {assignee_name}: 需要批准",
+    "message": "提醒： {chore_name} 已被 {assignee_name} 认领，等待您的审核。"
+  },
+  "chore_overdue_approver": {
+    "title": "⚠️ {assignee_name}：家务逾期",
+    "message": "{assignee_name}的家务 {chore_name} 已逾期（到期日： {due_date}）"
+  },
+  "pending_chores_approver": {
+    "title": "📋 {assignee_name}: {count} 待定",
+    "message": "{count} 项任务待审核。最新： {latest_chore} (+{points} {points_label})"
+  },
+  "pending_chores_approver_no_points": {
+    "message": "{count} 项任务待审核。最新： {latest_chore}"
+  },
+  "reward_claimed_approver": {
+    "title": "🎁 {assignee_name}: 奖励请求",
+    "message": "{assignee_name} 请求 {reward_name} 为 {points} {points_label}"
+  },
+  "reward_reminder_approver": {
+    "title": "⏰ {assignee_name}: 奖励待发放",
+    "message": "提醒： {reward_name} 由 {assignee_name} 请求，正在等待您的批准"
+  },
+  "badge_earned_approver": {
+    "title": "🥇 {assignee_name}: 获得徽章",
+    "message": "{assignee_name} 获得了 {badge_name} 徽章！"
+  },
+  "achievement_earned_approver": {
+    "title": "🏆 {assignee_name}: 成就",
+    "message": "{assignee_name} 获得 {achievement_name}"
+  },
+  "challenge_completed_approver": {
+    "title": "🏁 {assignee_name}: 挑战完成",
+    "message": "{assignee_name} 已完成 {challenge_name}"
+  },
+  "multiplier_changed_approver": {
+    "title": "⚖️ {assignee_name}：倍率已更新",
+    "message": "{assignee_name}的 {points_label} 乘数从 {old_multiplier}x 变为 {new_multiplier}x"
+  },
+  "_comment_system_section": "══════════════════════════════════════════════════════════════════",
+  "_comment_system_desc": "系统/管理员通知：数据管理操作",
+  "_comment_system_footer": "══════════════════════════════════════════════════════════════════",
+  "data_reset": {
+    "title": "🔄 ChoreOps：数据重置",
+    "message": "系统数据已重置"
+  },
+  "data_reset_global": {
+    "title": "🔄 ChoreOps：完全重置",
+    "message": "所有系统数据已重置为默认值。"
+  },
+  "data_reset_assignee": {
+    "title": "🔄 ChoreOps：任务分配人重置",
+    "message": "{assignee_name} 的数据重置"
+  },
+  "data_reset_item_type": {
+    "title": "🔄 ChoreOps： {item_type} 重置",
+    "message": "所有 {item_type} 数据已重置"
+  },
+  "data_reset_item": {
+    "title": "🔄 ChoreOps：物品重置",
+    "message": "{item_type} '{item_name}' 已重置"
+  },
+  "_comment_actions_section": "══════════════════════════════════════════════════════════════════",
+  "_comment_actions_desc": "通知操作按钮：更柔和、更鼓励性的语言",
+  "_comment_actions_footer": "══════════════════════════════════════════════════════════════════",
+  "actions": {
+    "approve": "✅ 批准",
+    "claim": "✋ 我做到了！",
+    "complete": "✅ 已完成",
+    "disapprove": "↩️ 不赞成",
+    "remind_30": "⏰ 30分钟后提醒",
+    "skip": "⏭️ 跳过"
+  },
+  "chore_standby_needed": {
+    "title": "🫲 请求待命",
+    "message": "{primary_name}的家务 {chore_name} 已逾期！立即领取即可获得 {points} {points_label}"
+  }
+}

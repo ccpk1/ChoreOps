@@ -99,6 +99,9 @@
     "title": "📋 {assignee_name}: {count} In afwachting",
     "message": "{count} taken die nog beoordeeld moeten worden. Laatste: {latest_chore} (+{points} {points_label})"
   },
+  "pending_chores_approver_no_points": {
+    "message": "{count} taken die nog beoordeeld moeten worden. Laatste: {latest_chore}"
+  },
   "reward_claimed_approver": {
     "title": "🎁 {assignee_name}: Beloningsverzoek",
     "message": "{assignee_name} heeft {reward_name} aangevraagd voor {points} {points_label}"
