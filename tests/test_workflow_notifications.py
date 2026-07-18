@@ -2071,3 +2071,132 @@ class TestConcurrentNotifications:
 
             # At least one notification should have succeeded despite the failure
             assert call_count >= 1, "Expected notifications to be attempted"
+
+
+class TestNonGamifiedNotificationRouting:
+    """Tests for notification routing when gamification is disabled.
+
+    Regression tests for Issue #209: verify that approver notifications
+    check the ASSIGNEE's gamification status (not the approver's), so:
+    - Non-gamified assignee → approver gets _no_points template (no crash)
+    - Gamified assignee → approver always gets points, regardless of
+      approver's own gamification setting
+    """
+
+    @pytest.mark.asyncio
+    async def test_non_gamified_assignee_triggers_no_points_template(
+        self,
+        hass: HomeAssistant,
+        scenario_notifications: SetupResult,
+    ) -> None:
+        """Non-gamified assignee claiming a chore sends _no_points to approver.
+
+        The assignee's gamification status determines whether points are
+        included in approver notifications. When disabled, the pending_chores
+        template must omit {points} to avoid KeyError.
+        """
+        coordinator = scenario_notifications.coordinator
+        assignee_id = scenario_notifications.assignee_ids["Zoë"]
+        chore_id = scenario_notifications.chore_ids["Feed the cat"]
+
+        # Disable gamification for the assignee
+        coordinator.assignees_data[assignee_id][const.DATA_USER_ENABLE_GAMIFICATION] = (
+            False
+        )
+
+        # Track what gets passed to notify_approvers_translated
+        captured = {"message_data": None, "message_key": None}
+
+        async def capture_approver_call(
+            assignee_id_arg: str,
+            title_key: str,
+            message_key: str,
+            **kwargs: Any,
+        ) -> None:
+            captured["message_data"] = kwargs.get("message_data")
+            captured["message_key"] = message_key
+
+        with patch.object(
+            coordinator.notification_manager,
+            "notify_approvers_translated",
+            new=capture_approver_call,
+        ):
+            await coordinator.notification_manager._handle_chore_claimed(
+                {
+                    "user_id": assignee_id,
+                    "user_name": "Zoë",
+                    "chore_id": chore_id,
+                    "chore_name": "Feed the cat",
+                }
+            )
+
+        # Verify notification was sent (not skipped due to crash)
+        assert captured["message_data"] is not None, "No notification was sent"
+
+        # Verify points are NOT present in the message_data (stripped for non-gamified)
+        message_data = captured["message_data"]
+        assert "points" not in message_data, (
+            f"Points should be stripped for non-gamified assignee, got: {message_data}"
+        )
+
+    @pytest.mark.asyncio
+    async def test_gamified_assignee_preserves_points_for_non_gamified_approver(
+        self,
+        hass: HomeAssistant,
+        scenario_notifications: SetupResult,
+    ) -> None:
+        """Gamified assignee's reward notification keeps points for non-gamified approver.
+
+        Rewards are inherently gamified — the approver's own gamification
+        setting must NOT cause points to be stripped from the notification.
+        """
+        coordinator = scenario_notifications.coordinator
+        assignee_id = scenario_notifications.assignee_ids["Zoë"]
+        approver_id = scenario_notifications.approver_ids["Môm Astrid Stârblüm"]
+
+        # Assignee stays gamified (default True) — required for rewards
+        # Disable gamification on the APPROVER to reproduce the original bug
+        coordinator.approvers_data[approver_id][const.DATA_USER_ENABLE_GAMIFICATION] = (
+            False
+        )
+
+        # Track what gets passed to notify_approvers_translated
+        captured = {"message_data": None, "message_key": None}
+
+        async def capture_approver_call(
+            assignee_id_arg: str,
+            title_key: str,
+            message_key: str,
+            **kwargs: Any,
+        ) -> None:
+            captured["message_data"] = kwargs.get("message_data")
+            captured["message_key"] = message_key
+
+        with patch.object(
+            coordinator.notification_manager,
+            "notify_approvers_translated",
+            new=capture_approver_call,
+        ):
+            await coordinator.notification_manager._handle_reward_claimed(
+                {
+                    "user_id": assignee_id,
+                    "user_name": "Zoë",
+                    "reward_id": "test_reward_001",
+                    "reward_name": "Test Reward",
+                    "points": 50,
+                    "notif_id": "test_notif_001",
+                }
+            )
+
+        # Verify notification was sent (not skipped due to crash)
+        assert captured["message_data"] is not None, "No notification was sent"
+
+        # Verify points ARE present in the message_data (assignee is gamified)
+        message_data = captured["message_data"]
+        assert "points" in message_data, (
+            "Points should be preserved when assignee is gamified, "
+            f"but got: {message_data}"
+        )
+        assert message_data["points"] == 50, (
+            f"Expected points=50, got: {message_data.get('points')}"
+        )
