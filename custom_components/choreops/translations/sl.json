@@ -5465,6 +5465,9 @@
     "date_in_past": {
       "message": "Rok ne sme biti v preteklosti. Navedite datum v prihodnosti."
     },
+    "future_due_date_required": {
+      "message": "Zahtevane spremembe zahtevajo datum zapadlosti v prihodnosti"
+    },
     "missing_chore": {
       "message": "Navesti morate bodisi ID opravila bodisi ime opravila."
     },

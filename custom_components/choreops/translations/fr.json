@@ -5465,6 +5465,9 @@
     "date_in_past": {
       "message": "La date d'échéance ne peut pas être passée. Veuillez indiquer une date future."
     },
+    "future_due_date_required": {
+      "message": "Les modifications demandées nécessitent une date d'échéance ultérieure"
+    },
     "missing_chore": {
       "message": "Vous devez fournir soit l'identifiant de la tâche, soit son nom."
     },

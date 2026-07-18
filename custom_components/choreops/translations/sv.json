@@ -5465,6 +5465,9 @@
     "date_in_past": {
       "message": "Förfallodatumet får inte vara i det förflutna. Ange ett framtida datum."
     },
+    "future_due_date_required": {
+      "message": "De begärda ändringarna kräver ett framtida förfallodatum"
+    },
     "missing_chore": {
       "message": "Måste ange antingen sysslo-ID eller sysslonamn."
     },

@@ -5465,6 +5465,9 @@
     "date_in_past": {
       "message": "Dátum splatnosti nemôže byť v minulosti. Zadajte dátum v budúcnosti."
     },
+    "future_due_date_required": {
+      "message": "Požadované zmeny vyžadujú termín splatnosti v budúcnosti"
+    },
     "missing_chore": {
       "message": "Musíte zadať buď ID úlohy, alebo názov úlohy."
     },

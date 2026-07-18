@@ -5465,6 +5465,9 @@
     "date_in_past": {
       "message": "Määräpäivä ei voi olla menneisyydessä. Anna päivämäärä tulevaisuudessa."
     },
+    "future_due_date_required": {
+      "message": "Pyydetyt muutokset vaativat tulevaisuudessa olevan määräpäivän"
+    },
     "missing_chore": {
       "message": "On annettava joko tehtävän tunnus tai tehtävän nimi."
     },

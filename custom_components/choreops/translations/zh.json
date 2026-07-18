@@ -5465,6 +5465,9 @@
     "date_in_past": {
       "message": "截止日期不能是过去的日期，请提供一个未来的日期。"
     },
+    "future_due_date_required": {
+      "message": "所请求的变更需要在未来的某个日期前完成。"
+    },
     "missing_chore": {
       "message": "必须提供家务编号或家务名称。"
     },

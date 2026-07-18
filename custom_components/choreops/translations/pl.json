@@ -5465,6 +5465,9 @@
     "date_in_past": {
       "message": "Termin nie może przypadać w przeszłości. Proszę podać datę w przyszłości."
     },
+    "future_due_date_required": {
+      "message": "Żądane zmiany wymagają daty wykonania w przyszłości"
+    },
     "missing_chore": {
       "message": "Należy podać identyfikator lub nazwę zadania."
     },

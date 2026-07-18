@@ -5465,6 +5465,9 @@
     "date_in_past": {
       "message": "Der Fälligkeitstermin darf nicht in der Vergangenheit liegen. Bitte geben Sie ein zukünftiges Datum an."
     },
+    "future_due_date_required": {
+      "message": "Die angeforderten Änderungen erfordern einen zukünftigen Fälligkeitstermin."
+    },
     "missing_chore": {
       "message": "Es muss entweder die Aufgaben-ID oder der Aufgabenname angegeben werden."
     },
