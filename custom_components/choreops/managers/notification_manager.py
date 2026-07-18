@@ -1324,9 +1324,11 @@ class NotificationManager(BaseManager):
                 self.hass, approver_language
             )
 
-            # Resolve non-gamified key based on approver's gamification flag
+            # Resolve non-gamified key based on assignee's gamification status
+            # The notification content describes the assignee's action — points
+            # should only be stripped if the assignee doesn't use gamification.
             resolved_message_key = message_key
-            if not self._get_assignee_gamification_enabled(approver_id):
+            if not self._get_assignee_gamification_enabled(assignee_id):
                 resolved_message_key = const.NOTIF_NON_GAMIFIED_MESSAGE_KEYS.get(
                     message_key, message_key
                 )

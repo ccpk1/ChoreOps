@@ -3314,6 +3314,9 @@ TRANS_KEY_ERROR_INVALID_DATE_FORMAT: Final = (
     "invalid_date_format"  # Invalid date format
 )
 TRANS_KEY_ERROR_DATE_IN_PAST: Final = "date_in_past"  # Due date cannot be in the past
+TRANS_KEY_ERROR_FUTURE_DUE_DATE_REQUIRED: Final = (
+    "future_due_date_required"  # The requested changes require a future due date
+)
 TRANS_KEY_ERROR_MISSING_CHORE: Final = "missing_chore"  # Must provide chore ID or name
 TRANS_KEY_ERROR_MISSING_REWARD_IDENTIFIER: Final = (
     "missing_reward_identifier"  # Must provide reward_id or reward_name

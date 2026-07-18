@@ -1,7 +1,21 @@
 ---
 name: ChoreOps Maintainer
 description: Ad-hoc assistant for debugging, analysis, cleanup, and small fixes
-tools: ["search", "edit", "read", "execute", "web", "agent", "todo"]
+tools:
+  [
+    vscode,
+    execute,
+    read,
+    agent,
+    vscodeGeneral/rename,
+    vscodeGeneral/usages,
+    vscodeNotebooks/createJupyterNotebook,
+    vscodeNotebooks/editNotebook,
+    edit,
+    search,
+    web,
+    todo,
+  ]
 handoffs:
   - label: Escalate to Strategist
     agent: ChoreOps Strategist
