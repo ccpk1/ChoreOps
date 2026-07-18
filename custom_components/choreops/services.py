@@ -1655,6 +1655,22 @@ def async_setup_services(hass: HomeAssistant):
         if validation_errors:
             # Get first error and raise
             error_field, error_key = next(iter(validation_errors.items()))
+
+            # Map due-date-related config-flow keys to a single general
+            # exception key so service callers see one clear message
+            # regardless of which specific date validation failed.
+            _DUE_DATE_ERROR_KEYS = frozenset(
+                {
+                    const.TRANS_KEY_CFOF_DUE_DATE_IN_PAST,
+                    const.TRANS_KEY_CFOF_DATE_REQUIRED_FOR_FREQUENCY,
+                    const.TRANS_KEY_CFOF_ERROR_DAILY_MULTI_DUE_DATE_REQUIRED,
+                    const.TRANS_KEY_CFOF_ERROR_AT_DUE_DATE_RESET_REQUIRES_DUE_DATE,
+                    const.TRANS_KEY_CFOF_INVALID_DUE_DATE,
+                }
+            )
+            if error_key in _DUE_DATE_ERROR_KEYS:
+                error_key = const.TRANS_KEY_ERROR_FUTURE_DUE_DATE_REQUIRED
+
             raise HomeAssistantError(
                 translation_domain=const.DOMAIN,
                 translation_key=error_key,
