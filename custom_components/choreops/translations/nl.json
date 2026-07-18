@@ -5465,6 +5465,9 @@
     "date_in_past": {
       "message": "De uiterste inleverdatum mag niet in het verleden liggen. Geef een datum in de toekomst op."
     },
+    "future_due_date_required": {
+      "message": "De gevraagde wijzigingen vereisen een latere deadline."
+    },
     "missing_chore": {
       "message": "U dient ofwel het taak-ID ofwel de taaknaam op te geven."
     },

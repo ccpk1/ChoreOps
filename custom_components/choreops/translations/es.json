@@ -5465,6 +5465,9 @@
     "date_in_past": {
       "message": "La fecha de vencimiento no puede ser pasada. Por favor, proporcione una fecha futura."
     },
+    "future_due_date_required": {
+      "message": "Los cambios solicitados requieren una fecha de vencimiento futura."
+    },
     "missing_chore": {
       "message": "Debe proporcionar el ID de la tarea o el nombre de la tarea."
     },

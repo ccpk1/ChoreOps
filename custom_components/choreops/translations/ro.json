@@ -5465,6 +5465,9 @@
     "date_in_past": {
       "message": "Data scadenței nu poate fi în trecut. Vă rugăm să furnizați o dată viitoare."
     },
+    "future_due_date_required": {
+      "message": "Modificările solicitate necesită o dată scadentă viitoare"
+    },
     "missing_chore": {
       "message": "Trebuie să furnizați fie ID-ul sarcinii, fie numele acesteia."
     },

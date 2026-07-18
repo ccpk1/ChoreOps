@@ -5465,6 +5465,9 @@
     "date_in_past": {
       "message": "Forfaldsdatoen må ikke være i fortiden. Angiv venligst en fremtidig dato."
     },
+    "future_due_date_required": {
+      "message": "De ønskede ændringer kræver en fremtidig forfaldsdato"
+    },
     "missing_chore": {
       "message": "Skal angive enten opgave-ID eller opgavenavn."
     },
