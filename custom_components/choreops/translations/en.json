@@ -5465,6 +5465,9 @@
     "date_in_past": {
       "message": "Due date cannot be in the past. Please provide a future date."
     },
+    "future_due_date_required": {
+      "message": "The requested changes require a future due date"
+    },
     "missing_chore": {
       "message": "Must provide either chore ID or chore name."
     },
