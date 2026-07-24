@@ -4,7 +4,7 @@ asyncio_default_fixture_loop_scope = "function"
 markers = ["slow: marks tests as slow (deselect with '-m \"not slow\"')"]
 
 [tool.ruff]
-required-version = ">=0.13.0"
+required-version = "==0.15.16"
 target-version = "py313"
 line-length = 88
 
@@ -94,6 +94,7 @@ ignore = [
   "PLR0912", # Too many branches
   "PLR0913", # Too many arguments to function call
   "PLR0915", # Too many statements
+  "PLR0917", # Too many positional arguments
   "PLR2004", # Magic value used in comparison
   "PLW2901", # Outer variable overwritten by inner target
   "PT011",   # pytest.raises too broad
@@ -226,7 +227,7 @@ disable = [
   "duplicate-code",
   "too-many-locals",
   "too-many-arguments",
-  "PLR0917",
+  "too-many-positional-arguments",
   "too-many-branches",
   "too-many-statements",
   "too-many-return-statements",
