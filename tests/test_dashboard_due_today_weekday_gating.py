@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import timedelta
+
 from homeassistant.util import dt as dt_util
 
 from custom_components.choreops import const
@@ -99,4 +101,91 @@ def test_dashboard_primary_group_only_uses_today_for_matching_daily() -> None:
             False,
         )
         == const.PRIMARY_GROUP_OTHER
+    )
+
+
+def test_calculate_primary_group_returns_other_for_blocked_claim_modes() -> None:
+    """Blocked claim modes route to 'other' regardless of due date."""
+    sensor = object.__new__(AssigneeDashboardHelperSensor)
+    past_local = dt_util.as_local(dt_util.now()).replace(
+        hour=0, minute=0, second=0, microsecond=0
+    ) - timedelta(days=1)
+    today_local = dt_util.as_local(dt_util.now()).replace(
+        hour=0, minute=0, second=0, microsecond=0
+    )
+
+    for blocked_mode in (
+        const.CHORE_CLAIM_MODE_BLOCKED_NOT_MY_TURN,
+        const.CHORE_CLAIM_MODE_BLOCKED_STANDBY,
+        const.CHORE_CLAIM_MODE_BLOCKED_PAUSED,
+    ):
+        # Past due date -> should be 'other' when blocked
+        assert (
+            sensor._calculate_primary_group(
+                const.CHORE_STATE_PENDING,
+                False,
+                past_local,
+                const.FREQUENCY_NONE,
+                False,
+                claim_mode=blocked_mode,
+            )
+            == const.PRIMARY_GROUP_OTHER
+        )
+
+        # Due today -> should be 'other' when blocked
+        assert (
+            sensor._calculate_primary_group(
+                const.CHORE_STATE_PENDING,
+                False,
+                today_local,
+                const.FREQUENCY_NONE,
+                False,
+                claim_mode=blocked_mode,
+            )
+            == const.PRIMARY_GROUP_OTHER
+        )
+
+
+def test_calculate_primary_group_keeps_today_for_non_blocked_modes() -> None:
+    """Non-blocked modes and None claim_mode still use due-date grouping."""
+    sensor = object.__new__(AssigneeDashboardHelperSensor)
+    past_local = dt_util.as_local(dt_util.now()).replace(
+        hour=0, minute=0, second=0, microsecond=0
+    ) - timedelta(days=1)
+
+    # Overdue state always goes to 'today'
+    assert (
+        sensor._calculate_primary_group(
+            const.CHORE_STATE_OVERDUE,
+            False,
+            None,
+            const.FREQUENCY_NONE,
+            False,
+        )
+        == const.PRIMARY_GROUP_TODAY
+    )
+
+    # Pending state with past due date -> 'today' (default None claim_mode)
+    assert (
+        sensor._calculate_primary_group(
+            const.CHORE_STATE_PENDING,
+            False,
+            past_local,
+            const.FREQUENCY_NONE,
+            False,
+        )
+        == const.PRIMARY_GROUP_TODAY
+    )
+
+    # is_due=True -> 'today' regardless of claim_mode
+    assert (
+        sensor._calculate_primary_group(
+            const.CHORE_STATE_PENDING,
+            True,
+            None,
+            const.FREQUENCY_NONE,
+            False,
+            claim_mode=const.CHORE_CLAIM_MODE_BLOCKED_NOT_MY_TURN,
+        )
+        == const.PRIMARY_GROUP_TODAY
     )

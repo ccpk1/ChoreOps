@@ -4741,6 +4741,7 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         state = cast("str", ctx[const.CHORE_CTX_STATE])
         due_date_str = ctx[const.CHORE_CTX_DUE_DATE]
         is_due = ctx[const.CHORE_CTX_IS_DUE]
+        claim_mode = cast("str | None", ctx.get(const.CHORE_CTX_CLAIM_MODE))
 
         # Get chore labels (always a list, even if empty)
         stored_labels = chore_info.get(const.DATA_CHORE_LABELS, [])
@@ -4778,6 +4779,7 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
             due_date_local_dt,
             recurring_frequency,
             shows_today_without_due_date,
+            claim_mode,
         )
 
         # Return the minimal fields needed for dashboard rendering
@@ -4798,6 +4800,7 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         due_date_local,
         recurring_frequency: str,
         shows_today_without_due_date: bool,
+        claim_mode: str | None = None,
     ) -> str:
         """Calculate the primary group for a chore.
 
@@ -4805,11 +4808,16 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         This ensures a chore stays in the same group even when transitioning
         from pending → due → claimed → approved.
 
+        Chores in blocked claim modes (not_my_turn, standby, paused) that the
+        assignee cannot act on are routed to "other" to avoid inflating the
+        actionable "today" and "this_week" group counts.
+
         Args:
             status: The derived display state (from context provider)
             is_due: Whether chore is in due window (from context provider)
             due_date_local: Local datetime or None
             recurring_frequency: Chore frequency string
+            claim_mode: Claim mode string from context, or None if claimable
 
         Returns: "today", "this_week", or "other"
         """
@@ -4820,6 +4828,15 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         # If chore is in due window (regardless of actual due date), it goes to today
         if is_due:
             return const.PRIMARY_GROUP_TODAY
+
+        # Blocked claim modes: route to "other" so non-actionable chores
+        # don't inflate the actionable "today" / "this_week" group counts.
+        if claim_mode in (
+            const.CHORE_CLAIM_MODE_BLOCKED_NOT_MY_TURN,
+            const.CHORE_CLAIM_MODE_BLOCKED_STANDBY,
+            const.CHORE_CLAIM_MODE_BLOCKED_PAUSED,
+        ):
+            return const.PRIMARY_GROUP_OTHER
 
         # Check due date if available
         if due_date_local and isinstance(due_date_local, datetime):
