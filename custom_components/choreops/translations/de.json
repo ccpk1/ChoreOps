@@ -166,9 +166,9 @@
             "description": "Einstellungen für Zeitrahmen, Zugriffsfenster und Wiederholungsintervall.",
             "data": {
               "recurring_frequency": "Wiederkehrende Häufigkeit",
-              "due_date": "Fälligkeitsdatum",
+              "due_date": "📅 Zeitplan: Fälligkeitsdatum (optional)",
               "clear_due_date": "🗑️ Fälligkeitsdatum klären",
-              "applicable_days": "Anwendbare Tage",
+              "applicable_days": "📅 Zeitplan: Anwendbare Tage (optional)",
               "chore_due_window_offset": "⏱️ Fälligkeitszeitraum: Versatz vor dem Fälligkeitsdatum",
               "chore_claim_lock_until_window": "🔒 Anspruch bis zum Fälligkeitstermin sperren?",
               "custom_interval": "Benutzerdefiniertes Intervall (nur verwenden, wenn benutzerdefinierte Häufigkeit gewählt ist)",
@@ -196,7 +196,7 @@
               "chore_due_reminder_offset": "🔔 Fälligkeitserinnerung: Verrechnung vor dem Fälligkeitsdatum",
               "chore_notifications": "🔔 Benachrichtigungsereignisse (optional)",
               "show_on_calendar": "📅 Im Kalender anzeigen?",
-              "chore_labels": "Hausarbeit-Etiketten"
+              "chore_labels": "📋 Etiketten (optional)"
             },
             "data_description": {
               "approval_reset_type": "Steuert, wann die Genehmigungszyklusgrenze der Aufgabe ausgelöst wird (Mitternacht, Fälligkeitsdatum, nach Abschluss oder manueller Auslöser).",
@@ -214,7 +214,7 @@
           "name": "Name der Hausarbeit",
           "chore_description": "Beschreibung (optional)",
           "icon": "Symbol (mdi:xxx)",
-          "chore_labels": "Hausarbeit-Etiketten",
+          "chore_labels": "📋 Etiketten (optional)",
           "default_points": "Standard-Punkte",
           "assigned_user_ids": "👥 Zugewiesen an",
           "completion_criteria": "👥 Abschlusskriterien",
@@ -282,12 +282,12 @@
           "selected_chores": "🧹 Verfolgte Aufgaben (optional)",
           "assigned_user_ids": "🧒 Zugewiesen an",
           "award_items": "🎁 AUSZEICHNUNGEN: Punkte, Prämien, Boni, Multiplikator auswählen (optional)",
-          "award_points": "Punkte vergeben",
-          "points_multiplier": "Punkte-Multiplikator",
+          "award_points": "🎁 AUSZEICHNUNGEN: Vergebene Punkte (optional)",
+          "points_multiplier": "🎁 AUSZEICHNUNGEN: Punktemultiplikator (Standard 💎 1,0x)",
           "recurring_frequency": "🔄 WARTUNGSZYKLUS: Häufigkeit",
           "custom_interval": "🔄 WARTUNGSZYKLUS: Benutzerdefiniertes Intervall (erforderlich für benutzerdefinierte Frequenz)",
           "custom_interval_unit": "🔄 WARTUNGSZYKLUS: Benutzerdefinierte Intervalleinheit (erforderlich für benutzerdefinierte Frequenz)",
-          "start_date": "Startdatum",
+          "start_date": "🔄 ZYKLUS ZURÜCKSETZEN: Startdatum (optional)",
           "end_date": "🔄 WARTUNGSZYKLUS: Enddatum (optional)",
           "grace_period_days": "🔄 WARTUNGSZYKLUS: Kulanzfrist in Tagen (optional)"
         },
@@ -298,7 +298,7 @@
           "icon": "Geben Sie ein Symbol für das Badge mithilfe von Material Design Icons an (z. B. mdi:star).",
           "target_type": "Wählen Sie die Art des Ziels für dieses Abzeichen aus (z. B. Punkte oder Anzahl der erledigten Aufgaben).",
           "threshold_value": "Legen Sie die Gesamtzahl der Punkte fest, die zum Erhalt dieses Abzeichens erforderlich sind.",
-          "maintenance_rules": "Punktzahl, die während der Schonfrist erreicht werden muss, um das Abzeichen zu behalten.",
+          "maintenance_rules": "Geben Sie die Mindestpunktzahl an, die während des Wartungszyklus erforderlich ist, um das Abzeichen und seinen aktiven Multiplikator zu behalten (optional).",
           "occasion_type": "Wählen Sie die Art des Anlasses für dieses Abzeichen (z. B. Feiertag, Geburtstag).",
           "associated_achievement": "Verknüpfe dieses Abzeichen mit einer Errungenschaft, um deren Erfolg zu verfolgen.",
           "selected_chores": "Wählen Sie die Aufgaben aus, die Punkte für dieses Abzeichen einbringen. Lassen Sie das Feld leer, wenn Sie alle zugewiesenen Aufgaben erfassen möchten (optional).",
@@ -661,9 +661,9 @@
             "description": "Einstellungen für Zeitrahmen, Zugriffsfenster und Wiederholungsintervall.",
             "data": {
               "recurring_frequency": "Wiederkehrende Häufigkeit",
-              "due_date": "Fälligkeitsdatum",
+              "due_date": "📅 Zeitplan: Fälligkeitsdatum (optional)",
               "clear_due_date": "🗑️ Fälligkeitsdatum klären",
-              "applicable_days": "Anwendbare Tage",
+              "applicable_days": "📅 Zeitplan: Anwendbare Tage (optional)",
               "chore_due_window_offset": "⏱️ Fälligkeitszeitraum: Versatz vor dem Fälligkeitsdatum",
               "chore_claim_lock_until_window": "🔒 Anspruch bis zum Fälligkeitstermin sperren?",
               "custom_interval": "Benutzerdefiniertes Intervall (nur verwenden, wenn benutzerdefinierte Häufigkeit gewählt ist)",
@@ -691,7 +691,7 @@
               "chore_due_reminder_offset": "🔔 Fälligkeitserinnerung: Verrechnung vor dem Fälligkeitsdatum",
               "chore_notifications": "🔔 Benachrichtigungsereignisse (optional)",
               "show_on_calendar": "📅 Im Kalender anzeigen?",
-              "chore_labels": "Hausarbeit-Etiketten"
+              "chore_labels": "📋 Etiketten (optional)"
             },
             "data_description": {
               "approval_reset_type": "Steuert, wann die Genehmigungszyklusgrenze der Aufgabe ausgelöst wird (Mitternacht, Fälligkeitsdatum, nach Abschluss oder manueller Auslöser).",
@@ -709,7 +709,7 @@
           "name": "Name der Hausarbeit",
           "chore_description": "Beschreibung (optional)",
           "icon": "Symbol (mdi:xxx)",
-          "chore_labels": "Hausarbeit-Etiketten",
+          "chore_labels": "📋 Etiketten (optional)",
           "default_points": "Standard-Punkte",
           "assigned_user_ids": "👥 Zugewiesen an",
           "completion_criteria": "👥 Abschlusskriterien",
@@ -719,10 +719,10 @@
           "chore_claim_lock_until_window": "🔒 Anspruch bis zum Fälligkeitstermin sperren?",
           "auto_approve": "✅ Automatische Genehmigung von Schadensfällen?",
           "recurring_frequency": "Wiederkehrende Häufigkeit",
-          "custom_interval": "Benutzerdefiniertes Intervall",
+          "custom_interval": "🔄 Zeitplan: Benutzerdefiniertes Intervall (für benutzerdefinierte Frequenz)",
           "custom_interval_unit": "Benutzerdefinierte wiederkehrende Periodizität",
-          "applicable_days": "Anwendbare Tage",
-          "due_date": "Fälligkeitsdatum",
+          "applicable_days": "📅 Zeitplan: Anwendbare Tage (optional)",
+          "due_date": "📅 Zeitplan: Fälligkeitsdatum (optional)",
           "clear_due_date": "🗑️ Fälligkeitsdatum klären",
           "chore_due_window_offset": "⏱️ Fälligkeitszeitraum: Versatz vor dem Fälligkeitsdatum",
           "chore_due_reminder_offset": "🔔 Fälligkeitserinnerung: Verrechnung vor dem Fälligkeitsdatum",
@@ -769,22 +769,22 @@
         "data": {
           "badge_name": "Abzeichenname",
           "badge_description": "Beschreibung (optional)",
-          "badge_labels": "Abzeichen-Etiketten",
+          "badge_labels": "Etiketten (optional)",
           "icon": "Symbol (mdi:xxx)",
           "target_type": "🎯 ZIEL: Zieltyp",
           "threshold_value": "Schwellenwert",
-          "maintenance_rules": "Mindestaufrechterhaltungspunkte",
+          "maintenance_rules": "🎯 ZIEL: Wartungspunkte (optional)",
           "occasion_type": "Art des Anlasses",
           "associated_achievement": "Zugehörige Errungenschaft",
           "selected_chores": "🧹 Erfasste Aufgaben (optional)",
           "assigned_user_ids": "🧒 Zugewiesen an",
           "award_items": "🎁 AUSZEICHNUNGEN: Punkte, Prämien, Boni, Multiplikator auswählen (optional)",
-          "award_points": "Punkte vergeben",
-          "points_multiplier": "Punkte-Multiplikator",
+          "award_points": "🎁 AUSZEICHNUNGEN: Vergebene Punkte (optional)",
+          "points_multiplier": "🎁 AUSZEICHNUNGEN: Punktemultiplikator (Standard 💎 1,0x)",
           "recurring_frequency": "🔄 WARTUNGSZYKLUS: Häufigkeit",
           "custom_interval": "🔄 WARTUNGSZYKLUS: Benutzerdefiniertes Intervall (erforderlich für benutzerdefinierte Frequenz)",
           "custom_interval_unit": "🔄 WARTUNGSZYKLUS: Benutzerdefinierte Intervalleinheit (erforderlich für benutzerdefinierte Frequenz)",
-          "start_date": "Startdatum",
+          "start_date": "🔄 ZYKLUS ZURÜCKSETZEN: Startdatum (optional)",
           "end_date": "🔄 WARTUNGSZYKLUS: Enddatum (optional)",
           "grace_period_days": "🔄 WARTUNGSZYKLUS: Kulanzfrist in Tagen (optional)"
         },
@@ -795,7 +795,7 @@
           "icon": "Geben Sie ein Symbol für das Badge mithilfe von Material Design Icons an (z. B. mdi:star).",
           "target_type": "Wählen Sie die Art des Ziels für dieses Abzeichen aus (z. B. Punkte oder Anzahl der erledigten Aufgaben).",
           "threshold_value": "Legen Sie die Gesamtzahl der Punkte fest, die zum Erhalt dieses Abzeichens erforderlich sind.",
-          "maintenance_rules": "Minimale Punkte, die innerhalb der Schonfrist erreicht werden müssen, um das Abzeichen zu behalten.",
+          "maintenance_rules": "Geben Sie die Mindestpunktzahl an, die während des Wartungszyklus erforderlich ist, um das Abzeichen und seinen aktiven Multiplikator zu behalten (optional).",
           "occasion_type": "Wählen Sie die Art des Anlasses für dieses Abzeichen (z. B. Feiertag, Geburtstag).",
           "associated_achievement": "Verknüpfe dieses Abzeichen mit einer Errungenschaft, um deren Erfolg zu verfolgen.",
           "selected_chores": "Wählen Sie die Aufgaben aus, die Punkte für dieses Abzeichen einbringen. Lassen Sie das Feld leer, um alle zugewiesenen Aufgaben zu erfassen (optional).",
@@ -817,14 +817,14 @@
         "data": {
           "badge_name": "Abzeichenname",
           "badge_description": "Beschreibung (optional)",
-          "badge_labels": "Abzeichen-Etiketten",
+          "badge_labels": "Etiketten (optional)",
           "icon": "Symbol (mdi:xxx)",
           "target_type": "🎯 TÄGLICHES ZIEL: Zieltyp",
           "threshold_value": "🎯 TÄGLICHES ZIEL: Schwellenwert",
           "selected_chores": "🧹 Erfasste Aufgaben (optional)",
           "assigned_user_ids": "🧒 Zugewiesen an",
           "award_items": "🎁 AUSZEICHNUNGEN: Punkte, Prämien, Boni, Strafen auswählen (optional)",
-          "award_points": "Punkte vergeben"
+          "award_points": "🎁 AUSZEICHNUNGEN: Vergebene Punkte (optional)"
         },
         "data_description": {
           "badge_name": "Geben Sie einen eindeutigen Namen für das Abzeichen ein. Dieser Name wird im System angezeigt.",
@@ -845,22 +845,22 @@
         "data": {
           "badge_name": "Abzeichenname",
           "badge_description": "Beschreibung (optional)",
-          "badge_labels": "Abzeichen-Etiketten",
+          "badge_labels": "Etiketten (optional)",
           "icon": "Symbol (mdi:xxx)",
           "target_type": "🎯 ZIEL: Zieltyp",
           "threshold_value": "Schwellenwert",
-          "maintenance_rules": "Mindestaufrechterhaltungspunkte",
+          "maintenance_rules": "🎯 ZIEL: Wartungspunkte (optional)",
           "occasion_type": "Art des Anlasses",
           "associated_achievement": "Zugehörige Errungenschaft",
           "selected_chores": "🧹 Erfasste Aufgaben (optional)",
           "assigned_user_ids": "🧒 Zugewiesen an",
           "award_items": "🎁 AUSZEICHNUNGEN: Punkte, Prämien, Boni, Strafen auswählen (optional)",
-          "award_points": "Punkte vergeben",
+          "award_points": "🎁 AUSZEICHNUNGEN: Vergebene Punkte (optional)",
           "recurring_frequency": "🔄 RESET-ZYKLUS: Frequenz",
           "custom_interval": "🔄 RESET-ZYKLUS: Benutzerdefiniertes Intervall (erforderlich für benutzerdefinierte Frequenz)",
           "custom_interval_unit": "🔄 RESET-ZYKLUS: Benutzerdefinierte Intervalleinheit (erforderlich für benutzerdefinierte Frequenz)",
-          "start_date": "Startdatum",
-          "end_date": "Enddatum"
+          "start_date": "🔄 ZYKLUS ZURÜCKSETZEN: Startdatum (optional)",
+          "end_date": "🔄 ZYKLUS ZURÜCKSETZEN: Enddatum (optional)"
         },
         "data_description": {
           "badge_name": "Geben Sie einen eindeutigen Namen für das Abzeichen ein. Dieser Name wird im System angezeigt.",
@@ -889,12 +889,12 @@
         "data": {
           "badge_name": "Abzeichenname",
           "badge_description": "Beschreibung (optional)",
-          "badge_labels": "Abzeichen-Etiketten",
+          "badge_labels": "Etiketten (optional)",
           "icon": "Symbol (mdi:xxx)",
           "associated_achievement": "Zugehörige Errungenschaft",
           "assigned_user_ids": "🧒 Zugewiesen an",
           "award_items": "🎁 AUSZEICHNUNGEN: Punkte, Prämien, Boni auswählen (optional)",
-          "award_points": "Punkte vergeben"
+          "award_points": "🎁 AUSZEICHNUNGEN: Vergebene Punkte (optional)"
         },
         "data_description": {
           "badge_name": "Geben Sie einen eindeutigen Namen für das Abzeichen ein. Dieser Name wird im System angezeigt.",
@@ -913,7 +913,7 @@
         "data": {
           "badge_name": "Abzeichenname",
           "badge_description": "Beschreibung (optional)",
-          "badge_labels": "Abzeichen-Etiketten",
+          "badge_labels": "Etiketten (optional)",
           "icon": "Symbol (mdi:xxx)",
           "occasion_type": "Art des Anlasses",
           "end_date": "🎉 Datum des Anlasses",
@@ -924,7 +924,7 @@
           "grace_period_days": "🔄 WIEDERHOLUNG: Nachfrist in Tagen (optional)",
           "assigned_user_ids": "🧒 Zugewiesen an",
           "award_items": "🎁 AUSZEICHNUNGEN: Punkte, Prämien, Boni auswählen (optional)",
-          "award_points": "Punkte vergeben"
+          "award_points": "🎁 AUSZEICHNUNGEN: Vergebene Punkte (optional)"
         },
         "data_description": {
           "badge_name": "Geben Sie einen eindeutigen Namen für das Abzeichen ein. Dieser Name wird im System angezeigt.",
@@ -1105,9 +1105,9 @@
             "description": "Einstellungen für Zeitrahmen, Zugriffsfenster und Wiederholungsintervall.",
             "data": {
               "recurring_frequency": "Wiederkehrende Häufigkeit",
-              "due_date": "Fälligkeitsdatum",
+              "due_date": "📅 Zeitplan: Fälligkeitsdatum (optional)",
               "clear_due_date": "🗑️ Fälligkeitsdatum klären",
-              "applicable_days": "Anwendbare Tage",
+              "applicable_days": "📅 Zeitplan: Anwendbare Tage (optional)",
               "chore_due_window_offset": "⏱️ Fälligkeitszeitraum: Versatz vor dem Fälligkeitsdatum",
               "chore_claim_lock_until_window": "🔒 Anspruch bis zum Fälligkeitstermin sperren?",
               "custom_interval": "Benutzerdefiniertes Intervall (nur verwenden, wenn benutzerdefinierte Häufigkeit gewählt ist)",
@@ -1135,7 +1135,7 @@
               "chore_due_reminder_offset": "🔔 Fälligkeitserinnerung: Verrechnung vor dem Fälligkeitsdatum",
               "chore_notifications": "🔔 Benachrichtigungsereignisse (optional)",
               "show_on_calendar": "📅 Im Kalender anzeigen?",
-              "chore_labels": "Hausarbeit-Etiketten"
+              "chore_labels": "📋 Etiketten (optional)"
             },
             "data_description": {
               "approval_reset_type": "Steuert, wann die Genehmigungszyklusgrenze der Aufgabe ausgelöst wird (Mitternacht, Fälligkeitsdatum, nach Abschluss oder manueller Auslöser).",
@@ -1153,7 +1153,7 @@
           "name": "Name der Hausarbeit",
           "chore_description": "Beschreibung (optional)",
           "icon": "Symbol (mdi:xxx)",
-          "chore_labels": "Hausarbeit-Etiketten",
+          "chore_labels": "📋 Etiketten (optional)",
           "internal_id": "Interne ID",
           "default_points": "Standard-Punkte",
           "assigned_user_ids": "👥 Zugewiesen an",
@@ -1166,8 +1166,8 @@
           "recurring_frequency": "Wiederkehrende Häufigkeit",
           "custom_interval": "Benutzerdefiniertes Intervall (nur verwenden, wenn benutzerdefinierte Häufigkeit gewählt ist)",
           "custom_interval_unit": "Benutzerdefinierte wiederkehrende Periodizität",
-          "applicable_days": "Anwendbare Tage",
-          "due_date": "Fälligkeitsdatum",
+          "applicable_days": "📅 Zeitplan: Anwendbare Tage (optional)",
+          "due_date": "📅 Zeitplan: Fälligkeitsdatum (optional)",
           "clear_due_date": "🗑️ Fälligkeitsdatum klären",
           "chore_due_window_offset": "⏱️ Fälligkeitszeitraum: Versatz vor dem Fälligkeitsdatum",
           "chore_due_reminder_offset": "🔔 Fälligkeitserinnerung: Verrechnung vor dem Fälligkeitsdatum",
@@ -1241,22 +1241,22 @@
         "data": {
           "badge_name": "Abzeichenname",
           "badge_description": "Beschreibung (optional)",
-          "badge_labels": "Abzeichen-Etiketten",
+          "badge_labels": "Etiketten (optional)",
           "icon": "Symbol (mdi:xxx)",
           "target_type": "🎯 ZIEL: Zieltyp",
           "threshold_value": "Schwellenwert",
-          "maintenance_rules": "Mindestaufrechterhaltungspunkte",
+          "maintenance_rules": "🎯 ZIEL: Wartungspunkte (optional)",
           "occasion_type": "Art des Anlasses",
           "associated_achievement": "Zugehörige Errungenschaft",
           "selected_chores": "🧹 Erfasste Aufgaben (optional)",
           "assigned_user_ids": "🧒 Zugewiesen an",
           "award_items": "🎁 AUSZEICHNUNGEN: Punkte, Prämien, Boni, Multiplikator auswählen (optional)",
-          "award_points": "Punkte vergeben",
-          "points_multiplier": "Punkte-Multiplikator",
+          "award_points": "🎁 AUSZEICHNUNGEN: Vergebene Punkte (optional)",
+          "points_multiplier": "🎁 AUSZEICHNUNGEN: Punktemultiplikator (Standard 💎 1,0x)",
           "recurring_frequency": "🔄 WARTUNGSZYKLUS: Häufigkeit",
           "custom_interval": "🔄 WARTUNGSZYKLUS: Benutzerdefiniertes Intervall (erforderlich für benutzerdefinierte Frequenz)",
           "custom_interval_unit": "🔄 WARTUNGSZYKLUS: Benutzerdefinierte Intervalleinheit (erforderlich für benutzerdefinierte Frequenz)",
-          "start_date": "Startdatum",
+          "start_date": "🔄 ZYKLUS ZURÜCKSETZEN: Startdatum (optional)",
           "end_date": "🔄 WARTUNGSZYKLUS: Enddatum (optional)",
           "grace_period_days": "🔄 WARTUNGSZYKLUS: Kulanzfrist in Tagen (optional)"
         },
@@ -1267,7 +1267,7 @@
           "icon": "Geben Sie ein Symbol für das Badge mithilfe von Material Design Icons an (z. B. mdi:star).",
           "target_type": "Wählen Sie die Art des Ziels für dieses Abzeichen aus (z. B. Punkte oder Anzahl der erledigten Aufgaben).",
           "threshold_value": "Legen Sie die Gesamtzahl der Punkte fest, die zum Erhalt dieses Abzeichens erforderlich sind.",
-          "maintenance_rules": "Minimale Punkte, die innerhalb der Schonfrist erreicht werden müssen, um das Abzeichen zu behalten.",
+          "maintenance_rules": "Geben Sie die Mindestpunktzahl an, die während des Wartungszyklus erforderlich ist, um das Abzeichen und seinen aktiven Multiplikator zu behalten (optional).",
           "occasion_type": "Wählen Sie die Art des Anlasses für dieses Abzeichen (z. B. Feiertag, Geburtstag).",
           "associated_achievement": "Verknüpfe dieses Abzeichen mit einer Errungenschaft, um deren Erfolg zu verfolgen.",
           "selected_chores": "Wählen Sie die Aufgaben aus, die Punkte für dieses Abzeichen einbringen. Lassen Sie das Feld leer, wenn Sie alle zugewiesenen Aufgaben erfassen möchten (optional).",
@@ -1289,14 +1289,14 @@
         "data": {
           "badge_name": "Abzeichenname",
           "badge_description": "Beschreibung (optional)",
-          "badge_labels": "Abzeichen-Etiketten",
+          "badge_labels": "Etiketten (optional)",
           "icon": "Symbol (mdi:xxx)",
           "target_type": "🎯 TÄGLICHES ZIEL: Zieltyp",
           "threshold_value": "🎯 TÄGLICHES ZIEL: Schwellenwert",
           "selected_chores": "🧹 Erfasste Aufgaben (optional)",
           "assigned_user_ids": "🧒 Zugewiesen an",
           "award_items": "🎁 AUSZEICHNUNGEN: Punkte, Prämien, Boni, Strafen auswählen (optional)",
-          "award_points": "Punkte vergeben"
+          "award_points": "🎁 AUSZEICHNUNGEN: Vergebene Punkte (optional)"
         },
         "data_description": {
           "badge_name": "Geben Sie einen eindeutigen Namen für das Abzeichen ein. Dieser Name wird im System angezeigt.",
@@ -1317,22 +1317,22 @@
         "data": {
           "badge_name": "Abzeichenname",
           "badge_description": "Beschreibung (optional)",
-          "badge_labels": "Abzeichen-Etiketten",
+          "badge_labels": "Etiketten (optional)",
           "icon": "Symbol (mdi:xxx)",
           "target_type": "🎯 ZIEL: Zieltyp",
           "threshold_value": "Schwellenwert",
-          "maintenance_rules": "Mindestaufrechterhaltungspunkte",
+          "maintenance_rules": "🎯 ZIEL: Wartungspunkte (optional)",
           "occasion_type": "Art des Anlasses",
           "associated_achievement": "Zugehörige Errungenschaft",
           "selected_chores": "🧹 Erfasste Aufgaben (optional)",
           "assigned_user_ids": "🧒 Zugewiesen an",
           "award_items": "🎁 AUSZEICHNUNGEN: Punkte, Prämien, Boni, Strafen auswählen (optional)",
-          "award_points": "Punkte vergeben",
+          "award_points": "🎁 AUSZEICHNUNGEN: Vergebene Punkte (optional)",
           "recurring_frequency": "🔄 RESET-ZYKLUS: Frequenz",
           "custom_interval": "🔄 RESET-ZYKLUS: Benutzerdefiniertes Intervall (erforderlich für benutzerdefinierte Frequenz)",
           "custom_interval_unit": "🔄 RESET-ZYKLUS: Benutzerdefinierte Intervalleinheit (erforderlich für benutzerdefinierte Frequenz)",
-          "start_date": "Startdatum",
-          "end_date": "Enddatum"
+          "start_date": "🔄 ZYKLUS ZURÜCKSETZEN: Startdatum (optional)",
+          "end_date": "🔄 ZYKLUS ZURÜCKSETZEN: Enddatum (optional)"
         },
         "data_description": {
           "badge_name": "Geben Sie einen eindeutigen Namen für das Abzeichen ein. Dieser Name wird im System angezeigt.",
@@ -1361,12 +1361,12 @@
         "data": {
           "badge_name": "Abzeichenname",
           "badge_description": "Beschreibung (optional)",
-          "badge_labels": "Abzeichen-Etiketten",
+          "badge_labels": "Etiketten (optional)",
           "icon": "Symbol (mdi:xxx)",
           "associated_achievement": "Zugehörige Errungenschaft",
           "assigned_user_ids": "🧒 Zugewiesen an",
           "award_items": "🎁 AUSZEICHNUNGEN: Punkte, Prämien, Boni auswählen (optional)",
-          "award_points": "Punkte vergeben"
+          "award_points": "🎁 AUSZEICHNUNGEN: Vergebene Punkte (optional)"
         },
         "data_description": {
           "badge_name": "Geben Sie einen eindeutigen Namen für das Abzeichen ein. Dieser Name wird im System angezeigt.",
@@ -1385,7 +1385,7 @@
         "data": {
           "badge_name": "Abzeichenname",
           "badge_description": "Beschreibung (optional)",
-          "badge_labels": "Abzeichen-Etiketten",
+          "badge_labels": "Etiketten (optional)",
           "icon": "Symbol (mdi:xxx)",
           "occasion_type": "Art des Anlasses",
           "end_date": "🎉 Datum des Anlasses",
@@ -1396,7 +1396,7 @@
           "grace_period_days": "🔄 WIEDERHOLUNG: Nachfrist in Tagen (optional)",
           "assigned_user_ids": "🧒 Zugewiesen an",
           "award_items": "🎁 AUSZEICHNUNGEN: Punkte, Prämien, Boni auswählen (optional)",
-          "award_points": "Punkte vergeben"
+          "award_points": "🎁 AUSZEICHNUNGEN: Vergebene Punkte (optional)"
         },
         "data_description": {
           "badge_name": "Geben Sie einen eindeutigen Namen für das Abzeichen ein. Dieser Name wird im System angezeigt.",
@@ -3302,7 +3302,7 @@
   "entity": {
     "sensor": {
       "assignee_chore_status_sensor": {
-        "name": "{kid_name} - Status - {chore_name}",
+        "name": "Aufgabenstatus - {chore_name}",
         "state": {
           "pending": "Anhängig",
           "completed": "Vollendet",
@@ -3591,7 +3591,7 @@
         }
       },
       "assignee_points_sensor": {
-        "name": "{kid_name} - {points}",
+        "name": "{points}",
         "state_attributes": {
           "purpose": {
             "name": "Zweck",
@@ -3686,7 +3686,7 @@
         }
       },
       "assignee_points_max_ever_sensor": {
-        "name": "{kid_name} - Höchstpunktzahl aller Zeiten",
+        "name": "Maximal {points} jemals",
         "state_attributes": {
           "purpose": {
             "name": "Zweck",
@@ -4394,7 +4394,7 @@
         }
       },
       "assignee_reward_status_sensor": {
-        "name": "{kid_name} - Belohnungsstatus - {reward_name}",
+        "name": "Belohnungsstatus - {reward_name}",
         "state": {
           "locked": "Gesperrt",
           "available": "Verfügbar",
@@ -4521,7 +4521,7 @@
         }
       },
       "assignee_penalty_applied_sensor": {
-        "name": "{kid_name} - Angewandte Strafen - {penalty_name}",
+        "name": "Strafen angewendet - {penalty_name}",
         "state_attributes": {
           "purpose": {
             "name": "Zweck",
@@ -4547,7 +4547,7 @@
         }
       },
       "assignee_bonus_applied_sensor": {
-        "name": "{kid_name} - Angewandte Boni - {bonus_name}",
+        "name": "Bonus gilt - {bonus_name}",
         "state_attributes": {
           "purpose": {
             "name": "Zweck",
@@ -4759,7 +4759,7 @@
         }
       },
       "assignee_challenge_progress_sensor": {
-        "name": "{kid_name} - Fortschritt - {challenge_name}",
+        "name": "Fortschritt - {challenge_name}",
         "state_attributes": {
           "purpose": {
             "name": "Zweck",
@@ -5085,7 +5085,7 @@
     },
     "button": {
       "assignee_chore_claim_button": {
-        "name": "{kid_name} - Hausarbeit beanspruchen - {chore_name}",
+        "name": "Aufgaben übernehmen - {chore_name}",
         "state_attributes": {
           "purpose": {
             "name": "Zweck",
@@ -5105,7 +5105,7 @@
         }
       },
       "approver_chore_approve_button": {
-        "name": "{kid_name} - Hausarbeit genehmigen - {chore_name}",
+        "name": "Aufgabe genehmigen - {chore_name}",
         "state_attributes": {
           "purpose": {
             "name": "Zweck",
@@ -5125,7 +5125,7 @@
         }
       },
       "approver_chore_disapprove_button": {
-        "name": "{kid_name} - Hausarbeit ablehnen - {chore_name}",
+        "name": "Aufgabe ablehnen - {chore_name}",
         "state_attributes": {
           "purpose": {
             "name": "Zweck",
@@ -5145,7 +5145,7 @@
         }
       },
       "assignee_reward_redeem_button": {
-        "name": "{kid_name} - Belohnung beanspruchen - {reward_name}",
+        "name": "Belohnung einfordern - {reward_name}",
         "state_attributes": {
           "purpose": {
             "name": "Zweck",
@@ -5165,7 +5165,7 @@
         }
       },
       "approver_reward_approve_button": {
-        "name": "{kid_name} - Belohnung genehmigen - {reward_name}",
+        "name": "Belohnung genehmigen - {reward_name}",
         "state_attributes": {
           "purpose": {
             "name": "Zweck",
@@ -5185,7 +5185,7 @@
         }
       },
       "approver_reward_disapprove_button": {
-        "name": "{kid_name} - Belohnung ablehnen - {reward_name}",
+        "name": "Belohnung ablehnen - {reward_name}",
         "state_attributes": {
           "purpose": {
             "name": "Zweck",
@@ -5205,7 +5205,7 @@
         }
       },
       "approver_penalty_apply_button": {
-        "name": "{kid_name} - Strafe anwenden - {penalty_name}",
+        "name": "Strafe anwenden - {penalty_name}",
         "state_attributes": {
           "purpose": {
             "name": "Zweck",
@@ -5225,7 +5225,7 @@
         }
       },
       "approver_bonus_apply_button": {
-        "name": "{kid_name} - Bonus anwenden - {bonus_name}",
+        "name": "Bonus anwenden - {bonus_name}",
         "state_attributes": {
           "purpose": {
             "name": "Zweck",
