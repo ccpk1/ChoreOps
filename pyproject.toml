@@ -226,7 +226,7 @@ disable = [
   "duplicate-code",
   "too-many-locals",
   "too-many-arguments",
-  "too-many-positional-arguments",
+  "PLR0917",
   "too-many-branches",
   "too-many-statements",
   "too-many-return-statements",
