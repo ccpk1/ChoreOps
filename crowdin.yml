@@ -1,6 +1,7 @@
 # Crowdin Configuration File
 # This maps your local file structure to the Crowdin project
-# Norwegian translations required mapping because Crowdin uses 'no' (generic) for Google Translate, but Home Assistant requires 'nb' (Bokmål).
+# Norwegian translations require mapping because Crowdin uses 'no' (generic) for Google Translate, but Home Assistant requires 'nb' (Bokmål).
+# Simplified Chinese requires 'zh-Hans' filenames for Home Assistant.
 
 preserve_hierarchy: true
 
@@ -12,6 +13,7 @@ files:
     languages_mapping:
       two_letters_code:
         "no": nb
+        "zh": zh-Hans
 
   # 2. Report Translations (custom translations directory)
   # Maps: /translations_custom/en_report.json -> /translations_custom/fr_report.json
@@ -20,6 +22,7 @@ files:
     languages_mapping:
       two_letters_code:
         "no": nb
+        "zh": zh-Hans
 
   # 3. Notification Translations (custom translations directory)
   # Maps: /translations_custom/en_notifications.json -> /translations_custom/fr_notifications.json
@@ -28,3 +31,4 @@ files:
     languages_mapping:
       two_letters_code:
         "no": nb
+        "zh": zh-Hans
