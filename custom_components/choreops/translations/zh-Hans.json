@@ -44,11 +44,11 @@
           "default_chore_points": "每项家务的默认积分",
           "update_interval": "更新间隔（分钟）",
           "calendar_show_period": "日历显示周期（天）",
-          "retention_daily": "每日保留时间（天）",
-          "retention_weekly": "每周留存率（周）",
-          "retention_monthly": "月度留存率（月）",
-          "retention_yearly": "年度留存率（年）",
-          "points_adjust_values": "点调整值（管道分隔）"
+          "retention_daily": "每日保留期限（天）",
+          "retention_weekly": "每周保存期限（周）",
+          "retention_monthly": "月度保存期限（月）",
+          "retention_yearly": "年度保存期限（年）",
+          "points_adjust_values": "积分调整值（竖线分隔）"
         },
         "data_description": {
           "points_label": "积分标签（例如，“积分”、“星星”、“金币”）",
@@ -60,7 +60,7 @@
           "retention_weekly": "每周汇总数据保留数周",
           "retention_monthly": "保留月度汇总数据的月份",
           "retention_yearly": "保留年度汇总数据的年数",
-          "points_adjust_values": "手动调节按钮的竖线分隔值（例如，+1.0|-1.0|+10.0|-10.0）"
+          "points_adjust_values": "手动调节按钮的积分值，竖线分隔（例如，+1.0|-1.0|+10.0|-10.0）"
         }
       },
       "user_count": {
@@ -86,7 +86,7 @@
             },
             "data_description": {
               "name": "此用户个人资料的唯一名称。",
-              "ha_user_id": "可选：将此资料关联到 Home Assistant 用户。如果禁用信息亭模式，共享设备上的认领和兑换操作将依赖此关联。",
+              "ha_user_id": "可选：将此资料关联到 Home Assistant 用户。如果禁用服务终端模式，共享设备上的认领和兑换操作将依赖此关联。",
               "dashboard_language": "用于仪表盘内容和通知的语言。",
               "mobile_notify_service": "选择通知服务，或留空以禁用通知。",
               "notif_click_url": "点击通知时要打开的网址（可选）。留空则使用默认行为。"
@@ -98,7 +98,7 @@
             "data": {
               "can_be_assigned": "可以分配",
               "enable_chore_workflow": "已启用工作流",
-              "enable_gamification": "游戏化赋能"
+              "enable_gamification": "已启用游戏化"
             },
             "data_description": {
               "can_be_assigned": "允许将家务分配给此用户。",
@@ -172,14 +172,14 @@
               "chore_due_window_offset": "⏱️ 到期前认领窗口：到期前偏移量",
               "chore_claim_lock_until_window": "🔒 在到期前认领窗口开放前锁定？",
               "custom_interval": "🔄 日程安排：自定义间隔（自定义频率）",
-              "custom_interval_unit": "🔄 日程安排：自定义间隔单元"
+              "custom_interval_unit": "🔄 日程安排：自定义间隔单位"
             },
             "data_description": {
               "recurring_frequency": "家务重复频率：每日、每周、每月、每年、自定义或无。",
               "due_date": "可选截止日期。可与周期性安排结合使用。",
               "clear_due_date": "选中此框可移除此家务的截止日期。",
               "applicable_days": "所有日期留空。仅选择要限制的特定日期。",
-              "chore_due_window_offset": "到期前认领窗口的偏移量。格式为“1 天 6 小时 30 分钟”或仅输入“30”（表示分钟）。输入“0”可禁用此功能。例如：“1 天”表示在截止日期前 1 天开放认领窗口。",
+              "chore_due_window_offset": "到期前认领窗口的偏移量。格式为“1d 6h 30m”或仅输入“30”（表示分钟）。输入“0”可禁用此功能。例如：“1d”表示在截止日期前 1 天开放认领窗口。",
               "chore_claim_lock_until_window": "启用后，执行人在到期日前无法认领这项家务。",
               "custom_interval": "重复次数之间的间隔时间单位数（例如，3 表示“每 3 周一次”）。仅与自定义频率一起使用。",
               "custom_interval_unit": "自定义时间间隔的时间单位（天、周、月）。仅与自定义频率一起使用。"
@@ -203,7 +203,7 @@
               "approval_reset_pending_claim_action": "审批周期重置发生时，仍在等待审批的认领会按所选规则处理。",
               "auto_approve": "启用后，认领申请无需审批人审核即可立即批准。",
               "overdue_handling_type": "到期后的操作：隐藏逾期状态、保持逾期状态直至被认领，或在下一个审批周期重置为待处理状态。",
-              "chore_due_reminder_offset": "到期前发送提醒通知的偏移量。格式：‘1 天 6 小时 30 分钟’或‘30’（分钟）。默认值：30 分钟（到期前 30 分钟）。输入‘0’可禁用此功能。",
+              "chore_due_reminder_offset": "到期前发送提醒通知的偏移量。格式：‘1d 6h 30m’或‘30’（分钟）。默认值：30 分钟（到期前 30 分钟）。输入‘0’可禁用此功能。",
               "chore_notifications": "通知发送时机：认领时、批准时、退回时，或以上任意组合。",
               "show_on_calendar": "在日历视图中显示此家务。",
               "chore_labels": "用于整理家务的标签（例如，“厨房”、“户外”）。如果不需要，请留空。"
@@ -225,14 +225,14 @@
           "auto_approve": "✅ 自动批准认领？",
           "recurring_frequency": "🔄 日程：频率",
           "custom_interval": "🔄 日程安排：自定义间隔（自定义频率）",
-          "custom_interval_unit": "🔄 日程安排：自定义间隔单元",
+          "custom_interval_unit": "🔄 日程安排：自定义间隔单位",
           "applicable_days": "📅 日程安排：适用日期（可选）",
           "due_date": "📅 日程安排：截止日期（可选）",
           "chore_due_window_offset": "⏱️ 到期前认领窗口：到期前偏移量",
           "chore_due_reminder_offset": "🔔 到期提醒：到期前偏移量",
           "show_on_calendar": "📅 在日历上显示？",
           "chore_notifications": "🔔 通知事件（可选）",
-          "standby_claim_mode": "控制备用执行人何时可以认领此家务（anytime、on_overdue、manual_only）。仅适用于“主执行人和备用执行人”完成方式。"
+          "standby_claim_mode": "🔑 备用执行人认领方式"
         },
         "data_description": {
           "name": "系统中显示的唯一名称。",
@@ -252,8 +252,8 @@
           "custom_interval_unit": "自定义时间间隔的时间单位（天、周、月）。仅与自定义频率一起使用。",
           "applicable_days": "所有日期留空。仅选择要限制的特定日期。",
           "due_date": "可选截止日期。可与周期性安排结合使用。",
-          "chore_due_window_offset": "到期前认领窗口的偏移量。格式为“1 天 6 小时 30 分钟”或仅输入“30”（表示分钟）。输入“0”可禁用此功能。例如：“1 天”表示在截止日期前 1 天开放认领窗口。",
-          "chore_due_reminder_offset": "到期前发送提醒通知的偏移量。格式：‘1 天 6 小时 30 分钟’或‘30’（分钟）。默认值：30 分钟（到期前 30 分钟）。输入‘0’可禁用此功能。",
+          "chore_due_window_offset": "到期前认领窗口的偏移量。格式为“1d 6h 30m”或仅输入“30”（表示分钟）。输入“0”可禁用此功能。例如：“1d”表示在截止日期前 1 天开放认领窗口。",
+          "chore_due_reminder_offset": "到期前发送提醒通知的偏移量。格式：‘1d 6h 30m’或‘30’（分钟）。默认值：30 分钟（到期前 30 分钟）。输入‘0’可禁用此功能。",
           "show_on_calendar": "在日历视图中显示此家务。",
           "chore_notifications": "通知发送时机：认领时、批准时、退回时，或以上任意组合。",
           "standby_claim_mode": "控制备用执行人何时可以认领此家务（anytime、on_overdue、manual_only）。仅适用于“主执行人和备用执行人”完成方式。"
@@ -281,7 +281,7 @@
           "associated_achievement": "🏆 相关成就",
           "selected_chores": "🧹 已记录的家务（可选）",
           "assigned_user_ids": "🧒 分配给",
-          "award_items": "🎁 奖励：选择积分、奖励、加分奖励或积分倍率（可选）",
+          "award_items": "🎁 奖励：选择积分、奖励、额外加分或积分倍率（可选）",
           "award_points": "🎁 奖励：积分奖励（可选）",
           "points_multiplier": "🎁 奖励：积分倍增（默认💎 1.0 倍）",
           "recurring_frequency": "🔄 维护周期：频率",
@@ -303,9 +303,9 @@
           "associated_achievement": "将此徽章关联到一项成就以便进行追踪。",
           "selected_chores": "选择可获得此徽章积分的家务。如果要跟踪所有已分配的家务，请留空（可选）。",
           "assigned_user_ids": "将此徽章分配给特定执行人以进行跟踪。",
-          "award_items": "从积分、奖励、加分奖励或积分倍率中选择一项或多项。获得徽章后，所有选定项目都会发放或应用。（可选）",
+          "award_items": "从积分、奖励、额外加分或积分倍率中选择一项或多项。获得徽章后，所有选定项目都会发放或应用。（可选）",
           "award_points": "如果奖励方式为积分，请指定获得此徽章时要应用的积分数量。（可选）",
-          "points_multiplier": "如果倍数奖励是选定的奖励，请设置此徽章激活期间所获积分的倍数（例如，1.5 倍）。",
+          "points_multiplier": "如果倍数奖励是选定的奖励，请设置此徽章激活期间所获积分的倍率（例如，1.5 倍）。",
           "recurring_frequency": "启用维护周期，要求在周期结束前获得指定的最低积分。（例如，每周、每月）。",
           "custom_interval": "指定自定义频率的天数、周数、月数等（例如，如果设置为 3 周，则输入 3）。仅适用于自定义频率。",
           "custom_interval_unit": "选择自定义间隔的单位（例如，天、周）。仅适用于自定义频率。",
@@ -334,40 +334,40 @@
         }
       },
       "penalty_count": {
-        "title": "罚球次数",
-        "description": "你想定义多少种处罚？",
+        "title": "惩罚数量",
+        "description": "你想定义多少种惩罚？",
         "data": {
-          "penalty_count": "罚分"
+          "penalty_count": "惩罚数量"
         }
       },
       "penalties": {
-        "title": "定义处罚",
-        "description": "请填写每项处罚的详细信息。",
+        "title": "定义惩罚",
+        "description": "请填写每项惩罚的详细信息。",
         "data": {
           "name": "惩罚名称",
           "penalty_description": "描述（可选）",
-          "penalty_labels": "处罚标签",
+          "penalty_labels": "惩罚标签",
           "internal_id": "内部 ID",
           "penalty_points": "罚分（负分）",
           "icon": "图标（mdi:xxx）"
         }
       },
       "bonus_count": {
-        "title": "加分奖励数量",
-        "description": "你想定义多少种加分奖励？",
+        "title": "额外加分数量",
+        "description": "你想定义多少种额外加分？",
         "data": {
           "bonus_count": "奖励计入"
         }
       },
       "bonuses": {
-        "title": "定义加分奖励",
-        "description": "请填写每项加分奖励的详细信息。",
+        "title": "定义额外加分",
+        "description": "请填写每项额外加分的详细信息。",
         "data": {
-          "name": "加分奖励名称",
+          "name": "额外加分名称",
           "bonus_description": "描述（可选）",
-          "bonus_labels": "加分奖励标签",
+          "bonus_labels": "额外加分标签",
           "internal_id": "内部 ID",
-          "bonus_points": "加分奖励积分",
+          "bonus_points": "额外加分积分",
           "icon": "图标（mdi:xxx）"
         }
       },
@@ -435,25 +435,25 @@
       "invalid_maintenance_rules": "维护规则值无效",
       "error_badge_challenge_required": "要获得与挑战相关的徽章，必须先选择一个挑战。",
       "error_award_points_minimum": "奖励积分必须大于零。",
-      "error_award_invalid_multiplier": "积分倍数必须大于零",
+      "error_award_invalid_multiplier": "积分倍率必须大于零",
       "invalid_award_item_selected": "一项或多项选定的奖励项目无效",
       "start_date_required": "需要填写开始日期。",
       "end_date_required": "必须填写结束日期。",
       "end_date_before_start_date": "结束日期必须晚于开始日期",
       "duplicate_achievement": "已存在一项同名成就",
       "duplicate_badge": "已存在同名徽章",
-      "duplicate_challenge": "这个名字已经存在一个挑战。",
-      "duplicate_chore": "已经存在一项同名家务了。",
+      "duplicate_challenge": "已存在同名挑战。",
+      "duplicate_chore": "已存在同名家务。",
       "duplicate_assignee": "已存在同名执行人",
       "duplicate_approver": "已存在同名用户",
-      "duplicate_penalty": "已存在一个同名的处罚",
-      "duplicate_reward": "已存在一个以此命名的奖励",
-      "duplicate_bonus": "已经存在一个同名奖励。",
+      "duplicate_penalty": "已存在同名惩罚",
+      "duplicate_reward": "已存在同名奖励",
+      "duplicate_bonus": "已存在同名奖励。",
       "due_date_in_past": "截止日期必须在未来。",
       "end_date_in_past": "结束日期必须为未来日期。",
       "end_date_not_after_start_date": "结束日期必须晚于开始日期",
       "err_end_before_start": "结束日期必须晚于开始日期",
-      "err_name_duplicate": "这个名字已经存在一个挑战。",
+      "err_name_duplicate": "已存在同名挑战。",
       "err_name_required": "挑战名称为必填项",
       "err_dates_required": "需要填写开始日期和结束日期。",
       "err_invalid_date": "挑战日期无效",
@@ -478,7 +478,7 @@
       "custom_interval_invalid": "自定义间隔必须是大于零的整数。",
       "custom_interval_unit_required": "自定义频率需要自定义间隔单位",
       "custom_interval_unit_invalid": "自定义时间间隔单位必须为小时、天、周或月。",
-      "invalid_points": "分数必须为零或大于零。",
+      "invalid_points": "积分必须为零或大于零。",
       "invalid_overdue_reset_combination": "“到期后重置”的逾期处理方式仅适用于午夜重置类型。请为审批重置方式选择“午夜（一次）”或“午夜（重复）”。",
       "invalid_due_date": "无效的到期日",
       "date_required_for_frequency": "此重复频率需要设置截止日期。清除日期仅适用于“无”或“每日”频率。",
@@ -488,17 +488,17 @@
       "invalid_user_count": "用户计数无效",
       "invalid_approver_name": "无效的用户名",
       "no_assignees_assigned": "至少要为这项家务分配一名执行人。",
-      "invalid_penalty": "无效处罚",
-      "invalid_penalty_count": "无效的处罚计数",
-      "invalid_penalty_name": "无效的处罚名称",
+      "invalid_penalty": "无效惩罚",
+      "invalid_penalty_count": "无效的惩罚计数",
+      "invalid_penalty_name": "无效的惩罚名称",
       "invalid_reward": "无效奖励",
       "invalid_reward_count": "无效奖励计数",
       "invalid_reward_name": "无效的奖励名称",
       "invalid_reward_cost": "兑换奖励所需的积分必须大于等于零（最多保留两位小数）。",
       "invalid_reward_assigned_users": "一个或多个已分配用户无效",
       "mixed_reward_assignment_sentinel": "不能将“所有用户”与特定用户混用",
-      "invalid_bonus": "无效加分奖励",
-      "invalid_bonus_count": "无效加分奖励计数",
+      "invalid_bonus": "无效额外加分",
+      "invalid_bonus_count": "无效额外加分计数",
       "invalid_bonus_name": "无效的奖励名称",
       "invalid_start_date": "起始日期无效。",
       "start_date_in_past": "开始日期必须在未来。",
@@ -555,9 +555,9 @@
       },
       "select_entity": {
         "title": "选择 {entity_type}",
-        "description": "选择你要 {entity_type} 的 {action}。",
+        "description": "选择你要 {action} 的 {entity_type}。",
         "data": {
-          "entity_name": "姓名"
+          "entity_name": "名称"
         }
       },
       "manage_points": {
@@ -588,7 +588,7 @@
             },
             "data_description": {
               "name": "此用户个人资料的唯一名称。",
-              "ha_user_id": "可选：将此资料关联到 Home Assistant 用户。如果禁用信息亭模式，共享设备上的认领和兑换操作将依赖此关联。",
+              "ha_user_id": "可选：将此资料关联到 Home Assistant 用户。如果禁用服务终端模式，共享设备上的认领和兑换操作将依赖此关联。",
               "dashboard_language": "用于仪表盘内容和通知的语言。",
               "mobile_notify_service": "选择通知服务，或留空以禁用通知。",
               "notif_click_url": "点击通知时要打开的网址（可选）。留空则使用默认行为。"
@@ -644,7 +644,7 @@
               "default_points": "💰 获得的积分",
               "assigned_user_ids": "👥 分配给",
               "completion_criteria": "👥 完成标准",
-              "standby_claim_mode": "控制备用执行人何时可以认领此家务（anytime、on_overdue、manual_only）。仅适用于“主执行人和备用执行人”完成方式。"
+              "standby_claim_mode": "🔑 备用执行人认领方式"
             },
             "data_description": {
               "name": "系统中显示的唯一名称。",
@@ -653,7 +653,7 @@
               "default_points": "完成家务后可获得积分。",
               "assigned_user_ids": "可以查看并认领这项家务的执行人。对于轮换家务，执行人的顺序决定轮换顺序。对于主执行人和备用执行人模式，第一个执行人为主执行人。",
               "completion_criteria": "控制分配多个执行人时如何完成家务：独立完成、共同完成或轮换完成。",
-              "standby_claim_mode": "🔑 备用执行人认领方式"
+              "standby_claim_mode": "控制备用执行人何时可以认领此家务（anytime、on_overdue、manual_only）。仅适用于“主执行人和备用执行人”完成方式。"
             }
           },
           "section_schedule": {
@@ -674,7 +674,7 @@
               "due_date": "可选截止日期。可与循环日程结合使用。对于独立完成的家务，此功能可用作模板——将出现一个额外的屏幕，允许每个用户设置单独的日期。",
               "clear_due_date": "选中此框可移除此家务的截止日期。",
               "applicable_days": "所有日期留空。仅选择要限制的特定日期。",
-              "chore_due_window_offset": "到期前认领窗口的偏移量。格式为“1 天 6 小时 30 分钟”或仅输入“30”（表示分钟）。输入“0”可禁用此功能。例如：“1 天”表示在截止日期前 1 天开放认领窗口。",
+              "chore_due_window_offset": "到期前认领窗口的偏移量。格式为“1d 6h 30m”或仅输入“30”（表示分钟）。输入“0”可禁用此功能。例如：“1d”表示在截止日期前 1 天开放认领窗口。",
               "chore_claim_lock_until_window": "启用后，执行人在到期日前无法认领这项家务。",
               "custom_interval": "重复次数之间的间隔时间单位数（例如，3 表示“每 3 周一次”）。仅与自定义频率一起使用。",
               "custom_interval_unit": "自定义时间间隔的时间单位（天、周、月）。仅与自定义频率一起使用。"
@@ -698,7 +698,7 @@
               "approval_reset_pending_claim_action": "审批周期重置发生时，仍在等待审批的认领会按所选规则处理。",
               "auto_approve": "启用后，认领申请无需审批人审核即可立即批准。",
               "overdue_handling_type": "控制到期日过后会发生什么，以及在审批重置边界处逾期家务会发生什么。",
-              "chore_due_reminder_offset": "到期前发送提醒通知的偏移量。格式：‘1 天 6 小时 30 分钟’或‘30’（分钟）。默认值：30 分钟（到期前 30 分钟）。输入‘0’可禁用此功能。",
+              "chore_due_reminder_offset": "到期前发送提醒通知的偏移量。格式：‘1d 6h 30m’或‘30’（分钟）。默认值：30 分钟（到期前 30 分钟）。输入‘0’可禁用此功能。",
               "chore_notifications": "通知发送时机：认领时、批准时、退回时，或以上任意组合。",
               "show_on_calendar": "在日历视图中显示此家务。",
               "chore_labels": "用于整理家务的标签（例如，“厨房”、“户外”）。如果不需要，请留空。"
@@ -728,7 +728,7 @@
           "chore_due_reminder_offset": "🔔 到期提醒：到期前偏移量",
           "show_on_calendar": "📅 在日历上显示？",
           "chore_notifications": "🔔 通知事件（可选）",
-          "standby_claim_mode": "控制备用执行人何时可以认领此家务（anytime、on_overdue、manual_only）。仅适用于“主执行人和备用执行人”完成方式。"
+          "standby_claim_mode": "🔑 备用执行人认领方式"
         },
         "data_description": {
           "name": "系统中显示的唯一名称。",
@@ -749,8 +749,8 @@
           "applicable_days": "所有日期留空。仅选择要限制的特定日期。",
           "due_date": "可选截止日期。可与循环日程结合使用。对于独立完成的家务，此功能可用作模板——将出现一个额外的屏幕，允许每个用户设置单独的日期。",
           "clear_due_date": "选中此框可移除此家务的截止日期。",
-          "chore_due_window_offset": "到期前认领窗口的偏移量。格式为“1 天 6 小时 30 分钟”或仅输入“30”（表示分钟）。输入“0”可禁用此功能。例如：“1 天”表示在截止日期前 1 天开放认领窗口。",
-          "chore_due_reminder_offset": "到期前发送提醒通知的偏移量。格式：‘1 天 6 小时 30 分钟’或‘30’（分钟）。默认值：30 分钟（到期前 30 分钟）。输入‘0’可禁用此功能。",
+          "chore_due_window_offset": "到期前认领窗口的偏移量。格式为“1d 6h 30m”或仅输入“30”（表示分钟）。输入“0”可禁用此功能。例如：“1d”表示在截止日期前 1 天开放认领窗口。",
+          "chore_due_reminder_offset": "到期前发送提醒通知的偏移量。格式：‘1d 6h 30m’或‘30’（分钟）。默认值：30 分钟（到期前 30 分钟）。输入‘0’可禁用此功能。",
           "show_on_calendar": "在日历视图中显示此家务。",
           "chore_notifications": "通知发送时机：认领时、批准时、退回时，或以上任意组合。",
           "standby_claim_mode": "控制备用执行人何时可以认领此家务（anytime、on_overdue、manual_only）。仅适用于“主执行人和备用执行人”完成方式。"
@@ -778,9 +778,9 @@
           "associated_achievement": "🏆 相关成就",
           "selected_chores": "🧹 已记录的家务（可选）",
           "assigned_user_ids": "🧒 分配给",
-          "award_items": "🎁 奖励：选择积分、奖励、加分奖励或积分倍率（可选）",
+          "award_items": "🎁 奖励：选择积分、奖励、额外加分或积分倍率（可选）",
           "award_points": "🎁 奖励：积分奖励（可选）",
-          "points_multiplier": "🎁 奖励：积分倍增（默认💎 1.0 倍）",
+          "points_multiplier": "🎁 奖励：积分倍率（默认💎 1.0 倍）",
           "recurring_frequency": "🔄 维护周期：频率",
           "custom_interval": "🔄 维护周期：自定义间隔（自定义频率需要此项）",
           "custom_interval_unit": "🔄 维护周期：自定义间隔单元（自定义频率需要此项）",
@@ -800,9 +800,9 @@
           "associated_achievement": "将此徽章关联到一项成就以便进行追踪。",
           "selected_chores": "选择可获得此徽章积分的家务。留空则可记录所有已分配的家务（可选）。",
           "assigned_user_ids": "将此徽章分配给特定执行人以进行跟踪。",
-          "award_items": "从积分、奖励、加分奖励或积分倍率中选择一项或多项。获得徽章后，所有选定项目都会发放或应用。只有在截止日期或重置日期前未获得徽章时，才会应用惩罚。（可选）",
+          "award_items": "从积分、奖励、额外加分或积分倍率中选择一项或多项。获得徽章后，所有选定项目都会发放或应用。只有在截止日期或重置日期前未获得徽章时，才会应用惩罚。（可选）",
           "award_points": "如果奖励方式为积分，请指定获得此徽章时要应用的积分数量。（可选）",
-          "points_multiplier": "如果倍数奖励是选定的奖励，请设置此徽章激活期间所获积分的倍数（例如，1.5 倍）。",
+          "points_multiplier": "如果倍数奖励是选定的奖励，请设置此徽章激活期间所获积分的倍率（例如，1.5 倍）。",
           "recurring_frequency": "启用维护周期，要求在周期结束前获得指定的最低积分。（例如，每周、每月）。",
           "custom_interval": "指定自定义频率的天数、周数、月数等（例如，如果设置为 3 周，则输入 3）。仅适用于自定义频率。",
           "custom_interval_unit": "选择自定义间隔的单位（例如，天、周）。仅适用于自定义频率。",
@@ -823,7 +823,7 @@
           "threshold_value": "🎯每日目标：阈值",
           "selected_chores": "🧹 已记录的家务（可选）",
           "assigned_user_ids": "🧒 分配给",
-          "award_items": "🎁 奖励：选择积分、奖励、加分奖励或惩罚（可选）",
+          "award_items": "🎁 奖励：选择积分、奖励、额外加分或惩罚（可选）",
           "award_points": "🎁 奖励：积分奖励（可选）"
         },
         "data_description": {
@@ -835,7 +835,7 @@
           "threshold_value": "设置获得此徽章所需的每日积分、家务数量或天数。对于“天数”目标类型，请输入 1，因为徽章是按日评估的（例如，一天内完成所有选定的家务可得 1 分）。",
           "selected_chores": "选择可获得此徽章积分的家务。如果要跟踪所有已分配的家务，请留空（可选）。",
           "assigned_user_ids": "将此徽章分配给特定执行人以进行跟踪。",
-          "award_items": "从积分、奖励、加分奖励或惩罚中选择一项或多项。获得徽章后，所有选定项目都会发放或应用。只有在截止日期或重置日期前未获得徽章时，才会应用惩罚。（可选）",
+          "award_items": "从积分、奖励、额外加分或惩罚中选择一项或多项。获得徽章后，所有选定项目都会发放或应用。只有在截止日期或重置日期前未获得徽章时，才会应用惩罚。（可选）",
           "award_points": "如果奖励方式为积分，请指定获得此徽章时要应用的积分数量。（可选）"
         }
       },
@@ -854,7 +854,7 @@
           "associated_achievement": "🏆 相关成就",
           "selected_chores": "🧹 已记录的家务（可选）",
           "assigned_user_ids": "🧒 分配给",
-          "award_items": "🎁 奖励：选择积分、奖励、加分奖励或惩罚（可选）",
+          "award_items": "🎁 奖励：选择积分、奖励、额外加分或惩罚（可选）",
           "award_points": "🎁 奖励：积分奖励（可选）",
           "recurring_frequency": "🔄 重置周期：频率",
           "custom_interval": "🔄 重置周期：自定义间隔（自定义频率需要此项）",
@@ -869,12 +869,12 @@
           "icon": "使用 Material Design 图标（例如 mdi:star）为徽章指定图标。",
           "target_type": "选择此徽章的目标类型（例如，积分、家务数量、天数或连续天数）。",
           "threshold_value": "设定在规定时间内获得此徽章所需的总积分、家务数量或天数（例如，连续完成多项家务）。",
-          "maintenance_rules": "指定重置周期内保留徽章及其有效倍数所需的最低分数（可选）。",
+          "maintenance_rules": "指定重置周期内保留徽章及其有效倍数所需的最低积分（可选）。",
           "occasion_type": "选择此徽章的场合类型（例如，节日、生日）。",
           "associated_achievement": "将此徽章关联到一项成就以便进行追踪。",
           "selected_chores": "选择可获得此徽章积分的家务。如果要跟踪所有已分配的家务，请留空（可选）。",
           "assigned_user_ids": "将此徽章分配给特定执行人以进行跟踪。",
-          "award_items": "从积分、奖励、加分奖励或惩罚中选择一项或多项。获得徽章后，所有选定项目都会发放或应用。只有在截止日期或重置日期前未获得徽章时，才会应用惩罚。（可选）",
+          "award_items": "从积分、奖励、额外加分或惩罚中选择一项或多项。获得徽章后，所有选定项目都会发放或应用。只有在截止日期或重置日期前未获得徽章时，才会应用惩罚。（可选）",
           "award_points": "如果奖励方式为积分，请指定获得此徽章时要应用的积分数量。（可选）",
           "recurring_frequency": "定义此徽章的重置时间表（例如，每周、每月）。",
           "custom_interval": "指定自定义频率的天数、周数、月数等（例如，如果设置 3 周，则为 3）。",
@@ -893,7 +893,7 @@
           "icon": "徽章图标（mdi:xxx）",
           "associated_achievement": "🏆 相关成就",
           "assigned_user_ids": "🧒 分配给",
-          "award_items": "🎁 奖励：选择积分、奖励、加分奖励（可选）",
+          "award_items": "🎁 奖励：选择积分、奖励、额外加分（可选）",
           "award_points": "🎁 奖励：积分奖励（可选）"
         },
         "data_description": {
@@ -903,7 +903,7 @@
           "icon": "使用 Material Design 图标（例如 mdi:star）为徽章指定图标。",
           "associated_achievement": "将此徽章与特定成就关联以便跟踪。",
           "assigned_user_ids": "将此徽章分配给特定执行人以进行跟踪。",
-          "award_items": "从积分、奖励、加分奖励或惩罚中选择一项或多项。获得徽章后，所有选定项目都会发放或应用。只有在截止日期或重置日期前未获得徽章时，才会应用惩罚。（可选）",
+          "award_items": "从积分、奖励、额外加分或惩罚中选择一项或多项。获得徽章后，所有选定项目都会发放或应用。只有在截止日期或重置日期前未获得徽章时，才会应用惩罚。（可选）",
           "award_points": "如果奖励方式为积分，请指定获得此徽章时要应用的积分数量。（可选）"
         }
       },
@@ -923,7 +923,7 @@
           "start_date": "🔄 重复：开始日期（可选）",
           "grace_period_days": "🔄 续期：宽限期（天数）（可选）",
           "assigned_user_ids": "🧒 分配给",
-          "award_items": "🎁 奖励：选择积分、奖励、加分奖励（可选）",
+          "award_items": "🎁 奖励：选择积分、奖励、额外加分（可选）",
           "award_points": "🎁 奖励：积分奖励（可选）"
         },
         "data_description": {
@@ -939,7 +939,7 @@
           "start_date": "设置重置周期的开始日期（可选）。",
           "grace_period_days": "指定在周期结束后，执行人在降级前达到所需积分的额外天数（可选）。",
           "assigned_user_ids": "将此徽章分配给特定执行人以进行跟踪。",
-          "award_items": "从积分、奖励、加分奖励或惩罚中选择一项或多项。获得徽章后，所有选定项目都会发放或应用。只有在截止日期或重置日期前未获得徽章时，才会应用惩罚。（可选）",
+          "award_items": "从积分、奖励、额外加分或惩罚中选择一项或多项。获得徽章后，所有选定项目都会发放或应用。只有在截止日期或重置日期前未获得徽章时，才会应用惩罚。（可选）",
           "award_points": "如果奖励方式为积分，请指定获得此徽章时要应用的积分数量。（可选）"
         }
       },
@@ -947,7 +947,7 @@
         "title": "添加奖励",
         "description": "请提供新奖励的详细信息。\n\n ℹ️ [配置指南]({documentation_url})",
         "data": {
-          "name": "加分奖励名称",
+          "name": "奖励名称",
           "internal_id": "内部 ID",
           "cost": "所需积分",
           "description": "描述（可选）",
@@ -957,12 +957,12 @@
         }
       },
       "add_penalty": {
-        "title": "加罚",
-        "description": "请提供新处罚的详细信息。\n\n ℹ️ [配置指南]({documentation_url})",
+        "title": "添加惩罚",
+        "description": "请提供新惩罚的详细信息。\n\n ℹ️ [配置指南]({documentation_url})",
         "data": {
           "name": "惩罚名称",
           "penalty_description": "描述（可选）",
-          "penalty_labels": "处罚标签",
+          "penalty_labels": "惩罚标签",
           "internal_id": "内部 ID",
           "penalty_points": "罚分（负分）",
           "icon": "图标（mdi:xxx）"
@@ -974,9 +974,9 @@
         "data": {
           "name": "奖励名称",
           "bonus_description": "描述（可选）",
-          "bonus_labels": "加分奖励标签",
+          "bonus_labels": "额外加分标签",
           "internal_id": "内部 ID",
-          "bonus_points": "加分奖励积分",
+          "bonus_points": "额外加分积分",
           "icon": "图标（mdi:xxx）"
         }
       },
@@ -1032,7 +1032,7 @@
             },
             "data_description": {
               "name": "此用户个人资料的唯一名称。",
-              "ha_user_id": "可选：将此资料关联到 Home Assistant 用户。如果禁用信息亭模式，共享设备上的认领和兑换操作将依赖此关联。",
+              "ha_user_id": "可选：将此资料关联到 Home Assistant 用户。如果禁用服务终端模式，共享设备上的认领和兑换操作将依赖此关联。",
               "dashboard_language": "用于仪表盘内容和通知的语言。",
               "mobile_notify_service": "选择通知服务，或留空以禁用通知。",
               "notif_click_url": "点击通知时要打开的网址（可选）。留空则使用默认行为。"
@@ -1097,7 +1097,7 @@
               "default_points": "完成家务后可获得积分。",
               "assigned_user_ids": "可以查看并认领这项家务的执行人。对于轮换家务，执行人的顺序决定轮换顺序。对于主执行人和备用执行人模式，第一个执行人为主执行人。",
               "completion_criteria": "控制分配多个执行人时如何完成家务：独立完成、共同完成或轮换完成。",
-              "standby_claim_mode": "🔑 备用执行人认领方式"
+              "standby_claim_mode": "控制备用执行人何时可以认领此家务（anytime、on_overdue、manual_only）。仅适用于“主执行人和备用执行人”完成方式。"
             }
           },
           "section_schedule": {
@@ -1118,7 +1118,7 @@
               "due_date": "可选截止日期。可与循环日程结合使用。对于独立完成的家务，此功能可用作模板——将出现一个额外的屏幕，允许每个用户设置单独的日期。",
               "clear_due_date": "选中此框可移除此家务的截止日期。",
               "applicable_days": "所有日期留空。仅选择要限制的特定日期。",
-              "chore_due_window_offset": "到期前认领窗口的偏移量。格式为“1 天 6 小时 30 分钟”或仅输入“30”（表示分钟）。输入“0”可禁用此功能。例如：“1 天”表示在截止日期前 1 天开放认领窗口。",
+              "chore_due_window_offset": "到期前认领窗口的偏移量。格式为“1d 6h 30m”或仅输入“30”（表示分钟）。输入“0”可禁用此功能。例如：“1d”表示在截止日期前 1 天开放认领窗口。",
               "chore_claim_lock_until_window": "启用后，执行人在到期日前无法认领这项家务。",
               "custom_interval": "重复次数之间的间隔时间单位数（例如，3 表示“每 3 周一次”）。仅与自定义频率一起使用。",
               "custom_interval_unit": "自定义时间间隔的时间单位（天、周、月）。仅与自定义频率一起使用。"
@@ -1142,7 +1142,7 @@
               "approval_reset_pending_claim_action": "审批周期重置发生时，仍在等待审批的认领会按所选规则处理。",
               "auto_approve": "启用后，认领申请无需审批人审核即可立即批准。",
               "overdue_handling_type": "控制到期日过后会发生什么，以及在审批重置边界处逾期家务会发生什么。",
-              "chore_due_reminder_offset": "到期前发送提醒通知的偏移量。格式：‘1 天 6 小时 30 分钟’或‘30’（分钟）。默认值：30 分钟（到期前 30 分钟）。输入‘0’可禁用此功能。",
+              "chore_due_reminder_offset": "到期前发送提醒通知的偏移量。格式：‘1d 6h 30m’或‘30’（分钟）。默认值：30 分钟（到期前 30 分钟）。输入‘0’可禁用此功能。",
               "chore_notifications": "通知发送时机：认领时、批准时、退回时，或以上任意组合。",
               "show_on_calendar": "在日历视图中显示此家务。",
               "chore_labels": "用于整理家务的标签（例如，“厨房”、“户外”）。如果不需要，请留空。"
@@ -1173,7 +1173,7 @@
           "chore_due_reminder_offset": "🔔 到期提醒：到期前偏移量",
           "show_on_calendar": "📅 在日历上显示？",
           "chore_notifications": "🔔 通知事件（可选）",
-          "standby_claim_mode": "控制备用执行人何时可以认领此家务（anytime、on_overdue、manual_only）。仅适用于“主执行人和备用执行人”完成方式。"
+          "standby_claim_mode": "🔑 备用执行人认领方式"
         },
         "data_description": {
           "name": "系统中显示的唯一名称。",
@@ -1194,8 +1194,8 @@
           "applicable_days": "所有日期留空。仅选择要限制的特定日期。",
           "due_date": "可选截止日期。可与循环日程结合使用。对于独立完成的家务，此功能可用作模板——将出现一个额外的屏幕，允许每个用户设置单独的日期。",
           "clear_due_date": "选中此框可移除此家务的截止日期。",
-          "chore_due_window_offset": "到期前认领窗口的偏移量。格式为“1 天 6 小时 30 分钟”或仅输入“30”（表示分钟）。输入“0”可禁用此功能。例如：“1 天”表示在截止日期前 1 天开放认领窗口。",
-          "chore_due_reminder_offset": "到期前发送提醒通知的偏移量。格式：‘1 天 6 小时 30 分钟’或‘30’（分钟）。默认值：30 分钟（到期前 30 分钟）。输入‘0’可禁用此功能。",
+          "chore_due_window_offset": "到期前认领窗口的偏移量。格式为“1d 6h 30m”或仅输入“30”（表示分钟）。输入“0”可禁用此功能。例如：“1d”表示在截止日期前 1 天开放认领窗口。",
+          "chore_due_reminder_offset": "到期前发送提醒通知的偏移量。格式：‘1d 6h 30m’或‘30’（分钟）。默认值：30 分钟（到期前 30 分钟）。输入‘0’可禁用此功能。",
           "show_on_calendar": "在日历视图中显示此家务。",
           "chore_notifications": "通知发送时机：认领时、批准时、退回时，或以上任意组合。",
           "standby_claim_mode": "控制备用执行人何时可以认领此家务（anytime、on_overdue、manual_only）。仅适用于“主执行人和备用执行人”完成方式。"
@@ -1215,7 +1215,7 @@
         "title": "设定每日时间： {chore_name}",
         "description": "输入每天可用的时间。请使用 24 小时制（HH:MM），并用 |（竖线）分隔。\n\n**示例：** 07:00|12:00|18:00，分别表示早上、中午和晚上。\n\n**要求：**\n- 最少 2 个时间，最多 6 个时间\n- 时间必须使用 24 小时制（00:00 至 23:59）\n- 使用 |（竖线字符）分隔多个时间\n\n**注意：** 如果在主表单中设置了到期日期，这里只使用日期部分。下面输入的时间将决定每天何时可以使用该家务。",
         "data": {
-          "daily_multi_times": "《每日时报》"
+          "daily_multi_times": "每日时间"
         },
         "data_description": {
           "daily_multi_times": "请以 24 小时制格式输入 2-6 个时间，并用竖线（|）分隔。例如：08:00|17:00 表示上午和下午。"
@@ -1223,7 +1223,7 @@
       },
       "edit_chore_per_user_details": {
         "title": "每个执行人的日程安排： {chore_name}",
-        "description": "为分配给此家务的每位执行人配置单独的日程安排设置。主表单值用作**模板**——使用复选框将其应用于所有执行人，或单独自定义每位执行人的设置。\n\n**注意：**并非以下所有字段都适用于每项家务。表单会根据完成模式、频率以及是否设置了截止日期动态显示相关选项。\n\n**每日（多次）格式：**如果显示，请以 24 小时制格式输入 2-6 次，并用全角竖线（|）分隔。示例：08:00|17:00\n\n执行人：{assignee_names}{template_info}\n\n ℹ️ [高级指南]({documentation_url})",
+        "description": "为分配给此家务的每位执行人配置单独的日程安排设置。主表单值用作**模板**——使用复选框将其应用于所有执行人，或单独自定义每位执行人的设置。\n\n**注意：**并非以下所有字段都适用于每项家务。表单会根据完成模式、频率以及是否设置了截止日期动态显示相关选项。\n\n**每日（多次）格式：**如果显示，请以 24 小时制格式输入 2-6 次，并用竖线（|）分隔。示例：08:00|17:00\n\n执行人：{assignee_names}{template_info}\n\n ℹ️ [高级指南]({documentation_url})",
         "data": {
           "apply_days_to_all": "对所有执行人应用模板天数",
           "apply_times_to_all": "将模板时间应用于所有执行人",
@@ -1250,7 +1250,7 @@
           "associated_achievement": "🏆 相关成就",
           "selected_chores": "🧹 已记录的家务（可选）",
           "assigned_user_ids": "🧒 分配给",
-          "award_items": "🎁 奖励：选择积分、奖励、加分奖励或积分倍率（可选）",
+          "award_items": "🎁 奖励：选择积分、奖励、额外加分或积分倍率（可选）",
           "award_points": "🎁 奖励：积分奖励（可选）",
           "points_multiplier": "🎁 奖励：积分倍增（默认💎 1.0 倍）",
           "recurring_frequency": "🔄 维护周期：频率",
@@ -1272,9 +1272,9 @@
           "associated_achievement": "将此徽章关联到一项成就以便进行追踪。",
           "selected_chores": "选择可获得此徽章积分的家务。如果要跟踪所有已分配的家务，请留空（可选）。",
           "assigned_user_ids": "将此徽章分配给特定执行人以进行跟踪。",
-          "award_items": "从积分、奖励、加分奖励或积分倍率中选择一项或多项。获得徽章后，所有选定项目都会发放或应用。（可选）",
+          "award_items": "从积分、奖励、额外加分或积分倍率中选择一项或多项。获得徽章后，所有选定项目都会发放或应用。（可选）",
           "award_points": "如果奖励方式为积分，请指定获得此徽章时要应用的积分数量。（可选）",
-          "points_multiplier": "如果倍数奖励是选定的奖励，请设置此徽章激活期间所获积分的倍数（例如，1.5 倍）。",
+          "points_multiplier": "如果倍数奖励是选定的奖励，请设置此徽章激活期间所获积分的倍率（例如，1.5 倍）。",
           "recurring_frequency": "启用维护周期，要求在周期结束前获得指定的最低积分。（例如，每周、每月）。",
           "custom_interval": "指定自定义频率的天数、周数、月数等（例如，如果设置为 3 周，则输入 3）。仅适用于自定义频率。",
           "custom_interval_unit": "选择自定义间隔的单位（例如，天、周）。仅适用于自定义频率。",
@@ -1295,7 +1295,7 @@
           "threshold_value": "🎯每日目标：阈值",
           "selected_chores": "🧹 已记录的家务（可选）",
           "assigned_user_ids": "🧒 分配给",
-          "award_items": "🎁 奖励：选择积分、奖励、加分奖励或惩罚（可选）",
+          "award_items": "🎁 奖励：选择积分、奖励、额外加分或惩罚（可选）",
           "award_points": "🎁 奖励：积分奖励（可选）"
         },
         "data_description": {
@@ -1307,7 +1307,7 @@
           "threshold_value": "设置获得此徽章所需的每日积分、家务数量或天数。对于“天数”目标类型，请输入 1，因为徽章是按日评估的（例如，一天内完成所有选定的家务可得 1 分）。",
           "selected_chores": "选择可获得此徽章积分的家务。如果要跟踪所有已分配的家务，请留空（可选）。",
           "assigned_user_ids": "将此徽章分配给特定执行人以进行跟踪。",
-          "award_items": "从积分、奖励、加分奖励或惩罚中选择一项或多项。获得徽章后，所有选定项目都会发放或应用。只有在截止日期或重置日期前未获得徽章时，才会应用惩罚。（可选）",
+          "award_items": "从积分、奖励、额外加分或惩罚中选择一项或多项。获得徽章后，所有选定项目都会发放或应用。只有在截止日期或重置日期前未获得徽章时，才会应用惩罚。（可选）",
           "award_points": "如果奖励方式为积分，请指定获得此徽章时要应用的积分数量。（可选）"
         }
       },
@@ -1326,7 +1326,7 @@
           "associated_achievement": "🏆 相关成就",
           "selected_chores": "🧹 已记录的家务（可选）",
           "assigned_user_ids": "🧒 分配给",
-          "award_items": "🎁 奖励：选择积分、奖励、加分奖励或惩罚（可选）",
+          "award_items": "🎁 奖励：选择积分、奖励、额外加分或惩罚（可选）",
           "award_points": "🎁 奖励：积分奖励（可选）",
           "recurring_frequency": "🔄 重置周期：频率",
           "custom_interval": "🔄 重置周期：自定义间隔（自定义频率需要此项）",
@@ -1341,12 +1341,12 @@
           "icon": "使用 Material Design 图标（例如 mdi:star）为徽章指定图标。",
           "target_type": "选择此徽章的目标类型（例如，积分、家务数量、天数或连续天数）。",
           "threshold_value": "设定在规定时间内获得此徽章所需的总积分、家务数量或天数（例如，连续完成多项家务）。",
-          "maintenance_rules": "指定重置周期内保留徽章及其有效倍数所需的最低分数（可选）。",
+          "maintenance_rules": "指定重置周期内保留徽章及其有效倍数所需的最低积分（可选）。",
           "occasion_type": "选择此徽章的场合类型（例如，节日、生日）。",
           "associated_achievement": "将此徽章关联到一项成就以便进行追踪。",
           "selected_chores": "选择可获得此徽章积分的家务。如果要跟踪所有已分配的家务，请留空（可选）。",
           "assigned_user_ids": "将此徽章分配给特定执行人以进行跟踪。",
-          "award_items": "从积分、奖励、加分奖励或惩罚中选择一项或多项。获得徽章后，所有选定项目都会发放或应用。只有在截止日期或重置日期前未获得徽章时，才会应用惩罚。（可选）",
+          "award_items": "从积分、奖励、额外加分或惩罚中选择一项或多项。获得徽章后，所有选定项目都会发放或应用。只有在截止日期或重置日期前未获得徽章时，才会应用惩罚。（可选）",
           "award_points": "如果奖励方式为积分，请指定获得此徽章时要应用的积分数量。（可选）",
           "recurring_frequency": "定义此徽章的重置时间表（例如，每周、每月）。",
           "custom_interval": "指定自定义频率的天数、周数、月数等（例如，如果设置 3 周，则为 3）。",
@@ -1365,7 +1365,7 @@
           "icon": "徽章图标（mdi:xxx）",
           "associated_achievement": "🏆 相关成就",
           "assigned_user_ids": "🧒 分配给",
-          "award_items": "🎁 奖励：选择积分、奖励、加分奖励（可选）",
+          "award_items": "🎁 奖励：选择积分、奖励、额外加分（可选）",
           "award_points": "🎁 奖励：积分奖励（可选）"
         },
         "data_description": {
@@ -1375,7 +1375,7 @@
           "icon": "使用 Material Design 图标（例如 mdi:star）为徽章指定图标。",
           "associated_achievement": "将此徽章与特定成就关联以便跟踪。",
           "assigned_user_ids": "将此徽章分配给特定执行人以进行跟踪。",
-          "award_items": "从积分、奖励、加分奖励或惩罚中选择一项或多项。获得徽章后，所有选定项目都会发放或应用。只有在截止日期或重置日期前未获得徽章时，才会应用惩罚。（可选）",
+          "award_items": "从积分、奖励、额外加分或惩罚中选择一项或多项。获得徽章后，所有选定项目都会发放或应用。只有在截止日期或重置日期前未获得徽章时，才会应用惩罚。（可选）",
           "award_points": "如果奖励方式为积分，请指定获得此徽章时要应用的积分数量。（可选）"
         }
       },
@@ -1395,7 +1395,7 @@
           "start_date": "🔄 重复：开始日期（可选）",
           "grace_period_days": "🔄 续期：宽限期（天数）（可选）",
           "assigned_user_ids": "🧒 分配给",
-          "award_items": "🎁 奖励：选择积分、奖励、加分奖励（可选）",
+          "award_items": "🎁 奖励：选择积分、奖励、额外加分（可选）",
           "award_points": "🎁 奖励：积分奖励（可选）"
         },
         "data_description": {
@@ -1411,7 +1411,7 @@
           "start_date": "设置重置周期的开始日期（可选）。",
           "grace_period_days": "指定在周期结束后，执行人在降级前达到所需积分的额外天数（可选）。",
           "assigned_user_ids": "将此徽章分配给特定执行人以进行跟踪。",
-          "award_items": "从积分、奖励、加分奖励或惩罚中选择一项或多项。获得徽章后，所有选定项目都会发放或应用。只有在截止日期或重置日期前未获得徽章时，才会应用惩罚。（可选）",
+          "award_items": "从积分、奖励、额外加分或惩罚中选择一项或多项。获得徽章后，所有选定项目都会发放或应用。只有在截止日期或重置日期前未获得徽章时，才会应用惩罚。（可选）",
           "award_points": "如果奖励方式为积分，请指定获得此徽章时要应用的积分数量。（可选）"
         }
       },
@@ -1419,7 +1419,7 @@
         "title": "编辑奖励",
         "description": "修改所选奖励的详细信息。\n\n ℹ️ [配置指南]({documentation_url})",
         "data": {
-          "name": "加分奖励名称",
+          "name": "奖励名称",
           "internal_id": "内部 ID",
           "cost": "所需积分",
           "description": "描述（可选）",
@@ -1429,12 +1429,12 @@
         }
       },
       "edit_penalty": {
-        "title": "编辑处罚",
-        "description": "修改所选处罚的详细信息。\n\n ℹ️ [配置指南]({documentation_url})",
+        "title": "编辑惩罚",
+        "description": "修改所选惩罚的详细信息。\n\n ℹ️ [配置指南]({documentation_url})",
         "data": {
           "name": "惩罚名称",
           "penalty_description": "描述（可选）",
-          "penalty_labels": "处罚标签",
+          "penalty_labels": "惩罚标签",
           "internal_id": "内部 ID",
           "penalty_points": "罚分（负分）",
           "icon": "图标（mdi:xxx）"
@@ -1446,9 +1446,9 @@
         "data": {
           "name": "奖励名称",
           "bonus_description": "描述（可选）",
-          "bonus_labels": "加分奖励标签",
+          "bonus_labels": "额外加分标签",
           "internal_id": "内部 ID",
-          "bonus_points": "加分奖励积分",
+          "bonus_points": "额外加分积分",
           "icon": "图标（mdi:xxx）"
         }
       },
@@ -1509,8 +1509,8 @@
         "data": {}
       },
       "delete_penalty": {
-        "title": "删除处罚",
-        "description": "你确定要删除处罚 {penalty_name}吗？",
+        "title": "删除惩罚",
+        "description": "你确定要删除惩罚 {penalty_name}吗？",
         "data": {}
       },
       "delete_bonus": {
@@ -1549,7 +1549,7 @@
         },
         "data_description": {
           "dashboard_dependency_bypass": "确认缺少必需的依赖项，并继续操作。在安装必需的依赖项之前，仪表盘可能无法渲染或运行异常。",
-          "dashboard_access_warning_ack": "请注意，在信息亭模式禁用期间，部分用户可能未关联 Home Assistant 用户。在关联这些用户或启用信息亭模式之前，共享设备上的“认领”和“兑换”按钮可能无法正常工作。"
+          "dashboard_access_warning_ack": "请注意，在服务终端模式禁用期间，部分用户可能未关联 Home Assistant 用户。在关联这些用户或启用服务终端模式之前，共享设备上的“认领”和“兑换”按钮可能无法正常工作。"
         }
       },
       "dashboard_create": {
@@ -1601,7 +1601,7 @@
               "dashboard_admin_mode": "选择管理员布局：无、共享、按用户或两者都有。",
               "dashboard_admin_template_global": "当管理布局包含共享内容时，使用清单定义的模板。",
               "dashboard_admin_template_per_assignee": "当管理布局包含每个用户时，使用清单定义的模板。",
-              "dashboard_admin_view_visibility": "控制谁可以查看管理员视图。审批者关联可见性使用关联的审批者高可用性用户。"
+              "dashboard_admin_view_visibility": "控制谁可以查看管理员视图。审批者关联可见性使用关联的审批者 Home Assistant 用户。"
             }
           },
           "section_access_sidebar": {
@@ -1647,7 +1647,7 @@
           "dashboard_admin_mode": "选择管理员布局：无、共享、按用户或两者都有。",
           "dashboard_admin_template_global": "当管理布局包含共享内容时，使用清单定义的模板。",
           "dashboard_admin_template_per_assignee": "当管理布局包含“按用户”时，使用清单定义的模板。",
-          "dashboard_admin_view_visibility": "控制谁可以查看管理员视图。审批者关联可见性使用关联的审批者高可用性用户。",
+          "dashboard_admin_view_visibility": "控制谁可以查看管理员视图。审批者关联可见性使用关联的审批者 Home Assistant 用户。",
           "dashboard_icon": "此仪表盘的侧边栏图标。",
           "dashboard_require_admin": "限制只有管理员用户才能访问仪表盘。",
           "dashboard_show_in_sidebar": "在 Home Assistant 侧边栏中显示此仪表盘。",
@@ -1675,13 +1675,13 @@
         "data": {
           "dashboard_points_precision": "仪表盘积分精度",
           "default_chore_points": "每项家务的默认积分",
-          "points_adjust_values": "手动点火正时调整按钮值",
+          "points_adjust_values": "手动积分调整按钮值",
           "update_interval": "更新间隔",
           "calendar_show_period": "日历中显示的天数",
           "retention_periods": "数据保留周期（每日|每周|每月|每年）",
-          "retention_daily": "每日数据保留时间（天）",
-          "retention_weekly": "每周数据保留时间（周）",
-          "retention_monthly": "每月数据保留时间（月）",
+          "retention_daily": "每日数据保留期限（天）",
+          "retention_weekly": "每周数据保留期限（周）",
+          "retention_monthly": "每月数据保留期限（月）",
           "retention_yearly": "年度数据保留期限（年）",
           "show_legacy_entities": "显示额外实体",
           "kiosk_mode": "启用执行人认领自助服务模式",
@@ -1803,20 +1803,20 @@
       "invalid_maintenance_rules": "维护规则值无效",
       "error_badge_challenge_required": "要获得与挑战相关的徽章，必须先选择一个挑战。",
       "error_award_points_minimum": "奖励积分必须大于零。",
-      "error_award_invalid_multiplier": "积分倍数必须大于零",
+      "error_award_invalid_multiplier": "积分倍率必须大于零",
       "invalid_award_item_selected": "一项或多项选定的奖励项目无效",
       "start_date_required": "需要填写开始日期。",
       "end_date_required": "必须填写结束日期。",
       "end_date_before_start_date": "结束日期必须晚于开始日期",
       "duplicate_achievement": "已存在一项同名成就",
       "duplicate_badge": "已存在同名徽章",
-      "duplicate_challenge": "这个名字已经存在一个挑战。",
-      "duplicate_chore": "已经存在一项同名家务了。",
+      "duplicate_challenge": "已存在同名挑战。",
+      "duplicate_chore": "已存在同名家务。",
       "duplicate_assignee": "已存在同名执行人",
       "duplicate_approver": "已存在同名用户",
-      "duplicate_penalty": "已存在一个同名的处罚",
-      "duplicate_reward": "已存在一个以此命名的奖励",
-      "duplicate_bonus": "已经存在一个同名奖励。",
+      "duplicate_penalty": "已存在同名惩罚",
+      "duplicate_reward": "已存在同名奖励",
+      "duplicate_bonus": "已存在同名奖励。",
       "usage_requires_assignment_or_approval": "启用“可分配”或“可批准”。",
       "associated_users_require_approval": "只有启用“可批准”选项后，才能设置“关联用户”。",
       "approval_requires_associated_users": "启用“可审批”功能时，至少需要一个关联的执行人/用户。",
@@ -1824,7 +1824,7 @@
       "end_date_in_past": "结束日期必须为未来日期。",
       "end_date_not_after_start_date": "结束日期必须晚于开始日期",
       "err_end_before_start": "结束日期必须晚于开始日期",
-      "err_name_duplicate": "这个名字已经存在一个挑战。",
+      "err_name_duplicate": "已存在同名挑战。",
       "err_name_required": "挑战名称为必填项",
       "err_dates_required": "需要填写开始日期和结束日期。",
       "err_invalid_date": "挑战日期无效",
@@ -1836,7 +1836,7 @@
       "invalid_chore": "无效的家务",
       "invalid_chore_count": "无效的家务计数",
       "invalid_chore_name": "无效的家务名称",
-      "invalid_points": "分数必须为零或大于零。",
+      "invalid_points": "积分必须为零或大于零。",
       "invalid_overdue_reset_combination": "“到期后重置”的逾期处理方式仅适用于午夜重置类型。请为审批重置方式选择“午夜（一次）”或“午夜（重复）”。",
       "invalid_due_date": "无效的到期日",
       "date_required_for_frequency": "此重复频率需要设置截止日期。清除日期仅适用于“无”或“每日”频率。",
@@ -1846,10 +1846,10 @@
       "no_assignees_assigned": "至少要为这项家务分配一名执行人。",
       "achievement_no_assignees_assigned": "至少要为该项成就指定一名执行人。",
       "challenge_no_assignees_assigned": "至少要指派一名执行人参与这项挑战。",
-      "invalid_penalty": "无效处罚",
-      "invalid_penalty_count": "无效的处罚计数",
-      "invalid_bonus": "无效加分奖励",
-      "invalid_bonus_count": "无效加分奖励计数",
+      "invalid_penalty": "无效惩罚",
+      "invalid_penalty_count": "无效的惩罚计数",
+      "invalid_bonus": "无效额外加分",
+      "invalid_bonus_count": "无效额外加分计数",
       "invalid_reward": "无效奖励",
       "invalid_reward_count": "无效奖励计数",
       "invalid_start_date": "起始日期无效。",
@@ -1885,7 +1885,7 @@
       "dashboard_admin_per_assignee_template_required": "当管理布局包含“按用户”选项时，需要使用“按用户”管理模板。",
       "dashboard_admin_per_assignee_needs_assignees": "每个用户的管理布局至少需要选择一个用户。",
       "dashboard_dependency_ack_required": "启用“仍然继续”以继续，或者返回并先安装缺失的必需依赖项。",
-      "dashboard_access_warning_ack_required": "确认访问控制警告以继续，或者返回并链接受影响的用户或启用自助服务终端模式。",
+      "dashboard_access_warning_ack_required": "确认访问控制警告以继续，或者返回并链接受影响的用户或启用服务终端模式。",
       "dashboard_nonselectable_templates": "一个或多个选定的模板无法生成。",
       "dashboard_release_strict_pin_failed": "所选的仪表盘版本必须精确锁定，但在执行时没有有效的版本参考。请在步骤 1 中重新选择版本，然后重试。",
       "dashboard_release_asset_prep_failed": "无法准备所选的在线仪表盘资源。请选择其他版本或使用最新的兼容/当前本地模板重试。"
@@ -1900,16 +1900,16 @@
       "invalid_entity": "无效实体",
       "invalid_assignee": "无效执行人",
       "invalid_approver": "无效审批人",
-      "invalid_penalty": "无效处罚",
+      "invalid_penalty": "无效惩罚",
       "invalid_reward": "无效奖励",
-      "invalid_bonus": "无效加分奖励",
+      "invalid_bonus": "无效额外加分",
       "no_assignee": "当前没有设置要编辑的执行人。请先添加一条记录。",
       "no_approver": "当前未设置任何编辑审批人。请先添加一条记录。",
       "no_chore": "当前没有可编辑的家务。请先添加一项。",
       "no_badge": "当前没有徽章可供编辑。请先添加一个条目。",
       "no_reward": "奖励尚未设置，无法编辑。请先添加一条记录。",
       "no_penalty": "当前没有可编辑的惩罚。请先添加一项。",
-      "no_bonus": "当前没有可编辑的加分奖励条目。请先添加一项。",
+      "no_bonus": "当前没有可编辑的额外加分条目。请先添加一项。",
       "no_achievement": "当前没有可编辑的成就。请先添加一个条目。",
       "no_challenge": "当前没有可编辑的挑战。请先添加一项。",
       "setup_complete": "设置完成",
@@ -1926,10 +1926,10 @@
         "manage_chore": "管理家务",
         "manage_badge": "管理徽章",
         "manage_reward": "管理奖励",
-        "manage_penalty": "管理处罚",
-        "manage_bonus": "管理加分奖励",
+        "manage_penalty": "管理惩罚",
+        "manage_bonus": "管理额外加分",
         "manage_achievement": "管理成就",
-        "manage_challenge": "应对挑战",
+        "manage_challenge": "管理挑战",
         "dashboard_generator": "管理仪表盘",
         "general_options": "一般选项",
         "done": "完成设置"
@@ -1940,7 +1940,7 @@
         "create": "创建新仪表盘",
         "update": "更新现有仪表盘视图",
         "delete": "删除仪表盘",
-        "exit": "出口"
+        "exit": "退出"
       }
     },
     "dashboard_assignee_selection": {
@@ -1957,7 +1957,7 @@
         "none": "无",
         "global": "共享",
         "per_assignee": "每用户",
-        "both": "两个都"
+        "both": "两者"
       }
     },
     "dashboard_admin_view_visibility": {
@@ -2042,7 +2042,7 @@
     "award_items": {
       "options": {
         "points": "积分",
-        "multiplier": "积分倍增器"
+        "multiplier": "积分倍率"
       }
     },
     "award_mode": {
@@ -2246,7 +2246,7 @@
         },
         "points_awarded": {
           "name": "获得的积分",
-          "description": "要奖励的分数（可选；默认为家务的分数）。",
+          "description": "要奖励的积分（可选；默认为家务的积分）。",
           "example": "3"
         }
       }
@@ -2416,8 +2416,8 @@
       }
     },
     "apply_penalty": {
-      "name": "施加处罚",
-      "description": "审批人施加处罚以扣除分数。",
+      "name": "施加惩罚",
+      "description": "审批人施加惩罚以扣除积分。",
       "fields": {
         "config_entry_id": {
           "name": "配置条目 ID（可选）",
@@ -2431,24 +2431,24 @@
         },
         "approver_name": {
           "name": "审批人姓名",
-          "description": "批准处罚的人员。",
+          "description": "批准惩罚的人员。",
           "example": "爸爸"
         },
         "user_name": {
           "name": "用户名",
-          "description": "受到处罚的用户。",
+          "description": "受到惩罚的用户。",
           "example": "爱丽丝"
         },
         "penalty_name": {
           "name": "惩罚名称",
-          "description": "要适用的处罚名称。",
+          "description": "要适用的惩罚名称。",
           "example": "大声喊叫"
         }
       }
     },
     "apply_bonus": {
-      "name": "发放加分奖励",
-      "description": "审批人根据审批结果给执行人发放加分奖励，授予积分。",
+      "name": "发放额外加分",
+      "description": "审批人根据审批结果给执行人发放额外加分，授予积分。",
       "fields": {
         "config_entry_id": {
           "name": "配置条目 ID（可选）",
@@ -2462,7 +2462,7 @@
         },
         "approver_name": {
           "name": "审批人姓名",
-          "description": "负责审批加分奖励发放的审批人。",
+          "description": "负责审批额外加分发放的审批人。",
           "example": "妈妈"
         },
         "user_name": {
@@ -2472,7 +2472,7 @@
         },
         "bonus_name": {
           "name": "奖励名称",
-          "description": "要发放的加分奖励名称。",
+          "description": "要发放的奖励名称。",
           "example": "特别有帮助"
         }
       }
@@ -2732,12 +2732,12 @@
         },
         "due_window_offset": {
           "name": "到期窗口偏移量",
-          "description": "家务进入“到期”状态时，距离截止日期还有多长时间。格式：“30 分钟”、“1 小时”、“1 天 6 小时 30 分钟”等。使用“0”可禁用到期窗口功能。",
+          "description": "家务进入“到期”状态时，距离截止日期还有多长时间。格式：“30 分钟”、“1 小时”、“1d 6h 30m”等。使用“0”可禁用到期窗口功能。",
           "example": "30m"
         },
         "due_reminder_offset": {
           "name": "到期提醒偏移量",
-          "description": "发送提醒通知的截止日期前剩余时间。格式：‘30 分钟’、‘1 小时’、‘1 天 6 小时 30 分钟’等。使用‘0’可禁用提醒。",
+          "description": "发送提醒通知的截止日期前剩余时间。格式：‘30 分钟’、‘1 小时’、‘1d 6h 30m’等。使用‘0’可禁用提醒。",
           "example": "30m"
         },
         "standby_claim_mode": {
@@ -2837,7 +2837,7 @@
         },
         "due_window_offset": {
           "name": "到期窗口偏移量",
-          "description": "新的到期前认领窗口偏移量。家务进入“到期”状态时，截止日期前的剩余时间。格式：‘30 分钟’、‘1 小时’、‘1 天 6 小时 30 分钟’等。使用‘0’可禁用此功能。",
+          "description": "新的到期前认领窗口偏移量。家务进入“到期”状态时，截止日期前的剩余时间。格式：‘30 分钟’、‘1 小时’、‘1d 6h 30m’等。使用‘0’可禁用此功能。",
           "example": "1 小时"
         },
         "due_reminder_offset": {
@@ -3666,10 +3666,10 @@
             "name": "累计积分净变化"
           },
           "point_stat_points_earning_streak_current": {
-            "name": "当前盈利连胜"
+            "name": "当前收入连胜"
           },
           "point_stat_points_earning_streak_longest": {
-            "name": "最长盈利记录"
+            "name": "最长收入记录"
           },
           "point_stat_avg_points_per_day_week": {
             "name": "平均每天（每周）"
@@ -4521,12 +4521,12 @@
         }
       },
       "assignee_penalty_applied_sensor": {
-        "name": "已施加处罚 - {penalty_name}",
+        "name": "已施加惩罚 - {penalty_name}",
         "state_attributes": {
           "purpose": {
             "name": "用途",
             "state": {
-              "purpose_sensor_penalty_applied": "用户受到处罚的次数"
+              "purpose_sensor_penalty_applied": "用户受到惩罚的次数"
             }
           },
           "user_name": {
@@ -4901,10 +4901,10 @@
             "name": "徽章"
           },
           "bonuses": {
-            "name": "加分奖励"
+            "name": "额外加分"
           },
           "penalties": {
-            "name": "处罚"
+            "name": "惩罚"
           },
           "achievements": {
             "name": "成就"
@@ -5000,7 +5000,7 @@
           "purpose": {
             "name": "用途",
             "state": {
-              "purpose_select_penalties": "下拉菜单，用于从所有可用的处罚中选择处罚"
+              "purpose_select_penalties": "下拉菜单，用于从所有可用的惩罚中选择惩罚"
             }
           }
         }
@@ -5011,7 +5011,7 @@
           "purpose": {
             "name": "用途",
             "state": {
-              "purpose_select_bonuses": "下拉菜单，可从所有可用加分奖励中选择加分奖励"
+              "purpose_select_bonuses": "下拉菜单，可从所有可用额外加分中选择额外加分"
             }
           }
         }
@@ -5205,12 +5205,12 @@
         }
       },
       "approver_penalty_apply_button": {
-        "name": "施加处罚 - {penalty_name}",
+        "name": "施加惩罚 - {penalty_name}",
         "state_attributes": {
           "purpose": {
             "name": "用途",
             "state": {
-              "purpose_button_penalty_apply": "审批人施加处罚（扣分）"
+              "purpose_button_penalty_apply": "审批人施加惩罚（扣分）"
             }
           },
           "user_name": {
@@ -5225,12 +5225,12 @@
         }
       },
       "approver_bonus_apply_button": {
-        "name": "发放加分奖励 - {bonus_name}",
+        "name": "发放额外加分 - {bonus_name}",
         "state_attributes": {
           "purpose": {
             "name": "用途",
             "state": {
-              "purpose_button_bonus_apply": "审批人发放加分奖励（增加积分）"
+              "purpose_button_bonus_apply": "审批人发放额外加分（增加积分）"
             }
           },
           "user_name": {
@@ -5355,10 +5355,10 @@
       "message": "未提供偏好设置指南"
     },
     "user_non_kiosk_unlinked_warning": {
-      "message": "⚠️ **访问警告：** 自助服务终端模式已禁用，且此用户未关联任何 Home Assistant 用户。在您关联 Home Assistant 用户或启用自助服务终端模式之前，共享设备的认领和兑换按钮可能无法正常工作。"
+      "message": "⚠️ **访问警告：** 服务终端模式已禁用，且此用户未关联任何 Home Assistant 用户。在您关联 Home Assistant 用户或启用服务终端模式之前，共享设备的认领和兑换按钮可能无法正常工作。"
     },
     "dashboard_unlinked_users_warning": {
-      "message": "⚠️ 自助服务终端模式已禁用，并且以下选定用户没有关联 Home Assistant 用户：\n{user_list}\n\n在关联这些用户或启用自助服务终端模式之前，共享设备上的“认领”和“兑换”按钮可能无法正常工作。"
+      "message": "⚠️ 服务终端模式已禁用，并且以下选定用户没有关联 Home Assistant 用户：\n{user_list}\n\n在关联这些用户或启用服务终端模式之前，共享设备上的“认领”和“兑换”按钮可能无法正常工作。"
     },
     "not_authorized_action": {
       "message": "您无权代表此执行人执行 {action}。"
