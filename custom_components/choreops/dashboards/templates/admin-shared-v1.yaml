@@ -1578,6 +1578,9 @@ views:
                   {%- set points_label = (state_attr(points_sensor, 'unit_of_measurement') if points_sensor not in ['', None, 'None'] else None) or 'Points' -%}
                   {%- set recurrence_key = chore_attrs.get('recurring_frequency', 'none') -%}
                   {%- set recurrence_display = recurrence_map.get(recurrence_key, recurrence_key | title) -%}
+                  {%- set custom_interval_value = chore_attrs.get('custom_frequency_interval') -%}
+                  {%- set custom_interval_unit = chore_attrs.get('custom_frequency_unit') -%}
+                  {%- set recurrence_interval_display = (ui.get('every', 'err-every') ~ ' ' ~ custom_interval_value ~ ' ' ~ custom_interval_unit) if custom_interval_value not in [None, 'None', ''] and custom_interval_unit not in [None, 'None', ''] else '' -%}
                   {%- set approval_reset_display = approval_reset_map.get(chore_attrs.get('approval_reset_type', 'at_midnight_once'), chore_attrs.get('approval_reset_type', ui.get('unknown', 'err-unknown'))) -%}
                   {%- set pending_claim_action_map = {
                     'hold_pending': ui.get('hold_pending', 'Hold pending'),
@@ -1708,7 +1711,7 @@ views:
                   {%- set detail_grid = detail_grid ~ "<div><div style='font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--secondary-text-color);'>" ~ ui.get('completion_criteria', 'err-completion_criteria') ~ "</div><div style='margin-top:2px;font-size:13px;font-weight:600;line-height:1.3;'>" ~ completion_type_display ~ "</div></div>" -%}
                   {%- set detail_grid = detail_grid ~ "<div><div style='font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--secondary-text-color);'>" ~ ui.get('value', 'err-value') ~ "</div><div style='margin-top:2px;font-size:13px;font-weight:600;line-height:1.3;'>" ~ chore_value ~ " " ~ points_label ~ "</div></div>" -%}
                   {%- set detail_grid = detail_grid ~ "<div><div style='font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--secondary-text-color);'>" ~ ui.get('approval_reset_type', 'err-approval_reset_type') ~ "</div><div style='margin-top:2px;font-size:13px;font-weight:600;line-height:1.3;'>" ~ approval_reset_display ~ "</div></div>" -%}
-                  {%- set detail_grid = detail_grid ~ "<div><div style='font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--secondary-text-color);'>" ~ ui.get('recurrence', 'err-recurrence') ~ "</div><div style='margin-top:2px;font-size:13px;font-weight:600;line-height:1.3;'>" ~ recurrence_display ~ "</div></div>" -%}
+                  {%- set detail_grid = detail_grid ~ ("<div><div style='font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--secondary-text-color);'>" ~ ui.get('recurrence', 'err-recurrence') ~ "</div><div style='margin-top:2px;font-size:13px;font-weight:600;line-height:1.3;'>" ~ recurrence_display ~ "</div>" ~ ("<div style='margin-top:2px;font-size:11px;font-weight:500;line-height:1.3;color:var(--secondary-text-color);'>" ~ recurrence_interval_display ~ "</div>" if recurrence_interval_display != '' else '') ~ "</div>") -%}
                   {%- if is_rotation_type and assigned_users | count > 0 -%}
                     {%- set assignee_order_ns = namespace(items=[]) -%}
                     {%- if completion_type_key == 'rotation_primary_standby' -%}
