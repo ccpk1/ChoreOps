@@ -275,6 +275,23 @@ views:
                       {%- set chore_sensor_id = chore.eid if chore is mapping else chore -%}
                       {%- set chore_status = chore.state if chore is mapping else states(chore_sensor_id) -%}
                       {%- set chore_labels = chore.labels if chore is mapping else state_attr(chore_sensor_id, 'labels') | default([], true) -%}
+                      {%- set chore_labels = chore_labels if chore_labels is iterable and chore_labels is not string else [] -%}
+                      {#-- Normalize labels: handle both {"id": ..., "name": ...} dicts and plain strings --#}
+                      {%- set ns_label_names = namespace(items=[]) -%}
+                      {%- for _label in chore_labels -%}
+                        {%- if _label is mapping -%}
+                          {%- set _label_name = _label.get('name', '') | string | trim -%}
+                          {%- if _label_name -%}
+                            {%- set ns_label_names.items = ns_label_names.items + [_label_name] -%}
+                          {%- endif -%}
+                        {%- elif _label is string -%}
+                          {%- set _label_text = _label | string | trim -%}
+                          {%- if _label_text -%}
+                            {%- set ns_label_names.items = ns_label_names.items + [_label_text] -%}
+                          {%- endif -%}
+                        {%- endif -%}
+                      {%- endfor -%}
+                      {%- set chore_labels = ns_label_names.items -%}
                       {%- set chore_primary_group = chore.primary_group if chore is mapping else state_attr(chore_sensor_id, 'primary_group') | default('other') -%}
                       {%- set chore_is_today_am = chore.is_today_am if chore is mapping else state_attr(chore_sensor_id, 'is_today_am') -%}
                       {%- set chore_due_date = state_attr(chore_sensor_id, 'due_date') -%}
