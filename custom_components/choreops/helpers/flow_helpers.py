@@ -2327,6 +2327,15 @@ def build_badge_common_schema(
                         ): vol.Any(None, selector.DateSelector()),
                     }
                 )
+                # Clear start date checkbox - date selectors can't be emptied in the UI
+                schema_fields.update(
+                    {
+                        vol.Optional(
+                            const.CFOF_BADGES_INPUT_CLEAR_START_DATE,
+                            default=False,
+                        ): selector.BooleanSelector(),
+                    }
+                )
 
             # End Date
             schema_fields.update(
@@ -2334,6 +2343,16 @@ def build_badge_common_schema(
                     vol.Optional(
                         const.CFOF_BADGES_INPUT_RESET_SCHEDULE_END_DATE,
                     ): vol.Any(None, selector.DateSelector()),
+                }
+            )
+
+            # Clear end date checkbox - the selector can't be emptied in the UI
+            schema_fields.update(
+                {
+                    vol.Optional(
+                        const.CFOF_BADGES_INPUT_CLEAR_END_DATE,
+                        default=False,
+                    ): selector.BooleanSelector(),
                 }
             )
 
@@ -2649,12 +2668,17 @@ def validate_badge_common_inputs(
             const.DEFAULT_BADGE_RESET_SCHEDULE_RECURRING_FREQUENCY,
         )
 
+        # Handle clear date checkboxes (UI affordance - date selectors can't be emptied)
+        if user_input.get(const.CFOF_BADGES_INPUT_CLEAR_START_DATE, False):
+            user_input[const.CFOF_BADGES_INPUT_RESET_SCHEDULE_START_DATE] = None
+        if user_input.get(const.CFOF_BADGES_INPUT_CLEAR_END_DATE, False):
+            user_input[const.CFOF_BADGES_INPUT_RESET_SCHEDULE_END_DATE] = None
+
         # Clear custom interval fields if not custom
+        # START_DATE and END_DATE are preserved - they anchor the cycle window
         if recurring_frequency != const.FREQUENCY_CUSTOM:
-            # Note: END_DATE not cleared - can be used as reference date
             user_input.update(
                 {
-                    const.CFOF_BADGES_INPUT_RESET_SCHEDULE_START_DATE: const.SENTINEL_NONE,
                     const.CFOF_BADGES_INPUT_RESET_SCHEDULE_CUSTOM_INTERVAL: const.SENTINEL_NONE,
                     const.CFOF_BADGES_INPUT_RESET_SCHEDULE_CUSTOM_INTERVAL_UNIT: const.SENTINEL_NONE,
                 }
