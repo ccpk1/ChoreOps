@@ -695,6 +695,8 @@ CFOF_BADGES_INPUT_ASSOCIATED_CHALLENGE: Final = "associated_challenge"
 CFOF_BADGES_INPUT_AWARD_ITEMS: Final = "award_items"
 CFOF_BADGES_INPUT_AWARD_POINTS: Final = "award_points"
 CFOF_BADGES_INPUT_BADGE_COUNT: Final = "badge_count"
+CFOF_BADGES_INPUT_CLEAR_END_DATE: Final = "clear_end_date"
+CFOF_BADGES_INPUT_CLEAR_START_DATE: Final = "clear_start_date"
 CFOF_BADGES_INPUT_DESCRIPTION: Final = "badge_description"
 CFOF_BADGES_INPUT_END_DATE: Final = "end_date"
 CFOF_BADGES_INPUT_ICON: Final = "icon"
@@ -3999,6 +4001,16 @@ CHORE_FREQUENCY_OPTIONS_CONFIG_FLOW = [
     FREQUENCY_CUSTOM_FROM_COMPLETE,
     FREQUENCY_CUSTOM_FROM_COMPLETE_DATE_ONLY,
 ]
+
+# Frequencies that carry a user-defined custom interval value + unit.
+# FREQUENCY_CUSTOM_1_* shortcuts are NOT included (fixed-length, no stored value).
+CUSTOM_INTERVAL_FREQUENCIES = frozenset(
+    {
+        FREQUENCY_CUSTOM,
+        FREQUENCY_CUSTOM_FROM_COMPLETE,
+        FREQUENCY_CUSTOM_FROM_COMPLETE_DATE_ONLY,
+    }
+)
 
 # Weekday Options
 WEEKDAY_OPTIONS = {

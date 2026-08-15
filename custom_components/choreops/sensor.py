@@ -1316,7 +1316,7 @@ class AssigneeChoreStatusSensor(ChoreOpsCoordinatorEntity, SensorEntity):
 
         if (
             chore_info.get(const.DATA_CHORE_RECURRING_FREQUENCY)
-            == const.FREQUENCY_CUSTOM
+            in const.CUSTOM_INTERVAL_FREQUENCIES
         ):
             attributes[const.ATTR_CUSTOM_FREQUENCY_INTERVAL] = chore_info.get(
                 const.DATA_CHORE_CUSTOM_INTERVAL
@@ -2794,7 +2794,7 @@ class SystemChoreSharedStateSensor(ChoreOpsCoordinatorEntity, SensorEntity):
 
         if (
             chore_info.get(const.DATA_CHORE_RECURRING_FREQUENCY)
-            == const.FREQUENCY_CUSTOM
+            in const.CUSTOM_INTERVAL_FREQUENCIES
         ):
             attributes[const.ATTR_CUSTOM_FREQUENCY_INTERVAL] = chore_info.get(
                 const.DATA_CHORE_CUSTOM_INTERVAL

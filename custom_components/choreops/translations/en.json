@@ -786,7 +786,8 @@
           "custom_interval_unit": "🔄 MAINTENANCE CYCLE: Custom Interval Unit (Required for Custom Frequency)",
           "start_date": "🔄 RESET CYCLE: Start Date (Optional)",
           "end_date": "🔄 MAINTENANCE CYCLE: End Date (Optional)",
-          "grace_period_days": "🔄 MAINTENANCE CYCLE: Grace Period in Days (Optional)"
+          "grace_period_days": "🔄 MAINTENANCE CYCLE: Grace Period in Days (Optional)",
+          "clear_end_date": "🗑️ Clear End Date"
         },
         "data_description": {
           "badge_name": "Enter a unique name for the badge. This name will be displayed in the system.",
@@ -808,7 +809,8 @@
           "custom_interval_unit": "Select the unit for the custom interval (e.g., days, weeks). Only applies to Custom Frequency.",
           "start_date": "Set the start date (optional).",
           "end_date": "Select the date for the end of the maintenance cycle. (optional).",
-          "grace_period_days": "Specify the number of extra days after the end of the cycle assignees to meet required points before demotion. (optional)."
+          "grace_period_days": "Specify the number of extra days after the end of the cycle assignees to meet required points before demotion. (optional).",
+          "clear_end_date": "Check this box to remove the end date from this badge."
         }
       },
       "add_badge_daily": {
@@ -860,7 +862,9 @@
           "custom_interval": "🔄 RESET CYCLE: Custom Interval (Required for Custom Frequency)",
           "custom_interval_unit": "🔄 RESET CYCLE: Custom Interval Unit (Required for Custom Frequency)",
           "start_date": "🔄 RESET CYCLE: Start Date (Optional)",
-          "end_date": "🔄 RESET CYCLE: End Date (Optional)"
+          "end_date": "🔄 RESET CYCLE: End Date (Optional)",
+          "clear_start_date": "🗑️ Clear Start Date",
+          "clear_end_date": "🗑️ Clear End Date"
         },
         "data_description": {
           "badge_name": "Enter a unique name for the badge. This name will be displayed in the system.",
@@ -880,7 +884,9 @@
           "custom_interval": "Specify the NUMBER of days, weeks, months, etc. for Custom Frequency (e.g., 3 if you set 3 weeks).",
           "custom_interval_unit": "Select the unit for the custom interval (e.g., days, weeks).",
           "start_date": "Set the start date for the reset cycle (optional).",
-          "end_date": "Set the end date for the reset cycle (optional)."
+          "end_date": "Set the end date for the reset cycle (optional).",
+          "clear_start_date": "Check this box to remove the start date from this badge.",
+          "clear_end_date": "Check this box to remove the end date from this badge."
         }
       },
       "add_badge_achievement": {
@@ -924,7 +930,8 @@
           "grace_period_days": "🔄 RECURRENCEE: Grace Period in Days (Optional)",
           "assigned_user_ids": "🧒 Assigned to",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses (Optional)",
-          "award_points": "🎁 AWARDS: Points Awarded (Optional)"
+          "award_points": "🎁 AWARDS: Points Awarded (Optional)",
+          "clear_end_date": "🗑️ Clear Occasion Date"
         },
         "data_description": {
           "badge_name": "Enter a unique name for the badge. This name will be displayed in the system.",
@@ -940,7 +947,8 @@
           "grace_period_days": "Specify the number of extra days after the end of the cycle for assignees to meet required points before demotion (optional).",
           "assigned_user_ids": "Assign this badge to specific assignees for tracking.",
           "award_items": "Select one or more from points, rewards, or bonuses. All selected items will be granted or applied when the badge is earned. Penalties will only be applied if the badge is not earned by the end date or reset date. (optional)",
-          "award_points": "If points are a selected award, specify the number of points to apply when this badge is earned. (optional)."
+          "award_points": "If points are a selected award, specify the number of points to apply when this badge is earned. (optional).",
+          "clear_end_date": "Check this box to remove the occasion date from this badge."
         }
       },
       "add_reward": {
@@ -1258,7 +1266,8 @@
           "custom_interval_unit": "🔄 MAINTENANCE CYCLE: Custom Interval Unit (Required for Custom Frequency)",
           "start_date": "🔄 RESET CYCLE: Start Date (Optional)",
           "end_date": "🔄 MAINTENANCE CYCLE: End Date (Optional)",
-          "grace_period_days": "🔄 MAINTENANCE CYCLE: Grace Period in Days (Optional)"
+          "grace_period_days": "🔄 MAINTENANCE CYCLE: Grace Period in Days (Optional)",
+          "clear_end_date": "🗑️ Clear End Date"
         },
         "data_description": {
           "badge_name": "Enter a unique name for the badge. This name will be displayed in the system.",
@@ -1280,7 +1289,8 @@
           "custom_interval_unit": "Select the unit for the custom interval (e.g., days, weeks). Only applies to Custom Frequency.",
           "start_date": "Set the start date (optional).",
           "end_date": "Select the date for the end of the maintenance cycle. (optional).",
-          "grace_period_days": "Specify the number of extra days after the end of the cycle assignees to meet required points before demotion. (optional)."
+          "grace_period_days": "Specify the number of extra days after the end of the cycle assignees to meet required points before demotion. (optional).",
+          "clear_end_date": "Check this box to remove the end date from this badge."
         }
       },
       "edit_badge_daily": {
@@ -1332,7 +1342,9 @@
           "custom_interval": "🔄 RESET CYCLE: Custom Interval (Required for Custom Frequency)",
           "custom_interval_unit": "🔄 RESET CYCLE: Custom Interval Unit (Required for Custom Frequency)",
           "start_date": "🔄 RESET CYCLE: Start Date (Optional)",
-          "end_date": "🔄 RESET CYCLE: End Date (Optional)"
+          "end_date": "🔄 RESET CYCLE: End Date (Optional)",
+          "clear_start_date": "🗑️ Clear Start Date",
+          "clear_end_date": "🗑️ Clear End Date"
         },
         "data_description": {
           "badge_name": "Enter a unique name for the badge. This name will be displayed in the system.",
@@ -1352,7 +1364,9 @@
           "custom_interval": "Specify the NUMBER of days, weeks, months, etc. for Custom Frequency (e.g., 3 if you set 3 weeks).",
           "custom_interval_unit": "Select the unit for the custom interval (e.g., days, weeks).",
           "start_date": "Set the start date for the reset cycle (optional).",
-          "end_date": "Set the end date for the reset cycle (optional)."
+          "end_date": "Set the end date for the reset cycle (optional).",
+          "clear_start_date": "Check this box to remove the start date from this badge.",
+          "clear_end_date": "Check this box to remove the end date from this badge."
         }
       },
       "edit_badge_achievement": {
@@ -1396,7 +1410,8 @@
           "grace_period_days": "🔄 RECURRENCEE: Grace Period in Days (Optional)",
           "assigned_user_ids": "🧒 Assigned to",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses (Optional)",
-          "award_points": "🎁 AWARDS: Points Awarded (Optional)"
+          "award_points": "🎁 AWARDS: Points Awarded (Optional)",
+          "clear_end_date": "🗑️ Clear Occasion Date"
         },
         "data_description": {
           "badge_name": "Enter a unique name for the badge. This name will be displayed in the system.",
@@ -1412,7 +1427,8 @@
           "grace_period_days": "Specify the number of extra days after the end of the cycle for assignees to meet required points before demotion (optional).",
           "assigned_user_ids": "Assign this badge to specific assignees for tracking.",
           "award_items": "Select one or more from points, rewards, or bonuses. All selected items will be granted or applied when the badge is earned. Penalties will only be applied if the badge is not earned by the end date or reset date. (optional)",
-          "award_points": "If points are a selected award, specify the number of points to apply when this badge is earned. (optional)."
+          "award_points": "If points are a selected award, specify the number of points to apply when this badge is earned. (optional).",
+          "clear_end_date": "Check this box to remove the occasion date from this badge."
         }
       },
       "edit_reward": {
