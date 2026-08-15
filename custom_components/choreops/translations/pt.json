@@ -786,7 +786,8 @@
           "custom_interval_unit": "🔄 CICLO DE MANUTENÇÃO: Unidade de intervalo personalizada (necessária para frequência personalizada)",
           "start_date": "🔄 REINICIAR CICLO: Data de Início (Opcional)",
           "end_date": "🔄 CICLO DE MANUTENÇÃO: Data de fim (opcional)",
-          "grace_period_days": "🔄 CICLO DE MANUTENÇÃO: Período de Tolerância em Dias (Opcional)"
+          "grace_period_days": "🔄 CICLO DE MANUTENÇÃO: Período de Tolerância em Dias (Opcional)",
+          "clear_end_date": "🗑️ Limpar data de fim"
         },
         "data_description": {
           "badge_name": "Introduza um nome exclusivo para o crachá. Esse nome será apresentado no sistema.",
@@ -808,7 +809,8 @@
           "custom_interval_unit": "Selecione a unidade para o intervalo personalizado (por exemplo, dias, semanas). Aplica-se apenas à Frequência Personalizada.",
           "start_date": "Defina a data de início (opcional).",
           "end_date": "Selecione a data de fim do ciclo de manutenção. (opcional)",
-          "grace_period_days": "Especifique o número de dias adicionais após o fim do ciclo para que os colaboradores atinjam a pontuação necessária antes da descida de divisão. (opcional)"
+          "grace_period_days": "Especifique o número de dias adicionais após o fim do ciclo para que os colaboradores atinjam a pontuação necessária antes da descida de divisão. (opcional)",
+          "clear_end_date": "Marque esta caixa para remover a data de fim deste selo."
         }
       },
       "add_badge_daily": {
@@ -860,7 +862,9 @@
           "custom_interval": "🔄 REINICIAR CICLO: Intervalo personalizado (Necessário para frequência personalizada)",
           "custom_interval_unit": "🔄 REINICIAR CICLO: Unidade de intervalo personalizada (necessária para frequência personalizada)",
           "start_date": "🔄 REINICIAR CICLO: Data de Início (Opcional)",
-          "end_date": "🔄 REINICIAR CICLO: Data de fim (opcional)"
+          "end_date": "🔄 REINICIAR CICLO: Data de fim (opcional)",
+          "clear_start_date": "🗑️ Data de início clara",
+          "clear_end_date": "🗑️ Limpar data de fim"
         },
         "data_description": {
           "badge_name": "Introduza um nome exclusivo para o crachá. Esse nome será apresentado no sistema.",
@@ -880,7 +884,9 @@
           "custom_interval": "Especifique o NÚMERO de dias, semanas, meses, etc. para a Frequência Personalizada (por exemplo, 3 se definir 3 semanas).",
           "custom_interval_unit": "Selecione a unidade para o intervalo personalizado (por exemplo, dias, semanas).",
           "start_date": "Defina a data de início do ciclo de reinicialização (opcional).",
-          "end_date": "Defina a data de fim do ciclo de reinicialização (opcional)."
+          "end_date": "Defina a data de fim do ciclo de reinicialização (opcional).",
+          "clear_start_date": "Marque esta caixa para remover a data de início deste crachá.",
+          "clear_end_date": "Marque esta caixa para remover a data de fim deste selo."
         }
       },
       "add_badge_achievement": {
@@ -924,7 +930,8 @@
           "grace_period_days": "🔄 RECORRÊNCIA: Período de Carência em Dias (Opcional)",
           "assigned_user_ids": "🧒 Designado para",
           "award_items": "🎁 PRÉMIOS: Selecione Pontos, Recompensas e Bónus (Opcional)",
-          "award_points": "🎁 PRÉMIOS: Pontos Atribuídos (Opcional)"
+          "award_points": "🎁 PRÉMIOS: Pontos Atribuídos (Opcional)",
+          "clear_end_date": "🗑️ Data da ocasião clara"
         },
         "data_description": {
           "badge_name": "Introduza um nome exclusivo para o crachá. Esse nome será apresentado no sistema.",
@@ -940,7 +947,8 @@
           "grace_period_days": "Especifique o número de dias adicionais após o fim do ciclo para que os colaboradores alocados atinjam a pontuação necessária antes da descida (opcional).",
           "assigned_user_ids": "Atribua este crachá a responsáveis específicos para efeitos de rastreio.",
           "award_items": "Selecione um ou mais itens entre pontos, recompensas ou bónus. Todos os artigos selecionados serão atribuídos ou aplicados quando o distintivo for conquistado. As penalizações serão aplicadas apenas se o distintivo não for conquistado até à data final ou à data de reinicialização. (opcional)",
-          "award_points": "Se os pontos forem uma das recompensas selecionadas, especifique a quantidade de pontos a considerar quando este distintivo for conquistado. (opcional)"
+          "award_points": "Se os pontos forem uma das recompensas selecionadas, especifique a quantidade de pontos a considerar quando este distintivo for conquistado. (opcional)",
+          "clear_end_date": "Marque esta caixa para remover a data do evento deste crachá."
         }
       },
       "add_reward": {
@@ -1258,7 +1266,8 @@
           "custom_interval_unit": "🔄 CICLO DE MANUTENÇÃO: Unidade de intervalo personalizada (necessária para frequência personalizada)",
           "start_date": "🔄 REINICIAR CICLO: Data de Início (Opcional)",
           "end_date": "🔄 CICLO DE MANUTENÇÃO: Data de fim (opcional)",
-          "grace_period_days": "🔄 CICLO DE MANUTENÇÃO: Período de Tolerância em Dias (Opcional)"
+          "grace_period_days": "🔄 CICLO DE MANUTENÇÃO: Período de Tolerância em Dias (Opcional)",
+          "clear_end_date": "🗑️ Limpar data de fim"
         },
         "data_description": {
           "badge_name": "Introduza um nome exclusivo para o crachá. Esse nome será apresentado no sistema.",
@@ -1280,7 +1289,8 @@
           "custom_interval_unit": "Selecione a unidade para o intervalo personalizado (por exemplo, dias, semanas). Aplica-se apenas à Frequência Personalizada.",
           "start_date": "Defina a data de início (opcional).",
           "end_date": "Selecione a data de fim do ciclo de manutenção. (opcional)",
-          "grace_period_days": "Especifique o número de dias adicionais após o fim do ciclo para que os colaboradores atinjam a pontuação necessária antes da descida de divisão. (opcional)"
+          "grace_period_days": "Especifique o número de dias adicionais após o fim do ciclo para que os colaboradores atinjam a pontuação necessária antes da descida de divisão. (opcional)",
+          "clear_end_date": "Marque esta caixa para remover a data de fim deste selo."
         }
       },
       "edit_badge_daily": {
@@ -1332,7 +1342,9 @@
           "custom_interval": "🔄 REINICIAR CICLO: Intervalo personalizado (Necessário para frequência personalizada)",
           "custom_interval_unit": "🔄 REINICIAR CICLO: Unidade de intervalo personalizada (necessária para frequência personalizada)",
           "start_date": "🔄 REINICIAR CICLO: Data de Início (Opcional)",
-          "end_date": "🔄 REINICIAR CICLO: Data de fim (opcional)"
+          "end_date": "🔄 REINICIAR CICLO: Data de fim (opcional)",
+          "clear_start_date": "🗑️ Data de início clara",
+          "clear_end_date": "🗑️ Limpar data de fim"
         },
         "data_description": {
           "badge_name": "Introduza um nome exclusivo para o crachá. Esse nome será apresentado no sistema.",
@@ -1352,7 +1364,9 @@
           "custom_interval": "Especifique o NÚMERO de dias, semanas, meses, etc. para a Frequência Personalizada (por exemplo, 3 se definir 3 semanas).",
           "custom_interval_unit": "Selecione a unidade para o intervalo personalizado (por exemplo, dias, semanas).",
           "start_date": "Defina a data de início do ciclo de reinicialização (opcional).",
-          "end_date": "Defina a data de fim do ciclo de reinicialização (opcional)."
+          "end_date": "Defina a data de fim do ciclo de reinicialização (opcional).",
+          "clear_start_date": "Marque esta caixa para remover a data de início deste crachá.",
+          "clear_end_date": "Marque esta caixa para remover a data de fim deste selo."
         }
       },
       "edit_badge_achievement": {
@@ -1396,7 +1410,8 @@
           "grace_period_days": "🔄 RECORRÊNCIA: Período de Carência em Dias (Opcional)",
           "assigned_user_ids": "🧒 Designado para",
           "award_items": "🎁 PRÉMIOS: Selecione Pontos, Recompensas e Bónus (Opcional)",
-          "award_points": "🎁 PRÉMIOS: Pontos Atribuídos (Opcional)"
+          "award_points": "🎁 PRÉMIOS: Pontos Atribuídos (Opcional)",
+          "clear_end_date": "🗑️ Data da ocasião clara"
         },
         "data_description": {
           "badge_name": "Introduza um nome exclusivo para o crachá. Esse nome será apresentado no sistema.",
@@ -1412,7 +1427,8 @@
           "grace_period_days": "Especifique o número de dias adicionais após o fim do ciclo para que os colaboradores alocados atinjam a pontuação necessária antes da descida (opcional).",
           "assigned_user_ids": "Atribua este crachá a responsáveis específicos para efeitos de rastreio.",
           "award_items": "Selecione um ou mais itens entre pontos, recompensas ou bónus. Todos os artigos selecionados serão atribuídos ou aplicados quando o distintivo for conquistado. As penalizações serão aplicadas apenas se o distintivo não for conquistado até à data final ou à data de reinicialização. (opcional)",
-          "award_points": "Se os pontos forem uma das recompensas selecionadas, especifique a quantidade de pontos a considerar quando este distintivo for conquistado. (opcional)"
+          "award_points": "Se os pontos forem uma das recompensas selecionadas, especifique a quantidade de pontos a considerar quando este distintivo for conquistado. (opcional)",
+          "clear_end_date": "Marque esta caixa para remover a data do evento deste crachá."
         }
       },
       "edit_reward": {

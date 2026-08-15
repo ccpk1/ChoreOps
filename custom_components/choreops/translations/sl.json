@@ -786,7 +786,8 @@
           "custom_interval_unit": "🔄 VZDRŽEVALNI CIKEL: Enota intervala po meri (obvezno za frekvenco po meri)",
           "start_date": "🔄 CIKEL PONASTAVITVE: Začetni datum (neobvezno)",
           "end_date": "🔄 VZDRŽEVALNI CIKEL: Končni datum (neobvezno)",
-          "grace_period_days": "🔄 VZDRŽEVALNI CIKEL: Obdobje odloga v dnevih (neobvezno)"
+          "grace_period_days": "🔄 VZDRŽEVALNI CIKEL: Obdobje odloga v dnevih (neobvezno)",
+          "clear_end_date": "🗑️ Počisti končni datum"
         },
         "data_description": {
           "badge_name": "Vnesite edinstveno ime za značko. To ime bo prikazano v sistemu.",
@@ -808,7 +809,8 @@
           "custom_interval_unit": "Izberite enoto za interval po meri (npr. dnevi, tedni). Velja samo za frekvenco po meri.",
           "start_date": "Nastavite začetni datum (neobvezno).",
           "end_date": "Izberite datum konca vzdrževalnega cikla (neobvezno).",
-          "grace_period_days": "Določite število dodatnih dni po koncu cikla, ki jih morajo dodeljeni delavci prejeti za dosego zahtevanega števila točk pred znižanjem. (neobvezno)."
+          "grace_period_days": "Določite število dodatnih dni po koncu cikla, ki jih morajo dodeljeni delavci prejeti za dosego zahtevanega števila točk pred znižanjem. (neobvezno).",
+          "clear_end_date": "Označite to polje, če želite odstraniti končni datum s te značke."
         }
       },
       "add_badge_daily": {
@@ -860,7 +862,9 @@
           "custom_interval": "🔄 CIKEL PONASTAVITVE: Interval po meri (zahtevano za frekvenco po meri)",
           "custom_interval_unit": "🔄 PONASTAVITEV CIKELA: Enota intervala po meri (obvezno za frekvenco po meri)",
           "start_date": "🔄 CIKEL PONASTAVITVE: Začetni datum (neobvezno)",
-          "end_date": "🔄 CIKEL PONASTAVITVE: Končni datum (neobvezno)"
+          "end_date": "🔄 CIKEL PONASTAVITVE: Končni datum (neobvezno)",
+          "clear_start_date": "🗑️ Jasen datum začetka",
+          "clear_end_date": "🗑️ Počisti končni datum"
         },
         "data_description": {
           "badge_name": "Vnesite edinstveno ime za značko. To ime bo prikazano v sistemu.",
@@ -880,7 +884,9 @@
           "custom_interval": "Za pogostost po meri določite ŠTEVILO dni, tednov, mesecev itd. (npr. 3, če nastavite 3 tedne).",
           "custom_interval_unit": "Izberite enoto za interval po meri (npr. dnevi, tedni).",
           "start_date": "Nastavite začetni datum za cikel ponastavitve (neobvezno).",
-          "end_date": "Nastavite končni datum za cikel ponastavitve (neobvezno)."
+          "end_date": "Nastavite končni datum za cikel ponastavitve (neobvezno).",
+          "clear_start_date": "Označite to polje, če želite odstraniti začetni datum s te značke.",
+          "clear_end_date": "Označite to polje, če želite odstraniti končni datum s te značke."
         }
       },
       "add_badge_achievement": {
@@ -924,7 +930,8 @@
           "grace_period_days": "🔄 PONAVLJANJE: Obdobje odloga v dnevih (neobvezno)",
           "assigned_user_ids": "🧒 Dodeljeno",
           "award_items": "🎁 NAGRADE: Izberite točke, nagrade, bonuse (neobvezno)",
-          "award_points": "🎁 NAGRADE: Dodeljene točke (neobvezno)"
+          "award_points": "🎁 NAGRADE: Dodeljene točke (neobvezno)",
+          "clear_end_date": "🗑️ Jasen datum dogodka"
         },
         "data_description": {
           "badge_name": "Vnesite edinstveno ime za značko. To ime bo prikazano v sistemu.",
@@ -940,7 +947,8 @@
           "grace_period_days": "Določite število dodatnih dni po koncu cikla, ki jih morajo dodeljeni delavci imeti za izpolnitev zahtevanih točk pred znižanjem (neobvezno).",
           "assigned_user_ids": "To značko dodelite določenim prejemnikom za sledenje.",
           "award_items": "Izberite eno ali več točk, nagrad ali bonusov. Vse izbrane postavke bodo dodeljene ali uporabljene, ko bo značka pridobljena. Kazni bodo uporabljene le, če značka ni pridobljena do končnega datuma ali datuma ponastavitve. (neobvezno)",
-          "award_points": "Če so točke izbrana nagrada, navedite število točk, ki se uporabijo ob pridobitvi te značke. (neobvezno)."
+          "award_points": "Če so točke izbrana nagrada, navedite število točk, ki se uporabijo ob pridobitvi te značke. (neobvezno).",
+          "clear_end_date": "Označite to polje, če želite odstraniti datum dogodka s te značke."
         }
       },
       "add_reward": {
@@ -1258,7 +1266,8 @@
           "custom_interval_unit": "🔄 VZDRŽEVALNI CIKEL: Enota intervala po meri (obvezno za frekvenco po meri)",
           "start_date": "🔄 CIKEL PONASTAVITVE: Začetni datum (neobvezno)",
           "end_date": "🔄 VZDRŽEVALNI CIKEL: Končni datum (neobvezno)",
-          "grace_period_days": "🔄 VZDRŽEVALNI CIKEL: Obdobje odloga v dnevih (neobvezno)"
+          "grace_period_days": "🔄 VZDRŽEVALNI CIKEL: Obdobje odloga v dnevih (neobvezno)",
+          "clear_end_date": "🗑️ Počisti končni datum"
         },
         "data_description": {
           "badge_name": "Vnesite edinstveno ime za značko. To ime bo prikazano v sistemu.",
@@ -1280,7 +1289,8 @@
           "custom_interval_unit": "Izberite enoto za interval po meri (npr. dnevi, tedni). Velja samo za frekvenco po meri.",
           "start_date": "Nastavite začetni datum (neobvezno).",
           "end_date": "Izberite datum konca vzdrževalnega cikla (neobvezno).",
-          "grace_period_days": "Določite število dodatnih dni po koncu cikla, ki jih morajo dodeljeni delavci prejeti za dosego zahtevanega števila točk pred znižanjem. (neobvezno)."
+          "grace_period_days": "Določite število dodatnih dni po koncu cikla, ki jih morajo dodeljeni delavci prejeti za dosego zahtevanega števila točk pred znižanjem. (neobvezno).",
+          "clear_end_date": "Označite to polje, če želite odstraniti končni datum s te značke."
         }
       },
       "edit_badge_daily": {
@@ -1332,7 +1342,9 @@
           "custom_interval": "🔄 CIKEL PONASTAVITVE: Interval po meri (zahtevano za frekvenco po meri)",
           "custom_interval_unit": "🔄 PONASTAVITEV CIKELA: Enota intervala po meri (obvezno za frekvenco po meri)",
           "start_date": "🔄 CIKEL PONASTAVITVE: Začetni datum (neobvezno)",
-          "end_date": "🔄 CIKEL PONASTAVITVE: Končni datum (neobvezno)"
+          "end_date": "🔄 CIKEL PONASTAVITVE: Končni datum (neobvezno)",
+          "clear_start_date": "🗑️ Jasen datum začetka",
+          "clear_end_date": "🗑️ Počisti končni datum"
         },
         "data_description": {
           "badge_name": "Vnesite edinstveno ime za značko. To ime bo prikazano v sistemu.",
@@ -1352,7 +1364,9 @@
           "custom_interval": "Za pogostost po meri določite ŠTEVILO dni, tednov, mesecev itd. (npr. 3, če nastavite 3 tedne).",
           "custom_interval_unit": "Izberite enoto za interval po meri (npr. dnevi, tedni).",
           "start_date": "Nastavite začetni datum za cikel ponastavitve (neobvezno).",
-          "end_date": "Nastavite končni datum za cikel ponastavitve (neobvezno)."
+          "end_date": "Nastavite končni datum za cikel ponastavitve (neobvezno).",
+          "clear_start_date": "Označite to polje, če želite odstraniti začetni datum s te značke.",
+          "clear_end_date": "Označite to polje, če želite odstraniti končni datum s te značke."
         }
       },
       "edit_badge_achievement": {
@@ -1396,7 +1410,8 @@
           "grace_period_days": "🔄 PONAVLJANJE: Obdobje odloga v dnevih (neobvezno)",
           "assigned_user_ids": "🧒 Dodeljeno",
           "award_items": "🎁 NAGRADE: Izberite točke, nagrade, bonuse (neobvezno)",
-          "award_points": "🎁 NAGRADE: Dodeljene točke (neobvezno)"
+          "award_points": "🎁 NAGRADE: Dodeljene točke (neobvezno)",
+          "clear_end_date": "🗑️ Jasen datum dogodka"
         },
         "data_description": {
           "badge_name": "Vnesite edinstveno ime za značko. To ime bo prikazano v sistemu.",
@@ -1412,7 +1427,8 @@
           "grace_period_days": "Določite število dodatnih dni po koncu cikla, ki jih morajo dodeljeni delavci imeti za izpolnitev zahtevanih točk pred znižanjem (neobvezno).",
           "assigned_user_ids": "To značko dodelite določenim prejemnikom za sledenje.",
           "award_items": "Izberite eno ali več točk, nagrad ali bonusov. Vse izbrane postavke bodo dodeljene ali uporabljene, ko bo značka pridobljena. Kazni bodo uporabljene le, če značka ni pridobljena do končnega datuma ali datuma ponastavitve. (neobvezno)",
-          "award_points": "Če so točke izbrana nagrada, navedite število točk, ki se uporabijo ob pridobitvi te značke. (neobvezno)."
+          "award_points": "Če so točke izbrana nagrada, navedite število točk, ki se uporabijo ob pridobitvi te značke. (neobvezno).",
+          "clear_end_date": "Označite to polje, če želite odstraniti datum dogodka s te značke."
         }
       },
       "edit_reward": {

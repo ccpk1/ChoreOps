@@ -786,7 +786,8 @@
           "custom_interval_unit": "🔄 WARTUNGSZYKLUS: Einheit des benutzerdefinierten Intervalls (erforderlich für benutzerdefinierte Wiederholung)",
           "start_date": "🔄 ZYKLUS ZURÜCKSETZEN: Startdatum (optional)",
           "end_date": "🔄 WARTUNGSZYKLUS: Enddatum (optional)",
-          "grace_period_days": "🔄 WARTUNGSZYKLUS: Nachfrist in Tagen (optional)"
+          "grace_period_days": "🔄 WARTUNGSZYKLUS: Nachfrist in Tagen (optional)",
+          "clear_end_date": "🗑️ Klares Enddatum"
         },
         "data_description": {
           "badge_name": "Geben Sie einen eindeutigen Namen für das Abzeichen ein. Dieser Name wird im gesamten System angezeigt.",
@@ -808,7 +809,8 @@
           "custom_interval_unit": "Wählen Sie die Einheit für das benutzerdefinierte Intervall (z. B. Tage, Wochen). Gilt nur für benutzerdefinierte Frequenzen.",
           "start_date": "Startdatum festlegen (optional).",
           "end_date": "Wählen Sie das Enddatum des Wartungszyklus. (optional).",
-          "grace_period_days": "Geben Sie die Anzahl zusätzlicher Tage nach dem Ende des Wartungszyklus an, in denen zugewiesene Personen die erforderliche Punktzahl noch erreichen können, bevor sie herabgestuft werden (optional)."
+          "grace_period_days": "Geben Sie die Anzahl zusätzlicher Tage nach dem Ende des Wartungszyklus an, in denen zugewiesene Personen die erforderliche Punktzahl noch erreichen können, bevor sie herabgestuft werden (optional).",
+          "clear_end_date": "Aktivieren Sie dieses Kontrollkästchen, um das Enddatum von diesem Abzeichen zu entfernen."
         }
       },
       "add_badge_daily": {
@@ -860,7 +862,9 @@
           "custom_interval": "🔄 ZYKLUS ZURÜCKSETZEN: Benutzerdefiniertes Intervall (erforderlich für benutzerdefinierte Wiederholung)",
           "custom_interval_unit": "🔄 ZYKLUS ZURÜCKSETZEN: Einheit des benutzerdefinierten Intervalls (erforderlich für benutzerdefinierte Wiederholung)",
           "start_date": "🔄 ZYKLUS ZURÜCKSETZEN: Startdatum (optional)",
-          "end_date": "🔄 ZYKLUS ZURÜCKSETZEN: Enddatum (optional)"
+          "end_date": "🔄 ZYKLUS ZURÜCKSETZEN: Enddatum (optional)",
+          "clear_start_date": "🗑️ Klarer Starttermin",
+          "clear_end_date": "🗑️ Klares Enddatum"
         },
         "data_description": {
           "badge_name": "Geben Sie einen eindeutigen Namen für das Abzeichen ein. Dieser Name wird im gesamten System angezeigt.",
@@ -880,7 +884,9 @@
           "custom_interval": "Geben Sie die ANZAHL der Tage, Wochen, Monate usw. für die benutzerdefinierte Wiederholung an (z. B. 3 bei „alle 3 Wochen“).",
           "custom_interval_unit": "Wählen Sie die Einheit für das benutzerdefinierte Intervall aus (z. B. Tage oder Wochen).",
           "start_date": "Legen Sie das Startdatum für den Rücksetzzyklus fest (optional).",
-          "end_date": "Legen Sie das Enddatum für den Rücksetzzyklus fest (optional)."
+          "end_date": "Legen Sie das Enddatum für den Rücksetzzyklus fest (optional).",
+          "clear_start_date": "Aktivieren Sie dieses Kontrollkästchen, um das Startdatum von diesem Abzeichen zu entfernen.",
+          "clear_end_date": "Aktivieren Sie dieses Kontrollkästchen, um das Enddatum von diesem Abzeichen zu entfernen."
         }
       },
       "add_badge_achievement": {
@@ -924,7 +930,8 @@
           "grace_period_days": "🔄 WIEDERHOLUNG: Nachfrist in Tagen (optional)",
           "assigned_user_ids": "🧒 Zugewiesene Personen",
           "award_items": "🎁 AUSZEICHNUNGEN: Punkte, Prämien und Boni auswählen (optional)",
-          "award_points": "🎁 AUSZEICHNUNGEN: Vergebene Punkte (optional)"
+          "award_points": "🎁 AUSZEICHNUNGEN: Vergebene Punkte (optional)",
+          "clear_end_date": "🗑️ Termin für einen besonderen Anlass festlegen"
         },
         "data_description": {
           "badge_name": "Geben Sie einen eindeutigen Namen für das Abzeichen ein. Dieser Name wird im gesamten System angezeigt.",
@@ -940,7 +947,8 @@
           "grace_period_days": "Geben Sie die Anzahl zusätzlicher Tage nach dem Ende des Zyklus an, in denen zugewiesene Personen die erforderliche Punktzahl noch erreichen können, bevor sie herabgestuft werden (optional).",
           "assigned_user_ids": "Weisen Sie dieses Abzeichen bestimmten zugewiesenen Personen zur Nachverfolgung zu.",
           "award_items": "Wählen Sie eine oder mehrere Auszeichnungen aus: Punkte, Belohnungen oder Boni. Alle ausgewählten Auszeichnungen werden beim Erhalt des Abzeichens vergeben oder angewendet. Strafen werden nur angewendet, wenn das Abzeichen bis zum Enddatum oder zum Datum der Genehmigungsrücksetzung nicht erreicht wurde (optional).",
-          "award_points": "Wenn „Punkte“ als Auszeichnung ausgewählt wurden, geben Sie die Anzahl der Punkte an, die beim Erhalt dieses Abzeichens vergeben werden (optional)."
+          "award_points": "Wenn „Punkte“ als Auszeichnung ausgewählt wurden, geben Sie die Anzahl der Punkte an, die beim Erhalt dieses Abzeichens vergeben werden (optional).",
+          "clear_end_date": "Setzen Sie ein Häkchen in dieses Kästchen, um das Anlassdatum von diesem Abzeichen zu entfernen."
         }
       },
       "add_reward": {
@@ -1258,7 +1266,8 @@
           "custom_interval_unit": "🔄 WARTUNGSZYKLUS: Einheit des benutzerdefinierten Intervalls (erforderlich für benutzerdefinierte Wiederholung)",
           "start_date": "🔄 RÜCKSETZZYKLUS: Startdatum (optional)",
           "end_date": "🔄 WARTUNGSZYKLUS: Enddatum (optional)",
-          "grace_period_days": "🔄 WARTUNGSZYKLUS: Nachfrist in Tagen (optional)"
+          "grace_period_days": "🔄 WARTUNGSZYKLUS: Nachfrist in Tagen (optional)",
+          "clear_end_date": "🗑️ Klares Enddatum"
         },
         "data_description": {
           "badge_name": "Geben Sie einen eindeutigen Namen für das Abzeichen ein. Dieser Name wird im gesamten System angezeigt.",
@@ -1280,7 +1289,8 @@
           "custom_interval_unit": "Wählen Sie die Einheit für das benutzerdefinierte Intervall aus (z. B. Tage oder Wochen). Gilt nur für benutzerdefinierte Wiederholung.",
           "start_date": "Legen Sie das Startdatum fest (optional).",
           "end_date": "Wählen Sie das Enddatum des Wartungszyklus aus (optional).",
-          "grace_period_days": "Geben Sie die Anzahl zusätzlicher Tage nach dem Ende des Zyklus an, in denen zugewiesene Personen die erforderliche Punktzahl noch erreichen können, bevor sie herabgestuft werden (optional)."
+          "grace_period_days": "Geben Sie die Anzahl zusätzlicher Tage nach dem Ende des Zyklus an, in denen zugewiesene Personen die erforderliche Punktzahl noch erreichen können, bevor sie herabgestuft werden (optional).",
+          "clear_end_date": "Aktivieren Sie dieses Kontrollkästchen, um das Enddatum von diesem Abzeichen zu entfernen."
         }
       },
       "edit_badge_daily": {
@@ -1332,7 +1342,9 @@
           "custom_interval": "🔄 RÜCKSETZZYKLUS: Benutzerdefiniertes Intervall (erforderlich für benutzerdefinierte Wiederholung)",
           "custom_interval_unit": "🔄 RÜCKSETZZYKLUS: Einheit des benutzerdefinierten Intervalls (erforderlich für benutzerdefinierte Wiederholung)",
           "start_date": "🔄 RÜCKSETZZYKLUS: Startdatum (optional)",
-          "end_date": "🔄 RÜCKSETZZYKLUS: Enddatum (optional)"
+          "end_date": "🔄 RÜCKSETZZYKLUS: Enddatum (optional)",
+          "clear_start_date": "🗑️ Klarer Starttermin",
+          "clear_end_date": "🗑️ Klares Enddatum"
         },
         "data_description": {
           "badge_name": "Geben Sie einen eindeutigen Namen für das Abzeichen ein. Dieser Name wird im System angezeigt.",
@@ -1352,7 +1364,9 @@
           "custom_interval": "Geben Sie die ANZAHL der Tage, Wochen, Monate usw. für die benutzerdefinierte Wiederholung an (z. B. 3 bei „alle 3 Wochen“).",
           "custom_interval_unit": "Wählen Sie die Einheit für das benutzerdefinierte Intervall aus (z. B. Tage oder Wochen).",
           "start_date": "Legen Sie das Startdatum des Rücksetzzyklus fest (optional).",
-          "end_date": "Legen Sie das Enddatum des Rücksetzzyklus fest (optional)."
+          "end_date": "Legen Sie das Enddatum des Rücksetzzyklus fest (optional).",
+          "clear_start_date": "Aktivieren Sie dieses Kontrollkästchen, um das Startdatum von diesem Abzeichen zu entfernen.",
+          "clear_end_date": "Aktivieren Sie dieses Kontrollkästchen, um das Enddatum von diesem Abzeichen zu entfernen."
         }
       },
       "edit_badge_achievement": {
@@ -1396,7 +1410,8 @@
           "grace_period_days": "🔄 WIEDERHOLUNG: Nachfrist in Tagen (optional)",
           "assigned_user_ids": "🧒 Zugewiesene Personen",
           "award_items": "🎁 AUSZEICHNUNGEN: Punkte, Prämien und Boni auswählen (optional)",
-          "award_points": "🎁 AUSZEICHNUNGEN: Vergebene Punkte (optional)"
+          "award_points": "🎁 AUSZEICHNUNGEN: Vergebene Punkte (optional)",
+          "clear_end_date": "🗑️ Termin für einen besonderen Anlass festlegen"
         },
         "data_description": {
           "badge_name": "Geben Sie einen eindeutigen Namen für das Abzeichen ein. Dieser Name wird im System angezeigt.",
@@ -1412,7 +1427,8 @@
           "grace_period_days": "Geben Sie die Anzahl zusätzlicher Tage nach dem Ende des Zyklus an, in denen zugewiesene Personen die erforderliche Punktzahl noch erreichen können, bevor sie herabgestuft werden (optional).",
           "assigned_user_ids": "Weisen Sie dieses Abzeichen bestimmten zugewiesenen Personen zur Nachverfolgung zu.",
           "award_items": "Wählen Sie eine oder mehrere Auszeichnungen aus: Punkte, Belohnungen oder Boni. Alle ausgewählten Auszeichnungen werden beim Erhalt des Abzeichens vergeben oder angewendet. Strafen werden nur angewendet, wenn das Abzeichen bis zum Enddatum oder Rücksetzungsdatum nicht erreicht wurde (optional).",
-          "award_points": "Wenn „Punkte“ als Auszeichnung ausgewählt wurden, geben Sie die Anzahl der Punkte an, die beim Erhalt dieses Abzeichens vergeben werden (optional)."
+          "award_points": "Wenn „Punkte“ als Auszeichnung ausgewählt wurden, geben Sie die Anzahl der Punkte an, die beim Erhalt dieses Abzeichens vergeben werden (optional).",
+          "clear_end_date": "Setzen Sie ein Häkchen in dieses Kästchen, um das Anlassdatum von diesem Abzeichen zu entfernen."
         }
       },
       "edit_reward": {

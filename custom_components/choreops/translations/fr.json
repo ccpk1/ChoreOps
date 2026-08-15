@@ -786,7 +786,8 @@
           "custom_interval_unit": "🔄 Programmation : Unité d’intervalle personnalisée (requise pour une fréquence personnalisée)",
           "start_date": "🔄 Reset du cycle : Date de début (facultatif)",
           "end_date": "🔄 Programmation : Date de fin (facultatif)",
-          "grace_period_days": "🔄 Programmation : Délai de grâce en jours (facultatif)"
+          "grace_period_days": "🔄 Programmation : Délai de grâce en jours (facultatif)",
+          "clear_end_date": "🗑️ Date de fin claire"
         },
         "data_description": {
           "badge_name": "Saisissez un nom unique pour le badge. Ce nom sera affiché dans le système.",
@@ -808,7 +809,8 @@
           "custom_interval_unit": "Sélectionnez l'unité de l'intervalle personnalisé (par exemple, jours, semaines). S'applique uniquement à la fréquence personnalisée.",
           "start_date": "Définissez la date de début (facultatif).",
           "end_date": "Sélectionnez la date de fin du cycle de maintenance. (facultatif).",
-          "grace_period_days": "Indiquez le nombre de jours supplémentaires après la fin du cycle pour que les personnes affectées puissent accumuler les points requis avant une rétrogradation. (facultatif)."
+          "grace_period_days": "Indiquez le nombre de jours supplémentaires après la fin du cycle pour que les personnes affectées puissent accumuler les points requis avant une rétrogradation. (facultatif).",
+          "clear_end_date": "Cochez cette case pour supprimer la date de fin de ce badge."
         }
       },
       "add_badge_daily": {
@@ -860,7 +862,9 @@
           "custom_interval": "🔄 Reset du cycle  : Intervalle personnalisé (requis pour une fréquence personnalisée)",
           "custom_interval_unit": "🔄 Reset du cycle  : Unité d’intervalle personnalisée (requise pour une fréquence personnalisée)",
           "start_date": "🔄 Reset du cycle  : Date de début (facultatif)",
-          "end_date": "🔄 Reset du cycle  : Date de fin (facultatif)"
+          "end_date": "🔄 Reset du cycle  : Date de fin (facultatif)",
+          "clear_start_date": "🗑️ Date de début claire",
+          "clear_end_date": "🗑️ Date de fin claire"
         },
         "data_description": {
           "badge_name": "Saisissez un nom unique pour le badge. Ce nom sera affiché dans le système.",
@@ -880,7 +884,9 @@
           "custom_interval": "Spécifiez le NOMBRE de jours, de semaines, de mois, etc. pour la fréquence personnalisée (par exemple, 3 si vous définissez 3 semaines).",
           "custom_interval_unit": "Sélectionnez l'unité de l'intervalle personnalisé (par exemple, jours, semaines).",
           "start_date": "Définissez la date de début du cycle de réinitialisation (facultatif).",
-          "end_date": "Définissez la date de fin du cycle de réinitialisation (facultatif)."
+          "end_date": "Définissez la date de fin du cycle de réinitialisation (facultatif).",
+          "clear_start_date": "Cochez cette case pour supprimer la date de début de ce badge.",
+          "clear_end_date": "Cochez cette case pour supprimer la date de fin de ce badge."
         }
       },
       "add_badge_achievement": {
@@ -924,7 +930,8 @@
           "grace_period_days": "🔄 RÉCURRENCE : Délai de grâce en jours (facultatif)",
           "assigned_user_ids": "🧒 Attribué à",
           "award_items": "🎁 RÉCOMPENSES : Points, récompenses, bonus au choix (facultatif)",
-          "award_points": "🎁 RÉCOMPENSES : Points attribués (facultatif)"
+          "award_points": "🎁 RÉCOMPENSES : Points attribués (facultatif)",
+          "clear_end_date": "🗑️ Date de l'occasion claire"
         },
         "data_description": {
           "badge_name": "Saisissez un nom unique pour le badge. Ce nom sera affiché dans le système.",
@@ -940,7 +947,8 @@
           "grace_period_days": "Indiquez le nombre de jours supplémentaires après la fin du cycle dont disposent les personnes affectées pour atteindre le nombre de points requis avant la rétrogradation (facultatif).",
           "assigned_user_ids": "Attribuez ce badge à des personnes spécifiques à des fins de suivi.",
           "award_items": "Choisissez un ou plusieurs éléments parmi les points, les récompenses ou les bonus. Tous les éléments sélectionnés seront attribués ou appliqués lors de l'obtention du badge. Des pénalités ne seront appliquées que si le badge n'est pas obtenu avant la date limite ou la date de réinitialisation. (facultatif)",
-          "award_points": "Si les points constituent une récompense sélectionnée, veuillez préciser le nombre de points à appliquer lors de l'obtention de ce badge. (facultatif)."
+          "award_points": "Si les points constituent une récompense sélectionnée, veuillez préciser le nombre de points à appliquer lors de l'obtention de ce badge. (facultatif).",
+          "clear_end_date": "Cochez cette case pour supprimer la date de l'événement de ce badge."
         }
       },
       "add_reward": {
@@ -1258,7 +1266,8 @@
           "custom_interval_unit": "🔄 Programmation : Unité d’intervalle personnalisée (requise pour une fréquence personnalisée)",
           "start_date": "🔄 Reset du cycle : Date de début (facultatif)",
           "end_date": "🔄 Programmation : Date de fin (facultatif)",
-          "grace_period_days": "🔄 Programmation : Délai de grâce en jours (facultatif)"
+          "grace_period_days": "🔄 Programmation : Délai de grâce en jours (facultatif)",
+          "clear_end_date": "🗑️ Date de fin claire"
         },
         "data_description": {
           "badge_name": "Saisissez un nom unique pour le badge. Ce nom sera affiché dans le système.",
@@ -1280,7 +1289,8 @@
           "custom_interval_unit": "Sélectionnez l'unité de l'intervalle personnalisé (par exemple, jours, semaines). S'applique uniquement à la fréquence personnalisée.",
           "start_date": "Définissez la date de début (facultatif).",
           "end_date": "Sélectionnez la date de fin du cycle de maintenance. (facultatif).",
-          "grace_period_days": "Indiquez le nombre de jours supplémentaires après la fin du cycle pour que les personnes affectées puissent accumuler les points requis avant une rétrogradation. (facultatif)."
+          "grace_period_days": "Indiquez le nombre de jours supplémentaires après la fin du cycle pour que les personnes affectées puissent accumuler les points requis avant une rétrogradation. (facultatif).",
+          "clear_end_date": "Cochez cette case pour supprimer la date de fin de ce badge."
         }
       },
       "edit_badge_daily": {
@@ -1332,7 +1342,9 @@
           "custom_interval": "🔄 Reset du cycle : Intervalle personnalisé (requis pour une fréquence personnalisée)",
           "custom_interval_unit": "🔄 Reset du cycle : Unité d’intervalle personnalisée (requise pour une fréquence personnalisée)",
           "start_date": "🔄 Reset du cycle : Date de début (facultatif)",
-          "end_date": "🔄 Reset du cycle : Date de fin (facultatif)"
+          "end_date": "🔄 Reset du cycle : Date de fin (facultatif)",
+          "clear_start_date": "🗑️ Date de début claire",
+          "clear_end_date": "🗑️ Date de fin claire"
         },
         "data_description": {
           "badge_name": "Saisissez un nom unique pour le badge. Ce nom sera affiché dans le système.",
@@ -1352,7 +1364,9 @@
           "custom_interval": "Spécifiez le NOMBRE de jours, de semaines, de mois, etc. pour la fréquence personnalisée (par exemple, 3 si vous définissez 3 semaines).",
           "custom_interval_unit": "Sélectionnez l'unité de l'intervalle personnalisé (par exemple, jours, semaines).",
           "start_date": "Définissez la date de début du cycle de réinitialisation (facultatif).",
-          "end_date": "Définissez la date de fin du cycle de réinitialisation (facultatif)."
+          "end_date": "Définissez la date de fin du cycle de réinitialisation (facultatif).",
+          "clear_start_date": "Cochez cette case pour supprimer la date de début de ce badge.",
+          "clear_end_date": "Cochez cette case pour supprimer la date de fin de ce badge."
         }
       },
       "edit_badge_achievement": {
@@ -1396,7 +1410,8 @@
           "grace_period_days": "🔄 RÉCURRENCE : Délai de grâce en jours (facultatif)",
           "assigned_user_ids": "🧒 Attribué à",
           "award_items": "🎁 RÉCOMPENSES : Points, récompenses, bonus au choix (facultatif)",
-          "award_points": "🎁 RÉCOMPENSES : Points attribués (facultatif)"
+          "award_points": "🎁 RÉCOMPENSES : Points attribués (facultatif)",
+          "clear_end_date": "🗑️ Date de l'occasion claire"
         },
         "data_description": {
           "badge_name": "Saisissez un nom unique pour le badge. Ce nom sera affiché dans le système.",
@@ -1412,7 +1427,8 @@
           "grace_period_days": "Indiquez le nombre de jours supplémentaires après la fin du cycle dont disposent les personnes affectées pour atteindre le nombre de points requis avant la rétrogradation (facultatif).",
           "assigned_user_ids": "Attribuez ce badge à des personnes spécifiques à des fins de suivi.",
           "award_items": "Choisissez un ou plusieurs éléments parmi les points, les récompenses ou les bonus. Tous les éléments sélectionnés seront attribués ou appliqués lors de l'obtention du badge. Des pénalités ne seront appliquées que si le badge n'est pas obtenu avant la date limite ou la date de réinitialisation. (facultatif)",
-          "award_points": "Si les points constituent une récompense sélectionnée, veuillez préciser le nombre de points à appliquer lors de l'obtention de ce badge. (facultatif)."
+          "award_points": "Si les points constituent une récompense sélectionnée, veuillez préciser le nombre de points à appliquer lors de l'obtention de ce badge. (facultatif).",
+          "clear_end_date": "Cochez cette case pour supprimer la date de l'événement de ce badge."
         }
       },
       "edit_reward": {

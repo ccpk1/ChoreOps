@@ -786,7 +786,8 @@
           "custom_interval_unit": "🔄 CICLU DE ÎNTREȚINERE: Unitate de interval personalizată (necesară pentru frecvența personalizată)",
           "start_date": "🔄 RESETARE CICLU: Data începerii (opțional)",
           "end_date": "🔄 CICLU DE ÎNTREȚINERE: Data de încheiere (opțional)",
-          "grace_period_days": "🔄 CICLU DE ÎNTREȚINERE: Perioadă de grație în zile (opțional)"
+          "grace_period_days": "🔄 CICLU DE ÎNTREȚINERE: Perioadă de grație în zile (opțional)",
+          "clear_end_date": "🗑️ Ștergeți data de încheiere"
         },
         "data_description": {
           "badge_name": "Introduceți un nume unic pentru insignă. Acest nume va fi afișat în sistem.",
@@ -808,7 +809,8 @@
           "custom_interval_unit": "Selectați unitatea pentru intervalul personalizat (de exemplu, zile, săptămâni). Se aplică numai pentru Frecvența personalizată.",
           "start_date": "Setați data de începere (opțional).",
           "end_date": "Selectați data de sfârșit a ciclului de întreținere. (opțional).",
-          "grace_period_days": "Specificați numărul de zile suplimentare după sfârșitul ciclului de desemnare pentru a îndeplini punctele necesare înainte de retrogradare. (opțional)."
+          "grace_period_days": "Specificați numărul de zile suplimentare după sfârșitul ciclului de desemnare pentru a îndeplini punctele necesare înainte de retrogradare. (opțional).",
+          "clear_end_date": "Bifați această casetă pentru a elimina data de încheiere de pe această insignă."
         }
       },
       "add_badge_daily": {
@@ -860,7 +862,9 @@
           "custom_interval": "🔄 CICLU DE RESETARE: Interval personalizat (obligatoriu pentru frecvența personalizată)",
           "custom_interval_unit": "🔄 CICLU DE RESETARE: Unitate de interval personalizată (necesară pentru frecvența personalizată)",
           "start_date": "🔄 RESETARE CICLU: Data începerii (opțional)",
-          "end_date": "🔄 RESETARE CICLU: Data de încheiere (opțional)"
+          "end_date": "🔄 RESETARE CICLU: Data de încheiere (opțional)",
+          "clear_start_date": "🗑️ Ștergeți data de începere",
+          "clear_end_date": "🗑️ Ștergeți data de încheiere"
         },
         "data_description": {
           "badge_name": "Introduceți un nume unic pentru insignă. Acest nume va fi afișat în sistem.",
@@ -880,7 +884,9 @@
           "custom_interval": "Specificați NUMĂRUL de zile, săptămâni, luni etc. pentru Frecvență personalizată (de exemplu, 3 dacă setați 3 săptămâni).",
           "custom_interval_unit": "Selectați unitatea pentru intervalul personalizat (de exemplu, zile, săptămâni).",
           "start_date": "Setați data de începere pentru ciclul de resetare (opțional).",
-          "end_date": "Setați data de încheiere pentru ciclul de resetare (opțional)."
+          "end_date": "Setați data de încheiere pentru ciclul de resetare (opțional).",
+          "clear_start_date": "Bifați această casetă pentru a elimina data de începere de pe această insignă.",
+          "clear_end_date": "Bifați această casetă pentru a elimina data de încheiere de pe această insignă."
         }
       },
       "add_badge_achievement": {
@@ -924,7 +930,8 @@
           "grace_period_days": "🔄 RECURENȚĂ: Perioadă de grație în zile (opțional)",
           "assigned_user_ids": "🧒 Atribuit la",
           "award_items": "🎁 PREMII: Puncte selectate, recompense, bonusuri (opțional)",
-          "award_points": "🎁 PREMII: Puncte acordate (opțional)"
+          "award_points": "🎁 PREMII: Puncte acordate (opțional)",
+          "clear_end_date": "🗑️ Ștergeți data ocaziei"
         },
         "data_description": {
           "badge_name": "Introduceți un nume unic pentru insignă. Acest nume va fi afișat în sistem.",
@@ -940,7 +947,8 @@
           "grace_period_days": "Specificați numărul de zile suplimentare după sfârșitul ciclului pentru ca persoanele desemnate să îndeplinească punctele necesare înainte de retrogradare (opțional).",
           "assigned_user_ids": "Atribuiți această insignă anumitor persoane pentru urmărire.",
           "award_items": "Selectați unul sau mai multe dintre puncte, recompense sau bonusuri. Toate articolele selectate vor fi acordate sau aplicate la câștigarea insignei. Penalizările vor fi aplicate numai dacă insigna nu este câștigată până la data de încheiere sau la data de resetare. (opțional)",
-          "award_points": "Dacă punctele sunt un premiu selectat, specificați numărul de puncte care vor fi aplicate la obținerea acestei insigne. (opțional)."
+          "award_points": "Dacă punctele sunt un premiu selectat, specificați numărul de puncte care vor fi aplicate la obținerea acestei insigne. (opțional).",
+          "clear_end_date": "Bifați această casetă pentru a elimina data ocaziei de pe această insignă."
         }
       },
       "add_reward": {
@@ -1258,7 +1266,8 @@
           "custom_interval_unit": "🔄 CICLU DE ÎNTREȚINERE: Unitate de interval personalizată (necesară pentru frecvența personalizată)",
           "start_date": "🔄 RESETARE CICLU: Data începerii (opțional)",
           "end_date": "🔄 CICLU DE ÎNTREȚINERE: Data de încheiere (opțional)",
-          "grace_period_days": "🔄 CICLU DE ÎNTREȚINERE: Perioadă de grație în zile (opțional)"
+          "grace_period_days": "🔄 CICLU DE ÎNTREȚINERE: Perioadă de grație în zile (opțional)",
+          "clear_end_date": "🗑️ Ștergeți data de încheiere"
         },
         "data_description": {
           "badge_name": "Introduceți un nume unic pentru insignă. Acest nume va fi afișat în sistem.",
@@ -1280,7 +1289,8 @@
           "custom_interval_unit": "Selectați unitatea pentru intervalul personalizat (de exemplu, zile, săptămâni). Se aplică numai pentru Frecvența personalizată.",
           "start_date": "Setați data de începere (opțional).",
           "end_date": "Selectați data de sfârșit a ciclului de întreținere. (opțional).",
-          "grace_period_days": "Specificați numărul de zile suplimentare după sfârșitul ciclului de desemnare pentru a îndeplini punctele necesare înainte de retrogradare. (opțional)."
+          "grace_period_days": "Specificați numărul de zile suplimentare după sfârșitul ciclului de desemnare pentru a îndeplini punctele necesare înainte de retrogradare. (opțional).",
+          "clear_end_date": "Bifați această casetă pentru a elimina data de încheiere de pe această insignă."
         }
       },
       "edit_badge_daily": {
@@ -1332,7 +1342,9 @@
           "custom_interval": "🔄 CICLU DE RESETARE: Interval personalizat (obligatoriu pentru frecvența personalizată)",
           "custom_interval_unit": "🔄 CICLU DE RESETARE: Unitate de interval personalizată (necesară pentru frecvența personalizată)",
           "start_date": "🔄 RESETARE CICLU: Data începerii (opțional)",
-          "end_date": "🔄 RESETARE CICLU: Data de încheiere (opțional)"
+          "end_date": "🔄 RESETARE CICLU: Data de încheiere (opțional)",
+          "clear_start_date": "🗑️ Ștergeți data de începere",
+          "clear_end_date": "🗑️ Ștergeți data de încheiere"
         },
         "data_description": {
           "badge_name": "Introduceți un nume unic pentru insignă. Acest nume va fi afișat în sistem.",
@@ -1352,7 +1364,9 @@
           "custom_interval": "Specificați NUMĂRUL de zile, săptămâni, luni etc. pentru Frecvență personalizată (de exemplu, 3 dacă setați 3 săptămâni).",
           "custom_interval_unit": "Selectați unitatea pentru intervalul personalizat (de exemplu, zile, săptămâni).",
           "start_date": "Setați data de începere pentru ciclul de resetare (opțional).",
-          "end_date": "Setați data de încheiere pentru ciclul de resetare (opțional)."
+          "end_date": "Setați data de încheiere pentru ciclul de resetare (opțional).",
+          "clear_start_date": "Bifați această casetă pentru a elimina data de începere de pe această insignă.",
+          "clear_end_date": "Bifați această casetă pentru a elimina data de încheiere de pe această insignă."
         }
       },
       "edit_badge_achievement": {
@@ -1396,7 +1410,8 @@
           "grace_period_days": "🔄 RECURENȚĂ: Perioadă de grație în zile (opțional)",
           "assigned_user_ids": "🧒 Atribuit la",
           "award_items": "🎁 PREMII: Puncte selectate, recompense, bonusuri (opțional)",
-          "award_points": "🎁 PREMII: Puncte acordate (opțional)"
+          "award_points": "🎁 PREMII: Puncte acordate (opțional)",
+          "clear_end_date": "🗑️ Ștergeți data ocaziei"
         },
         "data_description": {
           "badge_name": "Introduceți un nume unic pentru insignă. Acest nume va fi afișat în sistem.",
@@ -1412,7 +1427,8 @@
           "grace_period_days": "Specificați numărul de zile suplimentare după sfârșitul ciclului pentru ca persoanele desemnate să îndeplinească punctele necesare înainte de retrogradare (opțional).",
           "assigned_user_ids": "Atribuiți această insignă anumitor persoane pentru urmărire.",
           "award_items": "Selectați unul sau mai multe dintre puncte, recompense sau bonusuri. Toate articolele selectate vor fi acordate sau aplicate la câștigarea insignei. Penalizările vor fi aplicate numai dacă insigna nu este câștigată până la data de încheiere sau la data de resetare. (opțional)",
-          "award_points": "Dacă punctele sunt un premiu selectat, specificați numărul de puncte care vor fi aplicate la obținerea acestei insigne. (opțional)."
+          "award_points": "Dacă punctele sunt un premiu selectat, specificați numărul de puncte care vor fi aplicate la obținerea acestei insigne. (opțional).",
+          "clear_end_date": "Bifați această casetă pentru a elimina data ocaziei de pe această insignă."
         }
       },
       "edit_reward": {

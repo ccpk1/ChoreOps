@@ -786,7 +786,8 @@
           "custom_interval_unit": "🔄 维护周期：自定义间隔单元（自定义频率需要此项）",
           "start_date": "🔄 重置周期：开始日期（可选）",
           "end_date": "🔄 维护周期：结束日期（可选）",
-          "grace_period_days": "🔄 维护周期：宽限期（天数）（可选）"
+          "grace_period_days": "🔄 维护周期：宽限期（天数）（可选）",
+          "clear_end_date": "🗑️ 明确结束日期"
         },
         "data_description": {
           "badge_name": "请为徽章输入一个唯一的名称。该名称将显示在系统中。",
@@ -808,7 +809,8 @@
           "custom_interval_unit": "选择自定义间隔的单位（例如，天、周）。仅适用于自定义频率。",
           "start_date": "设置开始日期（可选）。",
           "end_date": "选择维护周期结束日期。（可选）",
-          "grace_period_days": "指定在周期结束后，执行人为达到降级前所需的积分，额外给予多少天。（可选）"
+          "grace_period_days": "指定在周期结束后，执行人为达到降级前所需的积分，额外给予多少天。（可选）",
+          "clear_end_date": "选中此框可从该徽章中移除结束日期。"
         }
       },
       "add_badge_daily": {
@@ -860,7 +862,9 @@
           "custom_interval": "🔄 重置周期：自定义间隔（自定义频率需要此项）",
           "custom_interval_unit": "🔄 重置周期：自定义间隔单位（自定义频率需要此项）",
           "start_date": "🔄 重置周期：开始日期（可选）",
-          "end_date": "🔄 重置周期：结束日期（可选）"
+          "end_date": "🔄 重置周期：结束日期（可选）",
+          "clear_start_date": "🗑️ 明确开始日期",
+          "clear_end_date": "🗑️ 明确结束日期"
         },
         "data_description": {
           "badge_name": "请为徽章输入一个唯一的名称。该名称将显示在系统中。",
@@ -880,7 +884,9 @@
           "custom_interval": "指定自定义频率的天数、周数、月数等（例如，如果设置 3 周，则为 3）。",
           "custom_interval_unit": "选择自定义时间间隔的单位（例如，天、周）。",
           "start_date": "设置重置周期的开始日期（可选）。",
-          "end_date": "设置重置周期的结束日期（可选）。"
+          "end_date": "设置重置周期的结束日期（可选）。",
+          "clear_start_date": "选中此框可从该徽章中移除开始日期。",
+          "clear_end_date": "选中此框可从该徽章中移除结束日期。"
         }
       },
       "add_badge_achievement": {
@@ -924,7 +930,8 @@
           "grace_period_days": "🔄 续期：宽限期（天数）（可选）",
           "assigned_user_ids": "🧒 分配给",
           "award_items": "🎁 奖励：选择积分、奖励、额外加分（可选）",
-          "award_points": "🎁 奖励：积分奖励（可选）"
+          "award_points": "🎁 奖励：积分奖励（可选）",
+          "clear_end_date": "🗑️ 确定场合日期"
         },
         "data_description": {
           "badge_name": "请为徽章输入一个唯一的名称。该名称将显示在系统中。",
@@ -940,7 +947,8 @@
           "grace_period_days": "指定在周期结束后，执行人在降级前达到所需积分的额外天数（可选）。",
           "assigned_user_ids": "将此徽章分配给特定执行人以进行跟踪。",
           "award_items": "从积分、奖励、额外加分或惩罚中选择一项或多项。获得徽章后，所有选定项目都会发放或应用。只有在截止日期或重置日期前未获得徽章时，才会应用惩罚。（可选）",
-          "award_points": "如果奖励方式为积分，请指定获得此徽章时要应用的积分数量。（可选）"
+          "award_points": "如果奖励方式为积分，请指定获得此徽章时要应用的积分数量。（可选）",
+          "clear_end_date": "选中此框可从该徽章中移除活动日期。"
         }
       },
       "add_reward": {
@@ -1258,7 +1266,8 @@
           "custom_interval_unit": "🔄 维护周期：自定义间隔单元（自定义频率需要此项）",
           "start_date": "🔄 重置周期：开始日期（可选）",
           "end_date": "🔄 维护周期：结束日期（可选）",
-          "grace_period_days": "🔄 维护周期：宽限期（天数）（可选）"
+          "grace_period_days": "🔄 维护周期：宽限期（天数）（可选）",
+          "clear_end_date": "🗑️ 明确结束日期"
         },
         "data_description": {
           "badge_name": "请为徽章输入一个唯一的名称。该名称将显示在系统中。",
@@ -1280,7 +1289,8 @@
           "custom_interval_unit": "选择自定义间隔的单位（例如，天、周）。仅适用于自定义频率。",
           "start_date": "设置开始日期（可选）。",
           "end_date": "选择维护周期结束日期。（可选）",
-          "grace_period_days": "指定在周期结束后，执行人为达到降级前所需的积分，额外给予多少天。（可选）"
+          "grace_period_days": "指定在周期结束后，执行人为达到降级前所需的积分，额外给予多少天。（可选）",
+          "clear_end_date": "选中此框可从该徽章中移除结束日期。"
         }
       },
       "edit_badge_daily": {
@@ -1332,7 +1342,9 @@
           "custom_interval": "🔄 重置周期：自定义间隔（自定义频率需要此项）",
           "custom_interval_unit": "🔄 重置周期：自定义间隔单位（自定义频率需要此项）",
           "start_date": "🔄 重置周期：开始日期（可选）",
-          "end_date": "🔄 重置周期：结束日期（可选）"
+          "end_date": "🔄 重置周期：结束日期（可选）",
+          "clear_start_date": "🗑️ 明确开始日期",
+          "clear_end_date": "🗑️ 明确结束日期"
         },
         "data_description": {
           "badge_name": "请为徽章输入一个唯一的名称。该名称将显示在系统中。",
@@ -1352,7 +1364,9 @@
           "custom_interval": "指定自定义频率的天数、周数、月数等（例如，如果设置 3 周，则为 3）。",
           "custom_interval_unit": "选择自定义时间间隔的单位（例如，天、周）。",
           "start_date": "设置重置周期的开始日期（可选）。",
-          "end_date": "设置重置周期的结束日期（可选）。"
+          "end_date": "设置重置周期的结束日期（可选）。",
+          "clear_start_date": "选中此框可从该徽章中移除开始日期。",
+          "clear_end_date": "选中此框可从该徽章中移除结束日期。"
         }
       },
       "edit_badge_achievement": {
@@ -1396,7 +1410,8 @@
           "grace_period_days": "🔄 续期：宽限期（天数）（可选）",
           "assigned_user_ids": "🧒 分配给",
           "award_items": "🎁 奖励：选择积分、奖励、额外加分（可选）",
-          "award_points": "🎁 奖励：积分奖励（可选）"
+          "award_points": "🎁 奖励：积分奖励（可选）",
+          "clear_end_date": "🗑️ 确定场合日期"
         },
         "data_description": {
           "badge_name": "请为徽章输入一个唯一的名称。该名称将显示在系统中。",
@@ -1412,7 +1427,8 @@
           "grace_period_days": "指定在周期结束后，执行人在降级前达到所需积分的额外天数（可选）。",
           "assigned_user_ids": "将此徽章分配给特定执行人以进行跟踪。",
           "award_items": "从积分、奖励、额外加分或惩罚中选择一项或多项。获得徽章后，所有选定项目都会发放或应用。只有在截止日期或重置日期前未获得徽章时，才会应用惩罚。（可选）",
-          "award_points": "如果奖励方式为积分，请指定获得此徽章时要应用的积分数量。（可选）"
+          "award_points": "如果奖励方式为积分，请指定获得此徽章时要应用的积分数量。（可选）",
+          "clear_end_date": "选中此框可从该徽章中移除活动日期。"
         }
       },
       "edit_reward": {

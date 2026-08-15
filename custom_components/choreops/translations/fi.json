@@ -786,7 +786,8 @@
           "custom_interval_unit": "🔄 HUOLTOSYKLI: Mukautettu väliyksikkö (pakollinen mukautetulle taajuudelle)",
           "start_date": "🔄 NOLLAUSSYKLI: Aloituspäivämäärä (valinnainen)",
           "end_date": "🔄 HUOLTOSYKLI: Päättymispäivä (valinnainen)",
-          "grace_period_days": "🔄 YLLÄPITOSYKLI: Lisäaika päivinä (valinnainen)"
+          "grace_period_days": "🔄 YLLÄPITOSYKLI: Lisäaika päivinä (valinnainen)",
+          "clear_end_date": "🗑️ Tyhjennä päättymispäivä"
         },
         "data_description": {
           "badge_name": "Anna merkille yksilöllinen nimi. Tämä nimi näkyy järjestelmässä.",
@@ -808,7 +809,8 @@
           "custom_interval_unit": "Valitse mukautetun aikavälin yksikkö (esim. päivät, viikot). Koskee vain mukautettua taajuutta.",
           "start_date": "Aseta aloituspäivämäärä (valinnainen).",
           "end_date": "Valitse huoltosyklin päättymispäivämäärä (valinnainen).",
-          "grace_period_days": "Määritä, kuinka monta lisäpäivää syklin päättymisen jälkeen tehtävän suorittajien on täytettävä vaaditut pisteet ennen alentamista. (valinnainen)"
+          "grace_period_days": "Määritä, kuinka monta lisäpäivää syklin päättymisen jälkeen tehtävän suorittajien on täytettävä vaaditut pisteet ennen alentamista. (valinnainen)",
+          "clear_end_date": "Valitse tämä ruutu poistaaksesi päättymispäivämäärän tästä merkistä."
         }
       },
       "add_badge_daily": {
@@ -860,7 +862,9 @@
           "custom_interval": "🔄 NOLLAUSSYKLI: Mukautettu aikaväli (pakollinen mukautetulle taajuudelle)",
           "custom_interval_unit": "🔄 NOLLAUSSYKLI: Mukautettu intervalliyksikkö (vaaditaan mukautetulle taajuudelle)",
           "start_date": "🔄 NOLLAUSSYKLI: Aloituspäivämäärä (valinnainen)",
-          "end_date": "🔄 NOLLAUSSYKLI: Päättymispäivämäärä (valinnainen)"
+          "end_date": "🔄 NOLLAUSSYKLI: Päättymispäivämäärä (valinnainen)",
+          "clear_start_date": "🗑️ Selkeä aloituspäivämäärä",
+          "clear_end_date": "🗑️ Tyhjennä päättymispäivä"
         },
         "data_description": {
           "badge_name": "Anna merkille yksilöllinen nimi. Tämä nimi näkyy järjestelmässä.",
@@ -880,7 +884,9 @@
           "custom_interval": "Määritä päivien, viikkojen, kuukausien jne. MÄÄRÄ mukautetulle taajuudelle (esim. 3, jos asetat 3 viikkoa).",
           "custom_interval_unit": "Valitse mukautetun aikavälin yksikkö (esim. päivät, viikot).",
           "start_date": "Aseta nollausjakson aloituspäivämäärä (valinnainen).",
-          "end_date": "Aseta nollausjakson päättymispäivämäärä (valinnainen)."
+          "end_date": "Aseta nollausjakson päättymispäivämäärä (valinnainen).",
+          "clear_start_date": "Valitse tämä ruutu poistaaksesi aloituspäivämäärän tästä merkistä.",
+          "clear_end_date": "Valitse tämä ruutu poistaaksesi päättymispäivämäärän tästä merkistä."
         }
       },
       "add_badge_achievement": {
@@ -924,7 +930,8 @@
           "grace_period_days": "🔄 TOISTUVA: Lisäaika päivinä (valinnainen)",
           "assigned_user_ids": "🧒 Määrätty",
           "award_items": "🎁 PALKINNOT: Valitse pisteet, palkinnot, bonukset (valinnainen)",
-          "award_points": "🎁 PALKINNOT: Myönnetyt pisteet (valinnainen)"
+          "award_points": "🎁 PALKINNOT: Myönnetyt pisteet (valinnainen)",
+          "clear_end_date": "🗑️ Selkeä tapahtuman päivämäärä"
         },
         "data_description": {
           "badge_name": "Anna merkille yksilöllinen nimi. Tämä nimi näkyy järjestelmässä.",
@@ -940,7 +947,8 @@
           "grace_period_days": "Määritä, kuinka monta lisäpäivää syklin päättymisen jälkeen kuluu, jotta tehtävän suorittajien on täytettävä vaaditut pisteet ennen alentamista (valinnainen).",
           "assigned_user_ids": "Anna tämä merkki tietyille henkilöille seurantaa varten.",
           "award_items": "Valitse yksi tai useampi pisteistä, palkinnoista tai bonuksista. Kaikki valitut kohteet myönnetään tai niitä käytetään, kun merkki ansaitaan. Rangaistuksia sovelletaan vain, jos merkkiä ei ansaita päättymispäivään tai nollauspäivään mennessä. (valinnainen)",
-          "award_points": "Jos pisteet ovat valittu palkinto, määritä pisteiden määrä, joka lisätään, kun tämä ansiomerkki ansaitaan. (valinnainen)"
+          "award_points": "Jos pisteet ovat valittu palkinto, määritä pisteiden määrä, joka lisätään, kun tämä ansiomerkki ansaitaan. (valinnainen)",
+          "clear_end_date": "Valitse tämä ruutu poistaaksesi tapahtuman päivämäärän tästä merkistä."
         }
       },
       "add_reward": {
@@ -1258,7 +1266,8 @@
           "custom_interval_unit": "🔄 HUOLTOSYKLI: Mukautettu väliyksikkö (pakollinen mukautetulle taajuudelle)",
           "start_date": "🔄 NOLLAUSSYKLI: Aloituspäivämäärä (valinnainen)",
           "end_date": "🔄 HUOLTOSYKLI: Päättymispäivä (valinnainen)",
-          "grace_period_days": "🔄 YLLÄPITOSYKLI: Lisäaika päivinä (valinnainen)"
+          "grace_period_days": "🔄 YLLÄPITOSYKLI: Lisäaika päivinä (valinnainen)",
+          "clear_end_date": "🗑️ Tyhjennä päättymispäivä"
         },
         "data_description": {
           "badge_name": "Anna merkille yksilöllinen nimi. Tämä nimi näkyy järjestelmässä.",
@@ -1280,7 +1289,8 @@
           "custom_interval_unit": "Valitse mukautetun aikavälin yksikkö (esim. päivät, viikot). Koskee vain mukautettua taajuutta.",
           "start_date": "Aseta aloituspäivämäärä (valinnainen).",
           "end_date": "Valitse huoltosyklin päättymispäivämäärä (valinnainen).",
-          "grace_period_days": "Määritä, kuinka monta lisäpäivää syklin päättymisen jälkeen tehtävän suorittajien on täytettävä vaaditut pisteet ennen alentamista. (valinnainen)"
+          "grace_period_days": "Määritä, kuinka monta lisäpäivää syklin päättymisen jälkeen tehtävän suorittajien on täytettävä vaaditut pisteet ennen alentamista. (valinnainen)",
+          "clear_end_date": "Valitse tämä ruutu poistaaksesi päättymispäivämäärän tästä merkistä."
         }
       },
       "edit_badge_daily": {
@@ -1332,7 +1342,9 @@
           "custom_interval": "🔄 NOLLAUSSYKLI: Mukautettu aikaväli (pakollinen mukautetulle taajuudelle)",
           "custom_interval_unit": "🔄 NOLLAUSSYKLI: Mukautettu intervalliyksikkö (vaaditaan mukautetulle taajuudelle)",
           "start_date": "🔄 NOLLAUSSYKLI: Aloituspäivämäärä (valinnainen)",
-          "end_date": "🔄 NOLLAUSSYKLI: Päättymispäivämäärä (valinnainen)"
+          "end_date": "🔄 NOLLAUSSYKLI: Päättymispäivämäärä (valinnainen)",
+          "clear_start_date": "🗑️ Selkeä aloituspäivämäärä",
+          "clear_end_date": "🗑️ Tyhjennä päättymispäivä"
         },
         "data_description": {
           "badge_name": "Anna merkille yksilöllinen nimi. Tämä nimi näkyy järjestelmässä.",
@@ -1352,7 +1364,9 @@
           "custom_interval": "Määritä päivien, viikkojen, kuukausien jne. MÄÄRÄ mukautetulle taajuudelle (esim. 3, jos asetat 3 viikkoa).",
           "custom_interval_unit": "Valitse mukautetun aikavälin yksikkö (esim. päivät, viikot).",
           "start_date": "Aseta nollausjakson aloituspäivämäärä (valinnainen).",
-          "end_date": "Aseta nollausjakson päättymispäivämäärä (valinnainen)."
+          "end_date": "Aseta nollausjakson päättymispäivämäärä (valinnainen).",
+          "clear_start_date": "Valitse tämä ruutu poistaaksesi aloituspäivämäärän tästä merkistä.",
+          "clear_end_date": "Valitse tämä ruutu poistaaksesi päättymispäivämäärän tästä merkistä."
         }
       },
       "edit_badge_achievement": {
@@ -1396,7 +1410,8 @@
           "grace_period_days": "🔄 TOISTUVA: Lisäaika päivinä (valinnainen)",
           "assigned_user_ids": "🧒 Määrätty",
           "award_items": "🎁 PALKINNOT: Valitse pisteet, palkinnot, bonukset (valinnainen)",
-          "award_points": "🎁 PALKINNOT: Myönnetyt pisteet (valinnainen)"
+          "award_points": "🎁 PALKINNOT: Myönnetyt pisteet (valinnainen)",
+          "clear_end_date": "🗑️ Selkeä tapahtuman päivämäärä"
         },
         "data_description": {
           "badge_name": "Anna merkille yksilöllinen nimi. Tämä nimi näkyy järjestelmässä.",
@@ -1412,7 +1427,8 @@
           "grace_period_days": "Määritä, kuinka monta lisäpäivää syklin päättymisen jälkeen kuluu, jotta tehtävän suorittajien on täytettävä vaaditut pisteet ennen alentamista (valinnainen).",
           "assigned_user_ids": "Anna tämä merkki tietyille henkilöille seurantaa varten.",
           "award_items": "Valitse yksi tai useampi pisteistä, palkinnoista tai bonuksista. Kaikki valitut kohteet myönnetään tai niitä käytetään, kun merkki ansaitaan. Rangaistuksia sovelletaan vain, jos merkkiä ei ansaita päättymispäivään tai nollauspäivään mennessä. (valinnainen)",
-          "award_points": "Jos pisteet ovat valittu palkinto, määritä pisteiden määrä, joka lisätään, kun tämä ansiomerkki ansaitaan. (valinnainen)"
+          "award_points": "Jos pisteet ovat valittu palkinto, määritä pisteiden määrä, joka lisätään, kun tämä ansiomerkki ansaitaan. (valinnainen)",
+          "clear_end_date": "Valitse tämä ruutu poistaaksesi tapahtuman päivämäärän tästä merkistä."
         }
       },
       "edit_reward": {

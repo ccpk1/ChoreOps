@@ -786,7 +786,8 @@
           "custom_interval_unit": "🔄 VEDLIGEHOLDELSESCYKLUS: Brugerdefineret intervalenhed (påkrævet for brugerdefineret frekvens)",
           "start_date": "🔄 NULSTIL CYKLUS: Startdato (valgfrit)",
           "end_date": "🔄 VEDLIGEHOLDELSESCYKLUS: Slutdato (valgfrit)",
-          "grace_period_days": "🔄 VEDLIGEHOLDELSESCYKLUS: Henstandsperiode i dage (valgfrit)"
+          "grace_period_days": "🔄 VEDLIGEHOLDELSESCYKLUS: Henstandsperiode i dage (valgfrit)",
+          "clear_end_date": "🗑️ Ryd slutdato"
         },
         "data_description": {
           "badge_name": "Indtast et unikt navn til badget. Dette navn vil blive vist i systemet.",
@@ -808,7 +809,8 @@
           "custom_interval_unit": "Vælg enheden for det brugerdefinerede interval (f.eks. dage, uger). Gælder kun for brugerdefineret frekvens.",
           "start_date": "Angiv startdatoen (valgfrit).",
           "end_date": "Vælg datoen for afslutningen af vedligeholdelsescyklussen. (valgfrit).",
-          "grace_period_days": "Angiv antallet af ekstra dage efter afslutningen af cyklussen, som tildelte personer skal opfylde de nødvendige point før degradering (valgfrit)."
+          "grace_period_days": "Angiv antallet af ekstra dage efter afslutningen af cyklussen, som tildelte personer skal opfylde de nødvendige point før degradering (valgfrit).",
+          "clear_end_date": "Markér dette felt for at fjerne slutdatoen fra dette badge."
         }
       },
       "add_badge_daily": {
@@ -860,7 +862,9 @@
           "custom_interval": "🔄 NULSTILCYKLUS: Brugerdefineret interval (påkrævet for brugerdefineret frekvens)",
           "custom_interval_unit": "🔄 NULSTIL CYKLUS: Brugerdefineret intervalenhed (påkrævet for brugerdefineret frekvens)",
           "start_date": "🔄 NULSTIL CYKLUS: Startdato (valgfrit)",
-          "end_date": "🔄 NULSTIL CYKLUS: Slutdato (valgfrit)"
+          "end_date": "🔄 NULSTIL CYKLUS: Slutdato (valgfrit)",
+          "clear_start_date": "🗑️ Ryd startdato",
+          "clear_end_date": "🗑️ Ryd slutdato"
         },
         "data_description": {
           "badge_name": "Indtast et unikt navn til badget. Dette navn vil blive vist i systemet.",
@@ -880,7 +884,9 @@
           "custom_interval": "Angiv ANTAL dage, uger, måneder osv. for Brugerdefineret frekvens (f.eks. 3, hvis du angiver 3 uger).",
           "custom_interval_unit": "Vælg enheden for det brugerdefinerede interval (f.eks. dage, uger).",
           "start_date": "Indstil startdatoen for nulstillingscyklussen (valgfrit).",
-          "end_date": "Indstil slutdatoen for nulstillingscyklussen (valgfrit)."
+          "end_date": "Indstil slutdatoen for nulstillingscyklussen (valgfrit).",
+          "clear_start_date": "Markér dette felt for at fjerne startdatoen fra dette badge.",
+          "clear_end_date": "Markér dette felt for at fjerne slutdatoen fra dette badge."
         }
       },
       "add_badge_achievement": {
@@ -924,7 +930,8 @@
           "grace_period_days": "🔄 GENTAGENDE: Frist i dage (valgfrit)",
           "assigned_user_ids": "🧒 Tildelt til",
           "award_items": "🎁 PRÆMIER: Vælg point, belønninger, bonusser (valgfrit)",
-          "award_points": "🎁 PRÆMIER: Tildelte point (valgfrit)"
+          "award_points": "🎁 PRÆMIER: Tildelte point (valgfrit)",
+          "clear_end_date": "🗑️ Ryd dato for lejlighed"
         },
         "data_description": {
           "badge_name": "Indtast et unikt navn til badget. Dette navn vil blive vist i systemet.",
@@ -940,7 +947,8 @@
           "grace_period_days": "Angiv antallet af ekstra dage efter cyklussens afslutning, hvor tildelte personer skal opfylde de nødvendige point før degradering (valgfrit).",
           "assigned_user_ids": "Tildel dette badge til bestemte tildelte personer til sporing.",
           "award_items": "Vælg en eller flere af point, belønninger eller bonusser. Alle valgte elementer vil blive tildelt eller anvendt, når badget er optjent. Der vil kun blive anvendt straffe, hvis badget ikke er optjent inden slutdatoen eller nulstillingsdatoen. (valgfrit)",
-          "award_points": "Hvis pointene er en valgt belønning, skal du angive antallet af point, der skal anvendes, når dette badge optjenes. (valgfrit)."
+          "award_points": "Hvis pointene er en valgt belønning, skal du angive antallet af point, der skal anvendes, når dette badge optjenes. (valgfrit).",
+          "clear_end_date": "Markér dette felt for at fjerne begivenhedsdatoen fra dette badge."
         }
       },
       "add_reward": {
@@ -1258,7 +1266,8 @@
           "custom_interval_unit": "🔄 VEDLIGEHOLDELSESCYKLUS: Brugerdefineret intervalenhed (påkrævet for brugerdefineret frekvens)",
           "start_date": "🔄 NULSTIL CYKLUS: Startdato (valgfrit)",
           "end_date": "🔄 VEDLIGEHOLDELSESCYKLUS: Slutdato (valgfrit)",
-          "grace_period_days": "🔄 VEDLIGEHOLDELSESCYKLUS: Henstandsperiode i dage (valgfrit)"
+          "grace_period_days": "🔄 VEDLIGEHOLDELSESCYKLUS: Henstandsperiode i dage (valgfrit)",
+          "clear_end_date": "🗑️ Ryd slutdato"
         },
         "data_description": {
           "badge_name": "Indtast et unikt navn til badget. Dette navn vil blive vist i systemet.",
@@ -1280,7 +1289,8 @@
           "custom_interval_unit": "Vælg enheden for det brugerdefinerede interval (f.eks. dage, uger). Gælder kun for brugerdefineret frekvens.",
           "start_date": "Angiv startdatoen (valgfrit).",
           "end_date": "Vælg datoen for afslutningen af vedligeholdelsescyklussen. (valgfrit).",
-          "grace_period_days": "Angiv antallet af ekstra dage efter afslutningen af cyklussen, som tildelte personer skal opfylde de nødvendige point før degradering (valgfrit)."
+          "grace_period_days": "Angiv antallet af ekstra dage efter afslutningen af cyklussen, som tildelte personer skal opfylde de nødvendige point før degradering (valgfrit).",
+          "clear_end_date": "Markér dette felt for at fjerne slutdatoen fra dette badge."
         }
       },
       "edit_badge_daily": {
@@ -1332,7 +1342,9 @@
           "custom_interval": "🔄 NULSTILCYKLUS: Brugerdefineret interval (påkrævet for brugerdefineret frekvens)",
           "custom_interval_unit": "🔄 NULSTIL CYKLUS: Brugerdefineret intervalenhed (påkrævet for brugerdefineret frekvens)",
           "start_date": "🔄 NULSTIL CYKLUS: Startdato (valgfrit)",
-          "end_date": "🔄 NULSTIL CYKLUS: Slutdato (valgfrit)"
+          "end_date": "🔄 NULSTIL CYKLUS: Slutdato (valgfrit)",
+          "clear_start_date": "🗑️ Ryd startdato",
+          "clear_end_date": "🗑️ Ryd slutdato"
         },
         "data_description": {
           "badge_name": "Indtast et unikt navn til badget. Dette navn vil blive vist i systemet.",
@@ -1352,7 +1364,9 @@
           "custom_interval": "Angiv ANTAL dage, uger, måneder osv. for Brugerdefineret frekvens (f.eks. 3, hvis du angiver 3 uger).",
           "custom_interval_unit": "Vælg enheden for det brugerdefinerede interval (f.eks. dage, uger).",
           "start_date": "Indstil startdatoen for nulstillingscyklussen (valgfrit).",
-          "end_date": "Indstil slutdatoen for nulstillingscyklussen (valgfrit)."
+          "end_date": "Indstil slutdatoen for nulstillingscyklussen (valgfrit).",
+          "clear_start_date": "Markér dette felt for at fjerne startdatoen fra dette badge.",
+          "clear_end_date": "Markér dette felt for at fjerne slutdatoen fra dette badge."
         }
       },
       "edit_badge_achievement": {
@@ -1396,7 +1410,8 @@
           "grace_period_days": "🔄 GENTAGENDE: Frist i dage (valgfrit)",
           "assigned_user_ids": "🧒 Tildelt til",
           "award_items": "🎁 PRÆMIER: Vælg point, belønninger, bonusser (valgfrit)",
-          "award_points": "🎁 PRÆMIER: Tildelte point (valgfrit)"
+          "award_points": "🎁 PRÆMIER: Tildelte point (valgfrit)",
+          "clear_end_date": "🗑️ Ryd dato for lejlighed"
         },
         "data_description": {
           "badge_name": "Indtast et unikt navn til badget. Dette navn vil blive vist i systemet.",
@@ -1412,7 +1427,8 @@
           "grace_period_days": "Angiv antallet af ekstra dage efter cyklussens afslutning, hvor tildelte personer skal opfylde de nødvendige point før degradering (valgfrit).",
           "assigned_user_ids": "Tildel dette badge til bestemte tildelte personer til sporing.",
           "award_items": "Vælg en eller flere af point, belønninger eller bonusser. Alle valgte elementer vil blive tildelt eller anvendt, når badget er optjent. Der vil kun blive anvendt straffe, hvis badget ikke er optjent inden slutdatoen eller nulstillingsdatoen. (valgfrit)",
-          "award_points": "Hvis pointene er en valgt belønning, skal du angive antallet af point, der skal anvendes, når dette badge optjenes. (valgfrit)."
+          "award_points": "Hvis pointene er en valgt belønning, skal du angive antallet af point, der skal anvendes, når dette badge optjenes. (valgfrit).",
+          "clear_end_date": "Markér dette felt for at fjerne begivenhedsdatoen fra dette badge."
         }
       },
       "edit_reward": {
