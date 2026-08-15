@@ -4000,6 +4000,16 @@ CHORE_FREQUENCY_OPTIONS_CONFIG_FLOW = [
     FREQUENCY_CUSTOM_FROM_COMPLETE_DATE_ONLY,
 ]
 
+# Frequencies that carry a user-defined custom interval value + unit.
+# FREQUENCY_CUSTOM_1_* shortcuts are NOT included (fixed-length, no stored value).
+CUSTOM_INTERVAL_FREQUENCIES = frozenset(
+    {
+        FREQUENCY_CUSTOM,
+        FREQUENCY_CUSTOM_FROM_COMPLETE,
+        FREQUENCY_CUSTOM_FROM_COMPLETE_DATE_ONLY,
+    }
+)
+
 # Weekday Options
 WEEKDAY_OPTIONS = {
     "mon": "Monday",

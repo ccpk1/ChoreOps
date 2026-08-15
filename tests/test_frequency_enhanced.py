@@ -23,6 +23,7 @@ from unittest.mock import AsyncMock, patch
 from zoneinfo import ZoneInfo
 
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
 from homeassistant.util import dt as dt_util
 import pytest
 
@@ -1312,3 +1313,151 @@ class TestCustomHours:
         # Jan 14 + 1 month = Feb 14
         assert result_dt.month == 2
         assert result_dt.day == 14
+
+
+# =============================================================================
+# CUSTOM INTERVAL ATTRIBUTES (GH-238)
+# =============================================================================
+
+
+class TestCustomIntervalSensorAttributes:
+    """Verify custom interval/unit attributes on chore status sensors.
+
+    The global (shared) and per-user chore status sensors must expose the
+    configured custom interval value and unit when the chore uses one of the
+    custom frequencies (FREQUENCY_CUSTOM, FREQUENCY_CUSTOM_FROM_COMPLETE,
+    FREQUENCY_CUSTOM_FROM_COMPLETE_DATE_ONLY).
+    """
+
+    def _per_user_sensor_unique_id(
+        self,
+        entry_id: str,
+        assignee_id: str,
+        chore_id: str,
+    ) -> str:
+        """Return the unique ID for a per-user chore status sensor."""
+        return (
+            f"{entry_id}_{assignee_id}_{chore_id}"
+            f"{const.SENSOR_KC_UID_SUFFIX_CHORE_STATUS_SENSOR}"
+        )
+
+    def _shared_sensor_unique_id(self, entry_id: str, chore_id: str) -> str:
+        """Return the unique ID for a shared chore global status sensor."""
+        return (
+            f"{entry_id}_{chore_id}"
+            f"{const.SENSOR_KC_UID_SUFFIX_SHARED_CHORE_GLOBAL_STATE_SENSOR}"
+        )
+
+    def _entity_id_from_unique_id(
+        self,
+        entity_registry: er.EntityRegistry,
+        unique_id: str,
+    ) -> str | None:
+        """Resolve an entity id from its registry unique id."""
+        return entity_registry.async_get_entity_id("sensor", const.DOMAIN, unique_id)
+
+    async def test_custom_from_complete_per_user_and_shared_attributes(
+        self,
+        hass: HomeAssistant,
+        entity_registry: er.EntityRegistry,
+        scenario_enhanced_frequencies: SetupResult,
+    ) -> None:
+        """Custom-from-complete chore exposes interval attrs on both sensors."""
+        coordinator = scenario_enhanced_frequencies.coordinator
+        config_entry = scenario_enhanced_frequencies.config_entry
+        chore_id = scenario_enhanced_frequencies.chore_ids[
+            "Custom From Complete SHARED"
+        ]
+        assignee_id = scenario_enhanced_frequencies.assignee_ids["Zoë"]
+
+        chore_info = coordinator.chores_data.get(chore_id, {})
+        assert (
+            chore_info.get(DATA_CHORE_RECURRING_FREQUENCY)
+            == FREQUENCY_CUSTOM_FROM_COMPLETE
+        )
+        assert chore_info.get(DATA_CHORE_CUSTOM_INTERVAL) == 10
+        assert chore_info.get(DATA_CHORE_CUSTOM_INTERVAL_UNIT) == TIME_UNIT_DAYS
+
+        # Per-user sensor exposure
+        per_user_eid = self._per_user_sensor_unique_id(
+            config_entry.entry_id, assignee_id, chore_id
+        )
+        per_user_entity_id = self._entity_id_from_unique_id(
+            entity_registry, per_user_eid
+        )
+        assert per_user_entity_id is not None
+        per_user_state = hass.states.get(per_user_entity_id)
+        assert per_user_state is not None
+        assert per_user_state.attributes[const.ATTR_CUSTOM_FREQUENCY_INTERVAL] == 10
+        assert per_user_state.attributes[const.ATTR_CUSTOM_FREQUENCY_UNIT] == (
+            TIME_UNIT_DAYS
+        )
+
+        # Shared global sensor (chore is shared_all) exposure
+        shared_sensor_unique_id = self._shared_sensor_unique_id(
+            config_entry.entry_id, chore_id
+        )
+        shared_entity_id = self._entity_id_from_unique_id(
+            entity_registry, shared_sensor_unique_id
+        )
+        assert shared_entity_id is not None
+        shared_state = hass.states.get(shared_entity_id)
+        assert shared_state is not None
+        assert shared_state.attributes[const.ATTR_CUSTOM_FREQUENCY_INTERVAL] == 10
+        assert shared_state.attributes[const.ATTR_CUSTOM_FREQUENCY_UNIT] == (
+            TIME_UNIT_DAYS
+        )
+
+    @pytest.mark.parametrize(
+        ("chore_name", "assignee_name", "frequency", "interval", "unit"),
+        [
+            pytest.param(
+                "Custom From Complete SHARED",
+                "Zoë",
+                FREQUENCY_CUSTOM_FROM_COMPLETE,
+                10,
+                TIME_UNIT_DAYS,
+                id="custom_from_complete",
+            ),
+            pytest.param(
+                "Custom Hours 4h",
+                "Zoë",
+                FREQUENCY_CUSTOM,
+                4,
+                TIME_UNIT_HOURS,
+                id="custom",
+            ),
+        ],
+    )
+    @pytest.mark.asyncio
+    async def test_per_user_sensor_attributes_parametrized(
+        self,
+        hass: HomeAssistant,
+        entity_registry: er.EntityRegistry,
+        scenario_enhanced_frequencies: SetupResult,
+        chore_name: str,
+        assignee_name: str,
+        frequency: str,
+        interval: int,
+        unit: str,
+    ) -> None:
+        """Per-user chore sensor exposes interval attrs across custom freqs."""
+        coordinator = scenario_enhanced_frequencies.coordinator
+        config_entry = scenario_enhanced_frequencies.config_entry
+        chore_id = scenario_enhanced_frequencies.chore_ids[chore_name]
+        assignee_id = scenario_enhanced_frequencies.assignee_ids[assignee_name]
+
+        chore_info = coordinator.chores_data.get(chore_id, {})
+        assert chore_info.get(DATA_CHORE_RECURRING_FREQUENCY) == frequency
+        assert chore_info.get(DATA_CHORE_CUSTOM_INTERVAL) == interval
+        assert chore_info.get(DATA_CHORE_CUSTOM_INTERVAL_UNIT) == unit
+
+        unique_id = self._per_user_sensor_unique_id(
+            config_entry.entry_id, assignee_id, chore_id
+        )
+        entity_id = self._entity_id_from_unique_id(entity_registry, unique_id)
+        assert entity_id is not None
+        state = hass.states.get(entity_id)
+        assert state is not None
+        assert state.attributes[const.ATTR_CUSTOM_FREQUENCY_INTERVAL] == interval
+        assert state.attributes[const.ATTR_CUSTOM_FREQUENCY_UNIT] == unit
