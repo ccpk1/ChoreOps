@@ -786,7 +786,8 @@
           "custom_interval_unit": "🔄 CICLE DE MANTENIMENT: Unitat d'interval personalitzada (obligatòria per a la freqüència personalitzada)",
           "start_date": "🔄 REINICIAR CICLE: Data d'inici (opcional)",
           "end_date": "🔄 CICLE DE MANTENIMENT: Data de finalització (opcional)",
-          "grace_period_days": "🔄 CICLE DE MANTENIMENT: Període de gràcia en dies (opcional)"
+          "grace_period_days": "🔄 CICLE DE MANTENIMENT: Període de gràcia en dies (opcional)",
+          "clear_end_date": "🗑️ Esborra la data de finalització"
         },
         "data_description": {
           "badge_name": "Introduïu un nom únic per a la insígnia. Aquest nom es mostrarà al sistema.",
@@ -808,7 +809,8 @@
           "custom_interval_unit": "Seleccioneu la unitat per a l'interval personalitzat (per exemple, dies, setmanes). Només s'aplica a la freqüència personalitzada.",
           "start_date": "Estableix la data d'inici (opcional).",
           "end_date": "Seleccioneu la data de finalització del cicle de manteniment (opcional).",
-          "grace_period_days": "Especifiqueu el nombre de dies addicionals després del final del cicle per als assignats per assolir els punts requerits abans de la degradació. (opcional)."
+          "grace_period_days": "Especifiqueu el nombre de dies addicionals després del final del cicle per als assignats per assolir els punts requerits abans de la degradació. (opcional).",
+          "clear_end_date": "Marqueu aquesta casella per eliminar la data de finalització d'aquesta insígnia."
         }
       },
       "add_badge_daily": {
@@ -860,7 +862,9 @@
           "custom_interval": "🔄 CICLE DE REINICI: Interval personalitzat (obligatori per a la freqüència personalitzada)",
           "custom_interval_unit": "🔄 REINICI DE CICLE: Unitat d'interval personalitzada (obligatòria per a la freqüència personalitzada)",
           "start_date": "🔄 REINICIAR CICLE: Data d'inici (opcional)",
-          "end_date": "🔄 REINICIAR CICLE: Data de finalització (opcional)"
+          "end_date": "🔄 REINICIAR CICLE: Data de finalització (opcional)",
+          "clear_start_date": "🗑️ Esborra la data d'inici",
+          "clear_end_date": "🗑️ Esborra la data de finalització"
         },
         "data_description": {
           "badge_name": "Introduïu un nom únic per a la insígnia. Aquest nom es mostrarà al sistema.",
@@ -880,7 +884,9 @@
           "custom_interval": "Especifiqueu el NOMBRE de dies, setmanes, mesos, etc. per a la Freqüència personalitzada (per exemple, 3 si definiu 3 setmanes).",
           "custom_interval_unit": "Seleccioneu la unitat per a l'interval personalitzat (per exemple, dies, setmanes).",
           "start_date": "Estableix la data d'inici del cicle de reinici (opcional).",
-          "end_date": "Estableix la data de finalització del cicle de reinici (opcional)."
+          "end_date": "Estableix la data de finalització del cicle de reinici (opcional).",
+          "clear_start_date": "Marqueu aquesta casella per eliminar la data d'inici d'aquesta insígnia.",
+          "clear_end_date": "Marqueu aquesta casella per eliminar la data de finalització d'aquesta insígnia."
         }
       },
       "add_badge_achievement": {
@@ -924,7 +930,8 @@
           "grace_period_days": "🔄 RECURRÈNCIA: Període de gràcia en dies (opcional)",
           "assigned_user_ids": "🧒 Assignat a",
           "award_items": "🎁 PREMIS: Punts seleccionats, recompenses i bonificacions (opcional)",
-          "award_points": "🎁 PREMIS: Punts atorgats (opcional)"
+          "award_points": "🎁 PREMIS: Punts atorgats (opcional)",
+          "clear_end_date": "🗑️ Esborra la data de l'ocasió"
         },
         "data_description": {
           "badge_name": "Introduïu un nom únic per a la insígnia. Aquest nom es mostrarà al sistema.",
@@ -940,7 +947,8 @@
           "grace_period_days": "Especifiqueu el nombre de dies addicionals després del final del cicle perquè els assignats compleixin els punts requerits abans de la degradació (opcional).",
           "assigned_user_ids": "Assigneu aquesta insígnia a persones assignades específiques per al seguiment.",
           "award_items": "Seleccioneu un o més punts, recompenses o bonificacions. Tots els elements seleccionats s'atorgaran o s'aplicaran quan s'obtingui la insígnia. Només s'aplicaran penalitzacions si no s'obtingui la insígnia abans de la data de finalització o de restabliment. (opcional)",
-          "award_points": "Si els punts són un premi seleccionat, especifiqueu el nombre de punts que s'aplicaran quan s'obtingui aquesta insígnia (opcional)."
+          "award_points": "Si els punts són un premi seleccionat, especifiqueu el nombre de punts que s'aplicaran quan s'obtingui aquesta insígnia (opcional).",
+          "clear_end_date": "Marqueu aquesta casella per eliminar la data de l'ocasió d'aquesta insígnia."
         }
       },
       "add_reward": {
@@ -1258,7 +1266,8 @@
           "custom_interval_unit": "🔄 CICLE DE MANTENIMENT: Unitat d'interval personalitzada (obligatòria per a la freqüència personalitzada)",
           "start_date": "🔄 REINICIAR CICLE: Data d'inici (opcional)",
           "end_date": "🔄 CICLE DE MANTENIMENT: Data de finalització (opcional)",
-          "grace_period_days": "🔄 CICLE DE MANTENIMENT: Període de gràcia en dies (opcional)"
+          "grace_period_days": "🔄 CICLE DE MANTENIMENT: Període de gràcia en dies (opcional)",
+          "clear_end_date": "🗑️ Esborra la data de finalització"
         },
         "data_description": {
           "badge_name": "Introduïu un nom únic per a la insígnia. Aquest nom es mostrarà al sistema.",
@@ -1280,7 +1289,8 @@
           "custom_interval_unit": "Seleccioneu la unitat per a l'interval personalitzat (per exemple, dies, setmanes). Només s'aplica a la freqüència personalitzada.",
           "start_date": "Estableix la data d'inici (opcional).",
           "end_date": "Seleccioneu la data de finalització del cicle de manteniment (opcional).",
-          "grace_period_days": "Especifiqueu el nombre de dies addicionals després del final del cicle per als assignats per assolir els punts requerits abans de la degradació. (opcional)."
+          "grace_period_days": "Especifiqueu el nombre de dies addicionals després del final del cicle per als assignats per assolir els punts requerits abans de la degradació. (opcional).",
+          "clear_end_date": "Marqueu aquesta casella per eliminar la data de finalització d'aquesta insígnia."
         }
       },
       "edit_badge_daily": {
@@ -1332,7 +1342,9 @@
           "custom_interval": "🔄 CICLE DE REINICI: Interval personalitzat (obligatori per a la freqüència personalitzada)",
           "custom_interval_unit": "🔄 REINICI DE CICLE: Unitat d'interval personalitzada (obligatòria per a la freqüència personalitzada)",
           "start_date": "🔄 REINICIAR CICLE: Data d'inici (opcional)",
-          "end_date": "🔄 REINICIAR CICLE: Data de finalització (opcional)"
+          "end_date": "🔄 REINICIAR CICLE: Data de finalització (opcional)",
+          "clear_start_date": "🗑️ Esborra la data d'inici",
+          "clear_end_date": "🗑️ Esborra la data de finalització"
         },
         "data_description": {
           "badge_name": "Introduïu un nom únic per a la insígnia. Aquest nom es mostrarà al sistema.",
@@ -1352,7 +1364,9 @@
           "custom_interval": "Especifiqueu el NOMBRE de dies, setmanes, mesos, etc. per a la Freqüència personalitzada (per exemple, 3 si definiu 3 setmanes).",
           "custom_interval_unit": "Seleccioneu la unitat per a l'interval personalitzat (per exemple, dies, setmanes).",
           "start_date": "Estableix la data d'inici del cicle de reinici (opcional).",
-          "end_date": "Estableix la data de finalització del cicle de reinici (opcional)."
+          "end_date": "Estableix la data de finalització del cicle de reinici (opcional).",
+          "clear_start_date": "Marqueu aquesta casella per eliminar la data d'inici d'aquesta insígnia.",
+          "clear_end_date": "Marqueu aquesta casella per eliminar la data de finalització d'aquesta insígnia."
         }
       },
       "edit_badge_achievement": {
@@ -1396,7 +1410,8 @@
           "grace_period_days": "🔄 RECURRÈNCIA: Període de gràcia en dies (opcional)",
           "assigned_user_ids": "🧒 Assignat a",
           "award_items": "🎁 PREMIS: Punts seleccionats, recompenses i bonificacions (opcional)",
-          "award_points": "🎁 PREMIS: Punts atorgats (opcional)"
+          "award_points": "🎁 PREMIS: Punts atorgats (opcional)",
+          "clear_end_date": "🗑️ Esborra la data de l'ocasió"
         },
         "data_description": {
           "badge_name": "Introduïu un nom únic per a la insígnia. Aquest nom es mostrarà al sistema.",
@@ -1412,7 +1427,8 @@
           "grace_period_days": "Especifiqueu el nombre de dies addicionals després del final del cicle perquè els assignats compleixin els punts requerits abans de la degradació (opcional).",
           "assigned_user_ids": "Assigneu aquesta insígnia a persones assignades específiques per al seguiment.",
           "award_items": "Seleccioneu un o més punts, recompenses o bonificacions. Tots els elements seleccionats s'atorgaran o s'aplicaran quan s'obtingui la insígnia. Només s'aplicaran penalitzacions si no s'obtingui la insígnia abans de la data de finalització o de restabliment. (opcional)",
-          "award_points": "Si els punts són un premi seleccionat, especifiqueu el nombre de punts que s'aplicaran quan s'obtingui aquesta insígnia (opcional)."
+          "award_points": "Si els punts són un premi seleccionat, especifiqueu el nombre de punts que s'aplicaran quan s'obtingui aquesta insígnia (opcional).",
+          "clear_end_date": "Marqueu aquesta casella per eliminar la data de l'ocasió d'aquesta insígnia."
         }
       },
       "edit_reward": {

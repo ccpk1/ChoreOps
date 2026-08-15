@@ -786,7 +786,8 @@
           "custom_interval_unit": "🔄 UNDERHÅLLSCYKEL: Anpassad intervallenhet (Krävs för anpassad frekvens)",
           "start_date": "🔄 ÅTERSTÄLLNINGSCYKEL: Startdatum (valfritt)",
           "end_date": "🔄 UNDERHÅLLSCYKEL: Slutdatum (valfritt)",
-          "grace_period_days": "🔄 UNDERHÅLLSCYKEL: Respitperiod i dagar (valfritt)"
+          "grace_period_days": "🔄 UNDERHÅLLSCYKEL: Respitperiod i dagar (valfritt)",
+          "clear_end_date": "🗑️ Rensa slutdatum"
         },
         "data_description": {
           "badge_name": "Ange ett unikt namn för märket. Namnet kommer att visas i systemet.",
@@ -808,7 +809,8 @@
           "custom_interval_unit": "Välj enhet för det anpassade intervallet (t.ex. dagar, veckor). Gäller endast för anpassad frekvens.",
           "start_date": "Ange startdatum (valfritt).",
           "end_date": "Välj datum för slutet av underhållscykeln. (valfritt).",
-          "grace_period_days": "Ange antalet extra dagar efter cykelns slut som tilldelade ska uppfylla de poäng som krävs före degradering (valfritt)."
+          "grace_period_days": "Ange antalet extra dagar efter cykelns slut som tilldelade ska uppfylla de poäng som krävs före degradering (valfritt).",
+          "clear_end_date": "Markera den här rutan för att ta bort slutdatumet från märket."
         }
       },
       "add_badge_daily": {
@@ -860,7 +862,9 @@
           "custom_interval": "🔄 ÅTERSTÄLLNINGSCYKEL: Anpassat intervall (Krävs för anpassad frekvens)",
           "custom_interval_unit": "🔄 ÅTERSTÄLLNINGSCYKEL: Anpassad intervallenhet (Krävs för anpassad frekvens)",
           "start_date": "🔄 ÅTERSTÄLLNINGSCYKEL: Startdatum (valfritt)",
-          "end_date": "🔄 ÅTERSTÄLL CYKEL: Slutdatum (valfritt)"
+          "end_date": "🔄 ÅTERSTÄLL CYKEL: Slutdatum (valfritt)",
+          "clear_start_date": "🗑️ Rensa startdatum",
+          "clear_end_date": "🗑️ Rensa slutdatum"
         },
         "data_description": {
           "badge_name": "Ange ett unikt namn för märket. Namnet kommer att visas i systemet.",
@@ -880,7 +884,9 @@
           "custom_interval": "Ange ANTAL dagar, veckor, månader etc. för Anpassad frekvens (t.ex. 3 om du anger 3 veckor).",
           "custom_interval_unit": "Välj enhet för det anpassade intervallet (t.ex. dagar, veckor).",
           "start_date": "Ställ in startdatum för återställningscykeln (valfritt).",
-          "end_date": "Ange slutdatum för återställningscykeln (valfritt)."
+          "end_date": "Ange slutdatum för återställningscykeln (valfritt).",
+          "clear_start_date": "Markera den här rutan för att ta bort startdatumet från märket.",
+          "clear_end_date": "Markera den här rutan för att ta bort slutdatumet från märket."
         }
       },
       "add_badge_achievement": {
@@ -924,7 +930,8 @@
           "grace_period_days": "🔄 ÅTERKOMMANDE: Respitperiod i dagar (valfritt)",
           "assigned_user_ids": "🧒 Tilldelad till",
           "award_items": "🎁 UTMÄRKELSER: Välj poäng, belöningar, bonusar (valfritt)",
-          "award_points": "🎁 UTMÄRKELSER: Poäng tilldelade (valfritt)"
+          "award_points": "🎁 UTMÄRKELSER: Poäng tilldelade (valfritt)",
+          "clear_end_date": "🗑️ Rensa tillfällesdatum"
         },
         "data_description": {
           "badge_name": "Ange ett unikt namn för märket. Namnet kommer att visas i systemet.",
@@ -940,7 +947,8 @@
           "grace_period_days": "Ange antalet extra dagar efter cykelns slut för att tilldelade ska uppnå obligatoriska poäng före degradering (valfritt).",
           "assigned_user_ids": "Tilldela detta märke till specifika tilldelade personer för spårning.",
           "award_items": "Välj en eller flera av poäng, belöningar eller bonusar. Alla valda föremål beviljas eller tillämpas när märket intjänas. Straffar tillämpas endast om märket inte intjänas senast slutdatumet eller återställningsdatumet. (valfritt)",
-          "award_points": "Om poäng är en vald utmärkelse, ange antalet poäng som ska tillämpas när denna utmärkelse intjänas. (valfritt)."
+          "award_points": "Om poäng är en vald utmärkelse, ange antalet poäng som ska tillämpas när denna utmärkelse intjänas. (valfritt).",
+          "clear_end_date": "Markera den här rutan för att ta bort tillfällets datum från märket."
         }
       },
       "add_reward": {
@@ -1258,7 +1266,8 @@
           "custom_interval_unit": "🔄 UNDERHÅLLSCYKEL: Anpassad intervallenhet (Krävs för anpassad frekvens)",
           "start_date": "🔄 ÅTERSTÄLLNINGSCYKEL: Startdatum (valfritt)",
           "end_date": "🔄 UNDERHÅLLSCYKEL: Slutdatum (valfritt)",
-          "grace_period_days": "🔄 UNDERHÅLLSCYKEL: Respitperiod i dagar (valfritt)"
+          "grace_period_days": "🔄 UNDERHÅLLSCYKEL: Respitperiod i dagar (valfritt)",
+          "clear_end_date": "🗑️ Rensa slutdatum"
         },
         "data_description": {
           "badge_name": "Ange ett unikt namn för märket. Namnet kommer att visas i systemet.",
@@ -1280,7 +1289,8 @@
           "custom_interval_unit": "Välj enhet för det anpassade intervallet (t.ex. dagar, veckor). Gäller endast för anpassad frekvens.",
           "start_date": "Ange startdatum (valfritt).",
           "end_date": "Välj datum för slutet av underhållscykeln. (valfritt).",
-          "grace_period_days": "Ange antalet extra dagar efter cykelns slut som tilldelade ska uppfylla de poäng som krävs före degradering (valfritt)."
+          "grace_period_days": "Ange antalet extra dagar efter cykelns slut som tilldelade ska uppfylla de poäng som krävs före degradering (valfritt).",
+          "clear_end_date": "Markera den här rutan för att ta bort slutdatumet från märket."
         }
       },
       "edit_badge_daily": {
@@ -1332,7 +1342,9 @@
           "custom_interval": "🔄 ÅTERSTÄLLNINGSCYKEL: Anpassat intervall (Krävs för anpassad frekvens)",
           "custom_interval_unit": "🔄 ÅTERSTÄLLNINGSCYKEL: Anpassad intervallenhet (Krävs för anpassad frekvens)",
           "start_date": "🔄 ÅTERSTÄLLNINGSCYKEL: Startdatum (valfritt)",
-          "end_date": "🔄 ÅTERSTÄLL CYKEL: Slutdatum (valfritt)"
+          "end_date": "🔄 ÅTERSTÄLL CYKEL: Slutdatum (valfritt)",
+          "clear_start_date": "🗑️ Rensa startdatum",
+          "clear_end_date": "🗑️ Rensa slutdatum"
         },
         "data_description": {
           "badge_name": "Ange ett unikt namn för märket. Namnet kommer att visas i systemet.",
@@ -1352,7 +1364,9 @@
           "custom_interval": "Ange ANTAL dagar, veckor, månader etc. för Anpassad frekvens (t.ex. 3 om du anger 3 veckor).",
           "custom_interval_unit": "Välj enhet för det anpassade intervallet (t.ex. dagar, veckor).",
           "start_date": "Ställ in startdatum för återställningscykeln (valfritt).",
-          "end_date": "Ange slutdatum för återställningscykeln (valfritt)."
+          "end_date": "Ange slutdatum för återställningscykeln (valfritt).",
+          "clear_start_date": "Markera den här rutan för att ta bort startdatumet från märket.",
+          "clear_end_date": "Markera den här rutan för att ta bort slutdatumet från märket."
         }
       },
       "edit_badge_achievement": {
@@ -1396,7 +1410,8 @@
           "grace_period_days": "🔄 ÅTERKOMMANDE: Respitperiod i dagar (valfritt)",
           "assigned_user_ids": "🧒 Tilldelad till",
           "award_items": "🎁 UTMÄRKELSER: Välj poäng, belöningar, bonusar (valfritt)",
-          "award_points": "🎁 UTMÄRKELSER: Poäng tilldelade (valfritt)"
+          "award_points": "🎁 UTMÄRKELSER: Poäng tilldelade (valfritt)",
+          "clear_end_date": "🗑️ Rensa tillfällesdatum"
         },
         "data_description": {
           "badge_name": "Ange ett unikt namn för märket. Namnet kommer att visas i systemet.",
@@ -1412,7 +1427,8 @@
           "grace_period_days": "Ange antalet extra dagar efter cykelns slut för att tilldelade ska uppnå obligatoriska poäng före degradering (valfritt).",
           "assigned_user_ids": "Tilldela detta märke till specifika tilldelade personer för spårning.",
           "award_items": "Välj en eller flera av poäng, belöningar eller bonusar. Alla valda föremål beviljas eller tillämpas när märket intjänas. Straffar tillämpas endast om märket inte intjänas senast slutdatumet eller återställningsdatumet. (valfritt)",
-          "award_points": "Om poäng är en vald utmärkelse, ange antalet poäng som ska tillämpas när denna utmärkelse intjänas. (valfritt)."
+          "award_points": "Om poäng är en vald utmärkelse, ange antalet poäng som ska tillämpas när denna utmärkelse intjänas. (valfritt).",
+          "clear_end_date": "Markera den här rutan för att ta bort tillfällets datum från märket."
         }
       },
       "edit_reward": {

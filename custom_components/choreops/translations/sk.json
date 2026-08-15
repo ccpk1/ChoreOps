@@ -786,7 +786,8 @@
           "custom_interval_unit": "🔄 CYKLUS ÚDRŽBY: Vlastná jednotka intervalu (vyžaduje sa pre vlastnú frekvenciu)",
           "start_date": "🔄 CYKLUS RESETU: Dátum začiatku (voliteľné)",
           "end_date": "🔄 CYKLUS ÚDRŽBY: Dátum ukončenia (voliteľné)",
-          "grace_period_days": "🔄 CYKLUS ÚDRŽBY: Tolerančná lehota v dňoch (voliteľné)"
+          "grace_period_days": "🔄 CYKLUS ÚDRŽBY: Tolerančná lehota v dňoch (voliteľné)",
+          "clear_end_date": "🗑️ Jasný dátum ukončenia"
         },
         "data_description": {
           "badge_name": "Zadajte jedinečný názov pre odznak. Tento názov sa zobrazí v systéme.",
@@ -808,7 +809,8 @@
           "custom_interval_unit": "Vyberte jednotku pre vlastný interval (napr. dni, týždne). Vzťahuje sa iba na vlastnú frekvenciu.",
           "start_date": "Nastavte dátum začiatku (voliteľné).",
           "end_date": "Vyberte dátum ukončenia cyklu údržby (voliteľné).",
-          "grace_period_days": "Zadajte počet dodatočných dní po skončení cyklu, ktoré musia priradení uchádzači splniť na dosiahnutie požadovaného počtu bodov pred znížením na nižšiu úroveň (voliteľné)."
+          "grace_period_days": "Zadajte počet dodatočných dní po skončení cyklu, ktoré musia priradení uchádzači splniť na dosiahnutie požadovaného počtu bodov pred znížením na nižšiu úroveň (voliteľné).",
+          "clear_end_date": "Začiarknite toto políčko, ak chcete odstrániť dátum ukončenia z tohto odznaku."
         }
       },
       "add_badge_daily": {
@@ -860,7 +862,9 @@
           "custom_interval": "🔄 CYKLUS RESETU: Vlastný interval (vyžaduje sa pre vlastnú frekvenciu)",
           "custom_interval_unit": "🔄 CYKLUS RESETU: Vlastná intervalová jednotka (vyžaduje sa pre vlastnú frekvenciu)",
           "start_date": "🔄 CYKLUS RESETU: Dátum začiatku (voliteľné)",
-          "end_date": "🔄 CYKLUS RESETU: Dátum ukončenia (voliteľné)"
+          "end_date": "🔄 CYKLUS RESETU: Dátum ukončenia (voliteľné)",
+          "clear_start_date": "🗑️ Jasný dátum začiatku",
+          "clear_end_date": "🗑️ Jasný dátum ukončenia"
         },
         "data_description": {
           "badge_name": "Zadajte jedinečný názov pre odznak. Tento názov sa zobrazí v systéme.",
@@ -880,7 +884,9 @@
           "custom_interval": "Pre vlastnú frekvenciu zadajte POČET dní, týždňov, mesiacov atď. (napr. 3, ak nastavíte 3 týždne).",
           "custom_interval_unit": "Vyberte jednotku pre vlastný interval (napr. dni, týždne).",
           "start_date": "Nastavte dátum začiatku cyklu resetovania (voliteľné).",
-          "end_date": "Nastavte dátum ukončenia cyklu resetovania (voliteľné)."
+          "end_date": "Nastavte dátum ukončenia cyklu resetovania (voliteľné).",
+          "clear_start_date": "Začiarknite toto políčko, ak chcete odstrániť dátum začiatku z tohto odznaku.",
+          "clear_end_date": "Začiarknite toto políčko, ak chcete odstrániť dátum ukončenia z tohto odznaku."
         }
       },
       "add_badge_achievement": {
@@ -924,7 +930,8 @@
           "grace_period_days": "🔄 OPAKOVANIE: Tolerančná lehota v dňoch (voliteľné)",
           "assigned_user_ids": "🧒 Pridelené",
           "award_items": "🎁 ODMENY: Vyberte si body, odmeny, bonusy (voliteľné)",
-          "award_points": "🎁 OCENENIA: Udelené body (voliteľné)"
+          "award_points": "🎁 OCENENIA: Udelené body (voliteľné)",
+          "clear_end_date": "🗑️ Jasný dátum príležitosti"
         },
         "data_description": {
           "badge_name": "Zadajte jedinečný názov pre odznak. Tento názov sa zobrazí v systéme.",
@@ -940,7 +947,8 @@
           "grace_period_days": "Zadajte počet dodatočných dní po skončení cyklu, ktoré musia priradení pracovníci splniť na splnenie požadovaných bodov pred znížením platnosti (voliteľné).",
           "assigned_user_ids": "Priraďte tento odznak konkrétnym prideleným osobám na sledovanie.",
           "award_items": "Vyberte si jednu alebo viacero možností z bodov, odmien alebo bonusov. Všetky vybrané položky budú udelené alebo uplatnené po získaní odznaku. Sankcie budú uplatnené iba v prípade, že odznak nebude získaný do dátumu ukončenia alebo dátumu resetovania. (voliteľné)",
-          "award_points": "Ak sú body vybraným ocenením, uveďte počet bodov, ktoré sa majú uplatniť pri získaní tohto odznaku. (voliteľné)."
+          "award_points": "Ak sú body vybraným ocenením, uveďte počet bodov, ktoré sa majú uplatniť pri získaní tohto odznaku. (voliteľné).",
+          "clear_end_date": "Začiarknite toto políčko, ak chcete z tohto odznaku odstrániť dátum udalosti."
         }
       },
       "add_reward": {
@@ -1258,7 +1266,8 @@
           "custom_interval_unit": "🔄 CYKLUS ÚDRŽBY: Vlastná jednotka intervalu (vyžaduje sa pre vlastnú frekvenciu)",
           "start_date": "🔄 CYKLUS RESETU: Dátum začiatku (voliteľné)",
           "end_date": "🔄 CYKLUS ÚDRŽBY: Dátum ukončenia (voliteľné)",
-          "grace_period_days": "🔄 CYKLUS ÚDRŽBY: Tolerančná lehota v dňoch (voliteľné)"
+          "grace_period_days": "🔄 CYKLUS ÚDRŽBY: Tolerančná lehota v dňoch (voliteľné)",
+          "clear_end_date": "🗑️ Jasný dátum ukončenia"
         },
         "data_description": {
           "badge_name": "Zadajte jedinečný názov pre odznak. Tento názov sa zobrazí v systéme.",
@@ -1280,7 +1289,8 @@
           "custom_interval_unit": "Vyberte jednotku pre vlastný interval (napr. dni, týždne). Vzťahuje sa iba na vlastnú frekvenciu.",
           "start_date": "Nastavte dátum začiatku (voliteľné).",
           "end_date": "Vyberte dátum ukončenia cyklu údržby (voliteľné).",
-          "grace_period_days": "Zadajte počet dodatočných dní po skončení cyklu, ktoré musia priradení uchádzači splniť na dosiahnutie požadovaného počtu bodov pred znížením na nižšiu úroveň (voliteľné)."
+          "grace_period_days": "Zadajte počet dodatočných dní po skončení cyklu, ktoré musia priradení uchádzači splniť na dosiahnutie požadovaného počtu bodov pred znížením na nižšiu úroveň (voliteľné).",
+          "clear_end_date": "Začiarknite toto políčko, ak chcete odstrániť dátum ukončenia z tohto odznaku."
         }
       },
       "edit_badge_daily": {
@@ -1332,7 +1342,9 @@
           "custom_interval": "🔄 CYKLUS RESETU: Vlastný interval (vyžaduje sa pre vlastnú frekvenciu)",
           "custom_interval_unit": "🔄 CYKLUS RESETU: Vlastná intervalová jednotka (vyžaduje sa pre vlastnú frekvenciu)",
           "start_date": "🔄 CYKLUS RESETU: Dátum začiatku (voliteľné)",
-          "end_date": "🔄 CYKLUS RESETU: Dátum ukončenia (voliteľné)"
+          "end_date": "🔄 CYKLUS RESETU: Dátum ukončenia (voliteľné)",
+          "clear_start_date": "🗑️ Jasný dátum začiatku",
+          "clear_end_date": "🗑️ Jasný dátum ukončenia"
         },
         "data_description": {
           "badge_name": "Zadajte jedinečný názov pre odznak. Tento názov sa zobrazí v systéme.",
@@ -1352,7 +1364,9 @@
           "custom_interval": "Pre vlastnú frekvenciu zadajte POČET dní, týždňov, mesiacov atď. (napr. 3, ak nastavíte 3 týždne).",
           "custom_interval_unit": "Vyberte jednotku pre vlastný interval (napr. dni, týždne).",
           "start_date": "Nastavte dátum začiatku cyklu resetovania (voliteľné).",
-          "end_date": "Nastavte dátum ukončenia cyklu resetovania (voliteľné)."
+          "end_date": "Nastavte dátum ukončenia cyklu resetovania (voliteľné).",
+          "clear_start_date": "Začiarknite toto políčko, ak chcete odstrániť dátum začiatku z tohto odznaku.",
+          "clear_end_date": "Začiarknite toto políčko, ak chcete odstrániť dátum ukončenia z tohto odznaku."
         }
       },
       "edit_badge_achievement": {
@@ -1396,7 +1410,8 @@
           "grace_period_days": "🔄 OPAKOVANIE: Tolerančná lehota v dňoch (voliteľné)",
           "assigned_user_ids": "🧒 Pridelené",
           "award_items": "🎁 ODMENY: Vyberte si body, odmeny, bonusy (voliteľné)",
-          "award_points": "🎁 OCENENIA: Udelené body (voliteľné)"
+          "award_points": "🎁 OCENENIA: Udelené body (voliteľné)",
+          "clear_end_date": "🗑️ Jasný dátum príležitosti"
         },
         "data_description": {
           "badge_name": "Zadajte jedinečný názov pre odznak. Tento názov sa zobrazí v systéme.",
@@ -1412,7 +1427,8 @@
           "grace_period_days": "Zadajte počet dodatočných dní po skončení cyklu, ktoré musia priradení pracovníci splniť na splnenie požadovaných bodov pred znížením platnosti (voliteľné).",
           "assigned_user_ids": "Priraďte tento odznak konkrétnym prideleným osobám na sledovanie.",
           "award_items": "Vyberte si jednu alebo viacero možností z bodov, odmien alebo bonusov. Všetky vybrané položky budú udelené alebo uplatnené po získaní odznaku. Sankcie budú uplatnené iba v prípade, že odznak nebude získaný do dátumu ukončenia alebo dátumu resetovania. (voliteľné)",
-          "award_points": "Ak sú body vybraným ocenením, uveďte počet bodov, ktoré sa majú uplatniť pri získaní tohto odznaku. (voliteľné)."
+          "award_points": "Ak sú body vybraným ocenením, uveďte počet bodov, ktoré sa majú uplatniť pri získaní tohto odznaku. (voliteľné).",
+          "clear_end_date": "Začiarknite toto políčko, ak chcete z tohto odznaku odstrániť dátum udalosti."
         }
       },
       "edit_reward": {

@@ -786,7 +786,8 @@
           "custom_interval_unit": "🔄 ONDERHOUDSCYCLUS: Aangepast interval (vereist voor aangepaste frequentie)",
           "start_date": "🔄 RESET CYCLUS: Startdatum (optioneel)",
           "end_date": "🔄 ONDERHOUDSCYCLUS: Einddatum (optioneel)",
-          "grace_period_days": "🔄 ONDERHOUDSCYCLUS: Respijtperiode in dagen (optioneel)"
+          "grace_period_days": "🔄 ONDERHOUDSCYCLUS: Respijtperiode in dagen (optioneel)",
+          "clear_end_date": "🗑️ Einddatum wissen"
         },
         "data_description": {
           "badge_name": "Geef de badge een unieke naam. Deze naam wordt in het systeem weergegeven.",
@@ -808,7 +809,8 @@
           "custom_interval_unit": "Selecteer de eenheid voor het aangepaste interval (bijv. dagen, weken). Dit geldt alleen voor aangepaste frequentie.",
           "start_date": "Stel de startdatum in (optioneel).",
           "end_date": "Selecteer de datum voor het einde van de onderhoudscyclus. (optioneel)",
-          "grace_period_days": "Geef aan hoeveel extra dagen er na afloop van de cyclus zijn waarin de toegewezen medewerkers de vereiste punten moeten behalen voordat ze worden gedegradeerd. (optioneel)."
+          "grace_period_days": "Geef aan hoeveel extra dagen er na afloop van de cyclus zijn waarin de toegewezen medewerkers de vereiste punten moeten behalen voordat ze worden gedegradeerd. (optioneel).",
+          "clear_end_date": "Vink dit vakje aan om de einddatum van deze badge te verwijderen."
         }
       },
       "add_badge_daily": {
@@ -860,7 +862,9 @@
           "custom_interval": "🔄 RESET CYCLUS: Aangepast interval (vereist voor aangepaste frequentie)",
           "custom_interval_unit": "🔄 RESET CYCLUS: Aangepaste intervaleenheid (vereist voor aangepaste frequentie)",
           "start_date": "🔄 RESET CYCLUS: Startdatum (optioneel)",
-          "end_date": "🔄 RESET CYCLUS: Einddatum (optioneel)"
+          "end_date": "🔄 RESET CYCLUS: Einddatum (optioneel)",
+          "clear_start_date": "🗑️ Startdatum wissen",
+          "clear_end_date": "🗑️ Einddatum wissen"
         },
         "data_description": {
           "badge_name": "Geef de badge een unieke naam. Deze naam wordt in het systeem weergegeven.",
@@ -880,7 +884,9 @@
           "custom_interval": "Geef het AANTAL dagen, weken, maanden, enz. op voor de aangepaste frequentie (bijvoorbeeld 3 als u 3 weken instelt).",
           "custom_interval_unit": "Selecteer de eenheid voor het aangepaste interval (bijv. dagen, weken).",
           "start_date": "Stel de startdatum voor de resetcyclus in (optioneel).",
-          "end_date": "Stel de einddatum voor de resetcyclus in (optioneel)."
+          "end_date": "Stel de einddatum voor de resetcyclus in (optioneel).",
+          "clear_start_date": "Vink dit vakje aan om de startdatum van deze badge te verwijderen.",
+          "clear_end_date": "Vink dit vakje aan om de einddatum van deze badge te verwijderen."
         }
       },
       "add_badge_achievement": {
@@ -924,7 +930,8 @@
           "grace_period_days": "🔄 TERUGKERENDE PIJN: Respijtperiode in dagen (optioneel)",
           "assigned_user_ids": "🧒 Toegewezen aan",
           "award_items": "🎁 BELONINGEN: Selecteer punten, beloningen, bonussen (optioneel)",
-          "award_points": "🎁 PRIJZEN: Toegekende punten (optioneel)"
+          "award_points": "🎁 PRIJZEN: Toegekende punten (optioneel)",
+          "clear_end_date": "🗑️ Duidelijke gelegenheidsdatum"
         },
         "data_description": {
           "badge_name": "Geef de badge een unieke naam. Deze naam wordt in het systeem weergegeven.",
@@ -940,7 +947,8 @@
           "grace_period_days": "Geef aan hoeveel extra dagen na het einde van de cyclus gedetacheerden krijgen om de vereiste punten te behalen voordat ze worden gedegradeerd (optioneel).",
           "assigned_user_ids": "Wijs deze badge toe aan specifieke personen voor registratiedoeleinden.",
           "award_items": "Selecteer een of meer opties uit punten, beloningen of bonussen. Alle geselecteerde items worden toegekend of toegepast wanneer de badge is verdiend. Strafpunten worden alleen toegepast als de badge niet is verdiend vóór de einddatum of de resetdatum. (optioneel)",
-          "award_points": "Als punten een gekozen beloningsoptie zijn, geef dan aan hoeveel punten van toepassing zijn wanneer deze badge wordt behaald. (optioneel)."
+          "award_points": "Als punten een gekozen beloningsoptie zijn, geef dan aan hoeveel punten van toepassing zijn wanneer deze badge wordt behaald. (optioneel).",
+          "clear_end_date": "Vink dit vakje aan om de datum van de gelegenheid van deze badge te verwijderen."
         }
       },
       "add_reward": {
@@ -1258,7 +1266,8 @@
           "custom_interval_unit": "🔄 ONDERHOUDSCYCLUS: Aangepast interval (vereist voor aangepaste frequentie)",
           "start_date": "🔄 RESET CYCLUS: Startdatum (optioneel)",
           "end_date": "🔄 ONDERHOUDSCYCLUS: Einddatum (optioneel)",
-          "grace_period_days": "🔄 ONDERHOUDSCYCLUS: Respijtperiode in dagen (optioneel)"
+          "grace_period_days": "🔄 ONDERHOUDSCYCLUS: Respijtperiode in dagen (optioneel)",
+          "clear_end_date": "🗑️ Einddatum wissen"
         },
         "data_description": {
           "badge_name": "Geef de badge een unieke naam. Deze naam wordt in het systeem weergegeven.",
@@ -1280,7 +1289,8 @@
           "custom_interval_unit": "Selecteer de eenheid voor het aangepaste interval (bijv. dagen, weken). Dit geldt alleen voor aangepaste frequentie.",
           "start_date": "Stel de startdatum in (optioneel).",
           "end_date": "Selecteer de datum voor het einde van de onderhoudscyclus. (optioneel)",
-          "grace_period_days": "Geef aan hoeveel extra dagen er na afloop van de cyclus zijn waarin de toegewezen medewerkers de vereiste punten moeten behalen voordat ze worden gedegradeerd. (optioneel)."
+          "grace_period_days": "Geef aan hoeveel extra dagen er na afloop van de cyclus zijn waarin de toegewezen medewerkers de vereiste punten moeten behalen voordat ze worden gedegradeerd. (optioneel).",
+          "clear_end_date": "Vink dit vakje aan om de einddatum van deze badge te verwijderen."
         }
       },
       "edit_badge_daily": {
@@ -1332,7 +1342,9 @@
           "custom_interval": "🔄 RESET CYCLUS: Aangepast interval (vereist voor aangepaste frequentie)",
           "custom_interval_unit": "🔄 RESET CYCLUS: Aangepaste intervaleenheid (vereist voor aangepaste frequentie)",
           "start_date": "🔄 RESET CYCLUS: Startdatum (optioneel)",
-          "end_date": "🔄 RESET CYCLUS: Einddatum (optioneel)"
+          "end_date": "🔄 RESET CYCLUS: Einddatum (optioneel)",
+          "clear_start_date": "🗑️ Startdatum wissen",
+          "clear_end_date": "🗑️ Einddatum wissen"
         },
         "data_description": {
           "badge_name": "Geef de badge een unieke naam. Deze naam wordt in het systeem weergegeven.",
@@ -1352,7 +1364,9 @@
           "custom_interval": "Geef het AANTAL dagen, weken, maanden, enz. op voor de aangepaste frequentie (bijvoorbeeld 3 als u 3 weken instelt).",
           "custom_interval_unit": "Selecteer de eenheid voor het aangepaste interval (bijv. dagen, weken).",
           "start_date": "Stel de startdatum voor de resetcyclus in (optioneel).",
-          "end_date": "Stel de einddatum voor de resetcyclus in (optioneel)."
+          "end_date": "Stel de einddatum voor de resetcyclus in (optioneel).",
+          "clear_start_date": "Vink dit vakje aan om de startdatum van deze badge te verwijderen.",
+          "clear_end_date": "Vink dit vakje aan om de einddatum van deze badge te verwijderen."
         }
       },
       "edit_badge_achievement": {
@@ -1396,7 +1410,8 @@
           "grace_period_days": "🔄 TERUGKERENDE PIJN: Respijtperiode in dagen (optioneel)",
           "assigned_user_ids": "🧒 Toegewezen aan",
           "award_items": "🎁 BELONINGEN: Selecteer punten, beloningen, bonussen (optioneel)",
-          "award_points": "🎁 PRIJZEN: Toegekende punten (optioneel)"
+          "award_points": "🎁 PRIJZEN: Toegekende punten (optioneel)",
+          "clear_end_date": "🗑️ Duidelijke gelegenheidsdatum"
         },
         "data_description": {
           "badge_name": "Geef de badge een unieke naam. Deze naam wordt in het systeem weergegeven.",
@@ -1412,7 +1427,8 @@
           "grace_period_days": "Geef aan hoeveel extra dagen na het einde van de cyclus gedetacheerden krijgen om de vereiste punten te behalen voordat ze worden gedegradeerd (optioneel).",
           "assigned_user_ids": "Wijs deze badge toe aan specifieke personen voor registratiedoeleinden.",
           "award_items": "Selecteer een of meer opties uit punten, beloningen of bonussen. Alle geselecteerde items worden toegekend of toegepast wanneer de badge is verdiend. Strafpunten worden alleen toegepast als de badge niet is verdiend vóór de einddatum of de resetdatum. (optioneel)",
-          "award_points": "Als punten een gekozen beloningsoptie zijn, geef dan aan hoeveel punten van toepassing zijn wanneer deze badge wordt behaald. (optioneel)."
+          "award_points": "Als punten een gekozen beloningsoptie zijn, geef dan aan hoeveel punten van toepassing zijn wanneer deze badge wordt behaald. (optioneel).",
+          "clear_end_date": "Vink dit vakje aan om de datum van de gelegenheid van deze badge te verwijderen."
         }
       },
       "edit_reward": {

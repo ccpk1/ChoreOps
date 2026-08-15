@@ -786,7 +786,8 @@
           "custom_interval_unit": "🔄 VEDLIKEHOLDSSYKLUS: Tilpasset intervallenhet (påkrevd for tilpasset frekvens)",
           "start_date": "🔄 TILBAKESTILLINGSSYKLUS: Startdato (valgfritt)",
           "end_date": "🔄 VEDLIKEHOLDSSYKLUS: Sluttdato (valgfritt)",
-          "grace_period_days": "🔄 VEDLIKEHOLDSSYKLUS: Frist i dager (valgfritt)"
+          "grace_period_days": "🔄 VEDLIKEHOLDSSYKLUS: Frist i dager (valgfritt)",
+          "clear_end_date": "🗑️ Fjern sluttdato"
         },
         "data_description": {
           "badge_name": "Skriv inn et unikt navn for merket. Dette navnet vil vises i systemet.",
@@ -808,7 +809,8 @@
           "custom_interval_unit": "Velg enheten for det egendefinerte intervallet (f.eks. dager, uker). Gjelder kun for egendefinert frekvens.",
           "start_date": "Angi startdatoen (valgfritt).",
           "end_date": "Velg datoen for slutten av vedlikeholdssyklusen. (valgfritt).",
-          "grace_period_days": "Angi antall ekstra dager etter at syklusen er over for tilordnede for å oppnå nødvendige poeng før degradering (valgfritt)."
+          "grace_period_days": "Angi antall ekstra dager etter at syklusen er over for tilordnede for å oppnå nødvendige poeng før degradering (valgfritt).",
+          "clear_end_date": "Kryss av i denne boksen for å fjerne sluttdatoen fra dette merket."
         }
       },
       "add_badge_daily": {
@@ -860,7 +862,9 @@
           "custom_interval": "🔄 TILBAKESTILLINGSSYKLUS: Tilpasset intervall (påkrevd for tilpasset frekvens)",
           "custom_interval_unit": "🔄 TILBAKESTILLINGSSYKLUS: Tilpasset intervallenhet (påkrevd for tilpasset frekvens)",
           "start_date": "🔄 TILBAKESTILLINGSSYKLUS: Startdato (valgfritt)",
-          "end_date": "🔄 TILBAKESTILLINGSSYKLUS: Sluttdato (valgfritt)"
+          "end_date": "🔄 TILBAKESTILLINGSSYKLUS: Sluttdato (valgfritt)",
+          "clear_start_date": "🗑️ Fjern startdato",
+          "clear_end_date": "🗑️ Fjern sluttdato"
         },
         "data_description": {
           "badge_name": "Skriv inn et unikt navn for merket. Dette navnet vil vises i systemet.",
@@ -880,7 +884,9 @@
           "custom_interval": "Angi ANTALL dager, uker, måneder osv. for Tilpasset frekvens (f.eks. 3 hvis du angir 3 uker).",
           "custom_interval_unit": "Velg enheten for det egendefinerte intervallet (f.eks. dager, uker).",
           "start_date": "Angi startdatoen for tilbakestillingssyklusen (valgfritt).",
-          "end_date": "Angi sluttdatoen for tilbakestillingssyklusen (valgfritt)."
+          "end_date": "Angi sluttdatoen for tilbakestillingssyklusen (valgfritt).",
+          "clear_start_date": "Kryss av i denne boksen for å fjerne startdatoen fra dette merket.",
+          "clear_end_date": "Kryss av i denne boksen for å fjerne sluttdatoen fra dette merket."
         }
       },
       "add_badge_achievement": {
@@ -924,7 +930,8 @@
           "grace_period_days": "🔄 GJENTATENDE: Frist i dager (valgfritt)",
           "assigned_user_ids": "🧒 Tildelt til",
           "award_items": "🎁 PRISER: Velg poeng, belønninger, bonuser (valgfritt)",
-          "award_points": "🎁 PRISER: Poeng tildelt (valgfritt)"
+          "award_points": "🎁 PRISER: Poeng tildelt (valgfritt)",
+          "clear_end_date": "🗑️ Fjern dato for anledning"
         },
         "data_description": {
           "badge_name": "Skriv inn et unikt navn for merket. Dette navnet vil vises i systemet.",
@@ -940,7 +947,8 @@
           "grace_period_days": "Angi antall ekstra dager etter slutten av syklusen som tildelere skal ha for å oppnå nødvendige poeng før degradering (valgfritt).",
           "assigned_user_ids": "Tildel dette merket til bestemte tildelere for sporing.",
           "award_items": "Velg ett eller flere av poengene, belønningene eller bonusene. Alle valgte elementer vil bli gitt eller brukt når merket er opptjent. Straffer vil kun bli brukt hvis merket ikke er opptjent innen sluttdatoen eller tilbakestillingsdatoen. (valgfritt)",
-          "award_points": "Hvis poeng er en valgt utmerkelse, angi antall poeng som skal brukes når dette merket er opptjent. (valgfritt)."
+          "award_points": "Hvis poeng er en valgt utmerkelse, angi antall poeng som skal brukes når dette merket er opptjent. (valgfritt).",
+          "clear_end_date": "Kryss av i denne boksen for å fjerne anledningsdatoen fra dette merket."
         }
       },
       "add_reward": {
@@ -1258,7 +1266,8 @@
           "custom_interval_unit": "🔄 VEDLIKEHOLDSSYKLUS: Tilpasset intervallenhet (påkrevd for tilpasset frekvens)",
           "start_date": "🔄 TILBAKESTILLINGSSYKLUS: Startdato (valgfritt)",
           "end_date": "🔄 VEDLIKEHOLDSSYKLUS: Sluttdato (valgfritt)",
-          "grace_period_days": "🔄 VEDLIKEHOLDSSYKLUS: Frist i dager (valgfritt)"
+          "grace_period_days": "🔄 VEDLIKEHOLDSSYKLUS: Frist i dager (valgfritt)",
+          "clear_end_date": "🗑️ Fjern sluttdato"
         },
         "data_description": {
           "badge_name": "Skriv inn et unikt navn for merket. Dette navnet vil vises i systemet.",
@@ -1280,7 +1289,8 @@
           "custom_interval_unit": "Velg enheten for det egendefinerte intervallet (f.eks. dager, uker). Gjelder kun for egendefinert frekvens.",
           "start_date": "Angi startdatoen (valgfritt).",
           "end_date": "Velg datoen for slutten av vedlikeholdssyklusen. (valgfritt).",
-          "grace_period_days": "Angi antall ekstra dager etter at syklusen er over for tilordnede for å oppnå nødvendige poeng før degradering (valgfritt)."
+          "grace_period_days": "Angi antall ekstra dager etter at syklusen er over for tilordnede for å oppnå nødvendige poeng før degradering (valgfritt).",
+          "clear_end_date": "Kryss av i denne boksen for å fjerne sluttdatoen fra dette merket."
         }
       },
       "edit_badge_daily": {
@@ -1332,7 +1342,9 @@
           "custom_interval": "🔄 TILBAKESTILLINGSSYKLUS: Tilpasset intervall (påkrevd for tilpasset frekvens)",
           "custom_interval_unit": "🔄 TILBAKESTILLINGSSYKLUS: Tilpasset intervallenhet (påkrevd for tilpasset frekvens)",
           "start_date": "🔄 TILBAKESTILLINGSSYKLUS: Startdato (valgfritt)",
-          "end_date": "🔄 TILBAKESTILLINGSSYKLUS: Sluttdato (valgfritt)"
+          "end_date": "🔄 TILBAKESTILLINGSSYKLUS: Sluttdato (valgfritt)",
+          "clear_start_date": "🗑️ Fjern startdato",
+          "clear_end_date": "🗑️ Fjern sluttdato"
         },
         "data_description": {
           "badge_name": "Skriv inn et unikt navn for merket. Dette navnet vil vises i systemet.",
@@ -1352,7 +1364,9 @@
           "custom_interval": "Angi ANTALL dager, uker, måneder osv. for Tilpasset frekvens (f.eks. 3 hvis du angir 3 uker).",
           "custom_interval_unit": "Velg enheten for det egendefinerte intervallet (f.eks. dager, uker).",
           "start_date": "Angi startdatoen for tilbakestillingssyklusen (valgfritt).",
-          "end_date": "Angi sluttdatoen for tilbakestillingssyklusen (valgfritt)."
+          "end_date": "Angi sluttdatoen for tilbakestillingssyklusen (valgfritt).",
+          "clear_start_date": "Kryss av i denne boksen for å fjerne startdatoen fra dette merket.",
+          "clear_end_date": "Kryss av i denne boksen for å fjerne sluttdatoen fra dette merket."
         }
       },
       "edit_badge_achievement": {
@@ -1396,7 +1410,8 @@
           "grace_period_days": "🔄 GJENTATENDE: Frist i dager (valgfritt)",
           "assigned_user_ids": "🧒 Tildelt til",
           "award_items": "🎁 PRISER: Velg poeng, belønninger, bonuser (valgfritt)",
-          "award_points": "🎁 PRISER: Poeng tildelt (valgfritt)"
+          "award_points": "🎁 PRISER: Poeng tildelt (valgfritt)",
+          "clear_end_date": "🗑️ Fjern dato for anledning"
         },
         "data_description": {
           "badge_name": "Skriv inn et unikt navn for merket. Dette navnet vil vises i systemet.",
@@ -1412,7 +1427,8 @@
           "grace_period_days": "Angi antall ekstra dager etter slutten av syklusen som tildelere skal ha for å oppnå nødvendige poeng før degradering (valgfritt).",
           "assigned_user_ids": "Tildel dette merket til bestemte tildelere for sporing.",
           "award_items": "Velg ett eller flere av poengene, belønningene eller bonusene. Alle valgte elementer vil bli gitt eller brukt når merket er opptjent. Straffer vil kun bli brukt hvis merket ikke er opptjent innen sluttdatoen eller tilbakestillingsdatoen. (valgfritt)",
-          "award_points": "Hvis poeng er en valgt utmerkelse, angi antall poeng som skal brukes når dette merket er opptjent. (valgfritt)."
+          "award_points": "Hvis poeng er en valgt utmerkelse, angi antall poeng som skal brukes når dette merket er opptjent. (valgfritt).",
+          "clear_end_date": "Kryss av i denne boksen for å fjerne anledningsdatoen fra dette merket."
         }
       },
       "edit_reward": {

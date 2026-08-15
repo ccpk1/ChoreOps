@@ -786,7 +786,8 @@
           "custom_interval_unit": "🔄 CYKL KONSERWACJI: Niestandardowa jednostka interwału (wymagana w przypadku niestandardowej częstotliwości)",
           "start_date": "🔄 CYKL RESETOWANIA: Data rozpoczęcia (opcjonalnie)",
           "end_date": "🔄 CYKL KONSERWACJI: Data zakończenia (opcjonalnie)",
-          "grace_period_days": "🔄 CYKL KONSERWACJI: Okres karencji w dniach (opcjonalnie)"
+          "grace_period_days": "🔄 CYKL KONSERWACJI: Okres karencji w dniach (opcjonalnie)",
+          "clear_end_date": "🗑️ Wyczyść datę zakończenia"
         },
         "data_description": {
           "badge_name": "Wprowadź unikalną nazwę odznaki. Nazwa ta będzie wyświetlana w systemie.",
@@ -808,7 +809,8 @@
           "custom_interval_unit": "Wybierz jednostkę dla niestandardowego interwału (np. dni, tygodnie). Dotyczy tylko niestandardowej częstotliwości.",
           "start_date": "Ustaw datę rozpoczęcia (opcjonalnie).",
           "end_date": "Wybierz datę zakończenia cyklu konserwacji. (opcjonalnie).",
-          "grace_period_days": "Określ liczbę dodatkowych dni po zakończeniu cyklu, w których pracownicy mają zdobyć wymaganą liczbę punktów przed degradacją. (opcjonalnie)."
+          "grace_period_days": "Określ liczbę dodatkowych dni po zakończeniu cyklu, w których pracownicy mają zdobyć wymaganą liczbę punktów przed degradacją. (opcjonalnie).",
+          "clear_end_date": "Zaznacz to pole, aby usunąć datę zakończenia z tej odznaki."
         }
       },
       "add_badge_daily": {
@@ -860,7 +862,9 @@
           "custom_interval": "🔄 CYKL RESETOWANIA: Niestandardowy interwał (wymagany w przypadku niestandardowej częstotliwości)",
           "custom_interval_unit": "🔄 CYKL RESETOWANIA: Niestandardowa jednostka interwału (wymagana w przypadku niestandardowej częstotliwości)",
           "start_date": "🔄 CYKL RESETOWANIA: Data rozpoczęcia (opcjonalnie)",
-          "end_date": "🔄 CYKL RESETOWANIA: Data zakończenia (opcjonalnie)"
+          "end_date": "🔄 CYKL RESETOWANIA: Data zakończenia (opcjonalnie)",
+          "clear_start_date": "🗑️ Wyczyść datę rozpoczęcia",
+          "clear_end_date": "🗑️ Wyczyść datę zakończenia"
         },
         "data_description": {
           "badge_name": "Wprowadź unikalną nazwę odznaki. Nazwa ta będzie wyświetlana w systemie.",
@@ -880,7 +884,9 @@
           "custom_interval": "Podaj LICZBĘ dni, tygodni, miesięcy itd. dla Częstotliwości niestandardowej (np. 3, jeśli ustawisz 3 tygodnie).",
           "custom_interval_unit": "Wybierz jednostkę dla niestandardowego interwału (np. dni, tygodnie).",
           "start_date": "Ustaw datę rozpoczęcia cyklu resetowania (opcjonalnie).",
-          "end_date": "Ustaw datę zakończenia cyklu resetowania (opcjonalnie)."
+          "end_date": "Ustaw datę zakończenia cyklu resetowania (opcjonalnie).",
+          "clear_start_date": "Zaznacz to pole, aby usunąć datę rozpoczęcia z tej odznaki.",
+          "clear_end_date": "Zaznacz to pole, aby usunąć datę zakończenia z tej odznaki."
         }
       },
       "add_badge_achievement": {
@@ -924,7 +930,8 @@
           "grace_period_days": "🔄 RECURRENCEE: Okres karencji w dniach (opcjonalnie)",
           "assigned_user_ids": "🧒 Przypisany do",
           "award_items": "🎁 NAGRODY: Wybierz punkty, nagrody, bonusy (opcjonalnie)",
-          "award_points": "🎁 NAGRODY: Przyznane punkty (opcjonalnie)"
+          "award_points": "🎁 NAGRODY: Przyznane punkty (opcjonalnie)",
+          "clear_end_date": "🗑️ Wyczyść datę okazji"
         },
         "data_description": {
           "badge_name": "Wprowadź unikalną nazwę odznaki. Nazwa ta będzie wyświetlana w systemie.",
@@ -940,7 +947,8 @@
           "grace_period_days": "Określ liczbę dodatkowych dni po zakończeniu cyklu, w których pracownicy mają czas na zebranie wymaganej liczby punktów przed degradacją (opcjonalnie).",
           "assigned_user_ids": "Przypisz tę odznakę konkretnym osobom w celu śledzenia.",
           "award_items": "Wybierz jeden lub więcej punktów, nagród lub bonusów. Wszystkie wybrane przedmioty zostaną przyznane lub zastosowane po zdobyciu odznaki. Kary zostaną naliczone tylko wtedy, gdy odznaka nie zostanie zdobyta do daty końcowej lub daty resetowania. (opcjonalnie)",
-          "award_points": "Jeśli wybraną nagrodą są punkty, podaj liczbę punktów, która ma zostać naliczona po zdobyciu tej odznaki. (opcjonalnie)."
+          "award_points": "Jeśli wybraną nagrodą są punkty, podaj liczbę punktów, która ma zostać naliczona po zdobyciu tej odznaki. (opcjonalnie).",
+          "clear_end_date": "Zaznacz to pole, aby usunąć datę wydarzenia z tej odznaki."
         }
       },
       "add_reward": {
@@ -1258,7 +1266,8 @@
           "custom_interval_unit": "🔄 CYKL KONSERWACJI: Niestandardowa jednostka interwału (wymagana w przypadku niestandardowej częstotliwości)",
           "start_date": "🔄 CYKL RESETOWANIA: Data rozpoczęcia (opcjonalnie)",
           "end_date": "🔄 CYKL KONSERWACJI: Data zakończenia (opcjonalnie)",
-          "grace_period_days": "🔄 CYKL KONSERWACJI: Okres karencji w dniach (opcjonalnie)"
+          "grace_period_days": "🔄 CYKL KONSERWACJI: Okres karencji w dniach (opcjonalnie)",
+          "clear_end_date": "🗑️ Wyczyść datę zakończenia"
         },
         "data_description": {
           "badge_name": "Wprowadź unikalną nazwę odznaki. Nazwa ta będzie wyświetlana w systemie.",
@@ -1280,7 +1289,8 @@
           "custom_interval_unit": "Wybierz jednostkę dla niestandardowego interwału (np. dni, tygodnie). Dotyczy tylko niestandardowej częstotliwości.",
           "start_date": "Ustaw datę rozpoczęcia (opcjonalnie).",
           "end_date": "Wybierz datę zakończenia cyklu konserwacji. (opcjonalnie).",
-          "grace_period_days": "Określ liczbę dodatkowych dni po zakończeniu cyklu, w których pracownicy mają zdobyć wymaganą liczbę punktów przed degradacją. (opcjonalnie)."
+          "grace_period_days": "Określ liczbę dodatkowych dni po zakończeniu cyklu, w których pracownicy mają zdobyć wymaganą liczbę punktów przed degradacją. (opcjonalnie).",
+          "clear_end_date": "Zaznacz to pole, aby usunąć datę zakończenia z tej odznaki."
         }
       },
       "edit_badge_daily": {
@@ -1332,7 +1342,9 @@
           "custom_interval": "🔄 CYKL RESETOWANIA: Niestandardowy interwał (wymagany w przypadku niestandardowej częstotliwości)",
           "custom_interval_unit": "🔄 CYKL RESETOWANIA: Niestandardowa jednostka interwału (wymagana w przypadku niestandardowej częstotliwości)",
           "start_date": "🔄 CYKL RESETOWANIA: Data rozpoczęcia (opcjonalnie)",
-          "end_date": "🔄 CYKL RESETOWANIA: Data zakończenia (opcjonalnie)"
+          "end_date": "🔄 CYKL RESETOWANIA: Data zakończenia (opcjonalnie)",
+          "clear_start_date": "🗑️ Wyczyść datę rozpoczęcia",
+          "clear_end_date": "🗑️ Wyczyść datę zakończenia"
         },
         "data_description": {
           "badge_name": "Wprowadź unikalną nazwę odznaki. Nazwa ta będzie wyświetlana w systemie.",
@@ -1352,7 +1364,9 @@
           "custom_interval": "Podaj LICZBĘ dni, tygodni, miesięcy itd. dla Częstotliwości niestandardowej (np. 3, jeśli ustawisz 3 tygodnie).",
           "custom_interval_unit": "Wybierz jednostkę dla niestandardowego interwału (np. dni, tygodnie).",
           "start_date": "Ustaw datę rozpoczęcia cyklu resetowania (opcjonalnie).",
-          "end_date": "Ustaw datę zakończenia cyklu resetowania (opcjonalnie)."
+          "end_date": "Ustaw datę zakończenia cyklu resetowania (opcjonalnie).",
+          "clear_start_date": "Zaznacz to pole, aby usunąć datę rozpoczęcia z tej odznaki.",
+          "clear_end_date": "Zaznacz to pole, aby usunąć datę zakończenia z tej odznaki."
         }
       },
       "edit_badge_achievement": {
@@ -1396,7 +1410,8 @@
           "grace_period_days": "🔄 RECURRENCEE: Okres karencji w dniach (opcjonalnie)",
           "assigned_user_ids": "🧒 Przypisany do",
           "award_items": "🎁 NAGRODY: Wybierz punkty, nagrody, bonusy (opcjonalnie)",
-          "award_points": "🎁 NAGRODY: Przyznane punkty (opcjonalnie)"
+          "award_points": "🎁 NAGRODY: Przyznane punkty (opcjonalnie)",
+          "clear_end_date": "🗑️ Wyczyść datę okazji"
         },
         "data_description": {
           "badge_name": "Wprowadź unikalną nazwę odznaki. Nazwa ta będzie wyświetlana w systemie.",
@@ -1412,7 +1427,8 @@
           "grace_period_days": "Określ liczbę dodatkowych dni po zakończeniu cyklu, w których pracownicy mają czas na zebranie wymaganej liczby punktów przed degradacją (opcjonalnie).",
           "assigned_user_ids": "Przypisz tę odznakę konkretnym osobom w celu śledzenia.",
           "award_items": "Wybierz jeden lub więcej punktów, nagród lub bonusów. Wszystkie wybrane przedmioty zostaną przyznane lub zastosowane po zdobyciu odznaki. Kary zostaną naliczone tylko wtedy, gdy odznaka nie zostanie zdobyta do daty końcowej lub daty resetowania. (opcjonalnie)",
-          "award_points": "Jeśli wybraną nagrodą są punkty, podaj liczbę punktów, która ma zostać naliczona po zdobyciu tej odznaki. (opcjonalnie)."
+          "award_points": "Jeśli wybraną nagrodą są punkty, podaj liczbę punktów, która ma zostać naliczona po zdobyciu tej odznaki. (opcjonalnie).",
+          "clear_end_date": "Zaznacz to pole, aby usunąć datę wydarzenia z tej odznaki."
         }
       },
       "edit_reward": {

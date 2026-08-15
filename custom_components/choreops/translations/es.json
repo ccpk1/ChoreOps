@@ -786,7 +786,8 @@
           "custom_interval_unit": "🔄 CICLO DE MANTENIMIENTO: Unidad de intervalo personalizada (requerida para frecuencia personalizada)",
           "start_date": "🔄 CICLO DE REINICIO: Fecha de inicio (Opcional)",
           "end_date": "🔄 CICLO DE MANTENIMIENTO: Fecha de finalización (Opcional)",
-          "grace_period_days": "🔄 CICLO DE MANTENIMIENTO: Periodo de Gracia en Días (Opcional)"
+          "grace_period_days": "🔄 CICLO DE MANTENIMIENTO: Periodo de Gracia en Días (Opcional)",
+          "clear_end_date": "🗑️ Borrar fecha de finalización"
         },
         "data_description": {
           "badge_name": "Introduzca un nombre único para la insignia. Este nombre se mostrará en el sistema.",
@@ -808,7 +809,8 @@
           "custom_interval_unit": "Seleccione la unidad para el intervalo personalizado (p. ej., días, semanas). Solo se aplica a la frecuencia personalizada.",
           "start_date": "Establecer la fecha de inicio (opcional).",
           "end_date": "Seleccione la fecha de finalización del ciclo de mantenimiento. (opcional).",
-          "grace_period_days": "Especifique el número de días adicionales después del final del ciclo que los asignados deben cumplir con los puntos requeridos antes de la degradación. (opcional)."
+          "grace_period_days": "Especifique el número de días adicionales después del final del ciclo que los asignados deben cumplir con los puntos requeridos antes de la degradación. (opcional).",
+          "clear_end_date": "Marque esta casilla para eliminar la fecha de finalización de esta insignia."
         }
       },
       "add_badge_daily": {
@@ -860,7 +862,9 @@
           "custom_interval": "🔄 CICLO DE REINICIO: Intervalo personalizado (obligatorio para la frecuencia personalizada)",
           "custom_interval_unit": "🔄 CICLO DE REINICIO: Unidad de intervalo personalizada (necesaria para la frecuencia personalizada)",
           "start_date": "🔄 CICLO DE REINICIO: Fecha de inicio (Opcional)",
-          "end_date": "🔄 CICLO DE REINICIO: Fecha de finalización (opcional)"
+          "end_date": "🔄 CICLO DE REINICIO: Fecha de finalización (opcional)",
+          "clear_start_date": "🗑️ Fecha de inicio clara",
+          "clear_end_date": "🗑️ Borrar fecha de finalización"
         },
         "data_description": {
           "badge_name": "Introduzca un nombre único para la insignia. Este nombre se mostrará en el sistema.",
@@ -880,7 +884,9 @@
           "custom_interval": "Especifique la NÚMERO de días, semanas, meses, etc. para la Frecuencia personalizada (por ejemplo, 3 si establece 3 semanas).",
           "custom_interval_unit": "Seleccione la unidad para el intervalo personalizado (por ejemplo, días, semanas).",
           "start_date": "Establezca la fecha de inicio para el ciclo de reinicio (opcional).",
-          "end_date": "Establezca la fecha de finalización para el ciclo de reinicio (opcional)."
+          "end_date": "Establezca la fecha de finalización para el ciclo de reinicio (opcional).",
+          "clear_start_date": "Marque esta casilla para eliminar la fecha de inicio de esta insignia.",
+          "clear_end_date": "Marque esta casilla para eliminar la fecha de finalización de esta insignia."
         }
       },
       "add_badge_achievement": {
@@ -924,7 +930,8 @@
           "grace_period_days": "🔄 RECURRENCIA: Periodo de gracia en días (opcional)",
           "assigned_user_ids": "🧒 Asignado a",
           "award_items": "🎁 PREMIOS: Seleccione Puntos, Recompensas, Bonificaciones (Opcional)",
-          "award_points": "🎁 PREMIOS: Puntos otorgados (opcional)"
+          "award_points": "🎁 PREMIOS: Puntos otorgados (opcional)",
+          "clear_end_date": "🗑️ Fecha del evento clara"
         },
         "data_description": {
           "badge_name": "Introduzca un nombre único para la insignia. Este nombre se mostrará en el sistema.",
@@ -940,7 +947,8 @@
           "grace_period_days": "Especifique el número de días adicionales después del final del ciclo para que los asignados alcancen los puntos requeridos antes de la degradación (opcional).",
           "assigned_user_ids": "Asigne esta insignia a personas específicas para su seguimiento.",
           "award_items": "Selecciona uno o más puntos, recompensas o bonificaciones. Todos los artículos seleccionados se otorgarán o aplicarán al obtener la insignia. Solo se aplicarán penalizaciones si no se obtiene la insignia antes de la fecha de finalización o de reinicio. (opcional)",
-          "award_points": "Si los puntos son un premio seleccionado, especifique la cantidad de puntos que se aplicarán cuando se obtenga esta insignia. (opcional)."
+          "award_points": "Si los puntos son un premio seleccionado, especifique la cantidad de puntos que se aplicarán cuando se obtenga esta insignia. (opcional).",
+          "clear_end_date": "Marque esta casilla para eliminar la fecha del evento de esta insignia."
         }
       },
       "add_reward": {
@@ -1258,7 +1266,8 @@
           "custom_interval_unit": "🔄 CICLO DE MANTENIMIENTO: Unidad de Intervalo Personalizado (Requerido para Frecuencia Personalizada)",
           "start_date": "🔄 CICLO DE REINICIO: Fecha de Inicio (Opcional)",
           "end_date": "🔄 CICLO DE MANTENIMIENTO: Fecha de Finalización (Opcional)",
-          "grace_period_days": "🔄 CICLO DE MANTENIMIENTO: Período de Gracia en Días (Opcional)"
+          "grace_period_days": "🔄 CICLO DE MANTENIMIENTO: Período de Gracia en Días (Opcional)",
+          "clear_end_date": "🗑️ Borrar fecha de finalización"
         },
         "data_description": {
           "badge_name": "Introduce un nombre único para la insignia. Este nombre se mostrará en el sistema.",
@@ -1280,7 +1289,8 @@
           "custom_interval_unit": "Selecciona la unidad para el intervalo personalizado (ej: días, semanas). Solo aplica a Frecuencia Personalizada.",
           "start_date": "Establece la fecha de inicio (opcional).",
           "end_date": "Selecciona la fecha para el final del ciclo de mantenimiento (opcional).",
-          "grace_period_days": "Especifique el número de días adicionales después del final del ciclo que los asignados deben cumplir con los puntos requeridos antes de la degradación. (opcional)."
+          "grace_period_days": "Especifique el número de días adicionales después del final del ciclo que los asignados deben cumplir con los puntos requeridos antes de la degradación. (opcional).",
+          "clear_end_date": "Marque esta casilla para eliminar la fecha de finalización de esta insignia."
         }
       },
       "edit_badge_daily": {
@@ -1332,7 +1342,9 @@
           "custom_interval": "🔄 CICLO DE REINICIO: Intervalo Personalizado (Requerido para Frecuencia Personalizada)",
           "custom_interval_unit": "🔄 CICLO DE REINICIO: Unidad de Intervalo Personalizado (Requerido para Frecuencia Personalizada)",
           "start_date": "🔄 CICLO DE REINICIO: Fecha de Inicio (Opcional)",
-          "end_date": "🔄 CICLO DE REINICIO: Fecha de Finalización (Opcional)"
+          "end_date": "🔄 CICLO DE REINICIO: Fecha de Finalización (Opcional)",
+          "clear_start_date": "🗑️ Fecha de inicio clara",
+          "clear_end_date": "🗑️ Borrar fecha de finalización"
         },
         "data_description": {
           "badge_name": "Introduce un nombre único para la insignia. Este nombre se mostrará en el sistema.",
@@ -1352,7 +1364,9 @@
           "custom_interval": "Especifica el NÚMERO de días, semanas, meses, etc. para Frecuencia Personalizada (ej: 3 si estableces 3 semanas).",
           "custom_interval_unit": "Selecciona la unidad para el intervalo personalizado (ej: días, semanas).",
           "start_date": "Establece la fecha de inicio para el ciclo de reinicio (opcional).",
-          "end_date": "Establece la fecha de finalización para el ciclo de reinicio (opcional)."
+          "end_date": "Establece la fecha de finalización para el ciclo de reinicio (opcional).",
+          "clear_start_date": "Marque esta casilla para eliminar la fecha de inicio de esta insignia.",
+          "clear_end_date": "Marque esta casilla para eliminar la fecha de finalización de esta insignia."
         }
       },
       "edit_badge_achievement": {
@@ -1396,7 +1410,8 @@
           "grace_period_days": "🔄 RECURRENCIA: Período de Gracia en Días (Opcional)",
           "assigned_user_ids": "🧒 Asignado a",
           "award_items": "🎁 PREMIOS: Seleccionar Puntos, Recompensas, Bonificaciones (Opcional)",
-          "award_points": "🎁 PREMIOS: Puntos Otorgados (Opcional)"
+          "award_points": "🎁 PREMIOS: Puntos Otorgados (Opcional)",
+          "clear_end_date": "🗑️ Fecha del evento clara"
         },
         "data_description": {
           "badge_name": "Introduce un nombre único para la insignia. Este nombre se mostrará en el sistema.",
@@ -1412,7 +1427,8 @@
           "grace_period_days": "Especifique el número de días adicionales después del final del ciclo para que los asignados alcancen los puntos requeridos antes de la degradación (opcional).",
           "assigned_user_ids": "Asigne esta insignia a personas específicas para su seguimiento.",
           "award_items": "Selecciona uno o más entre puntos, recompensas o bonificaciones. Todos los elementos seleccionados se otorgarán o aplicarán cuando se gane la insignia. Las penalizaciones solo se aplicarán si la insignia no se gana antes de la fecha final o de reinicio (opcional).",
-          "award_points": "Si los puntos son un premio seleccionado, especifica el número de puntos a aplicar cuando se gane esta insignia (opcional)."
+          "award_points": "Si los puntos son un premio seleccionado, especifica el número de puntos a aplicar cuando se gane esta insignia (opcional).",
+          "clear_end_date": "Marque esta casilla para eliminar la fecha del evento de esta insignia."
         }
       },
       "edit_reward": {
