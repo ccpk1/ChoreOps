@@ -4,7 +4,7 @@
   "_comment_assignee_footer": "══════════════════════════════════════════════════════════════════",
   "chore_approved_assignee": {
     "title": "🎉 Aufgabe genehmigt!",
-    "message": "{chore_name} genehmigt! Du hast {points} {points_label} erhalten"
+    "message": "{chore_name} Genehmigt! Du hast dir {points} {points_label} verdient"
   },
   "chore_disapproved_assignee": {
     "title": "↩️ Aufgabe zurückgegeben",
@@ -12,11 +12,11 @@
   },
   "chore_overdue_assignee": {
     "title": "⏰ Aufgabe überfällig",
-    "message": "{chore_name} ist überfällig! Schließe es jetzt ab, um {points} {points_label} zu erhalten."
+    "message": "{chore_name} ist überfällig! Schließe es jetzt ab, um {points} {points_label} zu erhalten"
   },
   "chore_overdue_steal_available": {
     "title": "⚡ Aufgabenalarm",
-    "message": "{chore_name} ist überfällig und kann gestohlen werden! Schließe es zuerst ab, um {points} {points_label} zu erhalten."
+    "message": "{chore_name} ist überfällig und kann gestohlen werden! Schließe es zuerst ab, um {points} {points_label} zu erhalten"
   },
   "chore_missed_assignee": {
     "title": "😔 Aufgabe abgelaufen",
@@ -28,25 +28,25 @@
   },
   "chore_due_window_assignee": {
     "title": "🎯 Aufgabe jetzt fällig",
-    "message": "{chore_name} ist jetzt fällig! Schließe es innerhalb von {hours} Stunden ab, um {points} {points_label} zu erhalten."
+    "message": "{chore_name} ist jetzt fällig! Schließe es innerhalb von {hours} Stunden ab, um {points} {points_label} zu erhalten ()"
   },
   "chore_approved_assignee_no_points": {
     "message": "{chore_name} genehmigt!"
   },
   "chore_overdue_assignee_no_points": {
-    "message": "{chore_name} ist überfällig! Erledige es jetzt."
+    "message": "{chore_name} ist überfällig! Erledige es jetzt"
   },
   "chore_overdue_steal_available_no_points": {
-    "message": "{chore_name} ist überfällig und kann gestohlen werden! Erledige es zuerst."
+    "message": "{chore_name} ist überfällig und kann gestohlen werden! Erledige es zuerst"
   },
   "chore_standby_needed_no_points": {
-    "message": "{primary_name}s Aufgabe {chore_name} ist überfällig! Jetzt übernehmen!"
+    "message": "{primary_name} Aufgabe {chore_name} ist überfällig! Jetzt übernehmen"
   },
   "chore_due_reminder_assignee_no_points": {
     "message": "{chore_name} ist in {minutes} Minuten fällig!"
   },
   "chore_due_window_assignee_no_points": {
-    "message": "{chore_name} ist jetzt fällig! Innerhalb von {hours} Stunden abschließen."
+    "message": "{chore_name} ist jetzt fällig! Innerhalb von {hours} Stunden abschließen ()"
   },
   "reward_approved_assignee": {
     "title": "🎉 Belohnung genehmigt!",
@@ -74,18 +74,18 @@
   },
   "bonus_applied_assignee": {
     "title": "⭐ Bonus angewendet!",
-    "message": "{bonus_name}: Du hast einen Bonus von {points} {points_label}erhalten! Super gemacht!"
+    "message": "{bonus_name}: Du hast einen Bonus von {points} {points_label} erhalten! Super gemacht"
   },
   "multiplier_changed_assignee": {
     "title": "⚖️ Multiplikator aktualisiert",
-    "message": "Ihr {points_label} Multiplikator hat sich von {old_multiplier}x auf {new_multiplier}x geändert."
+    "message": "Ihr {points_label} Multiplikator hat sich von {old_multiplier}x auf {new_multiplier}x geändert"
   },
   "_comment_approver_section": "══════════════════════════════════════════════════════════════════",
   "_comment_approver_desc": "BENACHRICHTIGUNGEN FÜR GENEHMIGER: Informativ, in der dritten Person, handlungsauffordernd. Format: '{assignee_name}: Aktion'. Ohne das Präfix 'ChoreOps:'.",
   "_comment_approver_footer": "══════════════════════════════════════════════════════════════════",
   "chore_claimed_approver": {
     "title": "✋ {assignee_name}: Aufgabe übernommen",
-    "message": "{assignee_name} beanspruchte {chore_name}"
+    "message": "{assignee_name} beansprucht {chore_name}"
   },
   "chore_reminder_approver": {
     "title": "⏰ {assignee_name}: Genehmigung erforderlich",
@@ -104,7 +104,7 @@
   },
   "reward_claimed_approver": {
     "title": "🎁 {assignee_name}: Belohnungsanfrage",
-    "message": "{assignee_name} hat {reward_name} für {points} {points_label} angefordert."
+    "message": "{assignee_name} hat {reward_name} für {points} {points_label} angefordert"
   },
   "reward_reminder_approver": {
     "title": "⏰ {assignee_name}: Belohnung ausstehend",
@@ -124,7 +124,7 @@
   },
   "multiplier_changed_approver": {
     "title": "⚖️ {assignee_name}: Multiplikator aktualisiert",
-    "message": "Der Multiplikator von {assignee_name}für {points_label} wurde von {old_multiplier}x auf {new_multiplier}x geändert."
+    "message": "Der Multiplikator von {assignee_name}für {points_label} wurde von {old_multiplier}x auf {new_multiplier}x geändert"
   },
   "_comment_system_section": "══════════════════════════════════════════════════════════════════",
   "_comment_system_desc": "SYSTEM-/ADMINISTRATOR-BENACHRICHTIGUNGEN: Datenverwaltungsvorgänge",
@@ -162,6 +162,6 @@
   },
   "chore_standby_needed": {
     "title": "🫲 Bereitschaftsdienst angefordert",
-    "message": "{primary_name}s Aufgabe {chore_name} ist überfällig! Hol sie dir jetzt und erhalte {points} {points_label}"
+    "message": "{primary_name}'s Aufgabe {chore_name} ist überfällig! Hol sie dir jetzt und erhalte {points} {points_label}"
   }
 }
