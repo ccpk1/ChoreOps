@@ -2473,6 +2473,64 @@ class StatisticsManager(BaseManager):
             "streak_yesterday": streak_yesterday,
         }
 
+    def get_badge_scoped_all_time_stats(
+        self,
+        assignee_id: str,
+        tracked_chores: list[str],
+    ) -> dict[str, Any]:
+        """Get badge-scoped all-time period stats for gamification evaluation.
+
+        Tenant-owned period read helper for GamificationManager.
+        Aggregates the all-time period buckets across only the tracked chores,
+        so scoped achievements/challenges (e.g. "Chore Total" with a selected
+        chore) evaluate against their assigned chore's history rather than the
+        assignee's global all-time totals.
+
+        Only the counters consumed by the gamification engine are aggregated
+        (approved, completed, points). High-water-mark fields such as
+        longest_streak / missed_longest_streak are intentionally NOT summed,
+        since summing maxima across chores would be semantically wrong.
+
+        Args:
+            assignee_id: Assignee internal ID.
+            tracked_chores: Chore IDs in scope for the current target.
+
+        Returns:
+            Aggregated all-time bucket (approved/completed/points) for the
+            tracked chores only. Empty dict when no tracked chores are given.
+        """
+        assignee_info = self._get_assignee(assignee_id)
+        if not assignee_info:
+            return {}
+
+        chore_data = cast(
+            "dict[str, Any]", assignee_info.get(const.DATA_USER_CHORE_DATA, {})
+        )
+
+        aggregated: dict[str, Any] = {}
+        for chore_id in tracked_chores:
+            chore_entry = cast("dict[str, Any]", chore_data.get(chore_id, {}))
+            periods = cast(
+                "dict[str, Any]",
+                chore_entry.get(const.DATA_USER_CHORE_DATA_PERIODS, {}),
+            )
+            all_time_data = cast(
+                "dict[str, Any]",
+                periods.get(const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME, {}).get(
+                    const.PERIOD_ALL_TIME, {}
+                ),
+            )
+            for key in (
+                const.DATA_USER_CHORE_DATA_PERIOD_APPROVED,
+                const.DATA_USER_CHORE_DATA_PERIOD_COMPLETED,
+                const.DATA_USER_CHORE_DATA_PERIOD_POINTS,
+            ):
+                value = all_time_data.get(key, 0)
+                if isinstance(value, (int, float)):
+                    aggregated[key] = aggregated.get(key, 0) + value
+
+        return aggregated
+
     def get_badge_scoped_today_completion(
         self,
         assignee_id: str,

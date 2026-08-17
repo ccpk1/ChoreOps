@@ -302,3 +302,219 @@ class TestGamificationPendingQueueEvents:
         await hass.async_block_till_done()
 
         manager.award_achievement.assert_not_called()
+
+    async def test_scoped_all_time_stats_aggregates_only_tracked_chores(
+        self,
+        setup_minimal: SetupResult,
+    ) -> None:
+        """Scoped all-time stats helper sums only the tracked chore buckets."""
+        coordinator = setup_minimal.coordinator
+        assignee_id = next(iter(coordinator.assignees_data.keys()))
+        chore_ids = list(coordinator.chores_data.keys())
+        assert len(chore_ids) >= 2
+        chore_a, chore_b = chore_ids[0], chore_ids[1]
+
+        assignee_data = coordinator.assignees_data[assignee_id]
+        chore_data = assignee_data.setdefault(const.DATA_USER_CHORE_DATA, {})
+        for chore_id, approved in ((chore_a, 3), (chore_b, 7)):
+            chore_data.setdefault(chore_id, {}).setdefault(
+                const.DATA_USER_CHORE_DATA_PERIODS, {}
+            )[const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME] = {
+                const.PERIOD_ALL_TIME: {
+                    const.DATA_USER_CHORE_DATA_PERIOD_APPROVED: approved,
+                    const.DATA_USER_CHORE_DATA_PERIOD_POINTS: approved * 5.0,
+                }
+            }
+
+        scoped = coordinator.statistics_manager.get_badge_scoped_all_time_stats(
+            assignee_id,
+            [chore_a],
+        )
+        assert scoped.get(const.DATA_USER_CHORE_DATA_PERIOD_APPROVED) == 3
+        assert scoped.get(const.DATA_USER_CHORE_DATA_PERIOD_POINTS) == 15.0
+
+        scoped_both = coordinator.statistics_manager.get_badge_scoped_all_time_stats(
+            assignee_id,
+            [chore_a, chore_b],
+        )
+        assert scoped_both.get(const.DATA_USER_CHORE_DATA_PERIOD_APPROVED) == 10
+
+        empty = coordinator.statistics_manager.get_badge_scoped_all_time_stats(
+            assignee_id,
+            [],
+        )
+        assert empty == {}
+
+    async def test_source_runtime_context_scopes_all_time_to_tracked_chores(
+        self,
+        setup_minimal: SetupResult,
+    ) -> None:
+        """Runtime context overrides chore_periods_all_time with scoped data."""
+        coordinator = setup_minimal.coordinator
+        manager = coordinator.gamification_manager
+        assignee_id = next(iter(coordinator.assignees_data.keys()))
+        chore_ids = list(coordinator.chores_data.keys())
+        assert len(chore_ids) >= 2
+        chore_a, chore_b = chore_ids[0], chore_ids[1]
+
+        assignee_data = coordinator.assignees_data[assignee_id]
+        chore_data = assignee_data.setdefault(const.DATA_USER_CHORE_DATA, {})
+        for chore_id, approved in ((chore_a, 3), (chore_b, 7)):
+            chore_data.setdefault(chore_id, {}).setdefault(
+                const.DATA_USER_CHORE_DATA_PERIODS, {}
+            )[const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME] = {
+                const.PERIOD_ALL_TIME: {
+                    const.DATA_USER_CHORE_DATA_PERIOD_APPROVED: approved,
+                }
+            }
+
+        context = manager._build_evaluation_context(assignee_id)
+        assert context is not None
+
+        runtime = manager._build_source_runtime_context(
+            context,
+            assignee_id=assignee_id,
+            canonical_target={
+                "target_type": const.CANONICAL_TARGET_TYPE_TOTAL_WITH_BASELINE,
+                "tracked_chore_ids": [chore_a],
+            },
+        )
+        scoped_all_time = runtime.get("chore_periods_all_time") or {}
+        assert scoped_all_time.get(const.DATA_USER_CHORE_DATA_PERIOD_APPROVED) == 3
+
+    async def test_scoped_chore_total_achievements_evaluate_independently(
+        self,
+        hass: HomeAssistant,
+        setup_minimal: SetupResult,
+    ) -> None:
+        """Two scoped Chore Total achievements only count their own chore."""
+        coordinator = setup_minimal.coordinator
+        manager = coordinator.gamification_manager
+        assignee_id = next(iter(coordinator.assignees_data.keys()))
+        chore_ids = list(coordinator.chores_data.keys())
+        assert len(chore_ids) >= 2
+        chore_a, chore_b = chore_ids[0], chore_ids[1]
+
+        assignee_data = coordinator.assignees_data[assignee_id]
+        chore_data = assignee_data.setdefault(const.DATA_USER_CHORE_DATA, {})
+        for chore_id, approved in ((chore_a, 3), (chore_b, 7)):
+            chore_data.setdefault(chore_id, {}).setdefault(
+                const.DATA_USER_CHORE_DATA_PERIODS, {}
+            )[const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME] = {
+                const.PERIOD_ALL_TIME: {
+                    const.DATA_USER_CHORE_DATA_PERIOD_APPROVED: approved,
+                }
+            }
+
+        def _make_achievement(
+            ach_id: str, chore_id: str, target: int
+        ) -> dict[str, Any]:
+            return {
+                const.DATA_ACHIEVEMENT_INTERNAL_ID: ach_id,
+                const.DATA_ACHIEVEMENT_NAME: ach_id,
+                const.DATA_ACHIEVEMENT_TYPE: const.ACHIEVEMENT_TYPE_TOTAL,
+                const.DATA_ACHIEVEMENT_TARGET_VALUE: target,
+                const.DATA_ACHIEVEMENT_SELECTED_CHORE_ID: chore_id,
+                const.DATA_ACHIEVEMENT_PROGRESS: {
+                    assignee_id: {
+                        const.DATA_ACHIEVEMENT_AWARDED: False,
+                        const.DATA_ACHIEVEMENT_BASELINE: 0,
+                    }
+                },
+                const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS: [assignee_id],
+                const.DATA_ACHIEVEMENT_REWARD_POINTS: 1.0,
+                const.DATA_ACHIEVEMENT_CRITERIA: "test",
+                const.DATA_ACHIEVEMENT_DESCRIPTION: "test",
+                const.DATA_ACHIEVEMENT_ICON: "mdi:trophy",
+                const.DATA_ACHIEVEMENT_LABELS: [],
+            }
+
+        # Achievement A targets chore A (3 approved) with threshold 5.
+        # Achievement B targets chore B (7 approved) with threshold 5.
+        coordinator.achievements_data["ach-a"] = _make_achievement("ach-a", chore_a, 5)
+        coordinator.achievements_data["ach-b"] = _make_achievement("ach-b", chore_b, 5)
+
+        context = manager._build_evaluation_context(assignee_id)
+        assert context is not None
+
+        manager.award_achievement = AsyncMock()
+        await manager._evaluate_achievement_for_assignee(
+            context,
+            "ach-a",
+            coordinator.achievements_data["ach-a"],
+        )
+        await manager._evaluate_achievement_for_assignee(
+            context,
+            "ach-b",
+            coordinator.achievements_data["ach-b"],
+        )
+        await hass.async_block_till_done()
+
+        # Only achievement B (chore B has 7 >= 5) should be awarded.
+        manager.award_achievement.assert_called_once_with(assignee_id, "ach-b")
+
+    async def test_scoped_achievement_baseline_guard_self_heals(
+        self,
+        hass: HomeAssistant,
+        setup_minimal: SetupResult,
+    ) -> None:
+        """Global baseline exceeding scoped total does not clamp progress to 0."""
+        coordinator = setup_minimal.coordinator
+        manager = coordinator.gamification_manager
+        assignee_id = next(iter(coordinator.assignees_data.keys()))
+        chore_ids = list(coordinator.chores_data.keys())
+        assert len(chore_ids) >= 1
+        chore_a = chore_ids[0]
+
+        assignee_data = coordinator.assignees_data[assignee_id]
+        chore_data = assignee_data.setdefault(const.DATA_USER_CHORE_DATA, {})
+        chore_data.setdefault(chore_a, {}).setdefault(
+            const.DATA_USER_CHORE_DATA_PERIODS, {}
+        )[const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME] = {
+            const.PERIOD_ALL_TIME: {
+                const.DATA_USER_CHORE_DATA_PERIOD_APPROVED: 3,
+            }
+        }
+
+        achievement_id = "ach-baseline-guard"
+        coordinator.achievements_data[achievement_id] = {
+            const.DATA_ACHIEVEMENT_INTERNAL_ID: achievement_id,
+            const.DATA_ACHIEVEMENT_NAME: "Baseline guard",
+            const.DATA_ACHIEVEMENT_TYPE: const.ACHIEVEMENT_TYPE_TOTAL,
+            const.DATA_ACHIEVEMENT_TARGET_VALUE: 5,
+            const.DATA_ACHIEVEMENT_SELECTED_CHORE_ID: chore_a,
+            const.DATA_ACHIEVEMENT_PROGRESS: {
+                assignee_id: {
+                    const.DATA_ACHIEVEMENT_AWARDED: False,
+                    # Stale GLOBAL baseline (all chores) larger than scoped total.
+                    const.DATA_ACHIEVEMENT_BASELINE: 10,
+                }
+            },
+            const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS: [assignee_id],
+            const.DATA_ACHIEVEMENT_REWARD_POINTS: 1.0,
+            const.DATA_ACHIEVEMENT_CRITERIA: "test",
+            const.DATA_ACHIEVEMENT_DESCRIPTION: "test",
+            const.DATA_ACHIEVEMENT_ICON: "mdi:trophy",
+            const.DATA_ACHIEVEMENT_LABELS: [],
+        }
+
+        context = manager._build_evaluation_context(assignee_id)
+        assert context is not None
+
+        manager.award_achievement = AsyncMock()
+        await manager._evaluate_achievement_for_assignee(
+            context,
+            achievement_id,
+            coordinator.achievements_data[achievement_id],
+        )
+        await hass.async_block_till_done()
+
+        # Without the guard, current_value would be max(3 - 10, 0) = 0 and the
+        # achievement would never award. With the guard, baseline resets to 0 so
+        # current_value = 3, still below threshold 5 -> not awarded, but progress
+        # is tracked (not stuck at 0).
+        manager.award_achievement.assert_not_called()
+        progress = coordinator.achievements_data[achievement_id][
+            const.DATA_ACHIEVEMENT_PROGRESS
+        ][assignee_id]
+        assert progress.get(const.DATA_ACHIEVEMENT_CURRENT_VALUE) == 3

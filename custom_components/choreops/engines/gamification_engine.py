@@ -647,6 +647,14 @@ class GamificationEngine:
                     const.DATA_USER_CHORE_DATA_PERIOD_APPROVED, 0
                 )
             )
+            # Baseline guard: the stored baseline was captured from the assignee's
+            # GLOBAL all-time total at achievement creation. For scoped targets
+            # (selected chore), the total above is now scoped to that chore only,
+            # so a global baseline can exceed the scoped total and clamp progress
+            # to 0 forever. Treat an out-of-range baseline as 0 so existing scoped
+            # achievements self-heal instead of getting stuck (issue #245).
+            if baseline > total_approved:
+                baseline = 0.0
             current_value = max(total_approved - baseline, 0.0)
             reason = f"Total: {current_value}/{threshold}"
 

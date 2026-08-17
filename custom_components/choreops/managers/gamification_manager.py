@@ -2768,6 +2768,20 @@ class GamificationManager(BaseManager):
                 tracked_chores,
             )
         )
+        # Scope the all-time period stats to the tracked chores when a specific
+        # chore is selected (e.g. "Chore Total" achievement with a selected
+        # chore). Without this override, TOTAL_WITH_BASELINE evaluation reads the
+        # assignee's GLOBAL all-time totals, so completing any chore would count
+        # toward every scoped achievement (issue #245). When tracked_chores is
+        # empty (no scope / assignee not assigned), the scoped read returns an
+        # empty bucket so the target never progresses.
+        if tracked_chores:
+            runtime_context_dict["chore_periods_all_time"] = (
+                self.coordinator.statistics_manager.get_badge_scoped_all_time_stats(
+                    assignee_id,
+                    tracked_chores,
+                )
+            )
         if (
             canonical_target.get("source_entity_type") == "challenge"
             and canonical_target.get("target_type")

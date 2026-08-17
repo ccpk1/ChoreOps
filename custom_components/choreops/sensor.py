@@ -3215,6 +3215,9 @@ class SystemAchievementSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         if ach_type == const.ACHIEVEMENT_TYPE_TOTAL:
             total_current = const.DEFAULT_ZERO
             total_effective_target = const.DEFAULT_ZERO
+            selected_chore_id = achievement.get(
+                const.DATA_ACHIEVEMENT_SELECTED_CHORE_ID
+            )
 
             for assignee_id in assigned_assignees:
                 progress_data: AchievementProgress = achievement.get(
@@ -3228,21 +3231,42 @@ class SystemAchievementSensor(ChoreOpsCoordinatorEntity, SensorEntity):
                     else const.DEFAULT_ZERO
                 )
                 # v43+: chore_stats deleted, use chore_periods.all_time.all_time (nested)
-                assignee_data = cast(
-                    "AssigneeData", self.coordinator.assignees_data.get(assignee_id, {})
-                )
-                chore_periods = assignee_data.get(const.DATA_USER_CHORE_PERIODS, {})
-                all_time_container: dict[str, Any] = cast(
-                    "dict[str, Any]",
-                    chore_periods.get(const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME, {}),
-                )
-                all_time_bucket: dict[str, Any] = cast(
-                    "dict[str, Any]",
-                    all_time_container.get(const.PERIOD_ALL_TIME, {}),
-                )
-                current_total = all_time_bucket.get(
-                    const.DATA_USER_CHORE_DATA_PERIOD_APPROVED, const.DEFAULT_ZERO
-                )
+                # For scoped achievements (selected chore), read the chore-scoped
+                # all-time total so the progress bar matches the evaluation engine
+                # (issue #245). Unscoped achievements keep the global bucket.
+                if selected_chore_id:
+                    scoped_all_time = self.coordinator.statistics_manager.get_badge_scoped_all_time_stats(
+                        assignee_id,
+                        [selected_chore_id],
+                    )
+                    current_total = scoped_all_time.get(
+                        const.DATA_USER_CHORE_DATA_PERIOD_APPROVED,
+                        const.DEFAULT_ZERO,
+                    )
+                else:
+                    assignee_data = cast(
+                        "AssigneeData",
+                        self.coordinator.assignees_data.get(assignee_id, {}),
+                    )
+                    chore_periods = assignee_data.get(const.DATA_USER_CHORE_PERIODS, {})
+                    all_time_container: dict[str, Any] = cast(
+                        "dict[str, Any]",
+                        chore_periods.get(
+                            const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME, {}
+                        ),
+                    )
+                    all_time_bucket: dict[str, Any] = cast(
+                        "dict[str, Any]",
+                        all_time_container.get(const.PERIOD_ALL_TIME, {}),
+                    )
+                    current_total = all_time_bucket.get(
+                        const.DATA_USER_CHORE_DATA_PERIOD_APPROVED,
+                        const.DEFAULT_ZERO,
+                    )
+                # Baseline guard: mirror the evaluation engine so a global baseline
+                # that exceeds the scoped total does not clamp display to 0.
+                if float(cast("Any", baseline)) > int(current_total):
+                    baseline = const.DEFAULT_ZERO
                 total_current += int(current_total)
                 total_effective_target += baseline + target  # type: ignore[operator]
 
@@ -3697,22 +3721,45 @@ class AssigneeAchievementProgressSensor(ChoreOpsCoordinatorEntity, SensorEntity)
             )
 
             # v43+: chore_stats deleted, use chore_periods.all_time.all_time (nested)
-            assignee_data = cast(
-                "AssigneeData",
-                self.coordinator.assignees_data.get(self._assignee_id, {}),
+            # For scoped achievements (selected chore), read the chore-scoped
+            # all-time total so the progress bar matches the evaluation engine
+            # (issue #245). Unscoped achievements keep the global bucket.
+            selected_chore_id = achievement.get(
+                const.DATA_ACHIEVEMENT_SELECTED_CHORE_ID
             )
-            chore_periods = assignee_data.get(const.DATA_USER_CHORE_PERIODS, {})
-            all_time_container: dict[str, Any] = cast(
-                "dict[str, Any]",
-                chore_periods.get(const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME, {}),
-            )
-            all_time_bucket: dict[str, Any] = cast(
-                "dict[str, Any]",
-                all_time_container.get(const.PERIOD_ALL_TIME, {}),
-            )
-            current_total = all_time_bucket.get(
-                const.DATA_USER_CHORE_DATA_PERIOD_APPROVED, const.DEFAULT_ZERO
-            )
+            if selected_chore_id:
+                scoped_all_time = (
+                    self.coordinator.statistics_manager.get_badge_scoped_all_time_stats(
+                        self._assignee_id,
+                        [selected_chore_id],
+                    )
+                )
+                current_total = scoped_all_time.get(
+                    const.DATA_USER_CHORE_DATA_PERIOD_APPROVED,
+                    const.DEFAULT_ZERO,
+                )
+            else:
+                assignee_data = cast(
+                    "AssigneeData",
+                    self.coordinator.assignees_data.get(self._assignee_id, {}),
+                )
+                chore_periods = assignee_data.get(const.DATA_USER_CHORE_PERIODS, {})
+                all_time_container: dict[str, Any] = cast(
+                    "dict[str, Any]",
+                    chore_periods.get(const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME, {}),
+                )
+                all_time_bucket: dict[str, Any] = cast(
+                    "dict[str, Any]",
+                    all_time_container.get(const.PERIOD_ALL_TIME, {}),
+                )
+                current_total = all_time_bucket.get(
+                    const.DATA_USER_CHORE_DATA_PERIOD_APPROVED, const.DEFAULT_ZERO
+                )
+
+            # Baseline guard: mirror the evaluation engine so a global baseline
+            # that exceeds the scoped total does not clamp display to 0.
+            if float(cast("Any", baseline)) > int(current_total):
+                baseline = const.DEFAULT_ZERO
 
             effective_target = baseline + target  # type: ignore[operator]
 
