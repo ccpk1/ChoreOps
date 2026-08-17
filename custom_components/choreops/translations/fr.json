@@ -1702,6 +1702,7 @@
           "show_legacy_entities": "Afficher les entités supplémentaires",
           "kiosk_mode": "Activer le mode kiosque pour les réclamations des cessionnaires",
           "admin_approval_bypass": "Autoriser les comptes d'administrateur de Home Assistant à approuver",
+          "admin_button_auth": "Appliquer l'autorisation aux boutons d'administration",
           "backups_max_retained": "Nombre maximal de sauvegardes à conserver",
           "backup_action_selection": "Actions de sauvegarde"
         },
@@ -1719,6 +1720,7 @@
           "show_legacy_entities": "Afficher les entités supplémentaires telles que les capteurs et les listes déroulantes, désormais intégrées au capteur d'assistance du tableau de bord. Ces entités sont facultatives pour assurer la compatibilité avec les automatisations existantes.",
           "kiosk_mode": "Permet aux boutons de réclamation de tâches/récompenses des personnes assignées de fonctionner sur les tablettes murales partagées sans que l'utilisateur du tableau de bord n'ait besoin d'associer le lien utilisateur Home Assistant de la personne assignée. Avertissement de sécurité : toute personne ayant accès à cet appareil peut soumettre des réclamations pour le compte de la personne assignée.",
           "admin_approval_bypass": "Lorsque cette option est activée, les comptes d'administrateur Home Assistant peuvent utiliser les actions d'approbation des tâches et des récompenses au sein de l'intégration. Lorsqu'elle est désactivée, les comptes d'administrateur ne peuvent pas approuver les tâches ou les récompenses du seul fait de leur statut d'administrateur Home Assistant.",
+          "admin_button_auth": "L'accès aux boutons d'administration (approbation/refus, bonus, pénalité, ajustement des points) nécessite une connexion à un compte. Lorsqu'ils sont désactivés, n'importe qui peut les utiliser. Utilisez le service équivalent pour les flux automatisés.",
           "backups_max_retained": "Nombre maximal de fichiers de sauvegarde à conserver par étiquette (ex. : 5 sauvegardes manuelles, 5 sauvegardes de réinitialisation des données). Les sauvegardes les plus anciennes sont automatiquement supprimées après la création de chaque nouvelle sauvegarde. Indiquez 0 pour désactiver complètement les sauvegardes automatiques.",
           "backup_action_selection": "Choisissez une action de gestion des sauvegardes : créer une sauvegarde manuelle, supprimer une sauvegarde ou restaurer une sauvegarde."
         }
@@ -3019,6 +3021,30 @@
         "output_format": {
           "name": "Format de sortie",
           "description": "Renvoyer uniquement du Markdown, uniquement du HTML, ou les deux (Markdown et HTML) dans la charge utile de la réponse."
+        }
+      }
+    },
+    "get_ledger": {
+      "name": "Obtenir Ledger",
+      "description": "Renvoie un dump structuré des écritures du registre de points. Par défaut, tous les utilisateurs sont inclus ; indiquez le nom d'utilisateur pour limiter le dump à un seul utilisateur. Utilisez la fonction `limit` pour limiter le nombre d'écritures les plus récentes renvoyées.",
+      "fields": {
+        "config_entry_id": {
+          "name": "ID de l'entrée de configuration (facultatif)",
+          "description": "Utilisez cette option si vous avez plusieurs configurations ChoreOps. Elle cible une configuration spécifique.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Nom de l'entrée de configuration (facultatif)",
+          "description": "Utilisez cette option si vous avez plusieurs configurations ChoreOps et que chacune possède un nom unique. Si des noms se répètent, utilisez l'ID d'entrée de configuration.",
+          "example": "Tâches familiales"
+        },
+        "user_name": {
+          "name": "Nom d'utilisateur",
+          "description": "Filtre optionnel permettant d'inclure uniquement les écritures comptables d'un seul utilisateur."
+        },
+        "limit": {
+          "name": "Limite",
+          "description": "Nombre maximal d'entrées les plus récentes à renvoyer. Par défaut : 1000."
         }
       }
     },

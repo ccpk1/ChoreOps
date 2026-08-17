@@ -1702,6 +1702,7 @@
           "show_legacy_entities": "Vis ekstra enheter",
           "kiosk_mode": "Aktiver kioskmodus for krav fra rettighetshaver",
           "admin_approval_bypass": "Tillat godkjenning av Home Assistant-administratorkontoer",
+          "admin_button_auth": "Håndhev autorisasjon for administratorknapper",
           "backups_max_retained": "Maksimalt antall sikkerhetskopier å beholde",
           "backup_action_selection": "Sikkerhetskopieringshandlinger"
         },
@@ -1719,6 +1720,7 @@
           "show_legacy_entities": "Vis ekstra enheter som sensor og selects som nå er konsolidert inn i dashbordets hjelpesensor. Disse enhetene er valgfrie for bakoverkompatibilitet med eksisterende automatiseringer.",
           "kiosk_mode": "Lar knapper for krav på gjøremål/belønninger for den tildelte fungere på nettbrett med delt vegg uten at dashbordbrukeren må matche den tildelte mottakerens Home Assistant-brukerlenke. Sikkerhetsadvarsel: Alle med tilgang til den enheten kan sende inn krav fra den tildelte.",
           "admin_approval_bypass": "Når dette er aktivert, kan Home Assistant-administratorkontoer bruke godkjenningshandlinger for gjøremål og belønninger på tvers av integrasjonen. Når dette er deaktivert, kan ikke administratorkontoer godkjenne gjøremål eller belønninger bare fordi de er Home Assistant-administratorer.",
+          "admin_button_auth": "Krev en innlogget konto for administratorknapper (godkjenn/ikke godkjenn, bonus, straff, poengjustering). Når de er deaktivert, kan hvem som helst utløse dem. Bruk tilsvarende tjeneste for automatiserte flyter.",
           "backups_max_retained": "Maksimalt antall sikkerhetskopier som skal beholdes per tag (f.eks. 5 manuelle sikkerhetskopier, 5 data_reset-sikkerhetskopier). Eldre sikkerhetskopier slettes automatisk etter at hver ny sikkerhetskopi opprettes. Sett til 0 for å deaktivere automatiske sikkerhetskopier fullstendig.",
           "backup_action_selection": "Velg en handling for sikkerhetskopieringsadministrasjon: opprett en manuell sikkerhetskopi, slett en sikkerhetskopi eller gjenopprett fra en sikkerhetskopi."
         }
@@ -3019,6 +3021,30 @@
         "output_format": {
           "name": "Utdataformat",
           "description": "Returner kun markdown, kun html, eller både markdown og html i responsnyttelasten."
+        }
+      }
+    },
+    "get_ledger": {
+      "name": "Få Ledger",
+      "description": "Returner en strukturert dump av punktposter. Som standard inkluderer alle brukere; send brukernavn for å begrense til én bruker. Bruk grense for å begrense antallet nyeste poster som returneres.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Konfigurasjonsoppførings-ID (valgfritt)",
+          "description": "Bruk dette hvis du har mer enn ett ChoreOps-oppsett. Det er rettet mot ett spesifikt oppsett.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Navn på konfigurasjonsoppføring (valgfritt)",
+          "description": "Bruk dette hvis du har mer enn ett ChoreOps-oppsett, og hvert av dem har unike navn. Hvis navnene gjentas, bruk Config Entry ID.",
+          "example": "Familiearbeid"
+        },
+        "user_name": {
+          "name": "Brukernavn",
+          "description": "Valgfritt filter for å inkludere bare én brukers posteringer."
+        },
+        "limit": {
+          "name": "Begrense",
+          "description": "Maksimalt antall nyeste oppføringer som skal returneres. Standardverdien er 1000."
         }
       }
     },

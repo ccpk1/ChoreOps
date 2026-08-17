@@ -1702,6 +1702,7 @@
           "show_legacy_entities": "Pokaż dodatkowe jednostki",
           "kiosk_mode": "Włącz tryb kiosku dla roszczeń cesjonariuszy",
           "admin_approval_bypass": "Zezwalaj kontom administratorów Home Assistant na zatwierdzanie",
+          "admin_button_auth": "Wymuś autoryzację dla przycisków administratora",
           "backups_max_retained": "Maksymalna liczba kopii zapasowych do zachowania",
           "backup_action_selection": "Akcje kopii zapasowej"
         },
@@ -1719,6 +1720,7 @@
           "show_legacy_entities": "Pokaż dodatkowe encje, takie jak czujnik i wybrane opcje, które są teraz skonsolidowane w czujniku pomocniczym na pulpicie. Te encje są opcjonalne ze względu na wsteczną kompatybilność z istniejącymi automatyzacjami.",
           "kiosk_mode": "Umożliwia korzystanie z przycisków zgłoszeń zadań/nagród przypisanych do użytkownika na tabletach współdzielonych na ścianie bez konieczności dopasowania łącza użytkownika Home Assistant przypisanego do użytkownika. Ostrzeżenie dotyczące bezpieczeństwa: każdy, kto ma dostęp do tego urządzenia, może zgłaszać zgłoszenia przypisanych do użytkownika.",
           "admin_approval_bypass": "Po włączeniu konta administratorów Home Assistant mogą korzystać z akcji zatwierdzania zadań i nagród w ramach integracji. Po wyłączeniu konta administratorów nie mogą zatwierdzać zadań ani nagród tylko dlatego, że są administratorami Home Assistant.",
+          "admin_button_auth": "Wymagaj zalogowanego konta do przycisków administracyjnych (zatwierdź/odrzuć, bonus, kara, korekta punktów). Po wyłączeniu, każdy może je aktywować. Użyj podobnej usługi do zautomatyzowanych przepływów.",
           "backups_max_retained": "Maksymalna liczba plików kopii zapasowych do zachowania dla każdego tagu (np. 5 ręcznych kopii zapasowych, 5 kopii zapasowych z resetowaniem danych). Starsze kopie zapasowe są automatycznie usuwane po utworzeniu każdej nowej kopii. Ustaw na 0, aby całkowicie wyłączyć automatyczne tworzenie kopii zapasowych.",
           "backup_action_selection": "Wybierz akcję zarządzania kopią zapasową: utwórz kopię zapasową ręcznie, usuń kopię zapasową lub przywróć z kopii zapasowej."
         }
@@ -3019,6 +3021,30 @@
         "output_format": {
           "name": "Format wyjściowy",
           "description": "Zwróć w odpowiedzi tylko kod Markdown, tylko kod HTML lub zarówno kod Markdown, jak i HTML."
+        }
+      }
+    },
+    "get_ledger": {
+      "name": "Pobierz Ledger",
+      "description": "Zwraca ustrukturyzowany zrzut wpisów z rejestru punktów. Domyślnie obejmuje wszystkich użytkowników; przekaż user_name, aby ograniczyć do jednego użytkownika. Użyj limitu, aby ograniczyć liczbę ostatnio zwróconych wpisów.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Identyfikator wpisu konfiguracji (opcjonalnie)",
+          "description": "Użyj tego, jeśli masz więcej niż jedną konfigurację ChoreOps. Dotyczy to jednej konkretnej konfiguracji.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Nazwa wpisu konfiguracji (opcjonalnie)",
+          "description": "Użyj tego, jeśli masz więcej niż jedną konfigurację ChoreOps i każda z nich ma unikalną nazwę. Jeśli nazwy się powtarzają, użyj identyfikatora wpisu konfiguracji.",
+          "example": "Obowiązki rodzinne"
+        },
+        "user_name": {
+          "name": "Nazwa użytkownika",
+          "description": "Opcjonalny filtr umożliwiający uwzględnienie wpisów w księdze głównej tylko jednego użytkownika."
+        },
+        "limit": {
+          "name": "Limit",
+          "description": "Maksymalna liczba najnowszych wpisów do zwrócenia. Domyślnie 1000."
         }
       }
     },

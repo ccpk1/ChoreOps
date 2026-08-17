@@ -1702,6 +1702,7 @@
           "show_legacy_entities": "Prikaži dodatne entitete",
           "kiosk_mode": "Omogoči način kioska za zahtevke dodeljevalca",
           "admin_approval_bypass": "Dovoli odobritev skrbniškim računom za domačega pomočnika",
+          "admin_button_auth": "Uveljavljanje avtorizacije za skrbniške gumbe",
           "backups_max_retained": "Največje število varnostnih kopij za shranjevanje",
           "backup_action_selection": "Varnostna dejanja"
         },
@@ -1719,6 +1720,7 @@
           "show_legacy_entities": "Prikažite dodatne entitete, kot sta senzor in izbire, ki so zdaj združene v senzor pomočnika nadzorne plošče. Te entitete so izbirne zaradi združljivosti z obstoječimi avtomatizacijami.",
           "kiosk_mode": "Omogoča, da gumbi za zahtevke za opravila/nagrade dodeljeni osebi delujejo na skupnih stenskih tablicah, ne da bi se uporabnik nadzorne plošče moral ujemati z uporabniško povezavo dodeljene osebe za Home Assistant. Varnostno opozorilo: zahtevke za dodeljeno osebo lahko odda vsak, ki ima dostop do te naprave.",
           "admin_approval_bypass": "Ko je omogočeno, lahko skrbniški računi za Home Assistant uporabljajo dejanja odobritve opravil in nagrad v celotni integraciji. Ko je onemogočeno, skrbniški računi ne morejo odobriti opravil ali nagrad samo zato, ker so skrbniki Home Assistant.",
+          "admin_button_auth": "Za administratorske gumbe (odobri/zavrni, bonus, kazen, prilagoditev točk) je potreben prijavljen račun. Ko so gumbi onemogočeni, jih lahko aktivira kdorkoli. Za avtomatizirane poteke uporabite enakovredno storitev.",
           "backups_max_retained": "Največje število varnostnih kopij datotek, ki jih lahko hranite na oznako (npr. 5 ročnih varnostnih kopij, 5 varnostnih kopij data_reset). Starejše varnostne kopije se samodejno izbrišejo po vsaki novi varnostni kopiji. Nastavite na 0, da popolnoma onemogočite samodejne varnostne kopije.",
           "backup_action_selection": "Izberite dejanje upravljanja varnostnih kopij: ustvarite ročno varnostno kopijo, izbrišite varnostno kopijo ali obnovite iz varnostne kopije."
         }
@@ -3019,6 +3021,30 @@
         "output_format": {
           "name": "Izhodna oblika",
           "description": "V odgovoru vrni samo markdown, samo html ali oboje, markdown in html."
+        }
+      }
+    },
+    "get_ledger": {
+      "name": "Pridobi knjigo",
+      "description": "Vrne strukturiran izpis vnosov v knjigo točk. Privzeto vključuje vse uporabnike; za omejitev na enega uporabnika uporabite user_name. Za omejitev števila vrnjenih najnovejših vnosov uporabite limit.",
+      "fields": {
+        "config_entry_id": {
+          "name": "ID vnosa konfiguracije (neobvezno)",
+          "description": "Uporabite to možnost, če imate več kot eno nastavitev ChoreOps. Cilja na eno specifično nastavitev.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Ime vnosa konfiguracije (neobvezno)",
+          "description": "Uporabite to možnost, če imate več kot eno nastavitev ChoreOps in ima vsaka edinstveno ime. Če se imena ponavljajo, uporabite ID vnosa konfiguracije.",
+          "example": "Družinska opravila"
+        },
+        "user_name": {
+          "name": "Uporabniško ime",
+          "description": "Izbirni filter za vključitev vnosov v knjigo samo enega uporabnika."
+        },
+        "limit": {
+          "name": "Omejitev",
+          "description": "Največje število najnovejših vnosov, ki jih je treba vrniti. Privzeto je 1000."
         }
       }
     },

@@ -1702,6 +1702,7 @@
           "show_legacy_entities": "Extra entiteiten weergeven",
           "kiosk_mode": "Schakel de kioskmodus in voor claims van toegewezenen.",
           "admin_approval_bypass": "Sta Home Assistant-beheerdersaccounts toe om goedkeuring te verlenen.",
+          "admin_button_auth": "Autorisatie afdwingen voor beheerdersknoppen",
           "backups_max_retained": "Maximale back-ups die bewaard kunnen worden",
           "backup_action_selection": "Back-upacties"
         },
@@ -1719,6 +1720,7 @@
           "show_legacy_entities": "Toon extra entiteiten zoals sensoren en selecties die nu zijn samengevoegd in de dashboardhelper-sensor. Deze entiteiten zijn optioneel voor compatibiliteit met bestaande automatiseringen.",
           "kiosk_mode": "Hiermee kunnen knoppen voor het claimen van taken/beloningen voor toegewezen medewerkers werken op gedeelde tablets, zonder dat de dashboardgebruiker de Home Assistant-gebruikerslink van de toegewezen medewerker hoeft te koppelen. Beveiligingswaarschuwing: iedereen met toegang tot dat apparaat kan claims voor toegewezen medewerkers indienen.",
           "admin_approval_bypass": "Wanneer deze functie is ingeschakeld, kunnen Home Assistant-beheerders taken en beloningen goedkeuren via de hele integratie. Wanneer deze functie is uitgeschakeld, kunnen beheerders geen taken of beloningen goedkeuren, simpelweg omdat ze Home Assistant-beheerders zijn.",
+          "admin_button_auth": "Vereis een ingelogd account voor beheerdersknoppen (goedkeuren/afkeuren, bonus, straf, punten aanpassen). Indien uitgeschakeld, kan iedereen deze knoppen activeren. Gebruik de equivalente service voor geautomatiseerde workflows.",
           "backups_max_retained": "Maximaal aantal back-upbestanden per tag (bijv. 5 handmatige back-ups, 5 data_reset back-ups). Oudere back-ups worden automatisch verwijderd nadat elke nieuwe back-up is gemaakt. Stel in op 0 om automatische back-ups volledig uit te schakelen.",
           "backup_action_selection": "Kies een back-upbeheeractie: een handmatige back-up maken, een back-up verwijderen of een back-up terugzetten."
         }
@@ -3019,6 +3021,30 @@
         "output_format": {
           "name": "Uitvoerformaat",
           "description": "Geef in het antwoord alleen markdown, alleen html of zowel markdown als html terug."
+        }
+      }
+    },
+    "get_ledger": {
+      "name": "Download Ledger",
+      "description": "Retourneert een gestructureerde dump van de point ledger-vermeldingen. Standaard bevat deze alle gebruikers; geef user_name op om te beperken tot één gebruiker. Gebruik limit om het aantal geretourneerde meest recente vermeldingen te maximeren.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Configuratie-item-ID (optioneel)",
+          "description": "Gebruik dit als u meer dan één ChoreOps-configuratie hebt. Het is gericht op één specifieke configuratie.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Configuratie-itemnaam (optioneel)",
+          "description": "Gebruik dit als u meer dan één ChoreOps-configuratie hebt en deze elk een unieke naam hebben. Als de namen zich herhalen, gebruik dan de configuratie-item-ID.",
+          "example": "Huishoudelijke klusjes"
+        },
+        "user_name": {
+          "name": "Gebruikersnaam",
+          "description": "Optioneel filter om alleen de grootboekposten van één gebruiker weer te geven."
+        },
+        "limit": {
+          "name": "Beperken",
+          "description": "Maximaal aantal meest recente vermeldingen dat moet worden geretourneerd. Standaardwaarde: 1000."
         }
       }
     },

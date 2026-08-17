@@ -1702,6 +1702,7 @@
           "show_legacy_entities": "Näytä ylimääräiset entiteetit",
           "kiosk_mode": "Ota kioskitila käyttöön vastuuhenkilöiden vaatimuksille",
           "admin_approval_bypass": "Salli Home Assistant -järjestelmänvalvojan tilien hyväksyntä",
+          "admin_button_auth": "Pakota valtuutus järjestelmänvalvojan painikkeille",
           "backups_max_retained": "Säilytettävien varmuuskopioiden enimmäismäärä",
           "backup_action_selection": "Varmuuskopiointitoiminnot"
         },
@@ -1719,6 +1720,7 @@
           "show_legacy_entities": "Näytä lisäentiteettejä, kuten anturi ja valinnat, jotka on nyt yhdistetty kojelaudan apuanturiin. Nämä entiteetit ovat valinnaisia taaksepäin yhteensopivuuden takaamiseksi olemassa olevien automaatioiden kanssa.",
           "kiosk_mode": "Sallii vastuuhenkilön tehtävä-/palkinto-painikkeiden toiminnan jaetuilla seinätableteilla ilman, että kojelaudan käyttäjän on vastattava vastuuhenkilön Home Assistant -käyttäjälinkkiä. Tietoturvavaroitus: kuka tahansa, jolla on pääsy kyseiseen laitteeseen, voi lähettää vastuuhenkilöille vaatimuksia.",
           "admin_approval_bypass": "Kun tämä on käytössä, Home Assistant -järjestelmänvalvojan tilit voivat käyttää tehtävien ja palkintojen hyväksymistoimintoja koko integraatiossa. Kun tämä on poistettu käytöstä, järjestelmänvalvojan tilit eivät voi hyväksyä tehtäviä tai palkintoja vain siksi, että he ovat Home Assistant -järjestelmänvalvojia.",
+          "admin_button_auth": "Vaadi sisäänkirjautunut tili ylläpitäjän painikkeiden (hyväksy/hylkää, bonus, rangaistus, pisteiden muutos) käyttämiseen. Kun painikkeet ovat poissa käytöstä, kuka tahansa voi aktivoida ne. Käytä vastaavaa palvelua automatisoituihin työnkulkuihin.",
           "backups_max_retained": "Varmuuskopiotiedostojen enimmäismäärä, joka säilytetään tunnistetta kohden (esim. 5 manuaalista varmuuskopiota, 5 data_reset-varmuuskopiota). Vanhemmat varmuuskopiot poistetaan automaattisesti jokaisen uuden varmuuskopion luomisen jälkeen. Aseta arvoksi 0, jos haluat poistaa automaattiset varmuuskopiot kokonaan käytöstä.",
           "backup_action_selection": "Valitse varmuuskopioinnin hallintatoiminto: luo manuaalinen varmuuskopio, poista varmuuskopio tai palauta varmuuskopiosta."
         }
@@ -3019,6 +3021,30 @@
         "output_format": {
           "name": "Tulostemuoto",
           "description": "Palauta vastauksen hyötykuormassa pelkkä markdown, pelkkä html tai sekä markdown että html."
+        }
+      }
+    },
+    "get_ledger": {
+      "name": "Hanki Ledger",
+      "description": "Palauttaa strukturoidun vedoksen pistekirjanpitomerkinnöistä. Oletusarvoisesti sisältää kaikki käyttäjät; välitä käyttäjän_nimi, jos haluat rajoittaa käyttäjän yhteen käyttäjään. Käytä rajoitusta viimeisimpien palautettavien merkintöjen määrälle.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Konfiguraatiomerkinnän tunnus (valinnainen)",
+          "description": "Käytä tätä, jos sinulla on useampi kuin yksi ChoreOps-kokoonpano. Se kohdistuu yhteen tiettyyn kokoonpanoon.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Konfiguraatiomerkinnän nimi (valinnainen)",
+          "description": "Käytä tätä, jos sinulla on useampi kuin yksi ChoreOps-asetus ja niillä jokaisella on yksilölliset nimet. Jos nimet toistuvat, käytä määritysmerkinnän tunnusta.",
+          "example": "Perheen askareita"
+        },
+        "user_name": {
+          "name": "Käyttäjänimi",
+          "description": "Valinnainen suodatin, joka sisältää vain yhden käyttäjän kirjanpitomerkinnät."
+        },
+        "limit": {
+          "name": "Rajoittaa",
+          "description": "Palautettavien viimeisimpien merkintöjen enimmäismäärä. Oletusarvo on 1000."
         }
       }
     },

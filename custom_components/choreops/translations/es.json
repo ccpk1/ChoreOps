@@ -1702,6 +1702,7 @@
           "show_legacy_entities": "Mostrar Entidades Adicionales",
           "kiosk_mode": "Habilitar el modo quiosco para las reclamaciones de los cesionarios",
           "admin_approval_bypass": "Permitir que las cuentas de administrador de Home Assistant aprueben",
+          "admin_button_auth": "Aplicar autorización para los botones de administrador",
           "backups_max_retained": "Máximo de Copias de Seguridad a Conservar",
           "backup_action_selection": "Acciones de Copia de Seguridad"
         },
@@ -1719,6 +1720,7 @@
           "show_legacy_entities": "Mostrar entidades adicionales como sensores y selectores que ahora están consolidados en el sensor auxiliar del panel. Estas entidades son opcionales para mantener compatibilidad con automatizaciones existentes.",
           "kiosk_mode": "Permite que los botones de solicitud de tareas/recompensas del usuario asignado funcionen en tabletas de pared compartidas sin necesidad de que el usuario del panel coincida con el enlace de usuario de Home Assistant del usuario asignado. Advertencia de seguridad: Cualquier persona con acceso a ese dispositivo puede enviar solicitudes de usuario asignado.",
           "admin_approval_bypass": "Cuando está habilitada, las cuentas de administrador de Home Assistant pueden usar las acciones de aprobación de tareas y recompensas en toda la integración. Cuando está deshabilitada, las cuentas de administrador no pueden aprobar tareas ni recompensas solo por ser administradores de Home Assistant.",
+          "admin_button_auth": "Se requiere una cuenta iniciada para los botones de administrador (aprobar/rechazar, bonificación, penalización, ajuste de puntos). Si están deshabilitados, cualquier persona puede activarlos. Utilice el servicio equivalente para flujos automatizados.",
           "backups_max_retained": "Número máximo de archivos de copia de seguridad que se pueden conservar por etiqueta (p. ej., 5 copias de seguridad manuales, 5 copias de seguridad con restablecimiento de datos). Las copias de seguridad antiguas se eliminan automáticamente tras cada nueva creación. Establézcalo en 0 para desactivar las copias de seguridad automáticas por completo.",
           "backup_action_selection": "Elija una acción de gestión de copias de seguridad: crear una copia manual, eliminar una copia de seguridad, o restaurar desde una copia."
         }
@@ -3019,6 +3021,30 @@
         "output_format": {
           "name": "Formato de salida",
           "description": "Devuelve solo Markdown, solo HTML o tanto Markdown como HTML en la carga de respuesta."
+        }
+      }
+    },
+    "get_ledger": {
+      "name": "Obtener libro mayor",
+      "description": "Devuelve un volcado estructurado de las entradas del libro mayor de puntos. Por defecto, incluye a todos los usuarios; pase user_name para limitarlo a un solo usuario. Use limit para limitar la cantidad de entradas más recientes que se devuelven.",
+      "fields": {
+        "config_entry_id": {
+          "name": "ID de entrada de configuración (opcional)",
+          "description": "Úselo si tiene más de una configuración de ChoreOps. Se centra en una configuración específica.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Nombre de la entrada de configuración (opcional)",
+          "description": "Use esto si tiene varias configuraciones de ChoreOps y cada una tiene un nombre único. Si los nombres se repiten, use el ID de entrada de configuración.",
+          "example": "Tareas familiares"
+        },
+        "user_name": {
+          "name": "Nombre de usuario",
+          "description": "Filtro opcional para incluir únicamente las entradas del libro mayor de un solo usuario."
+        },
+        "limit": {
+          "name": "Límite",
+          "description": "Número máximo de entradas más recientes a devolver. El valor predeterminado es 1000."
         }
       }
     },

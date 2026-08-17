@@ -1702,6 +1702,7 @@
           "show_legacy_entities": "Visa extra enheter",
           "kiosk_mode": "Aktivera kioskläge för anspråk från tilldelare",
           "admin_approval_bypass": "Tillåt att Home Assistant-administratörskonton godkänns",
+          "admin_button_auth": "Tillämpa auktorisering för administratörsknappar",
           "backups_max_retained": "Maximalt antal säkerhetskopior att behålla",
           "backup_action_selection": "Säkerhetskopieringsåtgärder"
         },
@@ -1719,6 +1720,7 @@
           "show_legacy_entities": "Visa extra entiteter som sensor och selects som nu är konsoliderade i instrumentpanelshjälpsensorn. Dessa entiteter är valfria för bakåtkompatibilitet med befintliga automatiseringar.",
           "kiosk_mode": "Tillåter att knappar för att ansöka om sysslor/belöning för tilldelade fungerar på surfplattor med delad vägg utan att instrumentpanelsanvändaren behöver matcha den tilldelades Home Assistant-användarlänk. Säkerhetsvarning: alla med åtkomst till den enheten kan skicka in anspråk för tilldelade.",
           "admin_approval_bypass": "När det är aktiverat kan administratörskonton för Home Assistant använda åtgärder för godkännande av sysslor och belöningar i hela integrationen. När det är inaktiverat kan administratörskonton inte godkänna sysslor eller belöningar bara för att de är Home Assistant-administratörer.",
+          "admin_button_auth": "Kräv ett inloggat konto för administratörsknappar (godkänn/avvisa, bonus, straff, poängjustering). När de är inaktiverade kan vem som helst aktivera dem. Använd motsvarande tjänst för automatiserade flöden.",
           "backups_max_retained": "Maximalt antal säkerhetskopior att behålla per tagg (t.ex. 5 manuella säkerhetskopior, 5 data_reset-säkerhetskopior). Äldre säkerhetskopior raderas automatiskt efter att varje ny säkerhetskopia skapas. Ställ in på 0 för att inaktivera automatiska säkerhetskopior helt.",
           "backup_action_selection": "Välj en åtgärd för säkerhetskopieringshantering: skapa en manuell säkerhetskopia, ta bort en säkerhetskopia eller återställ från en säkerhetskopia."
         }
@@ -3019,6 +3021,30 @@
         "output_format": {
           "name": "Utdataformat",
           "description": "Returnera endast markdown, endast html, eller både markdown och html i svarsnyttolasten."
+        }
+      }
+    },
+    "get_ledger": {
+      "name": "Hämta Ledger",
+      "description": "Returnera en strukturerad dump av punktposter. Som standard inkluderar alla användare; skicka användarnamn för att begränsa till en användare. Använd limit för att begränsa antalet senaste poster som returneras.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Konfigurationspost-ID (valfritt)",
+          "description": "Använd detta om du har mer än en ChoreOps-inställning. Den riktar sig mot en specifik inställning.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Konfigurationspostnamn (valfritt)",
+          "description": "Använd detta om du har fler än en ChoreOps-konfiguration och de har unika namn. Om namnen upprepas, använd Config Entry ID.",
+          "example": "Familjesysslor"
+        },
+        "user_name": {
+          "name": "Användarnamn",
+          "description": "Valfritt filter för att endast inkludera en användares transaktioner."
+        },
+        "limit": {
+          "name": "Begränsa",
+          "description": "Maximalt antal senaste poster att returnera. Standardvärdet är 1000."
         }
       }
     },
