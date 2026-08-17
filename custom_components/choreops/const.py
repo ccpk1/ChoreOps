@@ -857,6 +857,7 @@ CFOF_SYSTEM_INPUT_RETENTION_PERIODS: Final = "retention_periods"
 CFOF_SYSTEM_INPUT_SHOW_LEGACY_ENTITIES: Final = "show_legacy_entities"
 CFOF_SYSTEM_INPUT_KIOSK_MODE: Final = "kiosk_mode"
 CFOF_SYSTEM_INPUT_ADMIN_APPROVAL_BYPASS: Final = "admin_approval_bypass"
+CFOF_SYSTEM_INPUT_ADMIN_BUTTON_AUTH: Final = "admin_button_auth"
 CFOF_SYSTEM_INPUT_BACKUPS_MAX_RETAINED: Final = "backups_max_retained"
 
 # Dashboard Generator Input Fields (OptionsFlow)
@@ -954,6 +955,8 @@ NOTIFICATION_EVENT: Final = "mobile_app_notification_action"
 CONF_SHOW_LEGACY_ENTITIES: Final = "show_legacy_entities"
 CONF_KIOSK_MODE: Final = "kiosk_mode"
 CONF_ADMIN_APPROVAL_BYPASS: Final = "admin_approval_bypass"
+# True = admin buttons require a logged-in account (fail-closed); False = legacy fail-open
+CONF_ADMIN_BUTTON_AUTH: Final = "admin_button_auth"
 
 # Dashboard display settings
 DASHBOARD_POINTS_PRECISION_FIXED_0: Final = "fixed_0"
@@ -1820,6 +1823,8 @@ DEFAULT_ASSIGNEE_POINTS_MULTIPLIER: Final = 1
 DEFAULT_SHOW_LEGACY_ENTITIES: Final = False
 DEFAULT_KIOSK_MODE: Final = False
 DEFAULT_ADMIN_APPROVAL_BYPASS: Final = True
+# True = enforce auth on admin buttons (fail-closed, secure default); False = legacy fail-open
+DEFAULT_ADMIN_BUTTON_AUTH: Final = True
 DEFAULT_DASHBOARD_POINTS_PRECISION: Final = DASHBOARD_POINTS_PRECISION_FIXED_0
 DEFAULT_NOTIFY_ON_APPROVAL = True
 DEFAULT_NOTIFY_ON_CLAIM = True

@@ -3469,6 +3469,10 @@ def build_general_options_schema(default: dict | None = None) -> vol.Schema:
         const.CONF_ADMIN_APPROVAL_BYPASS,
         const.DEFAULT_ADMIN_APPROVAL_BYPASS,
     )
+    default_admin_button_auth = default.get(
+        const.CONF_ADMIN_BUTTON_AUTH,
+        const.DEFAULT_ADMIN_BUTTON_AUTH,
+    )
     default_dashboard_points_precision = default.get(
         const.CONF_DASHBOARD_POINTS_PRECISION,
         const.DEFAULT_DASHBOARD_POINTS_PRECISION,
@@ -3521,6 +3525,10 @@ def build_general_options_schema(default: dict | None = None) -> vol.Schema:
             vol.Required(
                 const.CFOF_SYSTEM_INPUT_ADMIN_APPROVAL_BYPASS,
                 default=default_admin_approval_bypass,
+            ): selector.BooleanSelector(),
+            vol.Required(
+                const.CFOF_SYSTEM_INPUT_ADMIN_BUTTON_AUTH,
+                default=default_admin_button_auth,
             ): selector.BooleanSelector(),
             vol.Required(
                 const.CFOF_SYSTEM_INPUT_BACKUPS_MAX_RETAINED,
