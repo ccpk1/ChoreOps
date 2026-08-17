@@ -30,6 +30,8 @@ from .helpers.auth_helpers import (
     AUTH_ACTION_APPROVAL,
     AUTH_ACTION_MANAGEMENT,
     AUTH_ACTION_PARTICIPATION,
+    AuthorizationAction,
+    is_admin_button_auth_enforced,
     is_kiosk_mode_enabled,
     is_user_authorized_for_action,
 )
@@ -69,6 +71,60 @@ def _button_entity_exists(
         entity_registry.async_get_entity_id("button", const.DOMAIN, unique_id)
         is not None
     )
+
+
+async def _ensure_admin_authorized(
+    hass: HomeAssistant,
+    context: Any | None,
+    assignee_id: str | None,
+    action: AuthorizationAction,
+    error_action: str,
+) -> str:
+    """Enforce admin-button authorization and return the approver display name.
+
+    When admin-button auth is enforced (fail-closed, default), an anonymous press
+    (no user context) or an unauthorized user is denied. When not enforced
+    (legacy fail-open), the existing authorization check is applied and the
+    approver name is resolved from the authenticated user when available.
+
+    Args:
+        hass: Home Assistant instance.
+        context: The button press context (may be None).
+        assignee_id: Target assignee ID for approval-scoped actions, or None for
+            management actions.
+        action: Authorization action contract (approval or management).
+        error_action: Translation placeholder for the denied action.
+
+    Returns:
+        The approver display name for the audit trail.
+
+    Raises:
+        HomeAssistantError: When authorization is enforced and the press is
+            anonymous or unauthorized.
+    """
+    user_id = context.user_id if context else None
+
+    if is_admin_button_auth_enforced(hass) and not user_id:
+        raise HomeAssistantError(
+            translation_domain=const.DOMAIN,
+            translation_key=const.TRANS_KEY_ERROR_NOT_AUTHORIZED_ACTION_GLOBAL,
+            translation_placeholders={"action": error_action},
+        )
+
+    if user_id and not await is_user_authorized_for_action(
+        hass,
+        user_id,
+        action,
+        target_user_id=assignee_id,
+    ):
+        raise HomeAssistantError(
+            translation_domain=const.DOMAIN,
+            translation_key=const.TRANS_KEY_ERROR_NOT_AUTHORIZED_ACTION_GLOBAL,
+            translation_placeholders={"action": error_action},
+        )
+
+    user_obj = await hass.auth.async_get_user(user_id) if user_id else None
+    return (user_obj.name if user_obj else None) or const.DISPLAY_UNKNOWN
 
 
 def create_chore_button_entities(
@@ -761,25 +817,13 @@ class ApproverChoreApproveButton(ChoreOpsCoordinatorEntity, ButtonEntity):
             HomeAssistantError: If user not authorized for global approver actions.
         """
         try:
-            user_id = self._context.user_id if self._context else None
-            if user_id and not await is_user_authorized_for_action(
+            approver_name = await _ensure_admin_authorized(
                 self.hass,
-                user_id,
+                self._context,
+                self._assignee_id,
                 AUTH_ACTION_APPROVAL,
-                target_user_id=self._assignee_id,
-            ):
-                raise HomeAssistantError(
-                    translation_domain=const.DOMAIN,
-                    translation_key=const.TRANS_KEY_ERROR_NOT_AUTHORIZED_ACTION_GLOBAL,
-                    translation_placeholders={
-                        "action": const.ERROR_ACTION_APPROVE_CHORES
-                    },
-                )
-
-            user_obj = await self.hass.auth.async_get_user(user_id) if user_id else None
-            approver_name = (
-                user_obj.name if user_obj else None
-            ) or const.DISPLAY_UNKNOWN
+                const.ERROR_ACTION_APPROVE_CHORES,
+            )
 
             await self.coordinator.chore_manager.approve_chore(
                 approver_name=approver_name,
@@ -936,26 +980,13 @@ class ApproverChoreDisapproveButton(ChoreOpsCoordinatorEntity, ButtonEntity):
                 )
             else:
                 # Approver/admin disapproval: Requires authorization and tracks stats
-                if user_id and not await is_user_authorized_for_action(
+                approver_name = await _ensure_admin_authorized(
                     self.hass,
-                    user_id,
+                    self._context,
+                    self._assignee_id,
                     AUTH_ACTION_APPROVAL,
-                    target_user_id=self._assignee_id,
-                ):
-                    raise HomeAssistantError(
-                        translation_domain=const.DOMAIN,
-                        translation_key=const.TRANS_KEY_ERROR_NOT_AUTHORIZED_ACTION_GLOBAL,
-                        translation_placeholders={
-                            "action": const.ERROR_ACTION_DISAPPROVE_CHORES
-                        },
-                    )
-
-                user_obj = (
-                    await self.hass.auth.async_get_user(user_id) if user_id else None
+                    const.ERROR_ACTION_DISAPPROVE_CHORES,
                 )
-                approver_name = (
-                    user_obj.name if user_obj else None
-                ) or const.DISPLAY_UNKNOWN
 
                 await self.coordinator.chore_manager.disapprove_chore(
                     approver_name=approver_name,
@@ -1217,25 +1248,13 @@ class ApproverRewardApproveButton(ChoreOpsCoordinatorEntity, ButtonEntity):
             HomeAssistantError: If user not authorized for global approver actions.
         """
         try:
-            user_id = self._context.user_id if self._context else None
-            if user_id and not await is_user_authorized_for_action(
+            approver_name = await _ensure_admin_authorized(
                 self.hass,
-                user_id,
+                self._context,
+                self._assignee_id,
                 AUTH_ACTION_APPROVAL,
-                target_user_id=self._assignee_id,
-            ):
-                raise HomeAssistantError(
-                    translation_domain=const.DOMAIN,
-                    translation_key=const.TRANS_KEY_ERROR_NOT_AUTHORIZED_ACTION_GLOBAL,
-                    translation_placeholders={
-                        "action": const.ERROR_ACTION_APPROVE_REWARDS
-                    },
-                )
-
-            user_obj = await self.hass.auth.async_get_user(user_id) if user_id else None
-            approver_name = (
-                user_obj.name if user_obj else None
-            ) or const.DISPLAY_UNKNOWN
+                const.ERROR_ACTION_APPROVE_REWARDS,
+            )
 
             # Approve the reward
             await self.coordinator.reward_manager.approve(
@@ -1391,26 +1410,13 @@ class ApproverRewardDisapproveButton(ChoreOpsCoordinatorEntity, ButtonEntity):
                 )
             else:
                 # Approver/admin disapproval: Requires authorization and tracks stats
-                if user_id and not await is_user_authorized_for_action(
+                approver_name = await _ensure_admin_authorized(
                     self.hass,
-                    user_id,
+                    self._context,
+                    self._assignee_id,
                     AUTH_ACTION_APPROVAL,
-                    target_user_id=self._assignee_id,
-                ):
-                    raise HomeAssistantError(
-                        translation_domain=const.DOMAIN,
-                        translation_key=const.TRANS_KEY_ERROR_NOT_AUTHORIZED_ACTION_GLOBAL,
-                        translation_placeholders={
-                            "action": const.ERROR_ACTION_DISAPPROVE_REWARDS
-                        },
-                    )
-
-                user_obj = (
-                    await self.hass.auth.async_get_user(user_id) if user_id else None
+                    const.ERROR_ACTION_DISAPPROVE_REWARDS,
                 )
-                approver_name = (
-                    user_obj.name if user_obj else None
-                ) or const.DISPLAY_UNKNOWN
 
                 await self.coordinator.reward_manager.disapprove(
                     approver_name=approver_name,
@@ -1540,24 +1546,13 @@ class ApproverBonusApplyButton(ChoreOpsCoordinatorEntity, ButtonEntity):
             HomeAssistantError: If user not authorized for global approver actions.
         """
         try:
-            user_id = self._context.user_id if self._context else None
-            if user_id and not await is_user_authorized_for_action(
+            approver_name = await _ensure_admin_authorized(
                 self.hass,
-                user_id,
+                self._context,
+                None,
                 AUTH_ACTION_MANAGEMENT,
-            ):
-                raise HomeAssistantError(
-                    translation_domain=const.DOMAIN,
-                    translation_key=const.TRANS_KEY_ERROR_NOT_AUTHORIZED_ACTION_GLOBAL,
-                    translation_placeholders={
-                        "action": const.ERROR_ACTION_APPLY_BONUSES
-                    },
-                )
-
-            user_obj = await self.hass.auth.async_get_user(user_id) if user_id else None
-            approver_name = (
-                user_obj.name if user_obj else None
-            ) or const.DISPLAY_UNKNOWN
+                const.ERROR_ACTION_APPLY_BONUSES,
+            )
 
             await self.coordinator.economy_manager.apply_bonus(
                 approver_name=approver_name,
@@ -1690,26 +1685,13 @@ class ApproverPenaltyApplyButton(ChoreOpsCoordinatorEntity, ButtonEntity):
                 self._assignee_id,
                 self._penalty_id,
             )
-            user_id = self._context.user_id if self._context else None
-            const.LOGGER.debug("Context user_id=%s", user_id)
-
-            if user_id and not await is_user_authorized_for_action(
+            approver_name = await _ensure_admin_authorized(
                 self.hass,
-                user_id,
+                self._context,
+                None,
                 AUTH_ACTION_MANAGEMENT,
-            ):
-                raise HomeAssistantError(
-                    translation_domain=const.DOMAIN,
-                    translation_key=const.TRANS_KEY_ERROR_NOT_AUTHORIZED_ACTION_GLOBAL,
-                    translation_placeholders={
-                        "action": const.ERROR_ACTION_APPLY_PENALTIES
-                    },
-                )
-
-            user_obj = await self.hass.auth.async_get_user(user_id) if user_id else None
-            approver_name = (
-                user_obj.name if user_obj else None
-            ) or const.DISPLAY_UNKNOWN
+                const.ERROR_ACTION_APPLY_PENALTIES,
+            )
             const.LOGGER.debug("About to call economy_manager.apply_penalty")
 
             await self.coordinator.economy_manager.apply_penalty(
@@ -1871,19 +1853,13 @@ class ApproverPointsAdjustButton(ChoreOpsCoordinatorEntity, ButtonEntity):
                 self._assignee_name,
                 self._delta,
             )
-            user_id = self._context.user_id if self._context else None
-            if user_id and not await is_user_authorized_for_action(
+            await _ensure_admin_authorized(
                 self.hass,
-                user_id,
+                self._context,
+                None,
                 AUTH_ACTION_MANAGEMENT,
-            ):
-                raise HomeAssistantError(
-                    translation_domain=const.DOMAIN,
-                    translation_key=const.TRANS_KEY_ERROR_NOT_AUTHORIZED_ACTION_GLOBAL,
-                    translation_placeholders={
-                        "action": const.ERROR_ACTION_ADJUST_POINTS
-                    },
-                )
+                const.ERROR_ACTION_ADJUST_POINTS,
+            )
 
             # Use EconomyManager for point transactions
             # Use button's translated name for ledger entries (e.g., "Increment 10.0 Points", "Decrement 5.0 Points")

@@ -645,6 +645,18 @@ GENERATE_ACTIVITY_REPORT_SCHEMA = vol.Schema(
     )
 )
 
+GET_LEDGER_SCHEMA = vol.Schema(
+    _with_service_target_fields(
+        {
+            vol.Optional(const.SERVICE_FIELD_USER_NAME): cv.string,
+            vol.Optional(
+                const.SERVICE_FIELD_LEDGER_LIMIT,
+                default=const.DEFAULT_LEDGER_MAX_ENTRIES,
+            ): cv.positive_int,
+        }
+    )
+)
+
 PAUSE_USER_CHORES_SCHEMA = vol.Schema(
     _with_service_target_fields(
         {
@@ -3541,6 +3553,127 @@ def async_setup_services(hass: HomeAssistant):
         const.SERVICE_GENERATE_ACTIVITY_REPORT,
         handle_generate_activity_report,
         schema=GENERATE_ACTIVITY_REPORT_SCHEMA,
+        supports_response=SupportsResponse.OPTIONAL,
+    )
+
+    async def handle_get_ledger(call: ServiceCall) -> dict[str, Any]:
+        """Handle get_ledger service call.
+
+        Returns a structured dump of ledger entries, optionally filtered to a
+        single user and capped by a limit. Read-only; does not mutate storage.
+        """
+        entry_id = _resolve_target_entry_id(hass, dict(call.data))
+        if not entry_id:
+            raise HomeAssistantError(
+                translation_domain=const.DOMAIN,
+                translation_key=const.TRANS_KEY_ERROR_MSG_NO_ENTRY_FOUND,
+            )
+
+        coordinator = _get_coordinator_by_entry_id(hass, entry_id)
+
+        assignee_name = call.data.get(const.SERVICE_FIELD_USER_NAME)
+        assignee_id: str | None = None
+        if assignee_name:
+            assignee_id = get_item_id_or_raise(
+                coordinator,
+                const.ITEM_TYPE_USER,
+                str(assignee_name),
+                role=const.ROLE_ASSIGNEE,
+            )
+
+        limit = int(call.data.get(const.SERVICE_FIELD_LEDGER_LIMIT, 0))
+        if limit <= 0:
+            limit = const.DEFAULT_LEDGER_MAX_ENTRIES
+
+        assignee_ids = (
+            [assignee_id] if assignee_id else list(coordinator.assignees_data.keys())
+        )
+
+        entries: list[dict[str, Any]] = []
+        total_earned = 0.0
+        total_spent = 0.0
+
+        for candidate_assignee_id in assignee_ids:
+            assignee_info: dict[str, Any] = cast(
+                "dict[str, Any]",
+                coordinator.assignees_data.get(candidate_assignee_id, {}),
+            )
+            ledger = assignee_info.get(const.DATA_USER_LEDGER, [])
+            if not isinstance(ledger, list):
+                continue
+
+            assignee_display_name = str(
+                assignee_info.get(const.DATA_USER_NAME, candidate_assignee_id)
+            )
+            for raw_entry in ledger:
+                if not isinstance(raw_entry, dict):
+                    continue
+                amount = float(raw_entry.get(const.DATA_LEDGER_AMOUNT, 0.0))
+                source = str(
+                    raw_entry.get(const.DATA_LEDGER_SOURCE, const.POINTS_SOURCE_OTHER)
+                )
+                entry_payload: dict[str, Any] = {
+                    const.DATA_LEDGER_TIMESTAMP: raw_entry.get(
+                        const.DATA_LEDGER_TIMESTAMP, ""
+                    ),
+                    const.DATA_LEDGER_AMOUNT: amount,
+                    const.DATA_LEDGER_BALANCE_AFTER: raw_entry.get(
+                        const.DATA_LEDGER_BALANCE_AFTER, 0.0
+                    ),
+                    const.DATA_LEDGER_SOURCE: source,
+                    "source_label": const.LEDGER_SOURCE_LABELS.get(
+                        source, const.POINTS_SOURCE_OTHER
+                    ),
+                    const.DATA_LEDGER_ITEM_NAME: raw_entry.get(
+                        const.DATA_LEDGER_ITEM_NAME, ""
+                    ),
+                    const.DATA_LEDGER_REFERENCE_ID: raw_entry.get(
+                        const.DATA_LEDGER_REFERENCE_ID
+                    ),
+                }
+                if assignee_id is None:
+                    entry_payload[const.DATA_USER_INTERNAL_ID] = candidate_assignee_id
+                    entry_payload[const.DATA_USER_NAME] = assignee_display_name
+
+                if amount >= 0:
+                    total_earned += amount
+                else:
+                    total_spent += abs(amount)
+                entries.append(entry_payload)
+
+        # Sort by timestamp ascending, then take the most recent `limit` entries
+        entries.sort(key=lambda entry: str(entry.get(const.DATA_LEDGER_TIMESTAMP, "")))
+        truncated = len(entries) > limit
+        entries = entries[-limit:]
+
+        resolved_assignee_name: str | None = None
+        if assignee_id is not None:
+            assignee_record: dict[str, Any] = cast(
+                "dict[str, Any]", coordinator.assignees_data.get(assignee_id, {})
+            )
+            resolved_assignee_name = str(
+                assignee_record.get(const.DATA_USER_NAME, assignee_id)
+            )
+
+        return {
+            "assignee_id": assignee_id,
+            "assignee_name": resolved_assignee_name,
+            "count": len(entries),
+            "limit": limit,
+            "truncated": truncated,
+            "summary": {
+                "total_earned": round(total_earned, const.DATA_FLOAT_PRECISION),
+                "total_spent": round(total_spent, const.DATA_FLOAT_PRECISION),
+                "net": round(total_earned - total_spent, const.DATA_FLOAT_PRECISION),
+            },
+            "entries": entries,
+        }
+
+    hass.services.async_register(
+        const.DOMAIN,
+        const.SERVICE_GET_LEDGER,
+        handle_get_ledger,
+        schema=GET_LEDGER_SCHEMA,
         supports_response=SupportsResponse.OPTIONAL,
     )
 

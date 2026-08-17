@@ -83,6 +83,32 @@ def is_admin_approval_bypass_enabled(hass: HomeAssistant) -> bool:
     return const.DEFAULT_ADMIN_APPROVAL_BYPASS
 
 
+def is_admin_button_auth_enforced(hass: HomeAssistant) -> bool:
+    """Return whether admin button authorization is enforced (fail-closed).
+
+    When True (default), admin buttons require a logged-in account and deny
+    anonymous presses. When False, legacy fail-open behavior is preserved.
+
+    Args:
+        hass: HomeAssistant instance
+
+    Returns:
+        True when admin button auth is enforced, False otherwise
+    """
+    entries = hass.config_entries.async_entries(const.DOMAIN)
+    if not entries:
+        return const.DEFAULT_ADMIN_BUTTON_AUTH
+
+    for entry in entries:
+        if entry.state.name == "LOADED":
+            return entry.options.get(
+                const.CONF_ADMIN_BUTTON_AUTH,
+                const.DEFAULT_ADMIN_BUTTON_AUTH,
+            )
+
+    return const.DEFAULT_ADMIN_BUTTON_AUTH
+
+
 # ==============================================================================
 # Authorization Checks
 # ==============================================================================
