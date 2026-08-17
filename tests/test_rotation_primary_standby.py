@@ -26,8 +26,10 @@ from tests.helpers.constants import (
     CHORE_CLAIM_MODE_BLOCKED_STANDBY,
     CHORE_CLAIM_MODE_CLAIMABLE,
     CHORE_CLAIM_MODE_STANDBY_AVAILABLE,
+    CHORE_STATE_APPROVED,
     CHORE_STATE_CLAIMED,
     CHORE_STATE_DUE,
+    CHORE_STATE_OVERDUE,
     CHORE_STATE_PENDING,
     CHORE_STATE_STANDBY,
     CHORE_STATE_WAITING,
@@ -326,6 +328,69 @@ async def test_turn_resets_to_primary_after_approval(
     chore_info = coordinator.chores_data.get(chore_id, {})
     turn = chore_info.get("rotation_current_assignee_id")
     assert turn == zoe_id, f"Turn should be snapped back to primary, got {turn}"
+
+
+# =============================================================================
+# T8 — Issue #248: standby completion clears other users' exception states
+# =============================================================================
+
+
+@pytest.mark.asyncio
+async def test_standby_completion_clears_others_overdue_and_global(
+    hass: HomeAssistant,
+    scenario_primary_standby: SetupResult,
+    mock_hass_users: dict[str, Any],
+) -> None:
+    """A standby completing after overdue clears the primary's persisted overdue.
+
+    Reproduces Issue #248 (Feed Cat AM): primary and standby both persisted
+    `overdue`; the standby completes the chore. The primary's persisted `overdue`
+    must be cleared (lifecycle hygiene) so the global aggregate resolves to
+    `approved`, not a stale `overdue`.
+    """
+    from homeassistant.core import Context
+
+    await hass.async_block_till_done()
+
+    chore_name = "Daily Chore (anytime)"
+    coordinator = scenario_primary_standby.coordinator
+    chore_id = scenario_primary_standby.chore_ids[chore_name]
+    zoe_id = scenario_primary_standby.assignee_ids.get("Zoë")
+    max_id = scenario_primary_standby.assignee_ids.get("Max!")
+
+    # Set both persisted per-assignee states to OVERDUE (simulating an overdue chore).
+    for assignee_id in (zoe_id, max_id):
+        assignee_chore_data = coordinator.chore_manager._get_assignee_chore_data(
+            assignee_id, chore_id
+        )
+        assignee_chore_data["state"] = CHORE_STATE_OVERDUE
+
+    # Set the chore's due date to the past so the FSM resolves these as overdue.
+    chore_info = coordinator.chores_data.get(chore_id, {})
+    chore_info["due_date"] = (dt_now_utc() - timedelta(hours=1)).isoformat()
+
+    # Recompute global from the stale overdue states -> should be overdue.
+    coordinator.chore_manager._update_global_state(chore_id)
+    assert coordinator.chores_data[chore_id]["state"] == CHORE_STATE_OVERDUE
+
+    # Max (standby) claims and is approved.
+    assignee_context = Context(user_id=mock_hass_users["assignee2"].id)
+    await claim_chore(hass, "max", chore_name, context=assignee_context)
+    await hass.async_block_till_done()
+    approver_context = Context(user_id=mock_hass_users["approver1"].id)
+    await approve_chore(hass, "max", chore_name, context=approver_context)
+    await hass.async_block_till_done()
+
+    # Primary (Zoë) persisted state must be cleared out of overdue.
+    zoe_chore_data = coordinator.chore_manager._get_assignee_chore_data(
+        zoe_id, chore_id
+    )
+    assert zoe_chore_data["state"] == CHORE_STATE_PENDING, (
+        "Primary's persisted overdue must be cleared when a standby completes"
+    )
+
+    # Global aggregate must resolve to approved (occurrence completed).
+    assert coordinator.chores_data[chore_id]["state"] == CHORE_STATE_APPROVED
 
 
 # =============================================================================

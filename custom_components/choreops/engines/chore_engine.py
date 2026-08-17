@@ -74,6 +74,11 @@ class TransitionEffect:
         clear_completed_by: Whether to clear completed_by field
         set_claimed_by: Name to set as claimed_by (or None)
         set_completed_by: Name to set as completed_by (or None)
+        clear_exception_state: If True, transition this assignee to `pending` ONLY
+                     if their current persisted state is `overdue`/`missed`.
+                     Used to clear exception states of other assignees when a
+                     single-completer chore (shared_first / rotation) advances.
+                     Preserves `approved`/`claimed`/`pending` states.
     """
 
     assignee_id: str
@@ -84,6 +89,7 @@ class TransitionEffect:
     clear_completed_by: bool = False
     set_claimed_by: str | None = None
     set_completed_by: str | None = None
+    clear_exception_state: bool = False
 
 
 # =============================================================================
@@ -203,6 +209,16 @@ class ChoreEngine:
                 assigned_assignees,
                 assignee_name,
             )
+            # Lifecycle hygiene: when a single-completer chore (shared_first /
+            # rotation) is claimed, clear the OTHER assignees' exception states
+            # (overdue/missed) so they are not left in a stale exception.
+            if ChoreEngine.is_single_claimer_mode(chore_data):
+                effects.extend(
+                    ChoreEngine._plan_clear_other_exception_states(
+                        actor_assignee_id,
+                        assigned_assignees,
+                    )
+                )
 
         # === APPROVE ACTION ===
         elif action == CHORE_ACTION_APPROVE:
@@ -213,6 +229,15 @@ class ChoreEngine:
                 assignee_name,
                 points,
             )
+            # Lifecycle hygiene: when a single-completer chore is approved
+            # (completed), clear the OTHER assignees' exception states.
+            if ChoreEngine.is_single_claimer_mode(chore_data):
+                effects.extend(
+                    ChoreEngine._plan_clear_other_exception_states(
+                        actor_assignee_id,
+                        assigned_assignees,
+                    )
+                )
 
         # === DISAPPROVE ACTION ===
         elif action == CHORE_ACTION_DISAPPROVE:
@@ -253,6 +278,40 @@ class ChoreEngine:
             for effect in effects:
                 effect.update_stats = False
 
+        return effects
+
+    @staticmethod
+    def _plan_clear_other_exception_states(
+        actor_assignee_id: str,
+        assigned_assignees: list[str],
+    ) -> list[TransitionEffect]:
+        """Plan effects to clear exception states of OTHER assignees.
+
+        When a single-completer chore (shared_first / rotation) is claimed or
+        approved by the actor, the OTHER assigned assignees' exception states
+        (`overdue`/`missed`) are stale: they are relieved of the occurrence and
+        should not remain in a persisted exception state. Their UI is computed
+        (completed_by_other / not_my_turn / standby), so persisting `pending`
+        preserves their display while removing the stale exception.
+
+        Only clears `overdue`/`missed` (via `clear_exception_state`); preserves
+        `approved`/`claimed`/`pending`.
+
+        Excludes `shared_all` (others legitimately remain overdue — they must
+        each complete) and `independent` (no cross-user effect).
+        """
+        effects: list[TransitionEffect] = []
+        for other_id in assigned_assignees:
+            if not other_id or other_id == actor_assignee_id:
+                continue
+            effects.append(
+                TransitionEffect(
+                    assignee_id=other_id,
+                    new_state=const.CHORE_STATE_PENDING,
+                    update_stats=False,
+                    clear_exception_state=True,
+                )
+            )
         return effects
 
     @staticmethod
@@ -1304,6 +1363,12 @@ class ChoreEngine:
             if isinstance(turn_assignee_id, str)
             else None
         )
+        # Completion-aware: if any assignee (including a standby) completed the
+        # occurrence, the chore is done regardless of the turn-holder's state.
+        # A standby may complete a primary-standby chore after it goes overdue,
+        # leaving the turn-holder's persisted state stale (e.g. `overdue`).
+        if count_approved > 0:
+            return const.CHORE_STATE_APPROVED
         if turn_state is not None:
             if turn_state == const.CHORE_STATE_CLAIMED:
                 return const.CHORE_STATE_CLAIMED
