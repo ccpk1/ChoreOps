@@ -1720,7 +1720,7 @@
           "show_legacy_entities": "Show extra entities like sensor and selects that are now consolidated into the dashboard helper sensor. These entities are optional for backward compatibility with existing automations.",
           "kiosk_mode": "Allows assignee chore/reward claim buttons to work on shared wall tablets without requiring the dashboard user to match the assignee's Home Assistant user link. Security warning: anyone with access to that device can submit assignee claims.",
           "admin_approval_bypass": "When enabled, Home Assistant admin accounts can use chore and reward approval actions across the integration. When disabled, admin accounts cannot approve chores or rewards just because they are Home Assistant admins.",
-          "admin_button_auth": "When enabled (default), admin buttons (approve/disapprove chore & reward, bonus, penalty, points adjust) require a logged-in account and will deny anonymous presses from scripts or automations. Use the equivalent service (e.g. choreops.approve_chore, choreops.apply_bonus) for automated flows. When disabled, matches legacy fail-open behavior (security risk: anyone able to reach the button can trigger admin actions).",
+          "admin_button_auth": "Require a logged-in account for admin buttons (approve/disapprove, bonus, penalty, points adjust). When disabled, anyone can trigger them. Use the equivalent service for automated flows.",
           "backups_max_retained": "Maximum number of backup files to keep per tag (e.g., 5 manual backups, 5 data_reset backups). Older backups are automatically deleted after each new backup is created. Set to 0 to disable automatic backups completely.",
           "backup_action_selection": "Choose a backup management action: create a manual backup, delete a backup, or restore from a backup."
         }
@@ -3021,6 +3021,30 @@
         "output_format": {
           "name": "Output Format",
           "description": "Return markdown only, html only, or both markdown and html in the response payload."
+        }
+      }
+    },
+    "get_ledger": {
+      "name": "Get Ledger",
+      "description": "Return a structured dump of point ledger entries. By default includes all users; pass user_name to limit to one user. Use limit to cap the number of most-recent entries returned.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Config Entry ID (Optional)",
+          "description": "Use this if you have more than one ChoreOps setup. It targets one specific setup.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Config Entry Name (Optional)",
+          "description": "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID.",
+          "example": "Family Chores"
+        },
+        "user_name": {
+          "name": "User Name",
+          "description": "Optional filter to include only one user's ledger entries."
+        },
+        "limit": {
+          "name": "Limit",
+          "description": "Maximum number of most-recent entries to return. Defaults to 1000."
         }
       }
     },

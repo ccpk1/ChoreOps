@@ -503,6 +503,47 @@ generate_activity_report:
             - "html"
             - "both"
 
+get_ledger:
+  name: "Get Ledger"
+  description: >
+    Return a structured dump of point ledger entries. By default includes all
+    users; pass user_name to limit to one user. Use limit to cap the number of
+    most-recent entries returned. This service is response-first and returns
+    JSON when called with return_response: true.
+  fields:
+    config_entry_id:
+      name: "Config Entry ID (Optional)"
+      description: "Use this if you have more than one ChoreOps setup. It targets one specific setup."
+      required: false
+      example: "abc123def456"
+      selector:
+        text:
+    config_entry_title:
+      name: "Config Entry Name (Optional)"
+      description: "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID."
+      required: false
+      example: "Family Chores"
+      selector:
+        text:
+    user_name:
+      name: "User Name"
+      description: "Optional filter. If omitted, includes all users in the ledger dump."
+      required: false
+      example: "Alice"
+      selector:
+        text:
+    limit:
+      name: "Limit"
+      description: "Maximum number of most-recent entries to return. Defaults to 1000."
+      required: false
+      default: 1000
+      example: 50
+      selector:
+        number:
+          min: 1
+          max: 1000
+          mode: box
+
 manage_ui_control:
   name: "Manage UI Control"
   description: >

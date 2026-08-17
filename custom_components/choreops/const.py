@@ -1317,6 +1317,19 @@ POINTS_SOURCE_REWARDS: Final = "rewards"
 POINTS_SOURCE_MANUAL: Final = "manual"
 POINTS_SOURCE_OTHER: Final = "other"
 
+# Human-readable labels for ledger point sources (used by get_ledger service)
+LEDGER_SOURCE_LABELS: Final = {
+    POINTS_SOURCE_CHORES: "Chore",
+    POINTS_SOURCE_REWARDS: "Reward",
+    POINTS_SOURCE_BONUSES: "Bonus",
+    POINTS_SOURCE_PENALTIES: "Penalty",
+    POINTS_SOURCE_BADGES: "Badge",
+    POINTS_SOURCE_ACHIEVEMENTS: "Achievement",
+    POINTS_SOURCE_CHALLENGES: "Challenge",
+    POINTS_SOURCE_MANUAL: "Adjustment",
+    POINTS_SOURCE_OTHER: "Activity",
+}
+
 # Example list of valid sources for UI/enumeration:
 # Lowercase literals required by Home Assistant SelectSelector schema
 
@@ -2923,6 +2936,7 @@ SERVICE_UPDATE_CHORE: Final = "update_chore"
 SERVICE_UPDATE_REWARD: Final = "update_reward"
 SERVICE_GENERATE_ACTIVITY_REPORT: Final = "generate_activity_report"
 SERVICE_MANAGE_UI_CONTROL: Final = "manage_ui_control"
+SERVICE_GET_LEDGER: Final = "get_ledger"
 
 
 # ------------------------------------------------------------------------------------------------
@@ -3105,6 +3119,9 @@ SERVICE_FIELD_REPORT_NOTIFY_SERVICE: Final = "notify_service"
 SERVICE_FIELD_REPORT_TITLE: Final = "report_title"
 SERVICE_FIELD_REPORT_LANGUAGE: Final = "report_language"
 SERVICE_FIELD_REPORT_OUTPUT_FORMAT: Final = "output_format"
+
+# Ledger service fields
+SERVICE_FIELD_LEDGER_LIMIT: Final = "limit"
 
 # Report output modes
 REPORT_OUTPUT_FORMAT_MARKDOWN: Final = "markdown"
