@@ -1702,6 +1702,7 @@
           "show_legacy_entities": "Vis ekstra enheder",
           "kiosk_mode": "Aktivér kiosktilstand for krav fra tildeler",
           "admin_approval_bypass": "Tillad godkendelse af Home Assistant-administratorkonti",
+          "admin_button_auth": "Håndhæv godkendelse for administratorknapper",
           "backups_max_retained": "Maksimal sikkerhedskopiering at beholde",
           "backup_action_selection": "Sikkerhedskopieringshandlinger"
         },
@@ -1719,6 +1720,7 @@
           "show_legacy_entities": "Vis ekstra enheder som sensor og selects, der nu er konsolideret i dashboard-hjælpesensoren. Disse enheder er valgfrie for bagudkompatibilitet med eksisterende automatiseringer.",
           "kiosk_mode": "Tillader knapper til krav om pligter/belønninger for den tildelte person at fungere på tablets med delt væg uden at dashboardbrugeren skal matche den tildelte persons Home Assistant-brugerlink. Sikkerhedsadvarsel: Enhver med adgang til den pågældende enhed kan indsende krav fra den tildelte person.",
           "admin_approval_bypass": "Når det er aktiveret, kan Home Assistant-administratorkonti bruge handlinger til godkendelse af pligter og belønninger på tværs af integrationen. Når det er deaktiveret, kan administratorkonti ikke godkende pligter eller belønninger, blot fordi de er Home Assistant-administratorer.",
+          "admin_button_auth": "Kræv en logget konto for administratorknapper (godkend/afvis, bonus, straf, pointjustering). Når de er deaktiveret, kan alle aktivere dem. Brug den tilsvarende tjeneste til automatiserede flows.",
           "backups_max_retained": "Maksimalt antal backupfiler, der skal gemmes pr. tag (f.eks. 5 manuelle backups, 5 data_reset backups). Ældre backups slettes automatisk, efter hver ny backup oprettes. Indstil til 0 for at deaktivere automatiske backups helt.",
           "backup_action_selection": "Vælg en handling til administration af sikkerhedskopier: opret en manuel sikkerhedskopi, slet en sikkerhedskopi eller gendan fra en sikkerhedskopi."
         }
@@ -3019,6 +3021,30 @@
         "output_format": {
           "name": "Outputformat",
           "description": "Returner kun markdown, kun html eller både markdown og html i svarets nyttelast."
+        }
+      }
+    },
+    "get_ledger": {
+      "name": "Hent Ledger",
+      "description": "Returner en struktureret dump af point ledger-poster. Som standard inkluderer alle brugere; giv brugernavn for at begrænse til én bruger. Brug limit til at begrænse antallet af de seneste returnerede poster.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Konfigurationsindgangs-ID (valgfrit)",
+          "description": "Brug dette, hvis du har mere end én ChoreOps-opsætning. Den er rettet mod én specifik opsætning.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Navn på konfigurationspost (valgfrit)",
+          "description": "Brug dette, hvis du har mere end én ChoreOps-opsætning, og de hver især har unikke navne. Hvis navnene gentages, skal du bruge Config Entry ID.",
+          "example": "Familiepligter"
+        },
+        "user_name": {
+          "name": "Brugernavn",
+          "description": "Valgfrit filter til kun at inkludere én brugers posteringer."
+        },
+        "limit": {
+          "name": "Begrænse",
+          "description": "Maksimalt antal af de seneste poster, der skal returneres. Standardværdien er 1000."
         }
       }
     },

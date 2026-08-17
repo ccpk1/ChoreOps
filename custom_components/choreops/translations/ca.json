@@ -1702,6 +1702,7 @@
           "show_legacy_entities": "Mostra entitats addicionals",
           "kiosk_mode": "Activa el mode de quiosc per a les reclamacions de l'assignat",
           "admin_approval_bypass": "Permet que els comptes d'administrador de l'Assistent a casa s'aprovin",
+          "admin_button_auth": "Aplicar l'autorització per als botons d'administrador",
           "backups_max_retained": "Còpies de seguretat màximes per conservar",
           "backup_action_selection": "Accions de còpia de seguretat"
         },
@@ -1719,6 +1720,7 @@
           "show_legacy_entities": "Mostra entitats addicionals com ara sensor i seleccions que ara estan consolidades al sensor auxiliar del tauler de control. Aquestes entitats són opcionals per a la compatibilitat amb versions anteriors de les automatitzacions existents.",
           "kiosk_mode": "Permet que els botons de reclamació de tasques/recompenses de l'assignat funcionin en tauletes de paret compartides sense que l'usuari del tauler de control hagi de coincidir amb l'enllaç d'usuari de l'assignat de l'assignat. Avís de seguretat: qualsevol persona amb accés a aquest dispositiu pot enviar reclamacions d'assignats.",
           "admin_approval_bypass": "Quan estan activats, els comptes d'administrador de Home Assistant poden utilitzar accions d'aprovació de tasques i recompenses a tota la integració. Quan estan desactivats, els comptes d'administrador no poden aprovar tasques ni recompenses només perquè són administradors de Home Assistant.",
+          "admin_button_auth": "Cal iniciar sessió amb un compte per als botons d'administrador (aprovar/rebutjar, bonificació, penalització, ajust de punts). Quan estan desactivats, qualsevol persona els pot activar. Utilitzeu el servei equivalent per als fluxos automatitzats.",
           "backups_max_retained": "Nombre màxim de fitxers de còpia de seguretat per conservar per etiqueta (per exemple, 5 còpies de seguretat manuals, 5 còpies de seguretat de data_reset). Les còpies de seguretat més antigues s'eliminen automàticament després de crear cada còpia de seguretat nova. Establiu-ho a 0 per desactivar completament les còpies de seguretat automàtiques.",
           "backup_action_selection": "Trieu una acció de gestió de còpies de seguretat: creeu una còpia de seguretat manual, suprimiu una còpia de seguretat o restaureu des d'una còpia de seguretat."
         }
@@ -3019,6 +3021,30 @@
         "output_format": {
           "name": "Format de sortida",
           "description": "Retorna només markdown, només html o tots dos a la càrrega útil de la resposta."
+        }
+      }
+    },
+    "get_ledger": {
+      "name": "Obtén el llibre major",
+      "description": "Retorna un abocament estructurat d'entrades del llibre de punts. Per defecte, inclou tots els usuaris; passa nom_usuari per limitar a un usuari. Utilitza límit per limitar el nombre d'entrades més recents retornades.",
+      "fields": {
+        "config_entry_id": {
+          "name": "ID d'entrada de configuració (opcional)",
+          "description": "Feu servir això si teniu més d'una configuració de ChoreOps. Està dirigit a una configuració específica.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Nom de l'entrada de configuració (opcional)",
+          "description": "Feu servir això si teniu més d'una configuració ChoreOps i cadascuna té noms únics. Si els noms es repeteixen, feu servir l'ID d'entrada de configuració.",
+          "example": "Tasques familiars"
+        },
+        "user_name": {
+          "name": "Nom d'usuari",
+          "description": "Filtre opcional per incloure només els assentaments del llibre major d'un usuari."
+        },
+        "limit": {
+          "name": "Límit",
+          "description": "Nombre màxim d'entrades més recents que es retornaran. El valor per defecte és 1000."
         }
       }
     },

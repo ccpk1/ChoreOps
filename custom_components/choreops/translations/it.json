@@ -1702,6 +1702,7 @@
           "show_legacy_entities": "Mostra entità aggiuntive",
           "kiosk_mode": "Abilita la modalità chiosco per le richieste degli cessionari",
           "admin_approval_bypass": "Consenti agli account amministratori di Home Assistant di approvare",
+          "admin_button_auth": "Applica l'autorizzazione per i pulsanti di amministrazione",
           "backups_max_retained": "Numero massimo di backup da conservare",
           "backup_action_selection": "Azioni di backup"
         },
@@ -1719,6 +1720,7 @@
           "show_legacy_entities": "Mostra entità aggiuntive come sensori e menu a tendina che ora sono consolidate nel sensore ausiliario del dashboard. Queste entità sono facoltative per garantire la compatibilità con le automazioni esistenti.",
           "kiosk_mode": "Consente ai pulsanti di richiesta di incarichi/ricompense dell'assegnatario di funzionare sui tablet a parete condivisi senza che l'utente della dashboard debba corrispondere al collegamento utente di Home Assistant dell'assegnatario. Avviso di sicurezza: chiunque abbia accesso a quel dispositivo può inviare richieste dell'assegnatario.",
           "admin_approval_bypass": "Quando questa opzione è abilitata, gli account amministratore di Home Assistant possono utilizzare le azioni di approvazione di incarichi e premi nell'ambito dell'integrazione. Quando è disabilitata, gli account amministratore non possono approvare incarichi o premi semplicemente perché sono amministratori di Home Assistant.",
+          "admin_button_auth": "Richiedi l'accesso con un account per i pulsanti di amministrazione (approvazione/rifiuto, bonus, penalità, modifica punti). Se disabilitati, chiunque può attivarli. Utilizza il servizio equivalente per i flussi automatizzati.",
           "backups_max_retained": "Numero massimo di file di backup da conservare per tag (ad esempio, 5 backup manuali, 5 backup di ripristino dati). I backup più vecchi vengono eliminati automaticamente dopo la creazione di ogni nuovo backup. Impostare su 0 per disabilitare completamente i backup automatici.",
           "backup_action_selection": "Scegli un'azione di gestione del backup: crea un backup manuale, elimina un backup o ripristina da un backup."
         }
@@ -3019,6 +3021,30 @@
         "output_format": {
           "name": "Formato di output",
           "description": "Restituisci solo markdown, solo html o entrambi nel payload della risposta."
+        }
+      }
+    },
+    "get_ledger": {
+      "name": "Ottieni Ledger",
+      "description": "Restituisce un dump strutturato delle voci del registro punti. Per impostazione predefinita include tutti gli utenti; passare user_name per limitare a un solo utente. Utilizzare limit per limitare il numero di voci più recenti restituite.",
+      "fields": {
+        "config_entry_id": {
+          "name": "ID voce di configurazione (facoltativo)",
+          "description": "Utilizza questa opzione se disponi di più di una configurazione ChoreOps. È pensata per una configurazione specifica.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Nome della voce di configurazione (facoltativo)",
+          "description": "Utilizza questa opzione se disponi di più configurazioni ChoreOps, ognuna con un nome univoco. Se i nomi si ripetono, utilizza l'ID voce di configurazione.",
+          "example": "faccende domestiche"
+        },
+        "user_name": {
+          "name": "Nome utente",
+          "description": "Filtro opzionale per includere solo le registrazioni contabili di un singolo utente."
+        },
+        "limit": {
+          "name": "Limite",
+          "description": "Numero massimo di voci più recenti da visualizzare. Il valore predefinito è 1000."
         }
       }
     },

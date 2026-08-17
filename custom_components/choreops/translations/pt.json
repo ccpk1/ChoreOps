@@ -1702,6 +1702,7 @@
           "show_legacy_entities": "Mostrar entidades adicionais",
           "kiosk_mode": "Ativar o Modo Quiosque para Sinistros de Cessionário",
           "admin_approval_bypass": "Permitir que as contas de administrador do Home Assistant aprovem",
+          "admin_button_auth": "Impor autorização para os botões de administrador",
           "backups_max_retained": "Número máximo de backups a manter.",
           "backup_action_selection": "Ações de backup"
         },
@@ -1719,6 +1720,7 @@
           "show_legacy_entities": "Apresente entidades adicionais, como sensores e seleções, que estão agora consolidadas no sensor auxiliar do painel. Estas entidades são opcionais para manter a compatibilidade com versões anteriores de automatizações.",
           "kiosk_mode": "Permite que os botões de pedido de tarefas/recompensas do responsável funcionem em tablets partilhados na parede, sem exigir que o utilizador do painel de controlo corresponda ao utilizador do Home Assistant do responsável. Aviso de segurança: qualquer pessoa com acesso a este dispositivo pode enviar pedidos de tarefas/recompensas do responsável.",
           "admin_approval_bypass": "Quando ativada, a integração permite que as contas de administrador do Home Assistant utilizem ações de aprovação de tarefas e recompensas. Quando desativadas, estas contas não podem aprovar tarefas ou recompensas apenas por serem administradoras do Home Assistant.",
+          "admin_button_auth": "Exija uma conta autenticada para aceder aos botões de administrador (aprovar/reprovar, bónus, penalização, acerto de pontos). Quando desativados, qualquer pessoa poderá acioná-los. Utilize o serviço equivalente para fluxos automatizados.",
           "backups_max_retained": "Número máximo de ficheiros de cópia de segurança a manter por etiqueta (ex.: 5 cópias de segurança manuais, 5 cópias de segurança de reposição de dados). Os backups mais antigos são automaticamente eliminados após a criação de cada novo backup. Defina para 0 para desativar completamente os backups automáticos.",
           "backup_action_selection": "Escolha uma ação de gestão de cópias de segurança: criar uma cópia de segurança manual, eliminar uma cópia de segurança ou restaurar a partir de uma cópia de segurança."
         }
@@ -3019,6 +3021,30 @@
         "output_format": {
           "name": "Formato de saída",
           "description": "Retorna apenas Markdown, apenas HTML ou ambos (Markdown e HTML) na resposta."
+        }
+      }
+    },
+    "get_ledger": {
+      "name": "Obtenha o Ledger",
+      "description": "Retorna um dump estruturado das entradas do livro-razão de pontos. Por defeito, inclui todos os utilizadores; passe o nome do utilizador (user_name) para limitar a um único utilizador. Utilize o parâmetro `limit` para limitar o número de entradas mais recentes devolvidas.",
+      "fields": {
+        "config_entry_id": {
+          "name": "ID da entrada de configuração (opcional)",
+          "description": "Utilize esta opção se tiver mais do que uma configuração do ChoreOps. É direcionada para uma configuração específica.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Nome da entrada de configuração (opcional)",
+          "description": "Utilize esta opção se tiver mais do que uma configuração do ChoreOps e cada uma delas tiver um nome único. Se os nomes se repetirem, utilize o ID da entrada de configuração.",
+          "example": "Tarefas familiares"
+        },
+        "user_name": {
+          "name": "Nome de utilizador",
+          "description": "Filtro opcional para incluir apenas os lançamentos contabilísticos de um único utilizador."
+        },
+        "limit": {
+          "name": "Limite",
+          "description": "Número máximo de entradas mais recentes a serem devolvidas. O padrão é 1000."
         }
       }
     },

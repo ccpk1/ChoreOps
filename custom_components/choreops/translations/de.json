@@ -1702,6 +1702,7 @@
           "show_legacy_entities": "Zusätzliche Entitäten anzeigen",
           "kiosk_mode": "Kioskmodus für Übernahmen durch zugewiesene Personen aktivieren",
           "admin_approval_bypass": "Home-Assistant Administratorkonten dürfen genehmigen",
+          "admin_button_auth": "Autorisierung für Admin-Schaltflächen erzwingen",
           "backups_max_retained": "Maximale Anzahl aufzubewahrender Sicherungen",
           "backup_action_selection": "Sicherungsaktionen"
         },
@@ -1719,6 +1720,7 @@
           "show_legacy_entities": "Zusätzliche Entitäten wie Sensoren und Auswahlfelder anzeigen, die jetzt in den Dashboard-Helfersensoren zusammengefasst sind. Diese Entitäten sind optional und dienen der Abwärtskompatibilität mit bestehenden Automatisierungen.",
           "kiosk_mode": "Ermöglicht die Nutzung der Schaltflächen zum Übernehmen von Aufgaben und Belohnungen auf gemeinsam genutzten Wand-Tablets, ohne dass der Dashboard-Benutzer mit dem Home-Assistant-Benutzer der zugewiesenen Person übereinstimmen muss. Sicherheitshinweis: Jeder mit Zugriff auf das Gerät kann Übernahmen durchführen.",
           "admin_approval_bypass": "Wenn aktiviert, können Home-Assistant Administratorkonten Aufgaben und Belohnungen integrationsweit genehmigen. Wenn deaktiviert, dürfen Administratorkonten Aufgaben oder Belohnungen nicht allein aufgrund ihrer Home-Assistant Administratorrechte genehmigen.",
+          "admin_button_auth": "Für die Administrator-Schaltflächen (Genehmigen/Ablehnen, Bonus, Strafe, Punkteanpassung) ist ein angemeldetes Konto erforderlich. Wenn diese deaktiviert sind, kann jeder sie auslösen. Verwenden Sie den entsprechenden Dienst für automatisierte Abläufe.",
           "backups_max_retained": "Maximale Anzahl von Sicherungen pro Kategorie (z. B. 5 manuelle Sicherungen, 5 Sicherungen nach Datenrücksetzung). Ältere Sicherungen werden nach jeder neuen Sicherung automatisch gelöscht. Legen Sie 0 fest, um automatische Sicherungen vollständig zu deaktivieren.",
           "backup_action_selection": "Wählen Sie eine Sicherungsaktion aus: manuelle Sicherung erstellen, Sicherung löschen oder Sicherung wiederherstellen."
         }
@@ -3019,6 +3021,30 @@
         "output_format": {
           "name": "Ausgabeformat",
           "description": "Gibt nur Markdown, nur HTML oder sowohl Markdown als auch HTML in der Antwort zurück."
+        }
+      }
+    },
+    "get_ledger": {
+      "name": "Ledger herunterladen",
+      "description": "Gibt einen strukturierten Auszug der Punktbucheinträge zurück. Standardmäßig werden alle Benutzer berücksichtigt; mit dem Parameter `user_name` kann die Anzahl auf einen Benutzer beschränkt werden. Mit `limit` lässt sich die Anzahl der zuletzt zurückgegebenen Einträge begrenzen.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Konfigurationseintrags-ID (optional)",
+          "description": "Verwenden Sie diese Option, wenn Sie mehrere ChoreOps-Instanzen haben. Sie richtet sich an eine bestimmte Instanz.\n",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Name des Konfigurationseintrags (optional)",
+          "description": "Verwenden Sie diese Option, wenn Sie mehrere ChoreOps-Instanzen haben. Sie richtet sich an eine bestimmte Instanz.",
+          "example": "Familienaufgaben"
+        },
+        "user_name": {
+          "name": "Benutzername",
+          "description": "Optionaler Filter, um nur die Buchungseinträge eines einzelnen Benutzers einzuschließen."
+        },
+        "limit": {
+          "name": "Limit",
+          "description": "Maximale Anzahl der zurückzugebenden neuesten Einträge. Standardwert: 1000."
         }
       }
     },

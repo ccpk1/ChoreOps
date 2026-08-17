@@ -1702,6 +1702,7 @@
           "show_legacy_entities": "Afișați entități suplimentare",
           "kiosk_mode": "Activați modul chioșc pentru revendicările de la cesionari",
           "admin_approval_bypass": "Permiteți aprobarea conturilor de administrator Home Assistant",
+          "admin_button_auth": "Aplicați autorizarea pentru butoanele de administrator",
           "backups_max_retained": "Număr maxim de copii de rezervă de păstrat",
           "backup_action_selection": "Acțiuni de rezervă"
         },
@@ -1719,6 +1720,7 @@
           "show_legacy_entities": "Afișează entități suplimentare precum senzor și selecții care sunt acum consolidate în senzorul auxiliar al tabloului de bord. Aceste entități sunt opționale pentru compatibilitate inversă cu automatizările existente.",
           "kiosk_mode": "Permite ca butoanele de revendicare a sarcinilor/recompenselor persoanei însărcinate să funcționeze pe tabletele de perete partajate fără a fi nevoie ca utilizatorul tabloului de bord să coincidă cu linkul de utilizator Home Assistant al persoanei însărcinate. Avertisment de securitate: oricine are acces la dispozitivul respectiv poate trimite revendicări pentru persoane însărcinate.",
           "admin_approval_bypass": "Când este activată, conturile de administrator Home Assistant pot folosi acțiuni de aprobare a sarcinilor și recompenselor în cadrul integrării. Când este dezactivată, conturile de administrator nu pot aproba sarcini sau recompense doar pentru că sunt administratori Home Assistant.",
+          "admin_button_auth": "Necesită un cont conectat pentru butoanele de administrator (aprobare/dezaprobare, bonus, penalizare, ajustare puncte). Când sunt dezactivate, oricine le poate activa. Folosește serviciul echivalent pentru fluxurile automate.",
           "backups_max_retained": "Numărul maxim de fișiere de rezervă care pot fi păstrate per etichetă (de exemplu, 5 copii de rezervă manuale, 5 copii de rezervă cu resetare_datelor). Copiile de rezervă mai vechi sunt șterse automat după crearea fiecărui copil de rezervă nou. Setați la 0 pentru a dezactiva complet copiile de rezervă automate.",
           "backup_action_selection": "Alegeți o acțiune de gestionare a copiilor de rezervă: creați o copie de rezervă manuală, ștergeți o copie de rezervă sau restaurați dintr-o copie de rezervă."
         }
@@ -3019,6 +3021,30 @@
         "output_format": {
           "name": "Format de ieșire",
           "description": "Returnează doar markdown, doar html sau ambele, markdown și html, în sarcina utilă a răspunsului."
+        }
+      }
+    },
+    "get_ledger": {
+      "name": "Obțineți registrul",
+      "description": "Returnează o imagine structurată a intrărilor din registrul de puncte. În mod implicit, include toți utilizatorii; transmite user_name pentru a limita la un singur utilizator. Folosește limit pentru a limita numărul de intrări cele mai recente returnate.",
+      "fields": {
+        "config_entry_id": {
+          "name": "ID intrare configurație (opțional)",
+          "description": "Folosește această opțiune dacă ai mai multe configurații ChoreOps. Vizează o configurație specifică.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Nume intrare configurație (opțional)",
+          "description": "Folosește această opțiune dacă ai mai multe configurații ChoreOps și fiecare are nume unice. Dacă numele se repetă, folosește ID-ul intrării de configurare.",
+          "example": "Treburi familiale"
+        },
+        "user_name": {
+          "name": "Nume utilizator",
+          "description": "Filtru opțional pentru a include intrările în registru ale unui singur utilizator."
+        },
+        "limit": {
+          "name": "Limită",
+          "description": "Numărul maxim de intrări recente de returnat. Implicit, valoarea este 1000."
         }
       }
     },

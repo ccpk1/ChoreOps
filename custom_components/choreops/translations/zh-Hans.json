@@ -1702,6 +1702,7 @@
           "show_legacy_entities": "显示额外实体",
           "kiosk_mode": "启用执行人认领自助服务模式",
           "admin_approval_bypass": "允许 Home Assistant 管理员帐户进行批准",
+          "admin_button_auth": "强制管理员按钮授权",
           "backups_max_retained": "最大备份保留量",
           "backup_action_selection": "备份操作"
         },
@@ -1719,6 +1720,7 @@
           "show_legacy_entities": "显示额外的实体，例如传感器和选择器，这些实体现在已整合到仪表盘辅助实体中。为了向后兼容现有自动化流程，这些实体是可选的。",
           "kiosk_mode": "允许在共享墙面平板电脑上启用执行人家务认领/奖励兑换按钮，而无需仪表盘用户与执行人的 Home Assistant 用户关联匹配。安全警告：任何有权访问该设备的人都可以提交执行人认领申请。",
           "admin_approval_bypass": "启用此功能后，Home Assistant 管理员帐户可以使用集成中的家务和奖励审批操作。禁用此功能后，管理员帐户即使拥有 Home Assistant 管理员身份，也无法审批家务或奖励。",
+          "admin_button_auth": "管理员按钮（批准/拒绝、奖励、处罚、积分调整）需要登录账户才能使用。禁用此功能后，任何人都可以触发这些按钮。自动化流程应使用同等服务。",
           "backups_max_retained": "每个标签保留的最大备份文件数（例如，5 个手动备份，5 个数据重置备份）。每次创建新备份后，较旧的备份将自动删除。设置为 0 可完全禁用自动备份。",
           "backup_action_selection": "选择备份管理操作：创建手动备份、删除备份或从备份还原。"
         }
@@ -3019,6 +3021,30 @@
         "output_format": {
           "name": "输出格式",
           "description": "响应有效负载中仅返回 Markdown、仅返回 HTML 或同时返回 Markdown 和 HTML。"
+        }
+      }
+    },
+    "get_ledger": {
+      "name": "获取账簿",
+      "description": "返回结构化的积分账本条目转储。默认情况下包含所有用户；传递 `user_name` 参数可限制仅包含一个用户。使用 `limit` 参数可限制返回的最新条目数量。",
+      "fields": {
+        "config_entry_id": {
+          "name": "配置条目 ID（可选）",
+          "description": "如果您有多个 ChoreOps 配置，请使用此选项。它针对的是特定的一个配置。",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "配置项名称（可选）",
+          "description": "如果您有多个 ChoreOps 设置，并且每个设置都有唯一的名称，请使用此选项。如果名称重复，请使用配置条目 ID。",
+          "example": "家庭家务"
+        },
+        "user_name": {
+          "name": "用户名",
+          "description": "可选筛选条件，仅包含一位用户的账簿条目。"
+        },
+        "limit": {
+          "name": "限制",
+          "description": "要返回的最新条目的最大数量。默认为 1000。"
         }
       }
     },

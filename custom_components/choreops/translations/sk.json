@@ -1702,6 +1702,7 @@
           "show_legacy_entities": "Zobraziť ďalšie entity",
           "kiosk_mode": "Povoliť režim kiosku pre nároky nadobúdateľa",
           "admin_approval_bypass": "Povoliť schvaľovanie administrátorským účtom domáceho asistenta",
+          "admin_button_auth": "Vynútiť autorizáciu pre tlačidlá správcu",
           "backups_max_retained": "Maximálny počet záloh na uchovanie",
           "backup_action_selection": "Zálohovacie akcie"
         },
@@ -1719,6 +1720,7 @@
           "show_legacy_entities": "Zobraziť ďalšie entity, ako napríklad senzor a výbery, ktoré sú teraz zlúčené do pomocného senzora na dashboarde. Tieto entity sú voliteľné kvôli spätnej kompatibilite s existujúcimi automatizáciami.",
           "kiosk_mode": "Umožňuje tlačidlám pre uplatnenie nároku na úlohy/odmeny priradenej osoby fungovať na zdieľaných nástenných tabletoch bez toho, aby sa používateľ ovládacieho panela musel zhodovať s odkazom používateľa Home Assistant priradenej osoby. Bezpečnostné upozornenie: nároky na priradenú osobu môže odoslať ktokoľvek s prístupom k danému zariadeniu.",
           "admin_approval_bypass": "Keď je táto funkcia povolená, administrátorské účty služby Home Assistant môžu v rámci integrácie používať akcie schvaľovania domácich úloh a odmien. Keď je táto funkcia zakázaná, administrátorské účty nemôžu schvaľovať domáce úlohy ani odmeny len preto, že sú administrátormi služby Home Assistant.",
+          "admin_button_auth": "Pre tlačidlá správcu (schváliť/neschváliť, bonus, penalizácia, úprava bodov) je potrebný prihlásený účet. Ak sú vypnuté, môže ich spustiť ktokoľvek. Pre automatizované postupy použite ekvivalentnú službu.",
           "backups_max_retained": "Maximálny počet záložných súborov, ktoré sa majú uchovávať na tag (napr. 5 manuálnych záloh, 5 záloh typu data_reset). Staršie zálohy sa automaticky odstránia po vytvorení každej novej zálohy. Nastavením na hodnotu 0 úplne vypnete automatické zálohy.",
           "backup_action_selection": "Vyberte akciu správy záloh: vytvorenie manuálnej zálohy, odstránenie zálohy alebo obnovenie zo zálohy."
         }
@@ -3019,6 +3021,30 @@
         "output_format": {
           "name": "Výstupný formát",
           "description": "V odpovedi vrátiť iba markdown, iba html alebo markdown aj html."
+        }
+      }
+    },
+    "get_ledger": {
+      "name": "Získajte účtovnú knihu",
+      "description": "Vráti štruktúrovaný výpis položiek v bodovej knihe. Predvolene zahŕňa všetkých používateľov; zadajte meno_používateľa, ak chcete obmedziť počet na jedného používateľa. Použite limit na obmedzenie počtu vrátených najnovších položiek.",
+      "fields": {
+        "config_entry_id": {
+          "name": "ID konfiguračnej položky (voliteľné)",
+          "description": "Použite toto, ak máte viac ako jedno nastavenie ChoreOps. Zameriava sa na jedno konkrétne nastavenie.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Názov konfiguračnej položky (voliteľné)",
+          "description": "Použite toto, ak máte viacero nastavení ChoreOps a každé z nich má jedinečný názov. Ak sa názvy opakujú, použite ID položky konfigurácie.",
+          "example": "Rodinné práce"
+        },
+        "user_name": {
+          "name": "Používateľské meno",
+          "description": "Voliteľný filter na zahrnutie iba položiek účtovnej knihy jedného používateľa."
+        },
+        "limit": {
+          "name": "Limit",
+          "description": "Maximálny počet najnovších záznamov, ktoré sa majú vrátiť. Predvolená hodnota je 1000."
         }
       }
     },
