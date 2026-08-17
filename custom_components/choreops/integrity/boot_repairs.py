@@ -13,8 +13,11 @@ from __future__ import annotations
 
 from typing import Any
 
+from homeassistant.util import dt as dt_util
+
 from custom_components.choreops import const
 from custom_components.choreops.engines.chore_engine import ChoreEngine
+from custom_components.choreops.utils.dt_utils import dt_parse, dt_to_utc
 
 
 def run_boot_repairs(data: dict[str, Any]) -> dict[str, dict[str, int]]:
@@ -24,8 +27,27 @@ def run_boot_repairs(data: dict[str, Any]) -> dict[str, dict[str, int]]:
     }
 
 
+def _is_due_date_future(due_date_raw: Any) -> bool:
+    """Return True if a due date value exists and is strictly in the future."""
+    if not due_date_raw:
+        return False
+    due_dt = dt_to_utc(due_date_raw) or dt_parse(due_date_raw)
+    if due_dt is None:
+        return False
+    return due_dt > dt_util.utcnow()
+
+
 def repair_impossible_due_state_residue(data: dict[str, Any]) -> dict[str, int]:
-    """Clear impossible overdue residue when no active due date exists."""
+    """Clear impossible overdue residue when the due date is absent or in the future.
+
+    Invariant: a per-assignee state of `overdue`/`missed` is only legitimate when
+    the chore's due date is in the past. If the due date is absent or in the future,
+    those states are impossible residue (e.g. left over from a prior cycle after the
+    due date was rescheduled forward) and are normalized to `pending`.
+
+    Issue #248: the prior guard only normalized residue when there was NO active due
+    date, skipping chores WITH a future due date — exactly the reported bug scenario.
+    """
     summary = {
         "chores_sanitized": 0,
         "stale_due_dates_cleared": 0,
@@ -72,7 +94,22 @@ def repair_impossible_due_state_residue(data: dict[str, Any]) -> dict[str, int]:
                 due_date for due_date in per_assignee_due_dates.values() if due_date
             )
         )
-        if has_active_due_date:
+        # Resolve the applicable due date for past/future determination.
+        applicable_due_date_raw = (
+            due_date_raw
+            if uses_chore_level_due_date
+            else next(
+                (due_date for due_date in per_assignee_due_dates.values() if due_date),
+                None,
+            )
+        )
+        # Skip normalization only when a due date exists AND is in the PAST
+        # (where overdue/missed is legitimate). Absent or future due dates mean
+        # overdue/missed is impossible residue and must be normalized.
+        due_date_is_past = has_active_due_date and not _is_due_date_future(
+            applicable_due_date_raw
+        )
+        if due_date_is_past:
             if chore_changed:
                 summary["chores_sanitized"] += 1
             continue

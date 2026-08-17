@@ -7,7 +7,10 @@ requiring any Home Assistant mocking or integration setup.
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
+from typing import Any
 from zoneinfo import ZoneInfo
+
+import pytest
 
 from custom_components.choreops import const
 from custom_components.choreops.engines.chore_engine import (
@@ -148,7 +151,7 @@ class TestCalculateTransitionClaim:
         assert effects[0].new_state == const.CHORE_STATE_CLAIMED
 
     def test_claim_shared_first_affects_all_assignees(self) -> None:
-        """SHARED_FIRST: Claiming assignee → CLAIMED (Phase 2: no state change for others)."""
+        """SHARED_FIRST: Claiming assignee → CLAIMED, others get exception-state clear."""
         chore_data = {
             const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_SHARED_FIRST,
             const.DATA_CHORE_DEFAULT_POINTS: 10.0,
@@ -162,8 +165,8 @@ class TestCalculateTransitionClaim:
             assignee_name="Sarah",
         )
 
-        # Phase 2: Only 1 effect (actor), other assignees remain in their current state
-        assert len(effects) == 1
+        # Actor + exception-state clear for the 2 other assignees (Issue #248).
+        assert len(effects) == 3
 
         # Actor assignee gets CLAIMED state
         actor_effect = effects[0]
@@ -171,6 +174,13 @@ class TestCalculateTransitionClaim:
         assert actor_effect.new_state == const.CHORE_STATE_CLAIMED
         assert actor_effect.update_stats is True
         assert actor_effect.set_claimed_by == "Sarah"
+
+        # Other assignees get exception-state clear (overdue/missed -> pending)
+        for other_effect in effects[1:]:
+            assert other_effect.assignee_id in ("assignee-2", "assignee-3")
+            assert other_effect.new_state == const.CHORE_STATE_PENDING
+            assert other_effect.clear_exception_state is True
+            assert other_effect.update_stats is False
 
 
 # =============================================================================
@@ -204,7 +214,7 @@ class TestCalculateTransitionApprove:
         assert effects[0].set_completed_by == "Sarah"
 
     def test_approve_shared_first_updates_all(self) -> None:
-        """SHARED_FIRST: Approve updates actor only (Phase 2: no state change for others)."""
+        """SHARED_FIRST: Approve updates actor + clears others' exception states."""
         chore_data = {
             const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_SHARED_FIRST,
             const.DATA_CHORE_DEFAULT_POINTS: 20.0,
@@ -218,8 +228,8 @@ class TestCalculateTransitionApprove:
             assignee_name="Sarah",
         )
 
-        # Phase 2: Only 1 effect (actor), blocking is computed not stored
-        assert len(effects) == 1
+        # Actor + exception-state clear for the 1 other assignee (Issue #248).
+        assert len(effects) == 2
 
         actor_effect = effects[0]
         assert actor_effect.assignee_id == "assignee-1"
@@ -227,6 +237,13 @@ class TestCalculateTransitionApprove:
         assert actor_effect.points == 20.0
         assert actor_effect.update_stats is True
         assert actor_effect.set_completed_by == "Sarah"
+
+        # Other assignee gets exception-state clear (overdue/missed -> pending)
+        other_effect = effects[1]
+        assert other_effect.assignee_id == "assignee-2"
+        assert other_effect.new_state == const.CHORE_STATE_PENDING
+        assert other_effect.clear_exception_state is True
+        assert other_effect.update_stats is False
 
 
 class TestCalculateStreak:
@@ -1614,3 +1631,210 @@ class TestComputeGlobalChoreStateEdges:
 
         result = ChoreEngine.compute_global_chore_state(chore_data, assignee_states)
         assert result == const.CHORE_STATE_PENDING
+
+
+class TestResolveRotationGlobalState:
+    """Unit tests for rotation-mode global state resolution.
+
+    Covers Issue #248: a standby completing a primary-standby chore must make
+    the global state `approved` even when the turn-holder's persisted state is a
+    stale `overdue` (standbys typically claim after the chore goes overdue).
+    """
+
+    def _chore(
+        self,
+        *,
+        current_turn: str,
+        criteria: str = const.COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY,
+    ) -> dict[str, Any]:
+        return {
+            const.DATA_CHORE_COMPLETION_CRITERIA: criteria,
+            const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID: current_turn,
+        }
+
+    def test_closed_cycle_standby_completed_returns_approved(self) -> None:
+        """Standby completion makes global approved even if turn-holder overdue.
+
+        Reproduction of the Feed Cat AM scenario: primary (turn) is `overdue`,
+        a standby completed the chore (`approved`). Global must be `approved`.
+        """
+        chore_data = self._chore(current_turn="primary")
+        assignee_states = {
+            "primary": const.CHORE_STATE_OVERDUE,
+            "standby": const.CHORE_STATE_APPROVED,
+            "other": const.CHORE_STATE_OVERDUE,
+        }
+        result = ChoreEngine.resolve_rotation_global_state(
+            chore_data=chore_data,
+            assignee_states=assignee_states,
+            is_open_claim_cycle=False,
+        )
+        assert result == const.CHORE_STATE_APPROVED
+
+    def test_closed_cycle_turn_holder_approved_returns_approved(self) -> None:
+        """A closed cycle with the turn-holder approved reflects approved."""
+        chore_data = self._chore(current_turn="primary")
+        assignee_states = {
+            "primary": const.CHORE_STATE_APPROVED,
+            "standby": const.CHORE_STATE_PENDING,
+        }
+        result = ChoreEngine.resolve_rotation_global_state(
+            chore_data=chore_data,
+            assignee_states=assignee_states,
+            is_open_claim_cycle=False,
+        )
+        assert result == const.CHORE_STATE_APPROVED
+
+    def test_closed_cycle_turn_holder_overdue_no_completion_returns_overdue(
+        self,
+    ) -> None:
+        """Without any completion, a closed cycle follows the turn-holder's state."""
+        chore_data = self._chore(current_turn="primary")
+        assignee_states = {
+            "primary": const.CHORE_STATE_OVERDUE,
+            "standby": const.CHORE_STATE_OVERDUE,
+        }
+        result = ChoreEngine.resolve_rotation_global_state(
+            chore_data=chore_data,
+            assignee_states=assignee_states,
+            is_open_claim_cycle=False,
+        )
+        assert result == const.CHORE_STATE_OVERDUE
+
+    def test_closed_cycle_turn_holder_claimed_returns_claimed(self) -> None:
+        """A closed cycle with the turn-holder claiming reflects claimed."""
+        chore_data = self._chore(current_turn="primary")
+        assignee_states = {
+            "primary": const.CHORE_STATE_CLAIMED,
+            "standby": const.CHORE_STATE_PENDING,
+        }
+        result = ChoreEngine.resolve_rotation_global_state(
+            chore_data=chore_data,
+            assignee_states=assignee_states,
+            is_open_claim_cycle=False,
+        )
+        assert result == const.CHORE_STATE_CLAIMED
+
+    def test_open_cycle_standby_completed_returns_approved(self) -> None:
+        """Open cycle with a standby completed reflects approved (existing path)."""
+        chore_data = self._chore(current_turn="primary")
+        assignee_states = {
+            "primary": const.CHORE_STATE_OVERDUE,
+            "standby": const.CHORE_STATE_APPROVED,
+        }
+        result = ChoreEngine.resolve_rotation_global_state(
+            chore_data=chore_data,
+            assignee_states=assignee_states,
+            is_open_claim_cycle=True,
+        )
+        assert result == const.CHORE_STATE_APPROVED
+
+    @pytest.mark.parametrize(
+        "criteria",
+        [
+            const.COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY,
+            const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
+            const.COMPLETION_CRITERIA_ROTATION_SMART,
+        ],
+    )
+    def test_non_turn_assignee_completed_returns_approved_for_all_rotation_types(
+        self,
+        criteria: str,
+    ) -> None:
+        """A non-turn assignee completing makes global approved for ALL rotation types.
+
+        Covers Issue #248 holistically: whether the completion comes from a standby
+        (primary-standby) or via steal/override (simple/smart), a completed occurrence
+        must resolve to `approved`, not the turn-holder's stale `overdue`.
+        """
+        chore_data = self._chore(current_turn="turn-holder", criteria=criteria)
+        assignee_states = {
+            "turn-holder": const.CHORE_STATE_OVERDUE,
+            "other": const.CHORE_STATE_APPROVED,
+        }
+        result = ChoreEngine.resolve_rotation_global_state(
+            chore_data=chore_data,
+            assignee_states=assignee_states,
+            is_open_claim_cycle=False,
+        )
+        assert result == const.CHORE_STATE_APPROVED
+
+    @pytest.mark.parametrize(
+        "criteria",
+        [
+            const.COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY,
+            const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
+            const.COMPLETION_CRITERIA_ROTATION_SMART,
+        ],
+    )
+    def test_no_completion_follows_turn_holder_for_all_rotation_types(
+        self,
+        criteria: str,
+    ) -> None:
+        """Without completion, ALL rotation types follow the turn-holder's state."""
+        chore_data = self._chore(current_turn="turn-holder", criteria=criteria)
+        assignee_states = {
+            "turn-holder": const.CHORE_STATE_OVERDUE,
+            "other": const.CHORE_STATE_PENDING,
+        }
+        result = ChoreEngine.resolve_rotation_global_state(
+            chore_data=chore_data,
+            assignee_states=assignee_states,
+            is_open_claim_cycle=False,
+        )
+        assert result == const.CHORE_STATE_OVERDUE
+
+    @pytest.mark.parametrize(
+        "criteria",
+        [
+            const.COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY,
+            const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
+            const.COMPLETION_CRITERIA_ROTATION_SMART,
+        ],
+    )
+    def test_open_cycle_non_turn_completed_returns_approved_for_all_rotation_types(
+        self,
+        criteria: str,
+    ) -> None:
+        """An open cycle (override/steal) plus non-turn completion -> approved.
+
+        This covers the `open_rotation_cycle` service and the `allow_steal` option:
+        both open the claim cycle so any assigned user may complete. A completed
+        occurrence must resolve to `approved`, not the turn-holder's stale overdue.
+        """
+        chore_data = self._chore(current_turn="turn-holder", criteria=criteria)
+        assignee_states = {
+            "turn-holder": const.CHORE_STATE_OVERDUE,
+            "other": const.CHORE_STATE_APPROVED,
+        }
+        result = ChoreEngine.resolve_rotation_global_state(
+            chore_data=chore_data,
+            assignee_states=assignee_states,
+            is_open_claim_cycle=True,
+        )
+        assert result == const.CHORE_STATE_APPROVED
+
+    @pytest.mark.parametrize(
+        "criteria",
+        [
+            const.COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY,
+            const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
+            const.COMPLETION_CRITERIA_ROTATION_SMART,
+        ],
+    )
+    def test_open_cycle_non_turn_claimed_returns_claimed_for_all_rotation_types(
+        self,
+        criteria: str,
+    ) -> None:
+        """An open cycle (override/steal) with a non-turn claim follows that claim."""
+        chore_data = self._chore(current_turn="turn-holder", criteria=criteria)
+        assignee_states = {
+            "turn-holder": const.CHORE_STATE_OVERDUE,
+            "other": const.CHORE_STATE_CLAIMED,
+        }
+        result = ChoreEngine.resolve_rotation_global_state(
+            chore_data=chore_data,
+            assignee_states=assignee_states,
+            is_open_claim_cycle=True,
+        )
+        assert result == const.CHORE_STATE_CLAIMED

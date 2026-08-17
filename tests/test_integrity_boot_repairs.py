@@ -132,3 +132,104 @@ async def test_preserves_claimed_state_without_due_date(
         assignee_chore_data[const.DATA_USER_CHORE_DATA_STATE]
         == const.CHORE_STATE_CLAIMED
     )
+
+
+@pytest.mark.asyncio
+async def test_sanitizes_stale_overdue_with_future_due_date(
+    hass: HomeAssistant,
+) -> None:
+    """Boot integrity clears stale overdue residue when the due date is in the future.
+
+    Issue #248: a shared_all chore whose due date moved to the future but whose
+    per-assignee persisted states remain `overdue` (from a prior cycle) must be
+    normalized to `pending`. The prior guard skipped chores WITH an active due date.
+    """
+    chore_id = "chore-1"
+    assignee_id = "user-1"
+    coordinator = _build_integrity_test_coordinator(
+        {
+            const.DATA_USERS: {
+                assignee_id: {
+                    const.DATA_USER_CHORE_DATA: {
+                        chore_id: {
+                            const.DATA_USER_CHORE_DATA_STATE: const.CHORE_STATE_OVERDUE,
+                        }
+                    }
+                }
+            },
+            const.DATA_CHORES: {
+                chore_id: {
+                    const.DATA_CHORE_INTERNAL_ID: chore_id,
+                    const.DATA_CHORE_ASSIGNED_USER_IDS: [assignee_id],
+                    const.DATA_CHORE_COMPLETION_CRITERIA: (
+                        const.COMPLETION_CRITERIA_SHARED
+                    ),
+                    const.DATA_CHORE_DUE_DATE: "2099-01-15T08:00:00+00:00",
+                    const.DATA_CHORE_STATE: const.CHORE_STATE_OVERDUE,
+                }
+            },
+        }
+    )
+
+    summary = repair_impossible_due_state_residue(coordinator._data)
+
+    chore_data = coordinator._data[const.DATA_CHORES][chore_id]
+    assignee_chore_data = coordinator._data[const.DATA_USERS][assignee_id][
+        const.DATA_USER_CHORE_DATA
+    ][chore_id]
+
+    assert summary["assignee_states_normalized"] == 1
+    assert summary["chores_sanitized"] == 1
+    assert (
+        assignee_chore_data[const.DATA_USER_CHORE_DATA_STATE]
+        == const.CHORE_STATE_PENDING
+    )
+    assert chore_data[const.DATA_CHORE_STATE] == const.CHORE_STATE_PENDING
+
+
+@pytest.mark.asyncio
+async def test_preserves_genuine_overdue_with_past_due_date(
+    hass: HomeAssistant,
+) -> None:
+    """Boot integrity keeps a legitimate overdue when the due date is in the past."""
+    chore_id = "chore-1"
+    assignee_id = "user-1"
+    coordinator = _build_integrity_test_coordinator(
+        {
+            const.DATA_USERS: {
+                assignee_id: {
+                    const.DATA_USER_CHORE_DATA: {
+                        chore_id: {
+                            const.DATA_USER_CHORE_DATA_STATE: const.CHORE_STATE_OVERDUE,
+                        }
+                    }
+                }
+            },
+            const.DATA_CHORES: {
+                chore_id: {
+                    const.DATA_CHORE_INTERNAL_ID: chore_id,
+                    const.DATA_CHORE_ASSIGNED_USER_IDS: [assignee_id],
+                    const.DATA_CHORE_COMPLETION_CRITERIA: (
+                        const.COMPLETION_CRITERIA_SHARED
+                    ),
+                    const.DATA_CHORE_DUE_DATE: "2020-01-15T08:00:00+00:00",
+                    const.DATA_CHORE_STATE: const.CHORE_STATE_OVERDUE,
+                }
+            },
+        }
+    )
+
+    summary = repair_impossible_due_state_residue(coordinator._data)
+
+    chore_data = coordinator._data[const.DATA_CHORES][chore_id]
+    assignee_chore_data = coordinator._data[const.DATA_USERS][assignee_id][
+        const.DATA_USER_CHORE_DATA
+    ][chore_id]
+
+    # Genuine overdue (past due date) must NOT be normalized.
+    assert summary["assignee_states_normalized"] == 0
+    assert (
+        assignee_chore_data[const.DATA_USER_CHORE_DATA_STATE]
+        == const.CHORE_STATE_OVERDUE
+    )
+    assert chore_data[const.DATA_CHORE_STATE] == const.CHORE_STATE_OVERDUE

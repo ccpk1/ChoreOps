@@ -4076,6 +4076,12 @@ class ChoreManager(BaseManager):
         - Persisted aggregate state is stored at chore level (`DATA_CHORE_STATE`)
         - UI publication projects selected persisted states for display surfaces
 
+        The aggregate is **recomputed** from per-assignee states (via the same
+        logic as `_update_global_state`) rather than trusting the persisted
+        `DATA_CHORE_STATE`, which can go stale (e.g. a standby completing a
+        rotation chore after it went overdue leaves the turn-holder's persisted
+        state stale). Recomputing keeps the read path reality-aligned (Issue #248).
+
         Mapping rules:
         - `approved` -> `completed`
         - `approved_in_part` -> `completed_in_part`
@@ -4084,21 +4090,20 @@ class ChoreManager(BaseManager):
         chore_data: ChoreData | dict[str, Any] = self._coordinator.chores_data.get(
             chore_id, {}
         )
-        persisted_state = chore_data.get(
-            const.DATA_CHORE_STATE,
-            const.CHORE_STATE_PENDING,
-        )
+        # Recompute the aggregate from per-assignee states so it reflects reality
+        # even if the persisted DATA_CHORE_STATE is stale.
+        persisted_state = self._compute_global_state(chore_id, chore_data)
 
         if persisted_state == const.CHORE_STATE_APPROVED:
             return {
-                "persisted_state": cast("str", persisted_state),
+                "persisted_state": persisted_state,
                 "ui_state": const.CHORE_STATE_COMPLETED,
                 "due_window_override_applied": False,
             }
 
         if persisted_state == const.CHORE_STATE_APPROVED_IN_PART:
             return {
-                "persisted_state": cast("str", persisted_state),
+                "persisted_state": persisted_state,
                 "ui_state": const.CHORE_STATE_COMPLETED_IN_PART,
                 "due_window_override_applied": False,
             }
@@ -4107,16 +4112,55 @@ class ChoreManager(BaseManager):
             None, chore_id
         ):
             return {
-                "persisted_state": cast("str", persisted_state),
+                "persisted_state": persisted_state,
                 "ui_state": const.CHORE_STATE_DUE,
                 "due_window_override_applied": True,
             }
 
         return {
-            "persisted_state": cast("str", persisted_state),
-            "ui_state": cast("str", persisted_state),
+            "persisted_state": persisted_state,
+            "ui_state": persisted_state,
             "due_window_override_applied": False,
         }
+
+    def _compute_global_state(
+        self,
+        chore_id: str,
+        chore_data: ChoreData | dict[str, Any],
+    ) -> str:
+        """Compute the aggregate global state from per-assignee states.
+
+        Shared logic between `_update_global_state` (write path) and
+        `get_global_chore_state_context` (read path) so both stay aligned.
+        """
+        assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
+        if not assigned_assignees:
+            return const.CHORE_STATE_PENDING
+
+        assignee_states = self._collect_normalized_assignee_persisted_states(
+            chore_id,
+            assigned_assignees,
+        )
+
+        global_state = ChoreEngine.compute_global_chore_state(
+            chore_data=chore_data,
+            assignee_states=assignee_states,
+        )
+
+        if global_state == const.CHORE_STATE_UNKNOWN:
+            global_state = const.CHORE_STATE_PENDING
+
+        if ChoreEngine.is_rotation_mode(chore_data):
+            global_state = ChoreEngine.resolve_rotation_global_state(
+                chore_data=chore_data,
+                assignee_states=assignee_states,
+                is_open_claim_cycle=self._is_rotation_open_claim_cycle(
+                    chore_id,
+                    chore_data,
+                ),
+            )
+
+        return global_state
 
     def _collect_normalized_assignee_persisted_states(
         self,
@@ -4128,8 +4172,15 @@ class ChoreManager(BaseManager):
         Normalization rules:
         - Non-persisted values are normalized to `pending`
         - In multi-assignee chores, `missed` contributes as `overdue`
+        - A stale persisted `overdue`/`missed` whose due date has moved to the
+          future (FSM resolves to `pending`/`due`) is normalized to `pending`,
+          so the global aggregate stays reality-aligned (Issue #248).
         """
+        chore_data: ChoreData | dict[str, Any] = self._coordinator.chores_data.get(
+            chore_id, {}
+        )
         assignee_states: dict[str, str] = {}
+        now = dt_util.now()
         for assignee_id in assigned_assignees:
             assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
             state = assignee_chore_data.get(
@@ -4139,6 +4190,34 @@ class ChoreManager(BaseManager):
 
             if state not in const.CHORE_PERSISTED_USER_STATES:
                 state = const.CHORE_STATE_PENDING
+
+            # Stale-overdue reconciliation: if the persisted state is overdue/missed
+            # but the FSM resolves the assignee to pending/due (due date moved to
+            # the future), treat as pending for aggregation. This prevents a stale
+            # persisted overdue from making the global aggregate report overdue.
+            if state in (
+                const.CHORE_STATE_OVERDUE,
+                const.CHORE_STATE_MISSED,
+            ):
+                is_approved = self.chore_is_approved_in_period(assignee_id, chore_id)
+                has_pending = ChoreEngine.chore_has_pending_claim(assignee_chore_data)
+                due_dt = self.get_due_date(chore_id, assignee_id)
+                due_window_start = self.get_due_window_start(chore_id, assignee_id)
+                computed_state, _ = ChoreEngine.resolve_assignee_chore_state(
+                    chore_data=chore_data,
+                    assignee_id=assignee_id,
+                    now=now,
+                    is_approved_in_period=is_approved,
+                    has_pending_claim=has_pending,
+                    due_date=due_dt,
+                    due_window_start=due_window_start,
+                )
+                if computed_state in (
+                    const.CHORE_STATE_PENDING,
+                    const.CHORE_STATE_DUE,
+                    const.CHORE_STATE_WAITING,
+                ):
+                    state = const.CHORE_STATE_PENDING
 
             if len(assigned_assignees) > 1 and state == const.CHORE_STATE_MISSED:
                 state = const.CHORE_STATE_OVERDUE
@@ -5724,7 +5803,24 @@ class ChoreManager(BaseManager):
         )
 
         # Apply state change
-        if effect.new_state:
+        if effect.clear_exception_state:
+            # Only clear an exception state (overdue/missed) to pending; preserve
+            # approved/claimed/pending. Used for other assignees in single-completer
+            # chores whose exception state is stale after the actor advances.
+            current_state = assignee_chore_data.get(
+                const.DATA_USER_CHORE_DATA_STATE, const.CHORE_STATE_PENDING
+            )
+            if current_state in (
+                const.CHORE_STATE_OVERDUE,
+                const.CHORE_STATE_MISSED,
+            ):
+                self._set_assignee_chore_state(
+                    assignee_id,
+                    chore_id,
+                    assignee_chore_data,
+                    const.CHORE_STATE_PENDING,
+                )
+        elif effect.new_state:
             state_to_persist = effect.new_state
             if state_to_persist not in const.CHORE_PERSISTED_USER_STATES:
                 const.LOGGER.debug(
@@ -5802,6 +5898,11 @@ class ChoreManager(BaseManager):
         Authority boundary:
         - Engine computes aggregate state via `ChoreEngine.compute_global_chore_state`
         - Manager adapts persisted-only inputs and applies rotation metadata overrides
+
+        The persisted per-assignee states are reconciled for stale `overdue`/`missed`
+        (whose due date has moved to the future) in
+        `_collect_normalized_assignee_persisted_states`, so the aggregate stays
+        reality-aligned without changing the well-defined global-state semantics.
 
         Args:
             chore_id: The chore's internal ID

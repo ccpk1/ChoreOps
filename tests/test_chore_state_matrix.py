@@ -17,10 +17,12 @@ Test Organization:
 
 # pylint: disable=redefined-outer-name
 
+from datetime import timedelta
 from typing import Any
 from unittest.mock import AsyncMock, patch
 
 from homeassistant.core import HomeAssistant
+from homeassistant.util import dt as dt_util
 import pytest
 
 from custom_components.choreops import const
@@ -35,6 +37,7 @@ from tests.helpers import (
     CHORE_STATE_COMPLETED_IN_PART,
     CHORE_STATE_INDEPENDENT,
     CHORE_STATE_NOT_MY_TURN,
+    CHORE_STATE_OVERDUE,
     CHORE_STATE_PENDING,
     CHORE_STATE_UNKNOWN,
     COMPLETION_CRITERIA_SHARED_FIRST,
@@ -1022,3 +1025,68 @@ class TestGlobalStateConsistency:
 
         assert persisted_rotation == expected_rotation
         assert persisted_rotation != CHORE_STATE_UNKNOWN
+
+    @pytest.mark.asyncio
+    async def test_stale_overdue_shared_all_maps_to_pending_when_due_date_future(
+        self,
+        hass: HomeAssistant,
+        scenario_shared: SetupResult,
+    ) -> None:
+        """A shared_all chore with stale persisted `overdue` (future due date) reports pending.
+
+        Regression test for Issue #248: when a chore's due date moves to the future
+        but the per-assignee persisted states remain `overdue` (stale from a prior
+        cycle), the global aggregate must recompute to `pending`, not stay `overdue`.
+        """
+        coordinator = scenario_shared.coordinator
+        chore_id = scenario_shared.chore_ids["Family dinner cleanup"]
+
+        # Set all persisted per-assignee states to OVERDUE (simulating a stale state)
+        assigned_assignees = coordinator.chores_data[chore_id][
+            const.DATA_CHORE_ASSIGNED_USER_IDS
+        ]
+        for assignee_id in assigned_assignees:
+            assignee_chore_data = coordinator.chore_manager._get_assignee_chore_data(
+                assignee_id, chore_id
+            )
+            assignee_chore_data[const.DATA_USER_CHORE_DATA_STATE] = CHORE_STATE_OVERDUE
+
+        # Recompute the global state from the stale persisted states
+        coordinator.chore_manager._update_global_state(chore_id)
+
+        # The persisted states are stale `overdue`, but the FSM resolves them to
+        # `pending` (due date in the future), so the global must be `pending`.
+        assert get_global_chore_state(coordinator, chore_id) == CHORE_STATE_PENDING
+
+    @pytest.mark.asyncio
+    async def test_genuine_overdue_shared_all_remains_overdue(
+        self,
+        hass: HomeAssistant,
+        scenario_shared: SetupResult,
+    ) -> None:
+        """A genuinely overdue shared_all chore (due date in the past) stays overdue.
+
+        Ensures the reconciliation in Phase 2 does NOT clear a legitimate `overdue`
+        where the due date is genuinely in the past.
+        """
+        coordinator = scenario_shared.coordinator
+        chore_id = scenario_shared.chore_ids["Family dinner cleanup"]
+        chore_info = coordinator.chores_data[chore_id]
+        assigned_assignees = chore_info[const.DATA_CHORE_ASSIGNED_USER_IDS]
+
+        # Set all persisted per-assignee states to OVERDUE (genuinely overdue).
+        for assignee_id in assigned_assignees:
+            assignee_chore_data = coordinator.chore_manager._get_assignee_chore_data(
+                assignee_id, chore_id
+            )
+            assignee_chore_data[const.DATA_USER_CHORE_DATA_STATE] = CHORE_STATE_OVERDUE
+
+            # Set the due date to the PAST so the FSM resolves these to genuine OVERDUE.
+        chore_info[const.DATA_CHORE_DUE_DATE] = (
+            dt_util.now() - timedelta(days=1)
+        ).isoformat()
+
+        coordinator.chore_manager._update_global_state(chore_id)
+
+        # All assignees genuinely overdue -> global stays overdue.
+        assert get_global_chore_state(coordinator, chore_id) == CHORE_STATE_OVERDUE
