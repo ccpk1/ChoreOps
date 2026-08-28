@@ -28,10 +28,8 @@ import pytest
 import voluptuous as vol
 
 from custom_components.choreops import const
-from custom_components.choreops.services import (
-    _DAY_OF_WEEK_VALUES,
-    _coerce_applicable_days,
-)
+from custom_components.choreops.engines.schedule_engine import coerce_applicable_days
+from custom_components.choreops.services import _DAY_OF_WEEK_VALUES
 from tests.helpers import (
     DOMAIN,
     SERVICE_CREATE_CHORE,
@@ -1384,21 +1382,21 @@ class TestApplicableDaysCoercion:
 
     def test_coerce_accepts_names_integers_and_mixtures(self) -> None:
         """The coercion helper accepts either convention, or both together."""
-        assert _coerce_applicable_days(["mon", "wed"]) == [0, 2]
-        assert _coerce_applicable_days([0, 2]) == [0, 2]
-        assert _coerce_applicable_days(["MON", " wed "]) == [0, 2]
-        assert _coerce_applicable_days([0, "wed"]) == [0, 2]
+        assert coerce_applicable_days(["mon", "wed"]) == [0, 2]
+        assert coerce_applicable_days([0, 2]) == [0, 2]
+        assert coerce_applicable_days(["MON", " wed "]) == [0, 2]
+        assert coerce_applicable_days([0, "wed"]) == [0, 2]
 
     def test_coerce_drops_unusable_values(self) -> None:
         """Unrecognized, out-of-range, and empty inputs are dropped, not raised."""
-        assert _coerce_applicable_days(None) == []
-        assert _coerce_applicable_days([]) == []
-        assert _coerce_applicable_days(["notaday"]) == []
-        assert _coerce_applicable_days([7, -1]) == []
-        assert _coerce_applicable_days([True]) == []
-        assert _coerce_applicable_days(["mon", "notaday"]) == [0]
+        assert coerce_applicable_days(None) == []
+        assert coerce_applicable_days([]) == []
+        assert coerce_applicable_days(["notaday"]) == []
+        assert coerce_applicable_days([7, -1]) == []
+        assert coerce_applicable_days([True]) == []
+        assert coerce_applicable_days(["mon", "notaday"]) == [0]
 
     def test_schema_day_values_match_the_coercion_mapping(self) -> None:
         """Every value the schema accepts must be convertible."""
         assert set(_DAY_OF_WEEK_VALUES) == set(const.WEEKDAY_NAME_TO_INT)
-        assert _coerce_applicable_days(_DAY_OF_WEEK_VALUES) == [0, 1, 2, 3, 4, 5, 6]
+        assert coerce_applicable_days(_DAY_OF_WEEK_VALUES) == [0, 1, 2, 3, 4, 5, 6]

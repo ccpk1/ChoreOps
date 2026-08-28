@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from calendar import monthrange
 from datetime import datetime, timedelta
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from dateutil.relativedelta import relativedelta
 from dateutil.rrule import (
@@ -44,6 +44,8 @@ from ..utils.dt_utils import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from ..type_defs import ChoreData, ScheduleConfig
 
 
@@ -903,6 +905,41 @@ class RecurrenceEngine:
 # =============================================================================
 
 
+def coerce_applicable_days(raw_days: Iterable[Any] | None) -> list[int]:
+    """Normalize applicable days to weekday integers (0=Mon...6=Sun).
+
+    Storage and every consumer expect integers, while service selectors and
+    legacy data may hold weekday name strings ("mon", "wed"). Accept either
+    form so chores stored with strings by an earlier version keep working.
+
+    Args:
+        raw_days: Weekday names, weekday integers, or a mix of both.
+
+    Returns:
+        Weekday integers, with unrecognized values dropped.
+    """
+    if not raw_days:
+        return []
+
+    days: list[int] = []
+    for day in raw_days:
+        if isinstance(day, bool):
+            # bool is an int subclass; a boolean here is always a caller error.
+            continue
+        if isinstance(day, int):
+            if 0 <= day <= 6:
+                days.append(day)
+                continue
+            const.LOGGER.warning("Ignoring out-of-range applicable day: %s", day)
+            continue
+        mapped = const.WEEKDAY_NAME_TO_INT.get(str(day).strip().lower())
+        if mapped is not None:
+            days.append(mapped)
+            continue
+        const.LOGGER.warning("Ignoring unrecognized applicable day: %s", day)
+    return days
+
+
 def add_interval(
     base_date: str | datetime,
     interval_unit: str,
@@ -1206,14 +1243,7 @@ def calculate_next_due_date_from_chore_info(
     raw_applicable = chore_info.get(
         const.DATA_CHORE_APPLICABLE_DAYS, const.DEFAULT_APPLICABLE_DAYS
     )
-    applicable_days: list[int] = []
-    if raw_applicable and isinstance(next(iter(raw_applicable), None), str):
-        order = list(const.WEEKDAY_OPTIONS.keys())
-        applicable_days = [
-            order.index(day.lower()) for day in raw_applicable if day.lower() in order
-        ]
-    elif raw_applicable:
-        applicable_days = [int(d) for d in raw_applicable]
+    applicable_days = coerce_applicable_days(raw_applicable)
 
     now_local = reference_time or dt_now_local()
 

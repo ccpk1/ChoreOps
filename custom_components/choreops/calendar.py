@@ -23,6 +23,7 @@ from .engines.schedule_engine import (
     RecurrenceEngine,
     calculate_next_due_date_from_chore_info,
     calculate_next_multi_daily_due,
+    coerce_applicable_days,
 )
 from .helpers.device_helpers import create_assignee_device_info_from_coordinator
 from .helpers.entity_helpers import (
@@ -367,12 +368,14 @@ class AssigneeScheduleCalendar(CalendarEntity):
                 const.DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS, {}
             )
             if self._assignee_id in per_assignee_days:
-                return per_assignee_days[self._assignee_id]
+                return coerce_applicable_days(per_assignee_days[self._assignee_id])
             # Fallback to chore-level (backward compat for un-migrated data)
-            return chore.get(const.DATA_CHORE_APPLICABLE_DAYS, [])
+            return coerce_applicable_days(
+                chore.get(const.DATA_CHORE_APPLICABLE_DAYS, [])
+            )
 
         # SHARED chores: use chore-level
-        return chore.get(const.DATA_CHORE_APPLICABLE_DAYS, [])
+        return coerce_applicable_days(chore.get(const.DATA_CHORE_APPLICABLE_DAYS, []))
 
     def _translate_dashboard_value(self, key: str, fallback: str) -> str:
         """Translate a dashboard key with fallback text."""

@@ -5,7 +5,6 @@ These services allow direct actions through scripts or automations.
 Includes UI editor support with selectors for dropdowns and text inputs.
 """
 
-from collections.abc import Iterable
 from copy import deepcopy
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, cast
@@ -19,6 +18,7 @@ import voluptuous as vol
 
 from . import const
 from .engines.chore_engine import ChoreEngine
+from .engines.schedule_engine import coerce_applicable_days
 from .helpers import flow_helpers, report_helpers, translation_helpers
 from .helpers.auth_helpers import (
     AUTH_ACTION_APPROVAL,
@@ -1133,45 +1133,10 @@ def _map_service_to_data_keys(
     }
 
 
-def _coerce_applicable_days(raw_days: Iterable[Any] | None) -> list[int]:
-    """Normalize applicable days to weekday integers (0=Mon...6=Sun).
-
-    The service selector offers weekday name strings ("mon", "wed"), while
-    storage and every consumer expect integers. Accept either form so that
-    chores already stored with strings by an earlier version keep working.
-
-    Args:
-        raw_days: Weekday names, weekday integers, or a mix of both.
-
-    Returns:
-        Weekday integers, with unrecognized values dropped.
-    """
-    if not raw_days:
-        return []
-
-    days: list[int] = []
-    for day in raw_days:
-        if isinstance(day, bool):
-            # bool is an int subclass; a boolean here is always a caller error.
-            continue
-        if isinstance(day, int):
-            if 0 <= day <= 6:
-                days.append(day)
-                continue
-            const.LOGGER.warning("Ignoring out-of-range applicable day: %s", day)
-            continue
-        mapped = const.WEEKDAY_NAME_TO_INT.get(str(day).strip().lower())
-        if mapped is not None:
-            days.append(mapped)
-            continue
-        const.LOGGER.warning("Ignoring unrecognized applicable day: %s", day)
-    return days
-
-
 def _normalize_chore_applicable_days(data_input: dict[str, Any]) -> None:
     """Coerce applicable days in mapped chore data to integers, in place."""
     if const.DATA_CHORE_APPLICABLE_DAYS in data_input:
-        data_input[const.DATA_CHORE_APPLICABLE_DAYS] = _coerce_applicable_days(
+        data_input[const.DATA_CHORE_APPLICABLE_DAYS] = coerce_applicable_days(
             data_input[const.DATA_CHORE_APPLICABLE_DAYS]
         )
 
@@ -1326,7 +1291,7 @@ def _ensure_per_assignee_due_dates(
     )
     # Chores stored by an earlier version may hold weekday name strings here,
     # so coerce rather than casting directly.
-    applicable_days: list[int] | None = _coerce_applicable_days(raw_days) or None
+    applicable_days: list[int] | None = coerce_applicable_days(raw_days) or None
 
     for uid in assigned_assignee_ids:
         # 1. User-provided explicit due date wins

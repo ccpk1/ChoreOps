@@ -36,7 +36,10 @@ from ..engines.chore_engine import (
     ChoreEngine,
     TransitionEffect,
 )
-from ..engines.schedule_engine import calculate_next_due_date_from_chore_info
+from ..engines.schedule_engine import (
+    calculate_next_due_date_from_chore_info,
+    coerce_applicable_days,
+)
 from ..helpers.entity_helpers import (
     remove_entities_by_item_id,
     remove_orphaned_assignee_chore_entities,
@@ -3855,9 +3858,11 @@ class ChoreManager(BaseManager):
                 chore_info.get(const.DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS, {}),
             )
             if assignee_id in per_assignee_days:
-                return per_assignee_days[assignee_id]
+                return coerce_applicable_days(per_assignee_days[assignee_id])
 
-        return cast("list[int]", chore_info.get(const.DATA_CHORE_APPLICABLE_DAYS, []))
+        return coerce_applicable_days(
+            chore_info.get(const.DATA_CHORE_APPLICABLE_DAYS, [])
+        )
 
     def no_due_date_daily_matches_today(
         self,
