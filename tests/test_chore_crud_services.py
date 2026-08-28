@@ -28,6 +28,10 @@ import pytest
 import voluptuous as vol
 
 from custom_components.choreops import const
+from custom_components.choreops.services import (
+    _DAY_OF_WEEK_VALUES,
+    _coerce_applicable_days,
+)
 from tests.helpers import (
     DOMAIN,
     SERVICE_CREATE_CHORE,
@@ -1241,3 +1245,160 @@ class TestAssignmentActionMerge:
             )
 
         assert _get_assigned_names(scenario_full.coordinator, chore_id) == ["Lila"]
+
+
+# ============================================================================
+# APPLICABLE DAYS COERCION (regression: issue #257)
+# ============================================================================
+
+
+class TestApplicableDaysCoercion:
+    """Weekday names from the service selector must become weekday integers.
+
+    ``services.yaml`` offers ``applicable_days`` as names ("mon", "wed"), while
+    storage and every consumer expect integers (0=Mon...6=Sun). Storing the raw
+    strings made any later ``update_chore`` raise
+    ``invalid literal for int() with base 10: 'wed'``.
+    """
+
+    @pytest.mark.asyncio
+    async def test_create_stores_weekday_names_as_integers(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """create_chore converts selector day names to integers before storing."""
+        with patch.object(scenario_full.coordinator, "_persist", new=MagicMock()):
+            response = await hass.services.async_call(
+                DOMAIN,
+                SERVICE_CREATE_CHORE,
+                {
+                    "name": "Applicable Days Chore",
+                    "assigned_user_names": ["Zoë"],
+                    "frequency": "weekly",
+                    "applicable_days": ["mon", "wed"],
+                    "due_date": "2099-01-06T18:00:00",
+                },
+                blocking=True,
+                return_response=True,
+            )
+
+        assert response is not None
+        chore_id = response["id"]
+        stored = scenario_full.coordinator.chores_data[chore_id]
+        assert stored[const.DATA_CHORE_APPLICABLE_DAYS] == [0, 2]
+
+    @pytest.mark.asyncio
+    async def test_update_after_create_with_weekday_names(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """Reproduces #257: a chore created with day names could not be updated."""
+        with patch.object(scenario_full.coordinator, "_persist", new=MagicMock()):
+            response = await hass.services.async_call(
+                DOMAIN,
+                SERVICE_CREATE_CHORE,
+                {
+                    "name": "Trash Day",
+                    "assigned_user_names": ["Zoë"],
+                    "frequency": "weekly",
+                    "applicable_days": ["wed"],
+                    "due_date": "2099-01-06T18:00:00",
+                },
+                blocking=True,
+                return_response=True,
+            )
+            assert response is not None
+            chore_id = response["id"]
+
+            # Before the fix this raised ValueError from int("wed").
+            await hass.services.async_call(
+                DOMAIN,
+                SERVICE_UPDATE_CHORE,
+                {
+                    "id": chore_id,
+                    "assignment_action": "replace",
+                    "assigned_user_names": ["Max!"],
+                },
+                blocking=True,
+            )
+
+        assert _get_assigned_names(scenario_full.coordinator, chore_id) == ["Max!"]
+
+    @pytest.mark.asyncio
+    async def test_update_tolerates_legacy_string_days_in_storage(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """Chores already stored with day names by an earlier version still update.
+
+        Uses an INDEPENDENT chore so the update path reaches
+        ``_ensure_per_assignee_due_dates``, which is where stored days are read
+        back. A shared chore never calls it, so it would not exercise the fix.
+        """
+        chore_id = scenario_full.chore_ids["Pick up Lëgo!"]
+        coordinator = scenario_full.coordinator
+        coordinator.chores_data[chore_id][const.DATA_CHORE_APPLICABLE_DAYS] = [
+            "wed",
+            "fri",
+        ]
+
+        with patch.object(coordinator, "_persist", new=MagicMock()):
+            await hass.services.async_call(
+                DOMAIN,
+                SERVICE_UPDATE_CHORE,
+                {
+                    "id": chore_id,
+                    "assignment_action": "replace",
+                    "assigned_user_names": ["Lila"],
+                },
+                blocking=True,
+            )
+
+        assert _get_assigned_names(coordinator, chore_id) == ["Lila"]
+
+    @pytest.mark.asyncio
+    async def test_update_rewrites_stored_days_to_integers(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """Passing day names to update_chore stores integers, not strings."""
+        chore_id = scenario_full.chore_ids["Täke Öut Trash"]
+
+        with patch.object(scenario_full.coordinator, "_persist", new=MagicMock()):
+            await hass.services.async_call(
+                DOMAIN,
+                SERVICE_UPDATE_CHORE,
+                {
+                    "id": chore_id,
+                    "applicable_days": ["sat", "sun"],
+                },
+                blocking=True,
+            )
+
+        stored = scenario_full.coordinator.chores_data[chore_id]
+        assert stored[const.DATA_CHORE_APPLICABLE_DAYS] == [5, 6]
+
+    def test_coerce_accepts_names_integers_and_mixtures(self) -> None:
+        """The coercion helper accepts either convention, or both together."""
+        assert _coerce_applicable_days(["mon", "wed"]) == [0, 2]
+        assert _coerce_applicable_days([0, 2]) == [0, 2]
+        assert _coerce_applicable_days(["MON", " wed "]) == [0, 2]
+        assert _coerce_applicable_days([0, "wed"]) == [0, 2]
+
+    def test_coerce_drops_unusable_values(self) -> None:
+        """Unrecognized, out-of-range, and empty inputs are dropped, not raised."""
+        assert _coerce_applicable_days(None) == []
+        assert _coerce_applicable_days([]) == []
+        assert _coerce_applicable_days(["notaday"]) == []
+        assert _coerce_applicable_days([7, -1]) == []
+        assert _coerce_applicable_days([True]) == []
+        assert _coerce_applicable_days(["mon", "notaday"]) == [0]
+
+    def test_schema_day_values_match_the_coercion_mapping(self) -> None:
+        """Every value the schema accepts must be convertible."""
+        assert set(_DAY_OF_WEEK_VALUES) == set(const.WEEKDAY_NAME_TO_INT)
+        assert _coerce_applicable_days(_DAY_OF_WEEK_VALUES) == [0, 1, 2, 3, 4, 5, 6]
