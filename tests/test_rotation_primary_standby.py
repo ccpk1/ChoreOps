@@ -24,6 +24,7 @@ from custom_components.choreops.utils.dt_utils import dt_now_utc
 # Import test constants from helpers (not from const.py - Rule 0)
 from tests.helpers.constants import (
     CHORE_CLAIM_MODE_BLOCKED_STANDBY,
+    CHORE_CLAIM_MODE_BLOCKED_WAITING_WINDOW,
     CHORE_CLAIM_MODE_CLAIMABLE,
     CHORE_CLAIM_MODE_STANDBY_AVAILABLE,
     CHORE_STATE_APPROVED,
@@ -598,3 +599,75 @@ async def test_multi_standby_rotates_when_primary_paused(
         assert (
             get_chore_state_from_sensor(hass, slug, chore_name) == CHORE_STATE_STANDBY
         )
+
+
+# =============================================================================
+# T12 — Issue #271: closed claim window blocks standby (anytime)
+# =============================================================================
+
+
+@pytest.mark.asyncio
+async def test_closed_claim_window_blocks_standby_anytime(
+    hass: HomeAssistant,
+    scenario_primary_standby: SetupResult,
+    mock_hass_users: dict[str, Any],
+) -> None:
+    """Standby with anytime must be blocked while the claim window is closed.
+
+    Issue #271: the standby branch of the FSM returned before the waiting
+    check, so a standby with standby_claim_mode=anytime could claim a
+    primary-standby chore before the due window opened. The window gate must
+    outrank standby_claim_mode eligibility.
+    """
+    await hass.async_block_till_done()
+
+    chore_name = "Window Chore (anytime)"
+    coordinator = scenario_primary_standby.coordinator
+    chore_id = scenario_primary_standby.chore_ids[chore_name]
+
+    # Inject window-lock fields (setup helper does not map these YAML keys)
+    chore_info = coordinator.chores_data.get(chore_id, {})
+    chore_info["due_date"] = (dt_now_utc() + timedelta(hours=3)).isoformat()
+    chore_info["due_window_offset"] = "1h"
+    chore_info["chore_claim_lock_until_window"] = True
+    await coordinator.chore_manager._on_periodic_update(now_utc=dt_now_utc())
+    await hass.async_block_till_done()
+
+    # Primary sees waiting (window not open)
+    assert get_chore_state_from_sensor(hass, "zoe", chore_name) == CHORE_STATE_WAITING
+
+    # Standby keeps the standby display state but is blocked
+    max_attrs = get_chore_attributes_from_sensor(hass, "max", chore_name)
+    assert get_chore_state_from_sensor(hass, "max", chore_name) == CHORE_STATE_STANDBY
+    assert max_attrs.get("can_claim") is False
+    assert max_attrs.get("claim_mode") == CHORE_CLAIM_MODE_BLOCKED_WAITING_WINDOW
+    assert max_attrs.get("available_at") is not None
+
+    # Claim attempt is rejected at the service level
+    assignee_context = Context(user_id=mock_hass_users["assignee2"].id)
+    claim_result = await claim_chore(hass, "max", chore_name, context=assignee_context)
+    await hass.async_block_till_done()
+    assert claim_result.success is False, "Standby claim must be rejected pre-window"
+    assert get_chore_state_from_sensor(hass, "max", chore_name) == CHORE_STATE_STANDBY
+
+    # Open the window: due in 30m with a 1h offset → window opened 30m ago
+    chore_info = coordinator.chores_data.get(chore_id, {})
+    chore_info["due_date"] = (dt_now_utc() + timedelta(minutes=30)).isoformat()
+    await coordinator.chore_manager._on_periodic_update(now_utc=dt_now_utc())
+    await hass.async_block_till_done()
+
+    # Primary is now due; standby anytime is claimable again
+    assert get_chore_state_from_sensor(hass, "zoe", chore_name) == CHORE_STATE_DUE
+    max_attrs_after = get_chore_attributes_from_sensor(hass, "max", chore_name)
+    assert max_attrs_after.get("can_claim") is True
+    assert max_attrs_after.get("claim_mode") == CHORE_CLAIM_MODE_STANDBY_AVAILABLE
+
+    claim_result_after = await claim_chore(
+        hass, "max", chore_name, context=assignee_context
+    )
+    await hass.async_block_till_done()
+    assert claim_result_after.success, (
+        f"Standby should be able to claim after window opens: "
+        f"{claim_result_after.error}"
+    )
+    assert get_chore_state_from_sensor(hass, "max", chore_name) == CHORE_STATE_CLAIMED

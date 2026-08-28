@@ -91,3 +91,16 @@ chores:
     recurring_frequency: "daily"
     auto_approve: false
     standby_claim_mode: "anytime"
+
+  # ==========================================================================
+  # PRIMARY-STANDBY: anytime + closed claim window (Issue #271)
+  # Window lock fields are injected in-test (setup helper does not map them)
+  # ==========================================================================
+  - name: "Window Chore (anytime)"
+    assigned_to: ["Zoë", "Max!"]
+    points: 12.0
+    icon: "mdi:window-maximize"
+    completion_criteria: "rotation_primary_standby"
+    recurring_frequency: "daily"
+    auto_approve: false
+    standby_claim_mode: "anytime"

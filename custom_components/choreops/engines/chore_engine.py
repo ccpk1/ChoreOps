@@ -533,6 +533,8 @@ class ChoreEngine:
         if resolved_state == const.CHORE_STATE_STANDBY:
             if lock_reason == const.CHORE_STATE_STANDBY:
                 return (False, const.TRANS_KEY_ERROR_CHORE_STANDBY)
+            if lock_reason == const.CHORE_STATE_WAITING:
+                return (False, const.TRANS_KEY_ERROR_CHORE_WAITING)
             # lock_reason is None → allow claim, fall through
 
         # Check multi-claim allowed
@@ -762,6 +764,25 @@ class ChoreEngine:
                     completion_criteria
                     == const.COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY
                 ):
+                    # Closed claim window blocks standbys too, regardless of
+                    # standby_claim_mode — the window gate outranks eligibility
+                    claim_lock_until_window = bool(
+                        chore_data.get(
+                            const.DATA_CHORE_CLAIM_LOCK_UNTIL_WINDOW,
+                            const.DEFAULT_CHORE_CLAIM_LOCK_UNTIL_WINDOW,
+                        )
+                    )
+                    if (
+                        claim_lock_until_window
+                        and due_window_start is not None
+                        and due_date is not None
+                        and now < due_window_start
+                    ):
+                        return (
+                            const.CHORE_STATE_STANDBY,
+                            const.CHORE_STATE_WAITING,
+                        )
+
                     standby_claim_mode = chore_data.get(
                         const.DATA_CHORE_STANDBY_CLAIM_MODE,
                         const.STANDBY_CLAIM_MODE_ANYTIME,

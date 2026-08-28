@@ -168,25 +168,33 @@ result = await hass.config_entries.options.async_configure(
 ```python
 from tests.helpers import (
     # Setup
-    setup_from_yaml, SetupResult,
-
+    setup_from_yaml,
+    SetupResult,
     # Constants - Chore states
-    CHORE_STATE_PENDING, CHORE_STATE_CLAIMED, CHORE_STATE_APPROVED,
-    CHORE_STATE_COMPLETED_BY_OTHER, CHORE_STATE_OVERDUE,
-
+    CHORE_STATE_PENDING,
+    CHORE_STATE_CLAIMED,
+    CHORE_STATE_APPROVED,
+    CHORE_STATE_COMPLETED_BY_OTHER,
+    CHORE_STATE_OVERDUE,
     # Constants - Sensor attributes
-    ATTR_CHORE_CLAIM_BUTTON_ENTITY_ID, ATTR_CHORE_APPROVE_BUTTON_ENTITY_ID,
-    ATTR_GLOBAL_STATE, ATTR_CAN_CLAIM, ATTR_CAN_APPROVE, ATTR_DUE_DATE,
-
+    ATTR_CHORE_CLAIM_BUTTON_ENTITY_ID,
+    ATTR_CHORE_APPROVE_BUTTON_ENTITY_ID,
+    ATTR_GLOBAL_STATE,
+    ATTR_CAN_CLAIM,
+    ATTR_CAN_APPROVE,
+    ATTR_DUE_DATE,
     # Constants - Completion criteria
-    COMPLETION_CRITERIA_INDEPENDENT, COMPLETION_CRITERIA_SHARED,
+    COMPLETION_CRITERIA_INDEPENDENT,
+    COMPLETION_CRITERIA_SHARED,
     COMPLETION_CRITERIA_SHARED_FIRST,
-
     # Constants - Data keys
-    DATA_KID_CHORE_DATA, DATA_KID_CHORE_DATA_STATE, DATA_KID_POINTS,
-
+    DATA_KID_CHORE_DATA,
+    DATA_KID_CHORE_DATA_STATE,
+    DATA_KID_POINTS,
     # Workflows
-    get_dashboard_helper, find_chore, get_chore_buttons,
+    get_dashboard_helper,
+    find_chore,
+    get_chore_buttons,
 )
 ```
 
@@ -207,6 +215,7 @@ Modern tests load scenarios from YAML files and run through the full config flow
 ```python
 from tests.helpers.setup import setup_from_yaml, SetupResult
 
+
 @pytest.fixture
 async def scenario_minimal(
     hass: HomeAssistant,
@@ -223,15 +232,17 @@ async def scenario_minimal(
 ### SetupResult provides:
 
 ```python
-result = await setup_from_yaml(hass, mock_hass_users, "tests/scenarios/scenario_minimal.yaml")
+result = await setup_from_yaml(
+    hass, mock_hass_users, "tests/scenarios/scenario_minimal.yaml"
+)
 
 # Access coordinator directly
 coordinator = result.coordinator
 
 # Get internal IDs by name
-assignee_id = result.assignee_ids["Zoë"]           # UUID for Zoë
+assignee_id = result.assignee_ids["Zoë"]  # UUID for Zoë
 chore_id = result.chore_ids["Make bed"]  # UUID for Make bed chore
-approver_id = result.approver_ids["Mom"]     # UUID for Mom
+approver_id = result.approver_ids["Mom"]  # UUID for Mom
 
 # Config entry
 config_entry = result.config_entry
@@ -256,11 +267,15 @@ config_entry = result.config_entry
 ```python
 # Test as a assignee - can verify assignees CANNOT approve their own chores
 assignee_context = Context(user_id=mock_hass_users["assignee1"].id)
-await hass.services.async_call("button", "press", {"entity_id": claim_btn}, context=assignee_context)
+await hass.services.async_call(
+    "button", "press", {"entity_id": claim_btn}, context=assignee_context
+)
 
 # Test as a approver - can verify approvers CAN approve chores
 approver_context = Context(user_id=mock_hass_users["approver1"].id)
-await hass.services.async_call("button", "press", {"entity_id": approve_btn}, context=approver_context)
+await hass.services.async_call(
+    "button", "press", {"entity_id": approve_btn}, context=approver_context
+)
 ```
 
 **Service calls ALWAYS run as admin**:
@@ -274,7 +289,9 @@ await hass.services.async_call("assigneeschores", "approve_chore", {...})
 
 ```python
 # ❌ FORBIDDEN for workflow tests - bypasses everything
-coordinator.claim_chore(assignee_id, chore_id, "Zoë")  # No user context, no button, no security
+coordinator.claim_chore(
+    assignee_id, chore_id, "Zoë"
+)  # No user context, no button, no security
 ```
 
 ### Approach A: Button Press with User Context (REQUIRED for workflow tests)
@@ -283,6 +300,7 @@ coordinator.claim_chore(assignee_id, chore_id, "Zoë")  # No user context, no bu
 
 ```python
 from homeassistant.core import Context
+
 
 async def test_claim_via_button(hass, scenario_minimal, mock_hass_users):
     # Get dashboard helper - the single source of truth for entity IDs
@@ -300,9 +318,11 @@ async def test_claim_via_button(hass, scenario_minimal, mock_hass_users):
     # Press button with user context (simulates real user action)
     assignee_context = Context(user_id=mock_hass_users["assignee1"].id)
     await hass.services.async_call(
-        "button", "press",
+        "button",
+        "press",
         {"entity_id": claim_button_eid},
-        blocking=True, context=assignee_context,
+        blocking=True,
+        context=assignee_context,
     )
     await hass.async_block_till_done()
 
@@ -327,7 +347,8 @@ When a button entity doesn't exist for an action, use defined services from `ser
 async def test_approve_via_service(hass, scenario_minimal):
     # Service calls always run as admin - cannot test authorization
     await hass.services.async_call(
-        "assigneeschores", "approve_chore",
+        "assigneeschores",
+        "approve_chore",
         {
             "config_entry_id": scenario_minimal.entry.entry_id,
             "chore_name": "Make bed",
@@ -415,9 +436,11 @@ claim_button_eid = chore_state.attributes[ATTR_CHORE_CLAIM_BUTTON_ENTITY_ID]
 # Press button WITH user context to test real user flow
 assignee_context = Context(user_id=mock_hass_users["assignee1"].id)
 await hass.services.async_call(
-    "button", "press",
+    "button",
+    "press",
     {"entity_id": claim_button_eid},
-    blocking=True, context=assignee_context,
+    blocking=True,
+    context=assignee_context,
 )
 ```
 
@@ -426,8 +449,13 @@ await hass.services.async_call(
 ```python
 # Service calls are acceptable but cannot test authorization
 await hass.services.async_call(
-    "assigneeschores", "approve_chore",
-    {"config_entry_id": entry.entry_id, "chore_name": "Make bed", "assignee_name": "Zoë"},
+    "assigneeschores",
+    "approve_chore",
+    {
+        "config_entry_id": entry.entry_id,
+        "chore_name": "Make bed",
+        "assignee_name": "Zoë",
+    },
     blocking=True,
 )
 ```
@@ -450,9 +478,7 @@ chore_info[const.DATA_CHORE_PER_KID_APPLICABLE_DAYS] = {
 }
 
 # ✅ PROPER APPROACH - Goes through flow
-result = await hass.config_entries.options.async_configure(
-    flow_id, user_input={...}
-)
+result = await hass.config_entries.options.async_configure(flow_id, user_input={...})
 ```
 
 **Why this matters:**
@@ -488,8 +514,8 @@ helper_attrs = helper_state.attributes
 # Chores (sensor entity IDs)
 chores_list = helper_attrs.get("chores", [])
 for chore in chores_list:
-    chore_eid = chore["eid"]        # sensor.kc_zoe_chore_status_make_bed
-    chore_name = chore["name"]      # "Make bed"
+    chore_eid = chore["eid"]  # sensor.kc_zoe_chore_status_make_bed
+    chore_name = chore["name"]  # "Make bed"
     chore_status = chore["status"]  # "pending", "claimed", "approved"
     can_claim = chore["can_claim"]  # True/False
     can_approve = chore["can_approve"]
@@ -544,17 +570,21 @@ from homeassistant.core import Context
 # Assignee claims chore
 assignee_context = Context(user_id=mock_hass_users["assignee1"].id)
 await hass.services.async_call(
-    "button", "press",
+    "button",
+    "press",
     {"entity_id": claim_button_eid},
-    blocking=True, context=assignee_context,
+    blocking=True,
+    context=assignee_context,
 )
 
 # Approver approves chore
 approver_context = Context(user_id=mock_hass_users["approver1"].id)
 await hass.services.async_call(
-    "button", "press",
+    "button",
+    "press",
     {"entity_id": approve_button_eid},
-    blocking=True, context=approver_context,
+    blocking=True,
+    context=approver_context,
 )
 ```
 
@@ -647,8 +677,12 @@ import pytest
 from homeassistant.core import HomeAssistant
 
 from tests.helpers import (
-    CHORE_STATE_PENDING, CHORE_STATE_CLAIMED, CHORE_STATE_APPROVED,
-    DATA_KID_CHORE_DATA, DATA_KID_CHORE_DATA_STATE, DATA_KID_POINTS,
+    CHORE_STATE_PENDING,
+    CHORE_STATE_CLAIMED,
+    CHORE_STATE_APPROVED,
+    DATA_KID_CHORE_DATA,
+    DATA_KID_CHORE_DATA_STATE,
+    DATA_KID_POINTS,
 )
 from tests.helpers.setup import setup_from_yaml, SetupResult
 
@@ -660,7 +694,8 @@ async def scenario_minimal(
 ) -> SetupResult:
     """Load minimal scenario."""
     return await setup_from_yaml(
-        hass, mock_hass_users,
+        hass,
+        mock_hass_users,
         "tests/scenarios/scenario_minimal.yaml",
     )
 
@@ -687,16 +722,26 @@ class TestChoreWorkflow:
         assignee_id = scenario_minimal.assignee_ids["Zoë"]
         chore_id = scenario_minimal.chore_ids["Make bed"]  # 5 points
 
-        initial_points = coordinator.assignees_data[assignee_id].get(DATA_KID_POINTS, 0.0)
+        initial_points = coordinator.assignees_data[assignee_id].get(
+            DATA_KID_POINTS, 0.0
+        )
 
-        with patch.object(coordinator.notification_manager, "notify_assignee", new=AsyncMock()):
+        with patch.object(
+            coordinator.notification_manager, "notify_assignee", new=AsyncMock()
+        ):
             # Claim
             coordinator.claim_chore(assignee_id, chore_id, "Zoë")
-            assert get_assignee_chore_state(coordinator, assignee_id, chore_id) == CHORE_STATE_CLAIMED
+            assert (
+                get_assignee_chore_state(coordinator, assignee_id, chore_id)
+                == CHORE_STATE_CLAIMED
+            )
 
             # Approve
             coordinator.approve_chore("Mom", assignee_id, chore_id)
-            assert get_assignee_chore_state(coordinator, assignee_id, chore_id) == CHORE_STATE_APPROVED
+            assert (
+                get_assignee_chore_state(coordinator, assignee_id, chore_id)
+                == CHORE_STATE_APPROVED
+            )
 
         # Verify points
         final_points = coordinator.assignees_data[assignee_id].get(DATA_KID_POINTS, 0.0)
@@ -746,8 +791,10 @@ from homeassistant.core import HomeAssistant
 
 from tests.helpers import (
     # Import needed constants and helpers
-    CHORE_STATE_PENDING, CHORE_STATE_CLAIMED,
-    setup_from_yaml, SetupResult,
+    CHORE_STATE_PENDING,
+    CHORE_STATE_CLAIMED,
+    setup_from_yaml,
+    SetupResult,
 )
 
 
@@ -758,7 +805,8 @@ async def scenario_for_feature(
 ) -> SetupResult:
     """Load scenario optimized for this feature."""
     return await setup_from_yaml(
-        hass, mock_hass_users,
+        hass,
+        mock_hass_users,
         "tests/scenarios/scenario_minimal.yaml",  # Choose appropriate scenario
     )
 
