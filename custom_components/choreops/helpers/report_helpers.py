@@ -822,8 +822,10 @@ def _render_assignee_markdown(
         f"# {title}",
         translations["intro"].format(assignee_heading=assignee_heading),
         translations["section_weekly_summary"],
-        f"- {translations['range_label']}: "
-        f"{translations['range_short'].format(start_date=start_short, end_date=end_short)}",
+        (
+            f"- {translations['range_label']}: "
+            f"{translations['range_short'].format(start_date=start_short, end_date=end_short)}"
+        ),
         f"- {translations['completed_chores_week']}: {completed_chores}",
         f"- {translations['avg_points_per_day']}: {avg_points_per_day}",
         f"- {translations['avg_chores_per_day']}: {avg_chores_per_day}",
@@ -840,8 +842,10 @@ def _render_assignee_markdown(
         ),
         best_day_line,
         translations["section_daily_activity"],
-        f"{translations['range_label']}: "
-        f"{translations['range_short'].format(start_date=start_short, end_date=end_short)}",
+        (
+            f"{translations['range_label']}: "
+            f"{translations['range_short'].format(start_date=start_short, end_date=end_short)}"
+        ),
     ]
 
     if not daily_blocks:

@@ -4,7 +4,7 @@ asyncio_default_fixture_loop_scope = "function"
 markers = ["slow: marks tests as slow (deselect with '-m \"not slow\"')"]
 
 [tool.ruff]
-required-version = "==0.15.16"
+required-version = "==0.16.3"
 target-version = "py313"
 line-length = 88
 
