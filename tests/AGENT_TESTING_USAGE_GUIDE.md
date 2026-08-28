@@ -186,7 +186,9 @@ await hass.services.async_call("button", "press", {"entity_id": button_id})  # �
 
 # Solution: Add user context
 context = Context(user_id=mock_hass_users["approver1"].id)
-await hass.services.async_call("button", "press", {"entity_id": button_id}, context=context)  # ✅ Correct
+await hass.services.async_call(
+    "button", "press", {"entity_id": button_id}, context=context
+)  # ✅ Correct
 ```
 
 ### Troubleshooting Steps (3-Attempt Rule)

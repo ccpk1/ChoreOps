@@ -36,7 +36,7 @@ async def test_create_reward_with_valid_data(hass, scenario_full):
         SERVICE_CREATE_REWARD,
         {
             "reward_name": "Test Reward",  # Must match SERVICE_FIELD_REWARD_NAME value
-            "reward_cost": 100.0,          # Must match SERVICE_FIELD_REWARD_COST value
+            "reward_cost": 100.0,  # Must match SERVICE_FIELD_REWARD_COST value
             "reward_description": "Test",  # Must match SERVICE_FIELD_REWARD_DESCRIPTION value
         },
         blocking=True,
@@ -62,7 +62,7 @@ async def test_create_reward_rejects_wrong_fields(hass, scenario_full):
             SERVICE_CREATE_REWARD,
             {
                 "name": "Test Reward",  # ❌ Wrong - schema expects "reward_name"
-                "cost": 100.0,          # ❌ Wrong - schema expects "reward_cost"
+                "cost": 100.0,  # ❌ Wrong - schema expects "reward_cost"
             },
             blocking=True,
         )
@@ -192,7 +192,7 @@ response = await hass.services.async_call(
     SERVICE_CREATE_REWARD,
     {
         SERVICE_FIELD_REWARD_NAME: "Test",  # ✅ Used constant
-        SERVICE_FIELD_REWARD_COST: 100.0,   # ✅ Used constant
+        SERVICE_FIELD_REWARD_COST: 100.0,  # ✅ Used constant
     },
     blocking=True,
     return_response=True,
@@ -227,8 +227,8 @@ async def test_create_reward_literal_field_names(hass, scenario_full):
         DOMAIN,
         SERVICE_CREATE_REWARD,
         {
-            "reward_name": "Literal Test",    # From services.yaml docs
-            "reward_cost": 100.0,             # From services.yaml docs
+            "reward_name": "Literal Test",  # From services.yaml docs
+            "reward_cost": 100.0,  # From services.yaml docs
             "reward_description": "Testing",  # From services.yaml docs
         },
         blocking=True,
@@ -290,7 +290,7 @@ class TestCreateRewardSchemaValidation:
                 "create_reward",
                 {
                     "name": "Test",  # Old field name
-                    "cost": 75.0,    # Old field name
+                    "cost": 75.0,  # Old field name
                 },
                 blocking=True,
             )
