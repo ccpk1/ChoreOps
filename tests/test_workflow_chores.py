@@ -2775,3 +2775,310 @@ class TestEnhancedFrequencyWorkflows:
         assert max_chore is not None
         assert zoe_chore["state"] == const.CHORE_STATE_DUE
         assert max_chore["state"] == const.CHORE_STATE_WAITING
+
+
+# =============================================================================
+# MIDNIGHT RESET FLASH REGRESSION (boundary reset publish ordering)
+# =============================================================================
+
+
+class TestMidnightResetFlash:
+    """Boundary resets must never publish a transient overdue state.
+
+    Regression coverage for the midnight overdue→pending flash: the reset
+    leaf previously persisted/published after clearing the claim but before
+    rescheduling the due date, letting FSM P5 derive overdue from the stale
+    due date for one publish.
+    """
+
+    def _track_sensor_states(
+        self,
+        hass: HomeAssistant,
+        eid: str,
+        states: list[str],
+    ) -> Any:
+        """Record sensor state changes into the provided list."""
+        from homeassistant.helpers.event import async_track_state_change_event
+
+        def _record(event: Any) -> None:
+            new_state = event.data.get("new_state")
+            if new_state is not None:
+                states.append(str(new_state.state))
+
+        return async_track_state_change_event(hass, [eid], _record)
+
+    def _get_chore_eid(self, hass: HomeAssistant, chore_name: str) -> str:
+        """Resolve the chore status sensor entity ID via the dashboard helper."""
+        dashboard = get_dashboard_helper(hass, "zoe")
+        chore = find_chore(dashboard, chore_name)
+        assert chore is not None, f"Chore not found in dashboard: {chore_name}"
+        return str(chore["eid"])
+
+    @pytest.mark.asyncio
+    async def test_midnight_reset_auto_approve_pending_no_overdue_flash(
+        self,
+        hass: HomeAssistant,
+        scenario_minimal: SetupResult,
+        mock_hass_users: dict[str, Any],
+    ) -> None:
+        """Midnight reset of a claimed chore must never publish overdue."""
+        from custom_components.choreops import const
+
+        coordinator = scenario_minimal.coordinator
+        chore_name = "Make bed"
+        chore_id = scenario_minimal.chore_ids[chore_name]
+        assignee_id = scenario_minimal.assignee_ids["Zoë"]
+
+        chore_info = coordinator.chores_data.get(chore_id, {})
+        chore_info[const.DATA_CHORE_APPROVAL_RESET_TYPE] = (
+            const.APPROVAL_RESET_AT_MIDNIGHT_ONCE
+        )
+        chore_info[const.DATA_CHORE_APPROVAL_RESET_PENDING_CLAIM_ACTION] = (
+            const.APPROVAL_RESET_PENDING_CLAIM_AUTO_APPROVE
+        )
+        chore_info[const.DATA_CHORE_DUE_DATE] = (
+            dt_now_utc() - timedelta(hours=1)
+        ).isoformat()
+        chore_info[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] = {
+            assignee_id: (dt_now_utc() - timedelta(hours=1)).isoformat()
+        }
+
+        await claim_chore(
+            hass,
+            "zoe",
+            chore_name,
+            Context(user_id=mock_hass_users["assignee1"].id),
+        )
+        await hass.async_block_till_done()
+        assert (
+            get_chore_state_from_sensor(hass, "zoe", chore_name) == CHORE_STATE_CLAIMED
+        )
+
+        states: list[str] = []
+        eid = self._get_chore_eid(hass, chore_name)
+        remove = self._track_sensor_states(hass, eid, states)
+        try:
+            await coordinator.chore_manager._on_midnight_rollover(now_utc=dt_now_utc())
+            await hass.async_block_till_done()
+        finally:
+            remove()
+
+        assert states[-1] == CHORE_STATE_PENDING
+        assert CHORE_STATE_OVERDUE not in states, (
+            f"Transient overdue published during midnight reset: {states}"
+        )
+
+    @pytest.mark.asyncio
+    async def test_midnight_reset_preapproved_no_overdue_flash(
+        self,
+        hass: HomeAssistant,
+        scenario_minimal: SetupResult,
+        mock_hass_users: dict[str, Any],
+    ) -> None:
+        """Midnight reset of an approved chore must never publish overdue."""
+        from custom_components.choreops import const
+
+        coordinator = scenario_minimal.coordinator
+        chore_name = "Make bed"
+        chore_id = scenario_minimal.chore_ids[chore_name]
+        assignee_id = scenario_minimal.assignee_ids["Zoë"]
+
+        chore_info = coordinator.chores_data.get(chore_id, {})
+        chore_info[const.DATA_CHORE_APPROVAL_RESET_TYPE] = (
+            const.APPROVAL_RESET_AT_MIDNIGHT_ONCE
+        )
+        chore_info[const.DATA_CHORE_DUE_DATE] = (
+            dt_now_utc() - timedelta(hours=1)
+        ).isoformat()
+        chore_info[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] = {
+            assignee_id: (dt_now_utc() - timedelta(hours=1)).isoformat()
+        }
+
+        await claim_chore(
+            hass,
+            "zoe",
+            chore_name,
+            Context(user_id=mock_hass_users["assignee1"].id),
+        )
+        await hass.async_block_till_done()
+        await approve_chore(
+            hass,
+            "zoe",
+            chore_name,
+            Context(user_id=mock_hass_users["approver1"].id),
+        )
+        await hass.async_block_till_done()
+
+        states: list[str] = []
+        eid = self._get_chore_eid(hass, chore_name)
+        remove = self._track_sensor_states(hass, eid, states)
+        try:
+            await coordinator.chore_manager._on_midnight_rollover(now_utc=dt_now_utc())
+            await hass.async_block_till_done()
+        finally:
+            remove()
+
+        assert states[-1] == CHORE_STATE_PENDING
+        assert CHORE_STATE_OVERDUE not in states, (
+            f"Transient overdue published during midnight reset: {states}"
+        )
+
+    @pytest.mark.asyncio
+    async def test_midnight_reset_hold_pending_stays_claimed(
+        self,
+        hass: HomeAssistant,
+        scenario_minimal: SetupResult,
+        mock_hass_users: dict[str, Any],
+    ) -> None:
+        """hold_pending keeps the claim through the midnight rollover."""
+        from custom_components.choreops import const
+
+        coordinator = scenario_minimal.coordinator
+        chore_name = "Make bed"
+        chore_id = scenario_minimal.chore_ids[chore_name]
+        assignee_id = scenario_minimal.assignee_ids["Zoë"]
+
+        chore_info = coordinator.chores_data.get(chore_id, {})
+        chore_info[const.DATA_CHORE_APPROVAL_RESET_TYPE] = (
+            const.APPROVAL_RESET_AT_MIDNIGHT_ONCE
+        )
+        chore_info[const.DATA_CHORE_APPROVAL_RESET_PENDING_CLAIM_ACTION] = (
+            const.APPROVAL_RESET_PENDING_CLAIM_HOLD
+        )
+        chore_info[const.DATA_CHORE_DUE_DATE] = (
+            dt_now_utc() - timedelta(hours=1)
+        ).isoformat()
+        chore_info[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] = {
+            assignee_id: (dt_now_utc() - timedelta(hours=1)).isoformat()
+        }
+
+        await claim_chore(
+            hass,
+            "zoe",
+            chore_name,
+            Context(user_id=mock_hass_users["assignee1"].id),
+        )
+        await hass.async_block_till_done()
+
+        await coordinator.chore_manager._on_midnight_rollover(now_utc=dt_now_utc())
+        await hass.async_block_till_done()
+
+        assert (
+            get_chore_state_from_sensor(hass, "zoe", chore_name) == CHORE_STATE_CLAIMED
+        )
+
+    @pytest.mark.asyncio
+    async def test_midnight_rollover_single_persist_per_pass(
+        self,
+        hass: HomeAssistant,
+        scenario_minimal: SetupResult,
+        mock_hass_users: dict[str, Any],
+    ) -> None:
+        """One rollover pass with N resets performs exactly one persist."""
+        from custom_components.choreops import const
+
+        coordinator = scenario_minimal.coordinator
+        assignee_id = scenario_minimal.assignee_ids["Zoë"]
+
+        for chore_name in ("Make bed", "Brush teeth"):
+            chore_id = scenario_minimal.chore_ids[chore_name]
+            chore_info = coordinator.chores_data.get(chore_id, {})
+            chore_info[const.DATA_CHORE_APPROVAL_RESET_TYPE] = (
+                const.APPROVAL_RESET_AT_MIDNIGHT_ONCE
+            )
+            chore_info[const.DATA_CHORE_DUE_DATE] = (
+                dt_now_utc() - timedelta(hours=1)
+            ).isoformat()
+            chore_info[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] = {
+                assignee_id: (dt_now_utc() - timedelta(hours=1)).isoformat()
+            }
+
+        await claim_chore(
+            hass,
+            "zoe",
+            "Make bed",
+            Context(user_id=mock_hass_users["assignee1"].id),
+        )
+        await hass.async_block_till_done()
+
+        persist_calls = 0
+        pipeline_persists = 0
+        original_persist = coordinator._persist
+
+        def _counting_persist() -> None:
+            nonlocal persist_calls, pipeline_persists
+            persist_calls += 1
+            import traceback
+
+            stack_names = [frame.name for frame in traceback.extract_stack()]
+            # Listener persists run eagerly inside the signal flush; the
+            # pipeline's own persist is the direct rollover finally-block call
+            if "_flush_pending_boundary_signals" not in stack_names:
+                pipeline_persists += 1
+            original_persist()
+
+        with patch.object(coordinator, "_persist", _counting_persist):
+            await coordinator.chore_manager._on_midnight_rollover(now_utc=dt_now_utc())
+            await hass.async_block_till_done()
+
+        assert pipeline_persists == 1, (
+            f"Expected exactly 1 pipeline persist per rollover pass, "
+            f"got {pipeline_persists}"
+        )
+
+    @pytest.mark.asyncio
+    async def test_midnight_reset_signals_emit_after_settle(
+        self,
+        hass: HomeAssistant,
+        scenario_minimal: SetupResult,
+        mock_hass_users: dict[str, Any],
+    ) -> None:
+        """Reset signals arrive only when the sensor already shows pending."""
+        from custom_components.choreops import const
+
+        coordinator = scenario_minimal.coordinator
+        chore_name = "Make bed"
+        chore_id = scenario_minimal.chore_ids[chore_name]
+        assignee_id = scenario_minimal.assignee_ids["Zoë"]
+
+        chore_info = coordinator.chores_data.get(chore_id, {})
+        chore_info[const.DATA_CHORE_APPROVAL_RESET_TYPE] = (
+            const.APPROVAL_RESET_AT_MIDNIGHT_ONCE
+        )
+        chore_info[const.DATA_CHORE_APPROVAL_RESET_PENDING_CLAIM_ACTION] = (
+            const.APPROVAL_RESET_PENDING_CLAIM_AUTO_APPROVE
+        )
+        chore_info[const.DATA_CHORE_DUE_DATE] = (
+            dt_now_utc() - timedelta(hours=1)
+        ).isoformat()
+        chore_info[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] = {
+            assignee_id: (dt_now_utc() - timedelta(hours=1)).isoformat()
+        }
+
+        await claim_chore(
+            hass,
+            "zoe",
+            chore_name,
+            Context(user_id=mock_hass_users["assignee1"].id),
+        )
+        await hass.async_block_till_done()
+
+        observed: list[tuple[str, str]] = []
+        eid = self._get_chore_eid(hass, chore_name)
+
+        def _on_reset(payload: dict[str, Any]) -> None:
+            state = hass.states.get(eid)
+            observed.append(("reset", str(state.state) if state else "missing"))
+
+        coordinator.chore_manager.listen(
+            const.SIGNAL_SUFFIX_CHORE_STATUS_RESET, _on_reset
+        )
+
+        await coordinator.chore_manager._on_midnight_rollover(now_utc=dt_now_utc())
+        await hass.async_block_till_done()
+
+        assert observed, "Expected at least one reset signal"
+        for _, state_at_signal in observed:
+            assert state_at_signal == CHORE_STATE_PENDING, (
+                f"Reset signal observed while sensor showed {state_at_signal}"
+            )

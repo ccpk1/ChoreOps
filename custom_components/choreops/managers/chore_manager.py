@@ -177,6 +177,10 @@ class ChoreManager(BaseManager):
         ] = {}
         self._max_due_cache_entries = 2048
         self._pending_overdue_resolution_signals: list[dict[str, Any]] = []
+        self._pending_overdue_signals: list[dict[str, Any]] = []
+        self._pending_boundary_rotation_payloads: list[dict[str, Any]] = []
+        self._pending_boundary_reset_events: set[tuple[str, str, str]] = set()
+        self._pending_boundary_approval_plans: list[ApprovalSignalPlan] = []
 
     async def async_setup(self) -> None:
         """Set up the ChoreManager.
@@ -454,6 +458,7 @@ class ChoreManager(BaseManager):
                 try:
                     self._coordinator._persist()
                     self._coordinator.async_set_updated_data(self._coordinator._data)
+                    self._flush_pending_boundary_signals()
                 except Exception:
                     const.LOGGER.exception(
                         "ChoreManager: Critical - failed to persist midnight changes"
@@ -532,6 +537,7 @@ class ChoreManager(BaseManager):
                 try:
                     self._coordinator._persist()
                     self._coordinator.async_set_updated_data(self._coordinator._data)
+                    self._flush_pending_boundary_signals()
                 except Exception:
                     const.LOGGER.exception(
                         "ChoreManager: Critical - failed to persist periodic changes"
@@ -1260,6 +1266,13 @@ class ChoreManager(BaseManager):
                     reset_decision == const.CHORE_RESET_DECISION_RESET_AND_RESCHEDULE
                 )
 
+            if (
+                should_reschedule_chore
+                and not should_clear_due_date_after_immediate_reset
+            ):
+                # Reschedule before transitions (midnight-flash invariant)
+                self._reschedule_chore_due(chore_id)
+
             for reset_assignee_id in reset_targets:
                 self._apply_reset_action(
                     {
@@ -1274,12 +1287,6 @@ class ChoreManager(BaseManager):
 
             if reset_targets:
                 self._update_global_state(chore_id)
-
-            if (
-                should_reschedule_chore
-                and not should_clear_due_date_after_immediate_reset
-            ):
-                self._reschedule_chore_due(chore_id)
 
             if reset_targets and is_rotation_mode:
                 rotation_signal_payload = self._advance_rotation(
@@ -1677,8 +1684,18 @@ class ChoreManager(BaseManager):
             "pending_claim_action": pending_claim_action,
         }
 
-    def _apply_reset_action(self, context: ResetApplyContext) -> None:
-        """Apply reset side effects for a single assignee/chore pair."""
+    def _apply_reset_action(
+        self,
+        context: ResetApplyContext,
+        *,
+        persist: bool = True,
+    ) -> dict[str, Any] | None:
+        """Apply reset side effects for a single assignee/chore pair.
+
+        Returns:
+            Rotation signal payload when rotation advanced (emit after persist
+            when persist=False), else None.
+        """
         assignee_id = context["assignee_id"]
         chore_id = context["chore_id"]
         decision = context["decision"]
@@ -1686,26 +1703,28 @@ class ChoreManager(BaseManager):
         allow_reschedule = context.get("allow_reschedule", True)
         clear_due_date = context.get("clear_due_date", False)
 
+        # Reschedule/clear the due date BEFORE the state transition so no
+        # observer can see a cleared claim paired with the previous cycle's
+        # due date (FSM P5 would derive a transient overdue — midnight flash).
         if clear_due_date:
             self._clear_due_date_after_reset(
                 chore_id,
                 assignee_id if allow_reschedule else None,
             )
+        elif (
+            allow_reschedule
+            and decision == const.CHORE_RESET_DECISION_RESET_AND_RESCHEDULE
+        ):
+            self._reschedule_chore_due(chore_id, reschedule_assignee_id)
 
-        self._transition_chore_state(
+        return self._transition_chore_state(
             assignee_id,
             chore_id,
             const.CHORE_STATE_PENDING,
             reset_approval_period=True,
             clear_ownership=True,
+            persist=persist,
         )
-
-        if (
-            not clear_due_date
-            and allow_reschedule
-            and decision == const.CHORE_RESET_DECISION_RESET_AND_RESCHEDULE
-        ):
-            self._reschedule_chore_due(chore_id, reschedule_assignee_id)
 
     def _clear_due_date_after_reset(
         self,
@@ -1754,17 +1773,25 @@ class ChoreManager(BaseManager):
         persist: bool,
         reset_count: int,
         rotation_payloads: list[dict[str, Any]] | None,
+        reset_events: set[tuple[str, str, str]] | None = None,
     ) -> None:
-        """Finalize reset batch with persist/update and deferred signal emit."""
+        """Finalize reset batch: single persist, then all deferred signals."""
         if not persist or reset_count <= 0:
             return
 
         self._coordinator._persist()
         self._coordinator.async_set_updated_data(self._coordinator._data)
+        self._flush_overdue_resolution_signals()
 
-        if rotation_payloads:
-            for payload in rotation_payloads:
-                self.emit(const.SIGNAL_SUFFIX_CHORE_ROTATION_ADVANCED, **payload)
+        for payload in rotation_payloads or []:
+            self.emit(const.SIGNAL_SUFFIX_CHORE_ROTATION_ADVANCED, **payload)
+        for assignee_id, chore_id, chore_name in sorted(reset_events or set()):
+            self.emit(
+                const.SIGNAL_SUFFIX_CHORE_STATUS_RESET,
+                user_id=assignee_id,
+                chore_id=chore_id,
+                chore_name=chore_name,
+            )
 
     @staticmethod
     def _decide_reset_action(context: ResetContext) -> ResetDecision:
@@ -2246,15 +2273,15 @@ class ChoreManager(BaseManager):
 
         # === BATCH PERSIST (Phase 1) ===
         # Write once after all changes (O(n) → O(1) disk writes)
+        # Signals emit only AFTER persist (Persist→Emit pattern); with
+        # persist=False they queue for the caller's post-persist flush
         if persist and marked_count > 0:
             self._coordinator._persist()
             self._coordinator.async_set_updated_data(self._coordinator._data)
-
-        # === BATCH EMIT SIGNALS (Phase 1) ===
-        # Emit signals AFTER persist to comply with Persist→Emit pattern
-        # StatisticsManager._on_chore_overdue handles cache refresh and entity notification
-        for signal_data in signals_to_emit:
-            self.emit(const.SIGNAL_SUFFIX_CHORE_OVERDUE, **signal_data)
+            for signal_data in signals_to_emit:
+                self.emit(const.SIGNAL_SUFFIX_CHORE_OVERDUE, **signal_data)
+        elif not persist:
+            self._pending_overdue_signals.extend(signals_to_emit)
 
     def _process_due_window(self, entries: list[ChoreTimeEntry]) -> None:
         """Process due window entries and emit signals.
@@ -2387,12 +2414,12 @@ class ChoreManager(BaseManager):
         reset_pairs: set[tuple[str, str]] = set()
         rotation_payloads: list[dict[str, Any]] = []
         approval_signal_plans: list[ApprovalSignalPlan] = []
+        reset_events: set[tuple[str, str, str]] = set()
 
         # Process SHARED/SHARED_FIRST chores
         for entry in scan.get(const.CHORE_SCAN_RESULT_APPROVAL_RESET_SHARED, []):
             chore_id = entry["chore_id"]
             chore_info = entry["chore_info"]
-            should_reschedule_shared = False
             shared_plans: list[BoundaryResetPlan] = []
 
             # Reset all assigned assignees
@@ -2443,22 +2470,29 @@ class ChoreManager(BaseManager):
                     if (plan.assignee_id, plan.chore_id) in applied_pairs:
                         plan.assignee_state = const.CHORE_STATE_APPROVED
 
+            # Reschedule BEFORE transitions (same invariant as _apply_reset_action)
+            should_reschedule_shared = any(
+                not plan.should_clear_due_date
+                and not plan.allow_reschedule
+                and plan.effective_decision
+                == const.CHORE_RESET_DECISION_RESET_AND_RESCHEDULE
+                for plan in shared_plans
+            )
+            if should_reschedule_shared:
+                self._reschedule_chore_due(chore_id)
+
             for plan in shared_plans:
-                reset_applied, should_reschedule = self._execute_boundary_reset_plan(
+                reset_applied = self._execute_boundary_reset_plan(
                     plan,
                     rotation_payloads,
+                    persist=persist,
+                    reset_events=reset_events,
                 )
                 if not reset_applied:
                     continue
 
-                if should_reschedule:
-                    should_reschedule_shared = True
-
                 reset_count += 1
                 reset_pairs.add((plan.assignee_id, plan.chore_id))
-
-            if should_reschedule_shared:
-                self._reschedule_chore_due(chore_id)
 
         # Process INDEPENDENT chores
         for entry in scan.get(const.CHORE_SCAN_RESULT_APPROVAL_RESET_INDEPENDENT, []):
@@ -2507,9 +2541,11 @@ class ChoreManager(BaseManager):
                     if (plan.assignee_id, plan.chore_id) in applied_pairs:
                         plan.assignee_state = const.CHORE_STATE_APPROVED
 
-                reset_applied, _ = self._execute_boundary_reset_plan(
+                reset_applied = self._execute_boundary_reset_plan(
                     plan,
                     rotation_payloads,
+                    persist=persist,
+                    reset_events=reset_events,
                 )
 
                 if not reset_applied:
@@ -2525,12 +2561,19 @@ class ChoreManager(BaseManager):
                 reset_count,
             )
 
-        self._finalize_reset_batch(
-            persist=persist,
-            reset_count=reset_count,
-            rotation_payloads=rotation_payloads,
-        )
-        self._emit_approval_signal_plans(approval_signal_plans)
+        if persist:
+            self._finalize_reset_batch(
+                persist=persist,
+                reset_count=reset_count,
+                rotation_payloads=rotation_payloads,
+                reset_events=reset_events,
+            )
+            self._emit_approval_signal_plans(approval_signal_plans)
+        else:
+            # Caller owns the persist; queue all signals for post-persist emit
+            self._queue_boundary_signals(
+                rotation_payloads, reset_events, approval_signal_plans
+            )
 
         return reset_count, reset_pairs
 
@@ -2715,8 +2758,15 @@ class ChoreManager(BaseManager):
         self,
         plan: BoundaryResetPlan,
         rotation_payloads: list[dict[str, Any]],
-    ) -> tuple[bool, bool]:
-        """Execute boundary reset side effects for a prepared plan."""
+        *,
+        persist: bool = True,
+        reset_events: set[tuple[str, str, str]] | None = None,
+    ) -> bool:
+        """Execute boundary reset side effects for a prepared plan.
+
+        Returns:
+            True if the reset was applied.
+        """
         assignee_id = plan.assignee_id
         chore_id = plan.chore_id
         chore_info = plan.chore_info
@@ -2770,7 +2820,7 @@ class ChoreManager(BaseManager):
                 if rotation_payload:
                     rotation_payloads.append(rotation_payload)
 
-        self._apply_reset_action(
+        rotation_payload = self._apply_reset_action(
             {
                 "assignee_id": assignee_id,
                 "chore_id": chore_id,
@@ -2778,15 +2828,20 @@ class ChoreManager(BaseManager):
                 "reschedule_assignee_id": plan.reschedule_assignee_id,
                 "allow_reschedule": plan.allow_reschedule,
                 "clear_due_date": plan.should_clear_due_date,
-            }
+            },
+            persist=persist,
         )
-
-        should_reschedule_shared = (
-            not plan.should_clear_due_date
-            and not plan.allow_reschedule
-            and effective_decision == const.CHORE_RESET_DECISION_RESET_AND_RESCHEDULE
-        )
-        return True, should_reschedule_shared
+        if rotation_payload is not None:
+            rotation_payloads.append(rotation_payload)
+        if reset_events is not None:
+            reset_events.add(
+                (
+                    assignee_id,
+                    chore_id,
+                    str(chore_info.get(const.DATA_CHORE_NAME, "")),
+                )
+            )
+        return True
 
     def _resolve_approval_effective_date_iso(
         self,
@@ -4876,6 +4931,44 @@ class ChoreManager(BaseManager):
                 **signal_data,
             )
 
+    def _queue_boundary_signals(
+        self,
+        rotation_payloads: list[dict[str, Any]],
+        reset_events: set[tuple[str, str, str]],
+        approval_signal_plans: list[ApprovalSignalPlan],
+    ) -> None:
+        """Queue boundary signals for emission after the caller's persist."""
+        self._pending_boundary_rotation_payloads.extend(rotation_payloads)
+        self._pending_boundary_reset_events.update(reset_events)
+        self._pending_boundary_approval_plans.extend(approval_signal_plans)
+
+    def _flush_pending_boundary_signals(self) -> None:
+        """Emit queued boundary signals. MUST be called after persist."""
+        rotation_payloads = self._pending_boundary_rotation_payloads
+        reset_events = self._pending_boundary_reset_events
+        approval_plans = self._pending_boundary_approval_plans
+        self._pending_boundary_rotation_payloads = []
+        self._pending_boundary_reset_events = set()
+        self._pending_boundary_approval_plans = []
+
+        for payload in rotation_payloads:
+            self.emit(const.SIGNAL_SUFFIX_CHORE_ROTATION_ADVANCED, **payload)
+        for assignee_id, chore_id, chore_name in sorted(reset_events):
+            self.emit(
+                const.SIGNAL_SUFFIX_CHORE_STATUS_RESET,
+                user_id=assignee_id,
+                chore_id=chore_id,
+                chore_name=chore_name,
+            )
+        self._emit_approval_signal_plans(approval_plans)
+
+        # Overdue signals deferred by _process_overdue(persist=False) share
+        # this post-persist flush point
+        overdue_signals = self._pending_overdue_signals
+        self._pending_overdue_signals = []
+        for signal_data in overdue_signals:
+            self.emit(const.SIGNAL_SUFFIX_CHORE_OVERDUE, **signal_data)
+
     def _transition_chore_state(
         self,
         assignee_id: str,
@@ -4886,7 +4979,7 @@ class ChoreManager(BaseManager):
         clear_ownership: bool = False,
         emit: bool = True,
         persist: bool = True,
-    ) -> None:
+    ) -> dict[str, Any] | None:
         """Master method for chore state transitions.
 
         This is THE single source of truth for changing a chore's state.
@@ -4903,6 +4996,11 @@ class ChoreManager(BaseManager):
             clear_ownership: If True, clears claimed_by and completed_by (for fresh cycle)
             emit: If True (default), emits CHORE_STATUS_RESET signal when → PENDING
             persist: If True (default), persists and updates coordinator data
+
+        Returns:
+            Rotation-advanced signal payload when rotation advanced, else None.
+            With persist=True the payload is emitted internally; with
+            persist=False the caller MUST emit it after its own persist.
         """
         # Phase 4 Guard Rail: Track modification
         self._track_state_modification(assignee_id, chore_id)
@@ -4911,7 +5009,7 @@ class ChoreManager(BaseManager):
         chore_info = self._coordinator.chores_data.get(chore_id)
 
         if not assignee_info or not chore_info:
-            return
+            return None
 
         # Landlord duty: Ensure periods structures exist before statistics writes
         self._ensure_assignee_structures(assignee_id, chore_id)
@@ -5029,6 +5127,8 @@ class ChoreManager(BaseManager):
                 )
 
             self._coordinator.async_set_updated_data(self._coordinator._data)
+
+        return rotation_signal_payload
 
     def _validate_assignee_and_chore(self, assignee_id: str, chore_id: str) -> None:
         """Validate assignee and chore exist.
