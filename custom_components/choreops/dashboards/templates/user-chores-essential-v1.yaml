@@ -420,8 +420,8 @@ views:
                             {%- set ns.standby_buttons = ns.standby_buttons + [chore_sensor_id] -%}
 
                           {#-- Step 5: Handle recurring filters BEFORE primary_group logic (override primary_group assignment) --#}
-                          {#-- Only no-due-date daily chores can land in 'today' without a date (weekly requires a due date) --#}
-                          {%- elif chore_primary_group == 'today' and chore_due_date in [none, 'unknown', 'unavailable'] and chore_recurring_frequency == 'daily' and not pref_include_daily_recurring_in_today -%}
+                          {#-- Daily-recurring chores in the today bucket (dated or dateless) move to other when disabled --#}
+                          {%- elif chore_primary_group == 'today' and chore_recurring_frequency == 'daily' and not pref_include_daily_recurring_in_today -%}
                             {%- set ns.other_buttons = ns.other_buttons + [chore_sensor_id] -%}
 
                           {#-- Step 6: Categorize by primary_group (time-based) --#}

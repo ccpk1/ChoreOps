@@ -6,11 +6,10 @@ from pathlib import Path
 
 TEMPLATES_ROOT = Path("custom_components/choreops/dashboards/templates")
 
-# Step 5 daily-recurring discriminator: only no-due-date daily chores may be
-# relocated when pref_include_daily_recurring_in_today is false.
+# Step 5 daily-recurring filter: all daily chores in the today bucket (dated
+# or dateless) are relocated when pref_include_daily_recurring_in_today is false.
 DAILY_DISCRIMINATOR = (
     "chore_primary_group == 'today' and "
-    "chore_due_date in [none, 'unknown', 'unavailable'] and "
     "chore_recurring_frequency == 'daily' and "
     "not pref_include_daily_recurring_in_today"
 )
@@ -31,16 +30,16 @@ def _read_template(name: str) -> str:
     return (TEMPLATES_ROOT / name).read_text(encoding="utf-8")
 
 
-def test_shared_prepare_groups_gates_daily_filter_on_no_due_date() -> None:
-    """Shared chore engine relocates only no-due-date daily chores."""
+def test_shared_prepare_groups_gates_daily_filter_on_frequency() -> None:
+    """Shared chore engine relocates daily chores from the today bucket."""
     content = _read_template("shared/chore_engine/prepare_groups_v1.yaml")
 
     assert DAILY_DISCRIMINATOR in content
     assert REMOVED_WEEKLY_PREF not in content
 
 
-def test_inline_templates_gate_daily_filter_on_no_due_date() -> None:
-    """Inline grouping templates relocate only no-due-date daily chores."""
+def test_inline_templates_gate_daily_filter_on_frequency() -> None:
+    """Inline grouping templates relocate daily chores from the today bucket."""
     for template_name in INLINE_STEP5_TEMPLATES:
         content = _read_template(template_name)
         assert DAILY_DISCRIMINATOR in content, template_name
