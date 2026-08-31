@@ -218,8 +218,6 @@ views:
 
                   {%- set pref_use_this_week_grouping = true -%}  {#-- Allowed: true, false --#}
 
-                  {%- set pref_include_weekly_recurring_in_this_week = true -%}  {#-- Allowed: true, false --#}
-
                   {%- set pref_use_standby_grouping = true -%}  {#-- Allowed: true, false --#}
 
 
@@ -280,7 +278,7 @@ views:
                   {%- set pref_use_today_grouping = pref_use_today_grouping | default(true, true) -%}
                   {%- set pref_include_daily_recurring_in_today = pref_include_daily_recurring_in_today | default(true, true) -%}
                   {%- set pref_use_this_week_grouping = pref_use_this_week_grouping | default(true, true) -%}
-                  {%- set pref_include_weekly_recurring_in_this_week = pref_include_weekly_recurring_in_this_week | default(true, true) -%}
+
                   {%- set pref_exclude_completed = pref_exclude_completed | default(false, true) -%}
                   {%- set pref_exclude_states = pref_exclude_states if pref_exclude_states is iterable else [] -%}
                   {%- set pref_exclude_states = pref_exclude_states | map('lower') | list -%}
@@ -422,12 +420,8 @@ views:
                             {%- set ns.standby_buttons = ns.standby_buttons + [chore_sensor_id] -%}
 
                           {#-- Step 5: Handle recurring filters BEFORE primary_group logic (override primary_group assignment) --#}
-                          {#-- If a chore is in 'today' group without specific date, it's daily recurring --#}
-                          {%- elif chore_primary_group == 'today' and not pref_include_daily_recurring_in_today -%}
-                            {%- set ns.other_buttons = ns.other_buttons + [chore_sensor_id] -%}
-
-                          {#-- If a chore is in 'this_week' group without specific date, it's weekly recurring --#}
-                          {%- elif chore_primary_group == 'this_week' and not pref_include_weekly_recurring_in_this_week -%}
+                          {#-- Only no-due-date daily chores can land in 'today' without a date (weekly requires a due date) --#}
+                          {%- elif chore_primary_group == 'today' and chore_due_date in [none, 'unknown', 'unavailable'] and chore_recurring_frequency == 'daily' and not pref_include_daily_recurring_in_today -%}
                             {%- set ns.other_buttons = ns.other_buttons + [chore_sensor_id] -%}
 
                           {#-- Step 6: Categorize by primary_group (time-based) --#}

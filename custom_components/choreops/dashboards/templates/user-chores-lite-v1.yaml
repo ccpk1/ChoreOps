@@ -164,8 +164,6 @@ views:
 
                     {%- set pref_use_this_week_grouping = true -%}  {#-- Allowed: true, false --#}
 
-                    {%- set pref_include_weekly_recurring_in_this_week = true -%}  {#-- Allowed: true, false --#}
-
 
                     {#-- ── Exclude Filters ──────────────────────────────────────────────── --#}
 
@@ -207,7 +205,6 @@ views:
                     {%- set pref_today_grouping_mode = pref_today_grouping_mode | default('today_morning', true) -%}
                     {%- set pref_include_daily_recurring_in_today = pref_include_daily_recurring_in_today | default(true, true) -%}
                     {%- set pref_use_this_week_grouping = pref_use_this_week_grouping | default(true, true) -%}
-                    {%- set pref_include_weekly_recurring_in_this_week = pref_include_weekly_recurring_in_this_week | default(true, true) -%}
                     {%- set pref_exclude_completed = pref_exclude_completed | default(false, true) -%}
                     {%- set pref_exclude_blocked = pref_exclude_blocked | default(false, true) -%}
                     {%- set pref_exclude_states = pref_exclude_states if pref_exclude_states is iterable else [] -%}
@@ -338,10 +335,8 @@ views:
                               {%- set ns.visible_count = ns.visible_count + 1 -%}
                             {%- elif pref_use_label_grouping and (chore_labels | default([], true) | list | length > 0) -%}
                               {%- set ns.label_group_candidates = ns.label_group_candidates + [{'eid': chore_sensor_id, 'labels': chore_labels}] -%}
-                            {%- elif chore_primary_group == 'today' and not pref_include_daily_recurring_in_today -%}
-                              {%- set ns.other_buttons = ns.other_buttons + [chore_sensor_id] -%}
-                              {%- set ns.visible_count = ns.visible_count + 1 -%}
-                            {%- elif chore_primary_group == 'this_week' and not pref_include_weekly_recurring_in_this_week -%}
+                            {#-- Only no-due-date daily chores can land in 'today' without a date (weekly requires a due date) --#}
+                            {%- elif chore_primary_group == 'today' and chore_due_date in [none, 'unknown', 'unavailable'] and chore_recurring_frequency == 'daily' and not pref_include_daily_recurring_in_today -%}
                               {%- set ns.other_buttons = ns.other_buttons + [chore_sensor_id] -%}
                               {%- set ns.visible_count = ns.visible_count + 1 -%}
                             {%- elif chore_primary_group == 'today' and pref_today_grouping_mode == 'today_morning' and chore_is_today_am == true -%}
