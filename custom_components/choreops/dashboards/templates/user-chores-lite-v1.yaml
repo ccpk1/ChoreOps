@@ -213,7 +213,7 @@ views:
                       {%- set pref_exclude_states = pref_exclude_states + ['completed'] -%}
                     {%- endif -%}
                     {%- if pref_exclude_blocked -%}
-                      {%- for blocked_state in ['completed_by_other', 'not_my_turn', 'paused', 'missed'] -%}
+                      {%- for blocked_state in ['completed_by_other', 'not_my_turn', 'paused', 'missed', 'standby'] -%}
                         {%- if blocked_state not in pref_exclude_states -%}
                           {%- set pref_exclude_states = pref_exclude_states + [blocked_state] -%}
                         {%- endif -%}

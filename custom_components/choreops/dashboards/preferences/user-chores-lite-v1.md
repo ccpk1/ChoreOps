@@ -59,7 +59,8 @@
 
 - `pref_exclude_blocked` (default: `false`)
   - Hides blocked-result chores.
-  - Adds `completed_by_other`, `not_my_turn`, and `missed` to the effective exclusion list.
+  - Adds `completed_by_other`, `not_my_turn`, `paused`, `missed`, and `standby` to the effective exclusion list.
+  - Claimable standbys (`can_claim`) are still shown; only standbys unavailable for claim are hidden.
 
 - `pref_exclude_states` (default: `[]`)
   - Excludes chores by state.

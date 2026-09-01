@@ -93,7 +93,8 @@
 
 - `pref_exclude_blocked` (default: `false`)
   - Hides blocked-result chores.
-  - If set to `true`, `completed_by_other`, `not_my_turn`, and `missed` are automatically added to `pref_exclude_states` when missing.
+  - If set to `true`, `completed_by_other`, `not_my_turn`, `paused`, `missed`, and `standby` are automatically added to `pref_exclude_states` when missing.
+  - Claimable standbys (`can_claim`) are still shown; only standbys unavailable for claim are hidden.
   - Allowed: `true`, `false`.
 
 - `pref_exclude_states` (default: `[]`)
