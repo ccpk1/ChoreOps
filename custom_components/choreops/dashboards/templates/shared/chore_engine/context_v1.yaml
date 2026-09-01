@@ -42,21 +42,20 @@
     {%- set pref_column_count_kids = 1 -%}
   {%- endif -%}
 {%- endif -%}
-{%- set pref_use_overdue_grouping = (pref_use_overdue_grouping | default(true, true) | string | lower) == 'true' -%}
-{%- set pref_use_today_grouping = (pref_use_today_grouping | default(true, true) | string | lower) == 'true' -%}
-{%- set pref_use_today_am_grouping = (pref_use_today_am_grouping | default(true, true) | string | lower) == 'true' -%}
+{%- set pref_use_overdue_grouping = (pref_use_overdue_grouping | default('true') | string | lower) == 'true' -%}
+{%- set pref_use_today_grouping = (pref_use_today_grouping | default('true') | string | lower) == 'true' -%}
+{%- set pref_use_today_am_grouping = (pref_use_today_am_grouping | default('true') | string | lower) == 'true' -%}
 {%- set pref_today_grouping_mode = (pref_today_grouping_mode | default('', true) | string | lower) -%}
 {%- if pref_today_grouping_mode not in ['off', 'today', 'today_morning'] -%}
   {%- set pref_today_grouping_mode = 'today_morning' if pref_use_today_am_grouping else 'today' if pref_use_today_grouping else 'off' -%}
 {%- endif -%}
-{%- set pref_include_daily_recurring_in_today = (pref_include_daily_recurring_in_today | default(true, true) | string | lower) == 'true' -%}
-{%- set pref_use_this_week_grouping = (pref_use_this_week_grouping | default(true, true) | string | lower) == 'true' -%}
-{%- set pref_include_weekly_recurring_in_this_week = (pref_include_weekly_recurring_in_this_week | default(true, true) | string | lower) == 'true' -%}
+{%- set pref_include_daily_recurring_in_today = (pref_include_daily_recurring_in_today | default('true') | string | lower) == 'true' -%}
+{%- set pref_use_this_week_grouping = (pref_use_this_week_grouping | default('true') | string | lower) == 'true' -%}
 {%- set pref_use_standby_grouping = (pref_use_standby_grouping | default(true) | string | lower) == 'true' -%}
-{%- set pref_exclude_completed = (pref_exclude_completed | default(false, true) | string | lower) == 'true' -%}
+{%- set pref_exclude_completed = (pref_exclude_completed | default('false') | string | lower) == 'true' -%}
 {%- set pref_exclude_states = pref_exclude_states if pref_exclude_states is iterable and pref_exclude_states is not string else [] -%}
 {%- set pref_exclude_states = pref_exclude_states | map('lower') | list -%}
-{%- set pref_exclude_nonrecurring_no_due_date = (pref_exclude_nonrecurring_no_due_date | default(false, true) | string | lower) == 'true' -%}
+{%- set pref_exclude_nonrecurring_no_due_date = (pref_exclude_nonrecurring_no_due_date | default('false') | string | lower) == 'true' -%}
 {%- set pref_max_due_date_days = pref_max_due_date_days | int(default=0) -%}
 {%- if pref_max_due_date_days < 0 -%}
   {%- set pref_max_due_date_days = 0 -%}
@@ -70,26 +69,8 @@
   {%- endif -%}
 {%- endfor -%}
 {%- set pref_exclude_group_list = ns_valid_exclude_groups.items -%}
-{%- if pref_exclude_completed and 'completed' not in pref_exclude_states -%}
-  {%- set pref_exclude_states = pref_exclude_states + ['completed'] -%}
-{%- endif -%}
-{%- set pref_exclude_blocked = (pref_exclude_blocked | default(false, true) | string | lower) == 'true' -%}
-{%- if pref_exclude_blocked and 'completed_by_other' not in pref_exclude_states -%}
-  {%- set pref_exclude_states = pref_exclude_states + ['completed_by_other'] -%}
-{%- endif -%}
-{%- if pref_exclude_blocked and 'not_my_turn' not in pref_exclude_states -%}
-  {%- set pref_exclude_states = pref_exclude_states + ['not_my_turn'] -%}
-{%- endif -%}
-{%- if pref_exclude_blocked and 'missed' not in pref_exclude_states -%}
-  {%- set pref_exclude_states = pref_exclude_states + ['missed'] -%}
-{%- endif -%}
-{%- if pref_exclude_blocked and 'paused' not in pref_exclude_states -%}
-  {%- set pref_exclude_states = pref_exclude_states + ['paused'] -%}
-{%- endif -%}
-{%- if pref_exclude_blocked and 'standby' not in pref_exclude_states -%}
-  {%- set pref_exclude_states = pref_exclude_states + ['standby'] -%}
-{%- endif -%}
-{%- set pref_use_label_grouping = (pref_use_label_grouping | default(false, true) | string | lower) == 'true' -%}
+{%- set pref_exclude_blocked = (pref_exclude_blocked | default('false') | string | lower) == 'true' -%}
+{%- set pref_use_label_grouping = (pref_use_label_grouping | default('false') | string | lower) == 'true' -%}
 {%- set pref_exclude_label_list = pref_exclude_label_list if pref_exclude_label_list is iterable and pref_exclude_label_list is not string else [] -%}
 {%- set pref_exclude_label_list = pref_exclude_label_list | map('lower') | list -%}
 {%- set pref_include_label_list = pref_include_label_list if pref_include_label_list is iterable and pref_include_label_list is not string else [] -%}
@@ -262,6 +243,12 @@
   {%- endif -%}
   {%- if exclude_blocked_effective and 'missed' not in effective_exclude_states -%}
     {%- set effective_exclude_states = effective_exclude_states + ['missed'] -%}
+  {%- endif -%}
+  {%- if exclude_blocked_effective and 'paused' not in effective_exclude_states -%}
+    {%- set effective_exclude_states = effective_exclude_states + ['paused'] -%}
+  {%- endif -%}
+  {%- if exclude_blocked_effective and 'standby' not in effective_exclude_states -%}
+    {%- set effective_exclude_states = effective_exclude_states + ['standby'] -%}
   {%- endif -%}
   {%- set chore_row_template_name = 'chore_row_kids_v1' if effective_row_variant == 'kids' else 'chore_row_v1' -%}
   {%- set integration_entry_id = state_attr(dashboard_helper, 'integration_entry_id') -%}

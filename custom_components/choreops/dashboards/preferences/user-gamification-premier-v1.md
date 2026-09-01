@@ -86,17 +86,13 @@ Recommended ranges:
   - Allowed: `off`, `today`, `today_morning`.
 
 - `pref_include_daily_recurring_in_today` (default: `true`)
-  - Keeps recurring daily chores in today groups.
+  - Keeps no-due-date recurring daily chores in today groups.
   - When `false`, those chores move to “other” grouping logic.
+  - Dated chores, overdue chores, and label-grouped chores are unaffected.
   - Allowed: `true`, `false`.
 
 - `pref_use_this_week_grouping` (default: `true`)
   - Shows a dedicated due-this-week group.
-  - Allowed: `true`, `false`.
-
-- `pref_include_weekly_recurring_in_this_week` (default: `true`)
-  - Keeps recurring weekly chores in this-week group.
-  - When `false`, those chores move to “other” grouping logic.
   - Allowed: `true`, `false`.
 
 - `pref_exclude_completed` (default: `false`)
@@ -106,7 +102,8 @@ Recommended ranges:
 
 - `pref_exclude_blocked` (default: `false`)
   - Hides blocked-result chores.
-  - If set to `true`, `completed_by_other`, `not_my_turn`, and `missed` are automatically added to `pref_exclude_states` when missing.
+  - If set to `true`, `completed_by_other`, `not_my_turn`, `paused`, `missed`, and `standby` are automatically added to `pref_exclude_states` when missing.
+  - Claimable standbys (`can_claim`) are still shown; only standbys unavailable for claim are hidden.
   - Allowed: `true`, `false`.
 
 - `pref_exclude_states` (default: `[]`)
@@ -143,7 +140,8 @@ Recommended ranges:
 
 - `pref_exclude_blocked` (default: `false`)
   - Hides blocked-result chores.
-  - If set to `true`, `completed_by_other`, `not_my_turn`, and `missed` are automatically added to `pref_exclude_states` when missing.
+  - If set to `true`, `completed_by_other`, `not_my_turn`, `paused`, `missed`, and `standby` are automatically added to `pref_exclude_states` when missing.
+  - Claimable standbys (`can_claim`) are still shown; only standbys unavailable for claim are hidden.
   - Allowed: `true`, `false`.
 
 - `pref_exclude_states` (default: `[]`)

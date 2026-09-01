@@ -46,13 +46,11 @@
   - Allowed: `off`, `today`, `today_morning`.
 
 - `pref_include_daily_recurring_in_today` (default: `true`)
-  - Keeps recurring daily chores in today groups.
+  - Keeps no-due-date recurring daily chores in today groups.
+  - Dated chores, overdue chores, and label-grouped chores are unaffected.
 
 - `pref_use_this_week_grouping` (default: `true`)
   - Shows a due-this-week group.
-
-- `pref_include_weekly_recurring_in_this_week` (default: `true`)
-  - Keeps recurring weekly chores in the this-week group.
 
 ### Exclude Filters
 
@@ -61,7 +59,8 @@
 
 - `pref_exclude_blocked` (default: `false`)
   - Hides blocked-result chores.
-  - Adds `completed_by_other`, `not_my_turn`, and `missed` to the effective exclusion list.
+  - Adds `completed_by_other`, `not_my_turn`, `paused`, `missed`, and `standby` to the effective exclusion list.
+  - Claimable standbys (`can_claim`) are still shown; only standbys unavailable for claim are hidden.
 
 - `pref_exclude_states` (default: `[]`)
   - Excludes chores by state.

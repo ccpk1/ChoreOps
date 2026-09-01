@@ -261,8 +261,6 @@ views:
 
                   {%- set pref_use_this_week_grouping = true -%}  {#-- Allowed: true, false --#}
 
-                  {%- set pref_include_weekly_recurring_in_this_week = true -%}  {#-- Allowed: true, false --#}
-
                   {%- set pref_use_standby_grouping = true -%}  {#-- Allowed: true, false --#}
 
 

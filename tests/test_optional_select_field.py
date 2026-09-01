@@ -4,8 +4,8 @@ from unittest.mock import MagicMock, patch
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
+from probatio import to_field_list
 import pytest
-import voluptuous_serialize
 
 from custom_components.choreops import const
 from custom_components.choreops.helpers.flow_helpers import build_user_schema
@@ -44,11 +44,10 @@ class TestOptionalSelectFieldValidation:
                 assignees_dict=assignees_dict,
             )
 
-        # This is what HA does to send schema to frontend
+        # This is what HA does to send schema to the frontend
+        # (homeassistant/helpers/data_entry_flow.py uses probatio.to_field_list)
         try:
-            serialized = voluptuous_serialize.convert(
-                schema, custom_serializer=cv.custom_serializer
-            )
+            serialized = to_field_list(schema, custom_serializer=cv.custom_serializer)
             assert serialized is not None, "Schema should serialize"
             assert len(serialized) > 0, "Schema should have fields"
         except Exception as e:

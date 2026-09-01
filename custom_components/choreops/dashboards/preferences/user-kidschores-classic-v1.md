@@ -30,13 +30,11 @@
   - Show dedicated due-today groups.
   - Allowed: `true`, `false`.
 - `pref_include_daily_recurring_in_today` (default: `true`)
-  - Keep recurring daily chores in today group.
+  - Keep no-due-date recurring daily chores in today group.
+  - Dated chores, overdue chores, and label-grouped chores are unaffected.
   - Allowed: `true`, `false`.
 - `pref_use_this_week_grouping` (default: `true`)
   - Show dedicated due-this-week group.
-  - Allowed: `true`, `false`.
-- `pref_include_weekly_recurring_in_this_week` (default: `true`)
-  - Keep recurring weekly chores in this-week group.
   - Allowed: `true`, `false`.
 
 ### Exclude Filters
