@@ -787,7 +787,7 @@
           "start_date": "🔄 ZYKLUS ZURÜCKSETZEN: Startdatum (optional)",
           "end_date": "🔄 WARTUNGSZYKLUS: Enddatum (optional)",
           "grace_period_days": "🔄 WARTUNGSZYKLUS: Nachfrist in Tagen (optional)",
-          "clear_end_date": "🗑️ Klares Enddatum"
+          "clear_end_date": "🗑️ Enddatum löschen"
         },
         "data_description": {
           "badge_name": "Geben Sie einen eindeutigen Namen für das Abzeichen ein. Dieser Name wird im gesamten System angezeigt.",
@@ -863,8 +863,8 @@
           "custom_interval_unit": "🔄 ZYKLUS ZURÜCKSETZEN: Einheit des benutzerdefinierten Intervalls (erforderlich für benutzerdefinierte Wiederholung)",
           "start_date": "🔄 ZYKLUS ZURÜCKSETZEN: Startdatum (optional)",
           "end_date": "🔄 ZYKLUS ZURÜCKSETZEN: Enddatum (optional)",
-          "clear_start_date": "🗑️ Klarer Starttermin",
-          "clear_end_date": "🗑️ Klares Enddatum"
+          "clear_start_date": "🗑️ Startdatum löschen",
+          "clear_end_date": "🗑️ Enddatum löschen"
         },
         "data_description": {
           "badge_name": "Geben Sie einen eindeutigen Namen für das Abzeichen ein. Dieser Name wird im gesamten System angezeigt.",
@@ -885,7 +885,7 @@
           "custom_interval_unit": "Wählen Sie die Einheit für das benutzerdefinierte Intervall aus (z. B. Tage oder Wochen).",
           "start_date": "Legen Sie das Startdatum für den Rücksetzzyklus fest (optional).",
           "end_date": "Legen Sie das Enddatum für den Rücksetzzyklus fest (optional).",
-          "clear_start_date": "Aktivieren Sie dieses Kontrollkästchen, um das Startdatum von diesem Abzeichen zu entfernen.",
+          "clear_start_date": "Aktivieren Sie dieses Kontrollkästchen, um das Anlassdatum von diesem Abzeichen zu entfernen.",
           "clear_end_date": "Aktivieren Sie dieses Kontrollkästchen, um das Enddatum von diesem Abzeichen zu entfernen."
         }
       },
@@ -931,7 +931,7 @@
           "assigned_user_ids": "🧒 Zugewiesene Personen",
           "award_items": "🎁 AUSZEICHNUNGEN: Punkte, Prämien und Boni auswählen (optional)",
           "award_points": "🎁 AUSZEICHNUNGEN: Vergebene Punkte (optional)",
-          "clear_end_date": "🗑️ Termin für einen besonderen Anlass festlegen"
+          "clear_end_date": "🗑️ Termin für den Anlass entfernen"
         },
         "data_description": {
           "badge_name": "Geben Sie einen eindeutigen Namen für das Abzeichen ein. Dieser Name wird im gesamten System angezeigt.",
@@ -948,7 +948,7 @@
           "assigned_user_ids": "Weisen Sie dieses Abzeichen bestimmten zugewiesenen Personen zur Nachverfolgung zu.",
           "award_items": "Wählen Sie eine oder mehrere Auszeichnungen aus: Punkte, Belohnungen oder Boni. Alle ausgewählten Auszeichnungen werden beim Erhalt des Abzeichens vergeben oder angewendet. Strafen werden nur angewendet, wenn das Abzeichen bis zum Enddatum oder zum Datum der Genehmigungsrücksetzung nicht erreicht wurde (optional).",
           "award_points": "Wenn „Punkte“ als Auszeichnung ausgewählt wurden, geben Sie die Anzahl der Punkte an, die beim Erhalt dieses Abzeichens vergeben werden (optional).",
-          "clear_end_date": "Setzen Sie ein Häkchen in dieses Kästchen, um das Anlassdatum von diesem Abzeichen zu entfernen."
+          "clear_end_date": "Aktivieren Sie dieses Kontrollkästchen, um das Anlassdatum von diesem Abzeichen zu entfernen."
         }
       },
       "add_reward": {
@@ -1267,7 +1267,7 @@
           "start_date": "🔄 RÜCKSETZZYKLUS: Startdatum (optional)",
           "end_date": "🔄 WARTUNGSZYKLUS: Enddatum (optional)",
           "grace_period_days": "🔄 WARTUNGSZYKLUS: Nachfrist in Tagen (optional)",
-          "clear_end_date": "🗑️ Klares Enddatum"
+          "clear_end_date": "🗑️ Enddatum löschen"
         },
         "data_description": {
           "badge_name": "Geben Sie einen eindeutigen Namen für das Abzeichen ein. Dieser Name wird im gesamten System angezeigt.",
@@ -1343,8 +1343,8 @@
           "custom_interval_unit": "🔄 RÜCKSETZZYKLUS: Einheit des benutzerdefinierten Intervalls (erforderlich für benutzerdefinierte Wiederholung)",
           "start_date": "🔄 RÜCKSETZZYKLUS: Startdatum (optional)",
           "end_date": "🔄 RÜCKSETZZYKLUS: Enddatum (optional)",
-          "clear_start_date": "🗑️ Klarer Starttermin",
-          "clear_end_date": "🗑️ Klares Enddatum"
+          "clear_start_date": "🗑️ Startdatum löschen",
+          "clear_end_date": "🗑️ Enddatum löschen"
         },
         "data_description": {
           "badge_name": "Geben Sie einen eindeutigen Namen für das Abzeichen ein. Dieser Name wird im System angezeigt.",
@@ -1411,7 +1411,7 @@
           "assigned_user_ids": "🧒 Zugewiesene Personen",
           "award_items": "🎁 AUSZEICHNUNGEN: Punkte, Prämien und Boni auswählen (optional)",
           "award_points": "🎁 AUSZEICHNUNGEN: Vergebene Punkte (optional)",
-          "clear_end_date": "🗑️ Termin für einen besonderen Anlass festlegen"
+          "clear_end_date": "🗑️ Termin für Anlass entfernen"
         },
         "data_description": {
           "badge_name": "Geben Sie einen eindeutigen Namen für das Abzeichen ein. Dieser Name wird im System angezeigt.",
@@ -1428,7 +1428,7 @@
           "assigned_user_ids": "Weisen Sie dieses Abzeichen bestimmten zugewiesenen Personen zur Nachverfolgung zu.",
           "award_items": "Wählen Sie eine oder mehrere Auszeichnungen aus: Punkte, Belohnungen oder Boni. Alle ausgewählten Auszeichnungen werden beim Erhalt des Abzeichens vergeben oder angewendet. Strafen werden nur angewendet, wenn das Abzeichen bis zum Enddatum oder Rücksetzungsdatum nicht erreicht wurde (optional).",
           "award_points": "Wenn „Punkte“ als Auszeichnung ausgewählt wurden, geben Sie die Anzahl der Punkte an, die beim Erhalt dieses Abzeichens vergeben werden (optional).",
-          "clear_end_date": "Setzen Sie ein Häkchen in dieses Kästchen, um das Anlassdatum von diesem Abzeichen zu entfernen."
+          "clear_end_date": "Aktivieren Sie dieses Kontrollkästchen, um das Anlassdatum von diesem Abzeichen zu entfernen."
         }
       },
       "edit_reward": {
@@ -3025,26 +3025,26 @@
       }
     },
     "get_ledger": {
-      "name": "Ledger herunterladen",
-      "description": "Gibt einen strukturierten Auszug der Punktbucheinträge zurück. Standardmäßig werden alle Benutzer berücksichtigt; mit dem Parameter `user_name` kann die Anzahl auf einen Benutzer beschränkt werden. Mit `limit` lässt sich die Anzahl der zuletzt zurückgegebenen Einträge begrenzen.",
+      "name": "Punktebuch Name",
+      "description": "Gibt einen strukturierten Auszug der Punktebucheinträge zurück. Standardmäßig werden alle Benutzer berücksichtigt; mit dem Parameter \"user_name\" kann dies auf einen Benutzer beschränkt werden. Mit \"limit\" lässt sich die Anzahl der zuletzt zurückgegebenen Einträge begrenzen.",
       "fields": {
         "config_entry_id": {
-          "name": "Konfigurationseintrags-ID (optional)",
-          "description": "Verwenden Sie diese Option, wenn Sie mehrere ChoreOps-Instanzen haben. Sie richtet sich an eine bestimmte Instanz.\n",
+          "name": "Name des Konfigurationseintrags (optional)",
+          "description": "Verwenden Sie diese Option, wenn Sie mehrere ChoreOps-Instanzen haben. Sie richtet sich an eine bestimmte Instanz.",
           "example": "abc123def456"
         },
         "config_entry_title": {
           "name": "Name des Konfigurationseintrags (optional)",
-          "description": "Verwenden Sie diese Option, wenn Sie mehrere ChoreOps-Instanzen haben. Sie richtet sich an eine bestimmte Instanz.",
+          "description": "Verwenden Sie diese Option, wenn Sie mehrere ChoreOps-Instanzen mit jeweils eindeutigen Namen haben. Falls Namen mehrfach vorkommen, verwenden Sie die Konfigurationseintrags-ID.",
           "example": "Familienaufgaben"
         },
         "user_name": {
           "name": "Benutzername",
-          "description": "Optionaler Filter, um nur die Buchungseinträge eines einzelnen Benutzers einzuschließen."
+          "description": "Optionaler Filter, um nur die Punktebucheinträge eines einzelnen Benutzers einzuschließen."
         },
         "limit": {
           "name": "Limit",
-          "description": "Maximale Anzahl der zurückzugebenden neuesten Einträge. Standardwert: 1000."
+          "description": "Maximale Anzahl der zuletzt zurückzugebenden Einträge. Standardwert: 1000."
         }
       }
     },
@@ -3213,7 +3213,7 @@
       }
     },
     "reschedule_chores_after": {
-      "name": "Aufgaben nach {Name der Aufgabe} neu planen",
+      "name": "Aufgaben nach einem Zeitpunkt neu planen",
       "description": "Verschiebt die Fälligkeitstermine von Aufgaben so, dass sie nach dem angegebenen Zeitpunkt liegen. Drei unabhängige Optionen steuern, welche Aufgabentypen neu geplant werden: `reschedule_independent` (Standard: `true`), `reschedule_primary_standby` (Standard: `true`) und `reschedule_shared` (Standard: `false`).",
       "fields": {
         "config_entry_id": {
@@ -4626,7 +4626,7 @@
         }
       },
       "assignee_points_earned_weekly_sensor": {
-        "name": "{kid_name} – Diese Woche verdiente Punkte",
+        "name": "Diese Woche verdiente Punkte",
         "state_attributes": {
           "purpose": {
             "name": "Zweck",
@@ -4637,7 +4637,7 @@
         }
       },
       "assignee_points_earned_monthly_sensor": {
-        "name": "{kid_name} – Diesen Monat verdiente Punkte",
+        "name": "Diesen Monat verdiente Punkte",
         "state_attributes": {
           "purpose": {
             "name": "Zweck",
@@ -4862,7 +4862,7 @@
         }
       },
       "assignee_chore_streak_sensor": {
-        "name": "{kid_name} - Längste Aufgabenserie",
+        "name": "Längste Aufgabenserie",
         "state_attributes": {
           "purpose": {
             "name": "Zweck",
@@ -5361,7 +5361,7 @@
       "message": "Die Vorbereitung der Online-Dashboard-Ressourcen ist fehlgeschlagen. Wählen Sie eine andere Version oder verwenden Sie die neuesten kompatiblen bzw. lokalen Vorlagen."
     },
     "dashboard_status_release_applied": {
-      "message": "Version {release_rev} lokal angewendet ({execution_source}). Laden Sie die Integration neu oder starten Sie Home Assistant neu, um die Dashboard-Sensoren zu aktualisieren."
+      "message": "Version {release_ref} lokal angewendet ({execution_source}). Laden Sie die Integration neu oder starten Sie Home Assistant neu, um die Dashboard-Sensoren zu aktualisieren."
     },
     "dashboard_status_updated": {
       "message": "{url_path} aktualisiert (Ansichten: {view_count}, Freigabe: {release_selection})"

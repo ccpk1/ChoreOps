@@ -169,8 +169,8 @@
               "due_date": "📅 日程安排：截止日期（可选）",
               "clear_due_date": "🗑️ 清除截止日期",
               "applicable_days": "📅 日程安排：适用日期（可选）",
-              "chore_due_window_offset": "⏱️ 到期前认领窗口：到期前偏移量",
-              "chore_claim_lock_until_window": "🔒 在到期前认领窗口开放前锁定？",
+              "chore_due_window_offset": "⏱️ 待完成时间窗口：到期前偏移量",
+              "chore_claim_lock_until_window": "🔒 在待完成时间窗口开放前锁定认领？",
               "custom_interval": "🔄 日程安排：自定义间隔（自定义频率）",
               "custom_interval_unit": "🔄 日程安排：自定义间隔单位"
             },
@@ -202,7 +202,7 @@
               "approval_reset_type": "控制家务审批周期边界何时触发（午夜、截止日期、完成时或手动触发）。",
               "approval_reset_pending_claim_action": "审批周期重置发生时，仍在等待审批的认领会按所选规则处理。",
               "auto_approve": "启用后，认领申请无需审批人审核即可立即批准。",
-              "overdue_handling_type": "到期后的操作：隐藏逾期状态、保持逾期状态直至被认领，或在下一个审批周期重置为待处理状态。",
+              "overdue_handling_type": "到期后的操作：隐藏逾期状态、保持逾期状态直至被认领，或在下一个审批周期重置为待开始状态。",
               "chore_due_reminder_offset": "到期前发送提醒通知的偏移量。格式：‘1d 6h 30m’或‘30’（分钟）。默认值：30 分钟（到期前 30 分钟）。输入‘0’可禁用此功能。",
               "chore_notifications": "通知发送时机：认领时、批准时、退回时，或以上任意组合。",
               "show_on_calendar": "在日历视图中显示此家务。",
@@ -244,7 +244,7 @@
           "completion_criteria": "控制分配多个执行人时如何完成家务：独立完成、共同完成或轮换完成。",
           "approval_reset_type": "控制家务审批周期边界何时触发（午夜、截止日期、完成时或手动触发）。",
           "approval_reset_pending_claim_action": "审批周期重置发生时，仍在等待审批的认领会按所选规则处理。",
-          "overdue_handling_type": "到期后的操作：隐藏逾期状态、保持逾期状态直至被认领，或在下一个审批周期重置为待处理状态。",
+          "overdue_handling_type": "到期后的操作：隐藏逾期状态、保持逾期状态直至被认领，或在下一个审批周期重置为待开始状态。",
           "chore_claim_lock_until_window": "启用后，执行人在到期日前无法认领这项家务。",
           "auto_approve": "启用后，认领申请无需审批人审核即可立即批准。",
           "recurring_frequency": "家务重复频率：每日、每周、每月、每年、自定义或无。",
@@ -3094,8 +3094,8 @@
       }
     },
     "reset_chores_to_pending_state": {
-      "name": "将家务重置为待处理状态",
-      "description": "手动将所有家务重置为待处理状态，删除所有认领和审批。",
+      "name": "将家务重置为待开始状态",
+      "description": "手动将所有家务重置为待开始状态，删除所有认领和审批。",
       "fields": {
         "config_entry_id": {
           "name": "配置条目 ID（可选）",
@@ -3147,7 +3147,7 @@
     },
     "reset_overdue_chores": {
       "name": "重置逾期家务",
-      "description": "将逾期家务重置为“待处理”状态，并根据其重复频率和之前的截止日期重新安排。您可以提供 chore_id（或 chore_name）来重置特定家务，也可以提供 user_name 来仅为该用户重置家务。",
+      "description": "将逾期家务重置为“待开始”状态，并根据其重复频率和之前的截止日期重新安排。您可以提供 chore_id（或 chore_name）来重置特定家务，也可以提供 user_name 来仅为该用户重置家务。",
       "fields": {
         "config_entry_id": {
           "name": "配置条目 ID（可选）",
@@ -3276,7 +3276,7 @@
     },
     "skip_chore_due_date": {
       "name": "跳过家务截止日期",
-      "description": "跳过当前重复性家务的截止日期。此服务会根据家务的重复频率立即重新安排其截止日期，并将其状态重置为“待处理”。所有待审批的认领或审批都将被移除。对于独立家务，您可以选择性地提供 user_name，以便仅对该用户跳过此家务。",
+      "description": "跳过当前重复性家务的截止日期。此服务会根据家务的重复频率立即重新安排其截止日期，并将其状态重置为“待开始”。所有待审批的认领或审批都将被移除。对于独立家务，您可以选择性地提供 user_name，以便仅对该用户跳过此家务。",
       "fields": {
         "config_entry_id": {
           "name": "配置条目 ID（可选）",
@@ -3346,10 +3346,10 @@
       "assignee_chore_status_sensor": {
         "name": "家务状态 - {chore_name}",
         "state": {
-          "pending": "待处理",
+          "pending": "待开始",
           "completed": "已完成",
           "claimed": "已认领",
-          "due": "到期",
+          "due": "待完成",
           "overdue": "逾期",
           "completed_by_other": "由其他人完成",
           "waiting": "等待中（到期窗口未打开）",
@@ -3557,14 +3557,14 @@
           "global_state": {
             "name": "全局状态",
             "state": {
-              "pending": "待处理",
+              "pending": "待开始",
               "completed": "已完成",
               "claimed": "已认领",
               "overdue": "逾期",
               "completed_in_part": "已完成（部分）",
               "claimed_in_part": "已认领（部分）",
               "independent": "独立完成",
-              "due": "到期",
+              "due": "待完成",
               "waiting": "等待中",
               "missed": "已错过（已锁定）"
             }
@@ -3868,19 +3868,19 @@
             "name": "累计错过家务"
           },
           "chore_stat_avg_overdue_seconds_today": {
-            "name": "今日平均逾期天数"
+            "name": "今日平均逾期时间"
           },
           "chore_stat_avg_overdue_seconds_week": {
-            "name": "本周平均逾期金额"
+            "name": "本周平均逾期时间"
           },
           "chore_stat_avg_overdue_seconds_month": {
-            "name": "本月平均逾期金额"
+            "name": "本月平均逾期时间"
           },
           "chore_stat_avg_overdue_seconds_year": {
-            "name": "今年平均逾期金额"
+            "name": "今年平均逾期时间"
           },
           "chore_stat_avg_overdue_seconds_all_time": {
-            "name": "平均逾期时间（历年）"
+            "name": "历史平均逾期时间"
           },
           "chore_stat_longest_overdue_seconds_today": {
             "name": "今天逾期时间最长"
@@ -3892,10 +3892,10 @@
             "name": "本月逾期时间最长"
           },
           "chore_stat_longest_overdue_seconds_year": {
-            "name": "今年最迟延的"
+            "name": "今年逾期时间最长"
           },
           "chore_stat_longest_overdue_seconds_all_time": {
-            "name": "史上最长逾期"
+            "name": "历史逾期时间最长"
           },
           "chore_stat_claimed_today": {
             "name": "今天认领次数"
@@ -4311,10 +4311,10 @@
       "system_chore_shared_state_sensor": {
         "name": "{chore_name} - 全局状态",
         "state": {
-          "pending": "待处理",
+          "pending": "待开始",
           "completed": "已完成",
           "claimed": "已认领",
-          "due": "到期",
+          "due": "待完成",
           "overdue": "逾期",
           "completed_in_part": "已完成（部分）",
           "claimed_in_part": "已认领（部分）",

@@ -11,7 +11,7 @@
     "message": "家务 {chore_name} 还需要进一步完成。"
   },
   "chore_overdue_assignee": {
-    "title": "⏰ 家务逾期未完成",
+    "title": "⏰ 逾期未完成家务",
     "message": "家务 {chore_name} 已逾期！立即完成即可获得 {points} {points_label}"
   },
   "chore_overdue_steal_available": {
@@ -27,7 +27,7 @@
     "message": "{chore_name} 将在 {minutes} 分钟后到期！价值 {points} {points_label}"
   },
   "chore_due_window_assignee": {
-    "title": "🎯 家务现在到期",
+    "title": "🎯 现在待完成家务",
     "message": "{chore_name} 现已截止！请在 {hours} 小时内完成，即可获得 {points} {points_label} 奖励。"
   },
   "chore_approved_assignee_no_points": {
