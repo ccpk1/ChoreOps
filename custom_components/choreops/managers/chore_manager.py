@@ -3742,6 +3742,24 @@ class ChoreManager(BaseManager):
         )
         return ChoreEngine.chore_is_due(due_dt.isoformat(), offset, dt_util.utcnow())
 
+    def _chore_is_past_due_never_overdue(self, chore_id: str) -> bool:
+        """Check if a chore is past its due date with never_overdue handling.
+
+        Chore-level check (chore-level due date) used by the global state
+        view so shared-type aggregates match the assignee-level P5.5 FSM
+        branch.
+        """
+        chore_info: ChoreData | dict[str, Any] = self._coordinator.chores_data.get(
+            chore_id, {}
+        )
+        if (
+            chore_info.get(const.DATA_CHORE_OVERDUE_HANDLING_TYPE)
+            != const.OVERDUE_HANDLING_NEVER_OVERDUE
+        ):
+            return False
+        due_dt = self.get_due_date(chore_id, None)
+        return due_dt is not None and dt_util.utcnow() > due_dt
+
     def chore_is_approved_in_period(self, assignee_id: str, chore_id: str) -> bool:
         """Check if a chore is already approved in the current approval period.
 
@@ -4168,8 +4186,9 @@ class ChoreManager(BaseManager):
                 "due_window_override_applied": False,
             }
 
-        if persisted_state == const.CHORE_STATE_PENDING and self.chore_is_due(
-            None, chore_id
+        if persisted_state == const.CHORE_STATE_PENDING and (
+            self.chore_is_due(None, chore_id)
+            or self._chore_is_past_due_never_overdue(chore_id)
         ):
             return {
                 "persisted_state": persisted_state,
@@ -4506,7 +4525,9 @@ class ChoreManager(BaseManager):
             const.CHORE_CTX_STATE: display_state,
             const.CHORE_CTX_STORED_STATE: stored_state,
             const.CHORE_CTX_IS_OVERDUE: is_overdue,
-            const.CHORE_CTX_IS_DUE: is_due,
+            # Contract: state == due implies is_due is True. Covers the P5.5
+            # never-overdue past-due branch, where window timing alone is False.
+            const.CHORE_CTX_IS_DUE: is_due or display_state == const.CHORE_STATE_DUE,
             const.CHORE_CTX_HAS_PENDING_CLAIM: has_pending,
             const.CHORE_CTX_IS_APPROVED_IN_PERIOD: is_approved,
             const.CHORE_CTX_IS_COMPLETED_BY_OTHER: is_completed_by_other,

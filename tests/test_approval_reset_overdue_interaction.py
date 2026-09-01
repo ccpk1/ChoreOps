@@ -29,9 +29,11 @@ from custom_components.choreops.const import (
     DATA_CHORE_ASSIGNED_USER_IDS,
     DATA_CHORE_COMPLETION_CRITERIA,
     DATA_CHORE_DUE_DATE,
+    DATA_CHORE_OVERDUE_HANDLING_TYPE,
     DATA_CHORE_PER_ASSIGNEE_DUE_DATES,
     DATA_USER_CHORE_DATA,
     DATA_USER_CHORE_DATA_APPROVAL_PERIOD_START,
+    OVERDUE_HANDLING_NEVER_OVERDUE,
 )
 from custom_components.choreops.utils.dt_utils import dt_now_utc
 from tests.helpers.setup import SetupResult, setup_from_yaml
@@ -119,6 +121,7 @@ def get_expected_reset_display_state(
     After a successful reset we expect the chore to be neither approved nor overdue.
     Display should then be:
     - DUE when current time is inside due window
+    - DUE when the chore is past due with never_overdue handling (FSM P5.5)
     - otherwise PENDING
     """
     now_utc = dt_now_utc()
@@ -133,6 +136,14 @@ def get_expected_reset_display_state(
         and due_window_start <= now_utc <= due_dt
     ):
         return const.CHORE_STATE_DUE
+
+    if due_dt is not None and now_utc > due_dt:
+        chore_info = coordinator.chores_data.get(chore_id, {})
+        if (
+            chore_info.get(DATA_CHORE_OVERDUE_HANDLING_TYPE)
+            == OVERDUE_HANDLING_NEVER_OVERDUE
+        ):
+            return const.CHORE_STATE_DUE
 
     return const.CHORE_STATE_PENDING
 

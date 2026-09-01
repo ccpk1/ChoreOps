@@ -501,6 +501,10 @@ Chore state contract is layered and explicit:
 
 Any new state must be inserted deliberately into this contract.
 
+Context contract: when the derived state is `due`, `is_due` in the status
+context is always `True` — including the P5.5 never-overdue past-due branch,
+where window timing alone would be `False`.
+
 ### Paused state (derived UI state)
 
 The `paused` state is a **derived UI state** — it is never persisted on chore records.
@@ -539,6 +543,7 @@ steal_available}`.
 | P3       | `not_my_turn`     | `standby` | `not_my_turn` / `standby`         | Rotation lock — primary-standby resolves to `standby` with `standby_claim_mode` gating |
 | P4       | `missed`              | `missed`                     | Strict missed lock (non-claimable)                           |
 | P5       | `overdue`             | `overdue`                    | Relaxed overdue (claimable)                                  |
+| P5.5     | `due`                 | `due`                        | Never-overdue chore past due (claimable; user opted out of overdue presentation) |
 | P6       | `waiting`             | `waiting`                    | Claim window not open yet                                    |
 | P7       | `due`                 | `due`                        | In claim window                                              |
 | P8       | `pending`             | `pending`                    | Default fallback                                             |
