@@ -559,6 +559,127 @@ class TestResolveAssigneeChoreStateWaiting:
 
 
 # =============================================================================
+# TEST: STATE RESOLUTION - NEVER-OVERDUE PAST DUE (P5.5)
+# =============================================================================
+
+
+class TestResolveAssigneeChoreStateNeverOverduePastDue:
+    """Test P5.5: never_overdue chore past due presents as DUE (claimable)."""
+
+    def test_past_due_never_overdue_returns_due(self) -> None:
+        """Never-overdue chore past its due date resolves to DUE, not PENDING."""
+        now = datetime(2026, 1, 15, 23, 30, tzinfo=UTC)
+        due_date = now - timedelta(minutes=30)
+
+        chore_data = {
+            const.DATA_CHORE_OVERDUE_HANDLING_TYPE: (
+                const.OVERDUE_HANDLING_NEVER_OVERDUE
+            ),
+        }
+
+        state, lock_reason = ChoreEngine.resolve_assignee_chore_state(
+            chore_data=chore_data,
+            assignee_id="assignee-1",
+            now=now,
+            is_approved_in_period=False,
+            has_pending_claim=False,
+            due_date=due_date,
+            due_window_start=None,
+        )
+
+        assert state == const.CHORE_STATE_DUE
+        assert lock_reason is None
+
+    @pytest.mark.parametrize(
+        ("hours_offset", "expected_state", "case_id"),
+        [
+            pytest.param(8, const.CHORE_STATE_WAITING, "before_window"),
+            pytest.param(1, const.CHORE_STATE_DUE, "in_window"),
+            pytest.param(0, const.CHORE_STATE_DUE, "at_due"),
+            pytest.param(-2, const.CHORE_STATE_DUE, "past_due"),
+        ],
+    )
+    def test_never_overdue_timing_matrix(
+        self,
+        hours_offset: int,
+        expected_state: str,
+        case_id: str,
+    ) -> None:
+        """Timing matrix: waiting before window, due in/at/past due date."""
+        now = datetime(2026, 1, 15, 12, 0, tzinfo=UTC)
+        due_date = now + timedelta(hours=hours_offset)
+        due_window_start = due_date - timedelta(hours=6)
+
+        chore_data = {
+            const.DATA_CHORE_OVERDUE_HANDLING_TYPE: (
+                const.OVERDUE_HANDLING_NEVER_OVERDUE
+            ),
+            const.DATA_CHORE_CLAIM_LOCK_UNTIL_WINDOW: True,
+        }
+
+        state, _ = ChoreEngine.resolve_assignee_chore_state(
+            chore_data=chore_data,
+            assignee_id="assignee-1",
+            now=now,
+            is_approved_in_period=False,
+            has_pending_claim=False,
+            due_date=due_date,
+            due_window_start=due_window_start,
+        )
+
+        assert state == expected_state
+
+    def test_past_due_never_overdue_with_window_returns_due(self) -> None:
+        """Past due with a due window configured still resolves to DUE (P5.5)."""
+        now = datetime(2026, 1, 15, 23, 30, tzinfo=UTC)
+        due_date = now - timedelta(minutes=30)
+        due_window_start = due_date - timedelta(hours=6)
+
+        chore_data = {
+            const.DATA_CHORE_OVERDUE_HANDLING_TYPE: (
+                const.OVERDUE_HANDLING_NEVER_OVERDUE
+            ),
+            const.DATA_CHORE_CLAIM_LOCK_UNTIL_WINDOW: True,
+        }
+
+        state, lock_reason = ChoreEngine.resolve_assignee_chore_state(
+            chore_data=chore_data,
+            assignee_id="assignee-1",
+            now=now,
+            is_approved_in_period=False,
+            has_pending_claim=False,
+            due_date=due_date,
+            due_window_start=due_window_start,
+        )
+
+        assert state == const.CHORE_STATE_DUE
+        assert lock_reason is None
+
+    def test_future_due_never_overdue_not_due(self) -> None:
+        """Never-overdue chore before its due date does not hit P5.5."""
+        now = datetime(2026, 1, 15, 10, 0, tzinfo=UTC)
+        due_date = now + timedelta(hours=6)
+
+        chore_data = {
+            const.DATA_CHORE_OVERDUE_HANDLING_TYPE: (
+                const.OVERDUE_HANDLING_NEVER_OVERDUE
+            ),
+        }
+
+        state, _ = ChoreEngine.resolve_assignee_chore_state(
+            chore_data=chore_data,
+            assignee_id="assignee-1",
+            now=now,
+            is_approved_in_period=False,
+            has_pending_claim=False,
+            due_date=due_date,
+            due_window_start=None,
+        )
+
+        assert state == const.CHORE_STATE_PENDING
+
+
+# =============================================================================
 # TEST: VALIDATION - CAN CLAIM
 # =============================================================================
 

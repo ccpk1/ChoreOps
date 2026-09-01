@@ -1297,6 +1297,44 @@ class TestOverdueNeverOverdue:
             "chore_is_overdue() should return False for never_overdue chore"
         )
 
+    @pytest.mark.asyncio
+    async def test_never_overdue_past_due_presents_as_due(
+        self,
+        hass: HomeAssistant,
+        scheduling_scenario: SetupResult,
+    ) -> None:
+        """Test: Derived display state for past-due never_overdue chore is DUE.
+
+        The PERSISTED state stays PENDING (asserted by
+        test_never_overdue_stays_pending_when_past_due); the derived
+        display state resolves to DUE via FSM P5.5, with is_due=True and
+        claimability preserved.
+        """
+        coordinator = scheduling_scenario.coordinator
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
+        chore_map = scheduling_scenario.chore_ids
+
+        chore_id = chore_map["Overdue Never"]
+
+        # Set due date to past (config flow rejects past dates)
+        set_chore_due_date_to_past(coordinator, chore_id, zoe_id, days_ago=1)
+
+        # Run overdue check
+        await coordinator.chore_manager._on_periodic_update(now_utc=dt_now_utc())
+
+        context = coordinator.chore_manager.get_chore_status_context(zoe_id, chore_id)
+
+        assert context[const.CHORE_CTX_STATE] == const.CHORE_STATE_DUE, (
+            "Past-due never_overdue chore should present as DUE (FSM P5.5)"
+        )
+        assert context[const.CHORE_CTX_IS_DUE] is True, (
+            "state == due must imply is_due is True (context contract)"
+        )
+        assert context[const.CHORE_CTX_CLAIM_MODE] == (
+            const.CHORE_CLAIM_MODE_CLAIMABLE
+        ), "Past-due never_overdue chore must remain claimable"
+        assert context[const.CHORE_CTX_CAN_CLAIM] is True
+
 
 class TestOverdueThenReset:
     """Tests for overdue_handling_type: at_due_date_then_reset."""

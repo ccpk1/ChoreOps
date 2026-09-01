@@ -726,7 +726,8 @@ class ChoreEngine:
 
         Priority order:
           P1: approved   P2: claimed      P3: not_my_turn  P4: missed
-          P5: overdue    P6: waiting      P7: due          P8: pending
+          P5: overdue    P5.5: due (never-overdue past due)   P6: waiting
+          P7: due        P8: pending
 
         Args:
             chore_data: The chore definition
@@ -860,6 +861,16 @@ class ChoreEngine:
             and now > due_date
         ):
             return (const.CHORE_STATE_OVERDUE, None)
+
+        # P5.5 — Never-overdue past due: present as due (claimable, never late).
+        # The user opted out of overdue presentation; the chore is past due and
+        # claimable, so `due` is the honest actionable token.
+        if (
+            overdue_type == const.OVERDUE_HANDLING_NEVER_OVERDUE
+            and due_date is not None
+            and now > due_date
+        ):
+            return (const.CHORE_STATE_DUE, None)
 
         # P6 — Waiting (claim window has not opened yet)
         claim_lock_until_window = bool(
