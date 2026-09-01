@@ -69,25 +69,7 @@
   {%- endif -%}
 {%- endfor -%}
 {%- set pref_exclude_group_list = ns_valid_exclude_groups.items -%}
-{%- if pref_exclude_completed and 'completed' not in pref_exclude_states -%}
-  {%- set pref_exclude_states = pref_exclude_states + ['completed'] -%}
-{%- endif -%}
 {%- set pref_exclude_blocked = (pref_exclude_blocked | default('false') | string | lower) == 'true' -%}
-{%- if pref_exclude_blocked and 'completed_by_other' not in pref_exclude_states -%}
-  {%- set pref_exclude_states = pref_exclude_states + ['completed_by_other'] -%}
-{%- endif -%}
-{%- if pref_exclude_blocked and 'not_my_turn' not in pref_exclude_states -%}
-  {%- set pref_exclude_states = pref_exclude_states + ['not_my_turn'] -%}
-{%- endif -%}
-{%- if pref_exclude_blocked and 'missed' not in pref_exclude_states -%}
-  {%- set pref_exclude_states = pref_exclude_states + ['missed'] -%}
-{%- endif -%}
-{%- if pref_exclude_blocked and 'paused' not in pref_exclude_states -%}
-  {%- set pref_exclude_states = pref_exclude_states + ['paused'] -%}
-{%- endif -%}
-{%- if pref_exclude_blocked and 'standby' not in pref_exclude_states -%}
-  {%- set pref_exclude_states = pref_exclude_states + ['standby'] -%}
-{%- endif -%}
 {%- set pref_use_label_grouping = (pref_use_label_grouping | default('false') | string | lower) == 'true' -%}
 {%- set pref_exclude_label_list = pref_exclude_label_list if pref_exclude_label_list is iterable and pref_exclude_label_list is not string else [] -%}
 {%- set pref_exclude_label_list = pref_exclude_label_list | map('lower') | list -%}
@@ -261,6 +243,12 @@
   {%- endif -%}
   {%- if exclude_blocked_effective and 'missed' not in effective_exclude_states -%}
     {%- set effective_exclude_states = effective_exclude_states + ['missed'] -%}
+  {%- endif -%}
+  {%- if exclude_blocked_effective and 'paused' not in effective_exclude_states -%}
+    {%- set effective_exclude_states = effective_exclude_states + ['paused'] -%}
+  {%- endif -%}
+  {%- if exclude_blocked_effective and 'standby' not in effective_exclude_states -%}
+    {%- set effective_exclude_states = effective_exclude_states + ['standby'] -%}
   {%- endif -%}
   {%- set chore_row_template_name = 'chore_row_kids_v1' if effective_row_variant == 'kids' else 'chore_row_v1' -%}
   {%- set integration_entry_id = state_attr(dashboard_helper, 'integration_entry_id') -%}
