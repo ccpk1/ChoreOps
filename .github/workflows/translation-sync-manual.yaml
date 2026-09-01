@@ -24,6 +24,11 @@ on:
         required: true
         type: string
         default: main
+      enable_mt:
+        description: "Trigger machine translation (MT) pre-translate step"
+        required: false
+        type: boolean
+        default: true
 
 permissions:
   contents: write
@@ -92,8 +97,9 @@ jobs:
 
       # STEP 2: Trigger Google Translate (MT) via Crowdin CLI
       # This auto translate service has a cost associated with it, so it may be stopped or disabled in the future.
+      # Disable via workflow_dispatch input enable_mt=false to sync human translations only.
       - name: Trigger Google Translate
-        if: steps.crowdin_preflight.outputs.run_crowdin == 'true'
+        if: steps.crowdin_preflight.outputs.run_crowdin == 'true' && inputs.enable_mt
         run: |
           npm install -g @crowdin/cli
           crowdin pre-translate \
