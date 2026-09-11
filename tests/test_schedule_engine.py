@@ -26,7 +26,11 @@ from custom_components.choreops.engines.schedule_engine import (
     RecurrenceEngine,
     calculate_next_due_date,
 )
-from custom_components.choreops.utils.dt_utils import dt_next_schedule
+from custom_components.choreops.utils.dt_utils import (
+    as_local,
+    dt_next_schedule,
+    dt_parse,
+)
 
 if TYPE_CHECKING:
     from custom_components.choreops.type_defs import ScheduleConfig
@@ -403,15 +407,17 @@ class TestPeriodEndParityWithDtUtils:
                 require_future=False,
                 return_type=const.HELPER_RETURN_ISO_DATE,
             )
-            from_engine = engine.advance_period_end_preserve_time(
-                make_utc_dt(current.year, current.month, current.day, hour=0)
-            )
+            # dt_next_schedule returns a local date, so the engine result must be
+            # converted to local too before comparing (period ends land at 23:59
+            # local, which is the next day in UTC for zones behind it).
+            from_engine = engine.advance_period_end_preserve_time(dt_parse(base_iso))
             if from_engine is None:
                 mismatches.append(f"{base_iso}: engine returned None")
-            elif str(from_utils) != from_engine.date().isoformat():
+            elif str(from_utils) != as_local(from_engine).date().isoformat():
                 mismatches.append(
                     f"{base_iso} ({current.strftime('%a')}): "
-                    f"dt_utils={from_utils} engine={from_engine.date().isoformat()}"
+                    f"dt_utils={from_utils} "
+                    f"engine={as_local(from_engine).date().isoformat()}"
                 )
             current += timedelta(days=1)
 
@@ -455,8 +461,8 @@ class TestPeriodEndParityWithDtUtils:
         assert str(result) == expected_by_frequency[frequency].isoformat()
         assert (
             result
-            == engine.advance_period_end_preserve_time(
-                make_utc_dt(boundary.year, boundary.month, boundary.day, hour=0)
+            == as_local(
+                engine.advance_period_end_preserve_time(dt_parse(boundary.isoformat()))
             )
             .date()
             .isoformat()
