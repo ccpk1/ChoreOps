@@ -371,6 +371,7 @@ from custom_components.choreops.const import (
     COMPLETION_CRITERIA_ROTATION_SIMPLE,  # v0.5.0
     COMPLETION_CRITERIA_ROTATION_SMART,  # v0.5.0
     COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY,  # v1.1.0
+    COMPLETION_CRITERIA_ROTATION_SIMPLE_FROM_TURN_HOLDER,  # issue 255
     # =========================================================================
     # DOMAIN & COORDINATOR
     # =========================================================================
@@ -516,6 +517,7 @@ from custom_components.choreops.const import (
     OVERDUE_HANDLING_AT_DUE_DATE_CLEAR_AT_APPROVAL_RESET,
     OVERDUE_HANDLING_AT_DUE_DATE_CLEAR_IMMEDIATE_ON_LATE,
     OVERDUE_HANDLING_NEVER_OVERDUE,
+    OVERDUE_HANDLING_NEVER_OVERDUE_CLEAR_AT_APPROVAL_RESET,
     # =========================================================================
     # REWARD STATES
     # =========================================================================
@@ -684,4 +686,5 @@ COMPLETION_CRITERIA_VALUES: list[str] = [
     COMPLETION_CRITERIA_SHARED_FIRST,
     COMPLETION_CRITERIA_ROTATION_SIMPLE,
     COMPLETION_CRITERIA_ROTATION_SMART,
+    COMPLETION_CRITERIA_ROTATION_SIMPLE_FROM_TURN_HOLDER,
 ]

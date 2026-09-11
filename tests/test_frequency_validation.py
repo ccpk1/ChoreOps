@@ -752,3 +752,149 @@ class TestCustomFrequencyValidation:
         assert errors == {
             const.CFOP_ERROR_CUSTOM_INTERVAL_UNIT: const.TRANS_KEY_CFOF_CUSTOM_INTERVAL_UNIT_INVALID
         }
+
+
+class TestNeverOverdueClearValidation:
+    """Rule 13: never_overdue_clear_at_approval_reset compatibility.
+
+    The option only fires at a midnight boundary for a dated recurring chore,
+    so any other combination is rejected rather than silently never resetting.
+    """
+
+    def _data(self, **overrides: Any) -> dict[str, Any]:
+        data: dict[str, Any] = {
+            const.DATA_CHORE_NAME: "Never Overdue Clear",
+            const.DATA_CHORE_ASSIGNED_USER_IDS: ["assignee-1"],
+            const.DATA_CHORE_RECURRING_FREQUENCY: const.FREQUENCY_DAILY,
+            const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_SHARED,
+            const.DATA_CHORE_APPROVAL_RESET_TYPE: (
+                const.APPROVAL_RESET_AT_MIDNIGHT_ONCE
+            ),
+            const.DATA_CHORE_OVERDUE_HANDLING_TYPE: (
+                const.OVERDUE_HANDLING_NEVER_OVERDUE_CLEAR_AT_APPROVAL_RESET
+            ),
+            const.DATA_CHORE_DUE_DATE: "2099-01-01T09:00:00+00:00",
+        }
+        data.update(overrides)
+        return data
+
+    def _errors(self, **overrides: Any) -> dict[str, str]:
+        return validate_chore_data(
+            self._data(**overrides),
+            is_update=True,
+            current_chore_id="validator-chore",
+        )
+
+    def test_valid_midnight_once_accepted(self) -> None:
+        """Due date + daily recurrence + midnight once is the supported shape."""
+        assert self._errors() == {}
+
+    def test_midnight_multi_accepted(self) -> None:
+        """Midnight multi is equally supported (same set membership)."""
+        assert (
+            self._errors(
+                **{
+                    const.DATA_CHORE_APPROVAL_RESET_TYPE: (
+                        const.APPROVAL_RESET_AT_MIDNIGHT_MULTI
+                    )
+                }
+            )
+            == {}
+        )
+
+    def test_missing_due_date_rejected(self) -> None:
+        """Without a due date the reset would never fire."""
+        assert self._errors(**{const.DATA_CHORE_DUE_DATE: None}) == {
+            const.CFOP_ERROR_OVERDUE_RESET_COMBO: (
+                const.TRANS_KEY_CFOF_ERROR_NEVER_OVERDUE_CLEAR_INCOMPATIBLE
+            )
+        }
+
+    def test_non_recurring_rejected(self) -> None:
+        """A non-recurring chore has no next cycle to reset into."""
+        assert self._errors(
+            **{
+                const.DATA_CHORE_RECURRING_FREQUENCY: const.FREQUENCY_NONE,
+                const.DATA_CHORE_DUE_DATE: "2099-01-01T09:00:00+00:00",
+            }
+        ) == {
+            const.CFOP_ERROR_OVERDUE_RESET_COMBO: (
+                const.TRANS_KEY_CFOF_ERROR_NEVER_OVERDUE_CLEAR_INCOMPATIBLE
+            )
+        }
+
+    @pytest.mark.parametrize(
+        "approval_reset",
+        [
+            pytest.param(const.APPROVAL_RESET_MANUAL, id="manual"),
+            pytest.param(const.APPROVAL_RESET_UPON_COMPLETION, id="upon_completion"),
+            pytest.param(const.APPROVAL_RESET_AT_DUE_DATE_ONCE, id="at_due_date_once"),
+            pytest.param(
+                const.APPROVAL_RESET_AT_DUE_DATE_MULTI, id="at_due_date_multi"
+            ),
+        ],
+    )
+    def test_unsupported_boundary_rejected(self, approval_reset: str) -> None:
+        """Only midnight boundaries are supported for this option."""
+        assert self._errors(
+            **{const.DATA_CHORE_APPROVAL_RESET_TYPE: approval_reset}
+        ) == {
+            const.CFOP_ERROR_OVERDUE_RESET_COMBO: (
+                const.TRANS_KEY_CFOF_ERROR_NEVER_OVERDUE_CLEAR_INCOMPATIBLE
+            )
+        }
+
+
+class TestTurnHolderRotationConfig:
+    """Config surface for rotation_simple_from_turn_holder."""
+
+    _CRITERIA = const.COMPLETION_CRITERIA_ROTATION_SIMPLE_FROM_TURN_HOLDER
+
+    def _data(self, **overrides: Any) -> dict[str, Any]:
+        data: dict[str, Any] = {
+            const.DATA_CHORE_NAME: "Turn Holder Rotation",
+            const.DATA_CHORE_ASSIGNED_USER_IDS: ["assignee-1", "assignee-2"],
+            const.DATA_CHORE_RECURRING_FREQUENCY: const.FREQUENCY_WEEKLY,
+            const.DATA_CHORE_COMPLETION_CRITERIA: self._CRITERIA,
+            const.DATA_CHORE_APPROVAL_RESET_TYPE: (
+                const.APPROVAL_RESET_AT_MIDNIGHT_ONCE
+            ),
+            const.DATA_CHORE_OVERDUE_HANDLING_TYPE: const.DEFAULT_OVERDUE_HANDLING_TYPE,
+            const.DATA_CHORE_DUE_DATE: "2099-01-01T09:00:00+00:00",
+        }
+        data.update(overrides)
+        return data
+
+    def test_create_initialises_turn_holder(self) -> None:
+        """A new chore must seed the holder, else advancement can never happen."""
+        chore = build_chore(self._data())
+
+        assert chore[const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID] == "assignee-1"
+
+    def test_requires_at_least_two_assignees(self) -> None:
+        """Rotation needs at least two assignees to rotate between."""
+        errors = validate_chore_data(
+            self._data(**{const.DATA_CHORE_ASSIGNED_USER_IDS: ["assignee-1"]}),
+            is_update=True,
+            current_chore_id="validator-chore",
+        )
+
+        assert errors.get(const.CFOP_ERROR_ASSIGNED_USER_IDS) == (
+            const.TRANS_KEY_ERROR_ROTATION_MIN_ASSIGNEES
+        )
+
+    def test_allow_steal_permitted(self) -> None:
+        """The shared rotation set means allow_steal is compatible."""
+        errors = validate_chore_data(
+            self._data(
+                **{
+                    const.DATA_CHORE_OVERDUE_HANDLING_TYPE: (
+                        const.OVERDUE_HANDLING_AT_DUE_DATE_ALLOW_STEAL
+                    )
+                }
+            ),
+            is_update=True,
+            current_chore_id="validator-chore",
+        )
+
+        assert errors == {}
