@@ -1589,6 +1589,7 @@ views:
                   } -%}
                   {%- set overdue_handling_map = {
                     'never_overdue': ui.get('never_overdue', 'Never overdue'),
+                    'never_overdue_clear_at_approval_reset': ui.get('never_overdue_clear_at_approval_reset', 'Never overdue (reset at boundary)'),
                     'at_due_date': ui.get('at_due_date', 'At due date'),
                     'at_due_date_clear_immediate_on_late': ui.get('at_due_date_clear_immediate_on_late', 'Clear immediately when late'),
                     'at_due_date_clear_at_approval_reset': ui.get('at_due_date_clear_at_approval_reset', 'Clear at reset'),

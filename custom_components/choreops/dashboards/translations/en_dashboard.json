@@ -153,6 +153,7 @@
   "need": "Need",
   "never": "Never",
   "never_overdue": "Never overdue",
+  "never_overdue_clear_at_approval_reset": "Never overdue (reset at boundary)",
   "no": "No",
   "no_achievements_found": "No Achievements Found",
   "no_badges_found": "No Cumulative Badges Found",

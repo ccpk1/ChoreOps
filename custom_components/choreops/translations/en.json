@@ -2110,6 +2110,7 @@
     "overdue_handling_type": {
       "options": {
         "never_overdue": "Never Overdue",
+        "never_overdue_clear_at_approval_reset": "Never Overdue (Reset at Approval Boundary)",
         "at_due_date": "Overdue Until Complete",
         "at_due_date_clear_at_approval_reset": "Overdue Until Approval Reset",
         "at_due_date_clear_immediate_on_late": "Overdue Until Complete (Clear Late Approvals Immediately)",
@@ -3420,6 +3421,7 @@
             "name": "Overdue Handling Type",
             "state": {
               "never_overdue": "Never Overdue",
+              "never_overdue_clear_at_approval_reset": "Never Overdue (Reset at Approval Boundary)",
               "at_due_date": "Overdue Until Complete",
               "at_due_date_clear_at_approval_reset": "Overdue Until Approval Reset",
               "at_due_date_clear_immediate_on_late": "Overdue Until Complete (Clear Late Approvals Immediately)",

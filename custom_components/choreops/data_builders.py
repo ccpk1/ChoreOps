@@ -1630,6 +1630,24 @@ def validate_chore_data(
             )
             return errors
 
+    # === 13. never_overdue_clear_at_approval_reset compatibility ===
+    # The reset only fires at a midnight boundary for a dated, recurring chore.
+    # Anything else would silently never reset, so reject the combination.
+    if overdue_handling == const.OVERDUE_HANDLING_NEVER_OVERDUE_CLEAR_AT_APPROVAL_RESET:
+        if (
+            missing_required_due_date
+            or recurring_frequency == const.FREQUENCY_NONE
+            or approval_reset
+            not in (
+                const.APPROVAL_RESET_AT_MIDNIGHT_ONCE,
+                const.APPROVAL_RESET_AT_MIDNIGHT_MULTI,
+            )
+        ):
+            errors[const.CFOP_ERROR_OVERDUE_RESET_COMBO] = (
+                const.TRANS_KEY_CFOF_ERROR_NEVER_OVERDUE_CLEAR_INCOMPATIBLE
+            )
+            return errors
+
     return errors
 
 

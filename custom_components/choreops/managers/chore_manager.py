@@ -1909,7 +1909,10 @@ class ChoreManager(BaseManager):
                 const.DATA_CHORE_OVERDUE_HANDLING_TYPE,
                 const.OVERDUE_HANDLING_AT_DUE_DATE,
             )
-            can_be_overdue = overdue_handling != const.OVERDUE_HANDLING_NEVER_OVERDUE
+            can_be_overdue = overdue_handling not in (
+                const.OVERDUE_HANDLING_NEVER_OVERDUE,
+                const.OVERDUE_HANDLING_NEVER_OVERDUE_CLEAR_AT_APPROVAL_RESET,
+            )
 
             # Parse offsets once per chore revision
             due_window_offset, reminder_offset = self._get_chore_offsets_cached(
@@ -3752,9 +3755,9 @@ class ChoreManager(BaseManager):
         chore_info: ChoreData | dict[str, Any] = self._coordinator.chores_data.get(
             chore_id, {}
         )
-        if (
-            chore_info.get(const.DATA_CHORE_OVERDUE_HANDLING_TYPE)
-            != const.OVERDUE_HANDLING_NEVER_OVERDUE
+        if chore_info.get(const.DATA_CHORE_OVERDUE_HANDLING_TYPE) not in (
+            const.OVERDUE_HANDLING_NEVER_OVERDUE,
+            const.OVERDUE_HANDLING_NEVER_OVERDUE_CLEAR_AT_APPROVAL_RESET,
         ):
             return False
         due_dt = self.get_due_date(chore_id, None)

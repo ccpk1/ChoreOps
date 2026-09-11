@@ -1373,6 +1373,7 @@ create_chore:
         select:
           options:
             - "never_overdue"
+            - "never_overdue_clear_at_approval_reset"
             - "at_due_date"
             - "at_due_date_clear_immediate_on_late"
             - "at_due_date_clear_at_approval_reset"
@@ -1591,6 +1592,7 @@ update_chore:
         select:
           options:
             - "never_overdue"
+            - "never_overdue_clear_at_approval_reset"
             - "at_due_date"
             - "at_due_date_clear_immediate_on_late"
             - "at_due_date_clear_at_approval_reset"
