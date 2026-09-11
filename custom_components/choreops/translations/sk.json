@@ -472,7 +472,6 @@
       "invalid_challenge_name": "Neplatný názov výzvy",
       "invalid_chore": "Neplatná úloha",
       "invalid_chore_count": "Neplatný počet úloh",
-      "rotation_min_assignees": "Rotačné úlohy vyžadujú aspoň 2 pridelených osôb",
       "invalid_chore_name": "Neplatný názov úlohy",
       "custom_interval_required": "Pre vlastné frekvencie je potrebný vlastný interval.",
       "custom_interval_invalid": "Vlastný interval musí byť celé číslo väčšie ako nula",
@@ -880,7 +879,7 @@
           "assigned_user_ids": "Priraďte tento odznak konkrétnym prideleným osobám na sledovanie.",
           "award_items": "Vyberte si jednu alebo viacero možností z bodov, odmien, bonusov alebo penalizácií. Všetky vybrané položky budú udelené alebo uplatnené po získaní odznaku. Penalizácie budú uplatnené iba v prípade, že odznak nebude získaný do dátumu ukončenia alebo dátumu resetovania. (voliteľné)",
           "award_points": "Ak sú body vybraným ocenením, uveďte počet bodov, ktoré sa majú uplatniť pri získaní tohto odznaku. (voliteľné).",
-          "recurring_frequency": "Definujte plán resetovania pre tento odznak (napr. týždenne, mesačne).",
+          "recurring_frequency": "Define the reset cycle for this badge. Weekly and Biweekly are rolling cycles counted from the start date. Week-End, Month-End, Quarter-End and Year-End align to the calendar (Week-End resets on Sunday).",
           "custom_interval": "Pre vlastnú frekvenciu zadajte POČET dní, týždňov, mesiacov atď. (napr. 3, ak nastavíte 3 týždne).",
           "custom_interval_unit": "Vyberte jednotku pre vlastný interval (napr. dni, týždne).",
           "start_date": "Nastavte dátum začiatku cyklu resetovania (voliteľné).",
@@ -1360,7 +1359,7 @@
           "assigned_user_ids": "Priraďte tento odznak konkrétnym prideleným osobám na sledovanie.",
           "award_items": "Vyberte si jednu alebo viacero možností z bodov, odmien, bonusov alebo penalizácií. Všetky vybrané položky budú udelené alebo uplatnené po získaní odznaku. Penalizácie budú uplatnené iba v prípade, že odznak nebude získaný do dátumu ukončenia alebo dátumu resetovania. (voliteľné)",
           "award_points": "Ak sú body vybraným ocenením, uveďte počet bodov, ktoré sa majú uplatniť pri získaní tohto odznaku. (voliteľné).",
-          "recurring_frequency": "Definujte plán resetovania pre tento odznak (napr. týždenne, mesačne).",
+          "recurring_frequency": "Define the reset cycle for this badge. Weekly and Biweekly are rolling cycles counted from the start date. Week-End, Month-End, Quarter-End and Year-End align to the calendar (Week-End resets on Sunday).",
           "custom_interval": "Pre vlastnú frekvenciu zadajte POČET dní, týždňov, mesiacov atď. (napr. 3, ak nastavíte 3 týždne).",
           "custom_interval_unit": "Vyberte jednotku pre vlastný interval (napr. dni, týždne).",
           "start_date": "Nastavte dátum začiatku cyklu resetovania (voliteľné).",
@@ -1885,7 +1884,6 @@
       "error_daily_multi_times_too_few": "Pre frekvenciu „Viacerokrát za deň“ sú potrebné aspoň 2 pokusy. Pre jeden pokus použite bežnú frekvenciu „Denne“.",
       "error_daily_multi_times_too_many": "Maximálne 6-krát denne je povolených pre frekvenciu „Viacerokrát denne“.",
       "error_daily_multi_due_date_required": "Frekvencia „Viaceríkrát za deň“ vyžaduje nastavenie dátumu splatnosti. Dátum určuje začiatok plánovania a časy určujú okná dostupnosti pre každý deň.",
-      "rotation_min_assignees": "Rotačné úlohy vyžadujú aspoň 2 pridelených osôb",
       "error_allow_steal_incompatible": "Manipulácia s oneskoreným odkúpením je kompatibilná iba s úlohami Rotácia (rotation_simple alebo rotation_smart), typom resetovania „Raz za deň“ a vyžaduje dátum splatnosti na definovanie otvorenia okna odkúpenia.",
       "error_at_due_date_reset_requires_due_date": "Typy resetovania schválenia „V deň splatnosti“ (raz alebo viacnásobné) vyžadujú nastavenie dátumu splatnosti. Bez dátumu splatnosti sa resetovanie schválenia nikdy nespustí a úloha zostane schválená na neurčito.",
       "error_per_assignee_applicable_days_invalid": "Neplatný formát príslušných dní pre jedného alebo viacerých pridelených osôb. Dni musia byť celé čísla 0-6 (pondelok-nedeľa) bez duplikátov.",
@@ -5439,9 +5437,6 @@
     },
     "rotation_unassigned_in_order": {
       "message": "Všetci priradení v poradí rotácie musia byť priradení k úlohe"
-    },
-    "rotation_min_assignees": {
-      "message": "Rotačné úlohy vyžadujú aspoň 2 pridelených osôb"
     },
     "not_rotation": {
       "message": "Táto úloha nie je v režime rotácie"

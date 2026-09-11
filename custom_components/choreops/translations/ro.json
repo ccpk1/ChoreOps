@@ -472,7 +472,6 @@
       "invalid_challenge_name": "Nume de provocare nevalid",
       "invalid_chore": "Sarcină nevalidă",
       "invalid_chore_count": "Număr de sarcini nevalid",
-      "rotation_min_assignees": "Treburile casnice prin rotație necesită cel puțin 2 persoane desemnate",
       "invalid_chore_name": "Nume de sarcină nevalid",
       "custom_interval_required": "Intervalul personalizat este obligatoriu pentru frecvențele personalizate",
       "custom_interval_invalid": "Intervalul personalizat trebuie să fie un număr întreg mai mare decât zero",
@@ -880,7 +879,7 @@
           "assigned_user_ids": "Atribuiți această insignă anumitor persoane pentru urmărire.",
           "award_items": "Selectați unul sau mai multe dintre puncte, recompense, bonusuri sau penalizări. Toate articolele selectate vor fi acordate sau aplicate la câștigarea insignei. Penalizările vor fi aplicate numai dacă insigna nu este câștigată până la data de încheiere sau la data de resetare. (opțional)",
           "award_points": "Dacă punctele sunt un premiu selectat, specificați numărul de puncte care vor fi aplicate la obținerea acestei insigne. (opțional).",
-          "recurring_frequency": "Definiți programul de resetare pentru această insignă (de exemplu, săptămânal, lunar).",
+          "recurring_frequency": "Define the reset cycle for this badge. Weekly and Biweekly are rolling cycles counted from the start date. Week-End, Month-End, Quarter-End and Year-End align to the calendar (Week-End resets on Sunday).",
           "custom_interval": "Specificați NUMĂRUL de zile, săptămâni, luni etc. pentru Frecvență personalizată (de exemplu, 3 dacă setați 3 săptămâni).",
           "custom_interval_unit": "Selectați unitatea pentru intervalul personalizat (de exemplu, zile, săptămâni).",
           "start_date": "Setați data de începere pentru ciclul de resetare (opțional).",
@@ -1360,7 +1359,7 @@
           "assigned_user_ids": "Atribuiți această insignă anumitor persoane pentru urmărire.",
           "award_items": "Selectați unul sau mai multe dintre puncte, recompense, bonusuri sau penalizări. Toate articolele selectate vor fi acordate sau aplicate la câștigarea insignei. Penalizările vor fi aplicate numai dacă insigna nu este câștigată până la data de încheiere sau la data de resetare. (opțional)",
           "award_points": "Dacă punctele sunt un premiu selectat, specificați numărul de puncte care vor fi aplicate la obținerea acestei insigne. (opțional).",
-          "recurring_frequency": "Definiți programul de resetare pentru această insignă (de exemplu, săptămânal, lunar).",
+          "recurring_frequency": "Define the reset cycle for this badge. Weekly and Biweekly are rolling cycles counted from the start date. Week-End, Month-End, Quarter-End and Year-End align to the calendar (Week-End resets on Sunday).",
           "custom_interval": "Specificați NUMĂRUL de zile, săptămâni, luni etc. pentru Frecvență personalizată (de exemplu, 3 dacă setați 3 săptămâni).",
           "custom_interval_unit": "Selectați unitatea pentru intervalul personalizat (de exemplu, zile, săptămâni).",
           "start_date": "Setați data de începere pentru ciclul de resetare (opțional).",
@@ -1885,7 +1884,6 @@
       "error_daily_multi_times_too_few": "Pentru frecvența „De mai multe ori pe zi” sunt necesare cel puțin 2 sesiuni. Pentru o singură sesiune, utilizați frecvența obișnuită „Zilnică”.",
       "error_daily_multi_times_too_many": "Maxim de 6 ori pe zi pentru frecvența „De mai multe ori pe zi”.",
       "error_daily_multi_due_date_required": "Frecvența „De mai multe ori pe zi” necesită setarea unei date scadente. Data determină momentul în care începe programarea, iar orele determină ferestrele de disponibilitate în fiecare zi.",
-      "rotation_min_assignees": "Treburile casnice prin rotație necesită cel puțin 2 persoane desemnate",
       "error_allow_steal_incompatible": "Gestionarea restantelor pentru furt este compatibilă doar cu sarcinile de rotație (rotation_simple sau rotation_smart), tipul de resetare „O dată pe zi” și necesită o dată scadentă pentru a defini momentul în care se deschide fereastra de furt.",
       "error_at_due_date_reset_requires_due_date": "Tipurile de resetare a aprobării „La data scadenței” (O dată sau Mai multe) necesită setarea unei date scadente. Fără o dată scadentă, resetarea aprobării nu se va declanșa niciodată, iar sarcina va rămâne aprobată pe termen nelimitat.",
       "error_per_assignee_applicable_days_invalid": "Formatul de zile aplicabil este invalid pentru una sau mai multe persoane desemnate. Zilele trebuie să fie numere întregi de la 0 la 6 (luni-duminică), fără duplicate.",
@@ -5439,9 +5437,6 @@
     },
     "rotation_unassigned_in_order": {
       "message": "Toate persoanele desemnate, în ordinea rotației, trebuie să fie repartizate la sarcină."
-    },
-    "rotation_min_assignees": {
-      "message": "Treburile casnice prin rotație necesită cel puțin 2 persoane desemnate"
     },
     "not_rotation": {
       "message": "Această sarcină nu este în modul de rotație"

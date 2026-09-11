@@ -472,7 +472,6 @@
       "invalid_challenge_name": "Ugyldig utfordringsnavn",
       "invalid_chore": "Ugyldig gjøremål",
       "invalid_chore_count": "Ugyldig antall gjøremål",
-      "rotation_min_assignees": "Rotasjonsoppgaver krever minst 2 tildelte personer",
       "invalid_chore_name": "Ugyldig navn på gjøremål",
       "custom_interval_required": "Tilpasset intervall kreves for tilpassede frekvenser",
       "custom_interval_invalid": "Tilpasset intervall må være et heltall større enn null",
@@ -880,7 +879,7 @@
           "assigned_user_ids": "Tildel dette merket til bestemte tildelere for sporing.",
           "award_items": "Velg ett eller flere av poeng, belønninger, bonuser eller straffer. Alle valgte elementer vil bli gitt eller brukt når merket er opptjent. Straffer vil kun bli brukt hvis merket ikke er opptjent innen sluttdatoen eller tilbakestillingsdatoen. (valgfritt)",
           "award_points": "Hvis poeng er en valgt utmerkelse, angi antall poeng som skal brukes når dette merket er opptjent. (valgfritt).",
-          "recurring_frequency": "Definer tilbakestillingsplanen for dette merket (f.eks. ukentlig, månedlig).",
+          "recurring_frequency": "Define the reset cycle for this badge. Weekly and Biweekly are rolling cycles counted from the start date. Week-End, Month-End, Quarter-End and Year-End align to the calendar (Week-End resets on Sunday).",
           "custom_interval": "Angi ANTALL dager, uker, måneder osv. for Tilpasset frekvens (f.eks. 3 hvis du angir 3 uker).",
           "custom_interval_unit": "Velg enheten for det egendefinerte intervallet (f.eks. dager, uker).",
           "start_date": "Angi startdatoen for tilbakestillingssyklusen (valgfritt).",
@@ -1360,7 +1359,7 @@
           "assigned_user_ids": "Tildel dette merket til bestemte tildelere for sporing.",
           "award_items": "Velg ett eller flere av poeng, belønninger, bonuser eller straffer. Alle valgte elementer vil bli gitt eller brukt når merket er opptjent. Straffer vil kun bli brukt hvis merket ikke er opptjent innen sluttdatoen eller tilbakestillingsdatoen. (valgfritt)",
           "award_points": "Hvis poeng er en valgt utmerkelse, angi antall poeng som skal brukes når dette merket er opptjent. (valgfritt).",
-          "recurring_frequency": "Definer tilbakestillingsplanen for dette merket (f.eks. ukentlig, månedlig).",
+          "recurring_frequency": "Define the reset cycle for this badge. Weekly and Biweekly are rolling cycles counted from the start date. Week-End, Month-End, Quarter-End and Year-End align to the calendar (Week-End resets on Sunday).",
           "custom_interval": "Angi ANTALL dager, uker, måneder osv. for Tilpasset frekvens (f.eks. 3 hvis du angir 3 uker).",
           "custom_interval_unit": "Velg enheten for det egendefinerte intervallet (f.eks. dager, uker).",
           "start_date": "Angi startdatoen for tilbakestillingssyklusen (valgfritt).",
@@ -1885,7 +1884,6 @@
       "error_daily_multi_times_too_few": "Minst to ganger kreves for frekvensen «Flere ganger per dag». For én gang, bruk vanlig frekvens «Daglig».",
       "error_daily_multi_times_too_many": "Maksimalt 6 ganger tillatt per dag for frekvensen «Flere ganger per dag».",
       "error_daily_multi_due_date_required": "Frekvensen «Flere ganger per dag» krever at det angis en forfallsdato. Datoen bestemmer når planleggingen starter, og tidspunktene bestemmer tilgjengelighetsvinduene hver dag.",
-      "rotation_min_assignees": "Rotasjonsoppgaver krever minst 2 tildelte personer",
       "error_allow_steal_incompatible": "Tillat håndtering av forfalt stjeling er bare kompatibel med rotasjonsoppgaver (rotation_simple eller rotation_smart) av tilbakestillingstypen «Én gang per dag», og krever en forfallsdato for å definere når stjelingsvinduet åpnes.",
       "error_at_due_date_reset_requires_due_date": "Godkjenningsnullstillingstypene «Ved forfallsdato» (én eller flere) krever at det angis en forfallsdato. Uten en forfallsdato vil tilbakestillingen av godkjenningen aldri utløses, og gjøremålet vil forbli godkjent på ubestemt tid.",
       "error_per_assignee_applicable_days_invalid": "Ugyldig dagsformat for én eller flere tildelere. Dager må være heltall 0–6 (mandag–søndag) uten duplikater.",
@@ -5439,9 +5437,6 @@
     },
     "rotation_unassigned_in_order": {
       "message": "Alle tilordnede i rotasjonsrekkefølge må tilordnes gjøremålet"
-    },
-    "rotation_min_assignees": {
-      "message": "Rotasjonsoppgaver krever minst 2 tildelte personer"
     },
     "not_rotation": {
       "message": "Denne gjøremålet er ikke i rotasjonsmodus"

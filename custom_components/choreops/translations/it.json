@@ -472,7 +472,6 @@
       "invalid_challenge_name": "Nome della sfida non valido",
       "invalid_chore": "compito non valido",
       "invalid_chore_count": "Conteggio delle faccende domestiche non valido",
-      "rotation_min_assignees": "Le mansioni a rotazione richiedono almeno 2 incaricati assegnati",
       "invalid_chore_name": "Nome dell'attività non valido",
       "custom_interval_required": "Per le frequenze personalizzate è necessario un intervallo personalizzato.",
       "custom_interval_invalid": "L'intervallo personalizzato deve essere un numero intero maggiore di zero.",
@@ -880,7 +879,7 @@
           "assigned_user_ids": "Assegna questo badge a specifici destinatari per il monitoraggio.",
           "award_items": "Seleziona uno o più elementi tra punti, premi, bonus o penalità. Tutti gli elementi selezionati verranno assegnati o applicati al conseguimento del badge. Le penalità verranno applicate solo se il badge non viene conseguito entro la data di scadenza o la data di reset. (facoltativo)",
           "award_points": "Se i punti sono un premio selezionato, specificare il numero di punti da applicare al conseguimento di questo badge (facoltativo).",
-          "recurring_frequency": "Definisci la frequenza di ripristino di questo badge (ad esempio, settimanale, mensile).",
+          "recurring_frequency": "Define the reset cycle for this badge. Weekly and Biweekly are rolling cycles counted from the start date. Week-End, Month-End, Quarter-End and Year-End align to the calendar (Week-End resets on Sunday).",
           "custom_interval": "Specifica il NUMERO di giorni, settimane, mesi, ecc. per la Frequenza personalizzata (ad esempio, 3 se imposti 3 settimane).",
           "custom_interval_unit": "Seleziona l'unità di misura per l'intervallo personalizzato (ad esempio, giorni, settimane).",
           "start_date": "Imposta la data di inizio del ciclo di ripristino (facoltativo).",
@@ -1360,7 +1359,7 @@
           "assigned_user_ids": "Assegna questo badge a specifici destinatari per il monitoraggio.",
           "award_items": "Seleziona uno o più elementi tra punti, premi, bonus o penalità. Tutti gli elementi selezionati verranno assegnati o applicati al conseguimento del badge. Le penalità verranno applicate solo se il badge non viene conseguito entro la data di scadenza o la data di reset. (facoltativo)",
           "award_points": "Se i punti sono un premio selezionato, specificare il numero di punti da applicare al conseguimento di questo badge (facoltativo).",
-          "recurring_frequency": "Definisci la frequenza di ripristino di questo badge (ad esempio, settimanale, mensile).",
+          "recurring_frequency": "Define the reset cycle for this badge. Weekly and Biweekly are rolling cycles counted from the start date. Week-End, Month-End, Quarter-End and Year-End align to the calendar (Week-End resets on Sunday).",
           "custom_interval": "Specifica il NUMERO di giorni, settimane, mesi, ecc. per la Frequenza personalizzata (ad esempio, 3 se imposti 3 settimane).",
           "custom_interval_unit": "Seleziona l'unità di misura per l'intervallo personalizzato (ad esempio, giorni, settimane).",
           "start_date": "Imposta la data di inizio del ciclo di ripristino (facoltativo).",
@@ -1885,7 +1884,6 @@
       "error_daily_multi_times_too_few": "Per la frequenza \"Più volte al giorno\" sono necessarie almeno 2 sessioni. Per una singola sessione, utilizzare la frequenza \"Giornaliera\" standard.",
       "error_daily_multi_times_too_many": "È consentito un massimo di 6 utilizzi al giorno per la frequenza \"Più volte al giorno\".",
       "error_daily_multi_due_date_required": "La frequenza \"Più volte al giorno\" richiede l'impostazione di una data di scadenza. La data determina l'inizio della programmazione e gli orari definiscono le finestre di disponibilità giornaliere.",
-      "rotation_min_assignees": "Le mansioni a rotazione richiedono almeno 2 incaricati assegnati",
       "error_allow_steal_incompatible": "La gestione dei compiti in ritardo di Steal è compatibile solo con le attività di rotazione (rotation_simple o rotation_smart), il tipo di ripristino \"Una volta al giorno\" e richiede una data di scadenza per definire quando si apre la finestra di Steal.",
       "error_at_due_date_reset_requires_due_date": "I tipi di ripristino dell'approvazione \"Alla data di scadenza\" (Una sola volta o Multiplo) richiedono l'impostazione di una data di scadenza. Senza una data di scadenza, il ripristino dell'approvazione non verrà mai attivato e l'attività rimarrà approvata a tempo indeterminato.",
       "error_per_assignee_applicable_days_invalid": "Formato dei giorni applicabili non valido per uno o più assegnatari. I giorni devono essere numeri interi da 0 a 6 (dal lunedì alla domenica) e non devono essere duplicati.",
@@ -5439,9 +5437,6 @@
     },
     "rotation_unassigned_in_order": {
       "message": "Tutti gli incaricati, in ordine di rotazione, devono essere assegnati al compito"
-    },
-    "rotation_min_assignees": {
-      "message": "Le mansioni a rotazione richiedono almeno 2 incaricati assegnati"
     },
     "not_rotation": {
       "message": "Questo compito non è in modalità di rotazione"

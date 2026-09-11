@@ -472,7 +472,6 @@
       "invalid_challenge_name": "无效的挑战名称",
       "invalid_chore": "无效的家务",
       "invalid_chore_count": "无效的家务计数",
-      "rotation_min_assignees": "轮换家务至少需要两名执行人",
       "invalid_chore_name": "无效的家务名称",
       "custom_interval_required": "自定义频率需要自定义间隔",
       "custom_interval_invalid": "自定义间隔必须是大于零的整数",
@@ -880,7 +879,7 @@
           "assigned_user_ids": "将此徽章分配给特定执行人以进行跟踪。",
           "award_items": "从积分、奖励、额外加分或惩罚中选择一项或多项。获得徽章后，所有选定项目都会发放或应用。只有在截止日期或重置日期前未获得徽章时，才会应用惩罚。（可选）",
           "award_points": "如果奖励方式为积分，请指定获得此徽章时要应用的积分数量。（可选）",
-          "recurring_frequency": "定义此徽章的重置时间表（例如，每周、每月）。",
+          "recurring_frequency": "Define the reset cycle for this badge. Weekly and Biweekly are rolling cycles counted from the start date. Week-End, Month-End, Quarter-End and Year-End align to the calendar (Week-End resets on Sunday).",
           "custom_interval": "指定自定义频率的天数、周数、月数等（例如，如果设置 3 周，则为 3）。",
           "custom_interval_unit": "选择自定义时间间隔的单位（例如，天、周）。",
           "start_date": "设置重置周期的开始日期（可选）。",
@@ -1360,7 +1359,7 @@
           "assigned_user_ids": "将此徽章分配给特定执行人以进行跟踪。",
           "award_items": "从积分、奖励、额外加分或惩罚中选择一项或多项。获得徽章后，所有选定项目都会发放或应用。只有在截止日期或重置日期前未获得徽章时，才会应用惩罚。（可选）",
           "award_points": "如果奖励方式为积分，请指定获得此徽章时要应用的积分数量。（可选）",
-          "recurring_frequency": "定义此徽章的重置时间表（例如，每周、每月）。",
+          "recurring_frequency": "Define the reset cycle for this badge. Weekly and Biweekly are rolling cycles counted from the start date. Week-End, Month-End, Quarter-End and Year-End align to the calendar (Week-End resets on Sunday).",
           "custom_interval": "指定自定义频率的天数、周数、月数等（例如，如果设置 3 周，则为 3）。",
           "custom_interval_unit": "选择自定义时间间隔的单位（例如，天、周）。",
           "start_date": "设置重置周期的开始日期（可选）。",
@@ -1885,7 +1884,6 @@
       "error_daily_multi_times_too_few": "“每日多次”频率至少需要 2 次。单次使用则使用常规的“每日”频率即可。",
       "error_daily_multi_times_too_many": "对于“每天多次”的频率，每天最多允许 6 次。",
       "error_daily_multi_due_date_required": "“每日多次”的频率需要设置截止日期。日期决定了日程安排的开始时间，时间则决定了每天的可用时间段。",
-      "rotation_min_assignees": "轮换家务至少需要 2 名执行人。",
       "error_allow_steal_incompatible": "允许接手逾期处理仅与轮换家务（rotation_simple 或 rotation_smart）、“每天一次”重置类型兼容，并且需要一个截止日期来定义接手窗口何时打开。",
       "error_at_due_date_reset_requires_due_date": "“到期日”审批重置方式（单次或多次）需要设置到期日。如果没有到期日，审批重置将永远不会触发，家务将无限期地保持已批准状态。",
       "error_per_assignee_applicable_days_invalid": "一个或多个执行人的适用日期格式无效。日期必须为 0-6（星期一至星期日）的整数，且不能重复。",
@@ -5439,9 +5437,6 @@
     },
     "rotation_unassigned_in_order": {
       "message": "所有按轮换顺序分配的人员都必须被分配到这项家务中。"
-    },
-    "rotation_min_assignees": {
-      "message": "至少需要为轮换家务分配 2 名执行人。"
     },
     "not_rotation": {
       "message": "这项家务不在轮换模式下"

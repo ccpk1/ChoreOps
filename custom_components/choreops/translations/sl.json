@@ -472,7 +472,6 @@
       "invalid_challenge_name": "Neveljavno ime izziva",
       "invalid_chore": "Neveljavna naloga",
       "invalid_chore_count": "Neveljavno število opravil",
-      "rotation_min_assignees": "Za rotacijska opravila sta potrebna vsaj dva dodeljena delavca",
       "invalid_chore_name": "Neveljavno ime opravila",
       "custom_interval_required": "Za frekvence po meri je potreben interval po meri",
       "custom_interval_invalid": "Interval po meri mora biti celo število, večje od nič",
@@ -880,7 +879,7 @@
           "assigned_user_ids": "To značko dodelite določenim prejemnikom za sledenje.",
           "award_items": "Izberite eno ali več točk, nagrad, bonusov ali kazni. Vse izbrane postavke bodo dodeljene ali uporabljene, ko bo značka pridobljena. Kazni bodo uporabljene le, če značka ni pridobljena do končnega datuma ali datuma ponastavitve. (neobvezno)",
           "award_points": "Če so točke izbrana nagrada, navedite število točk, ki se uporabijo ob pridobitvi te značke. (neobvezno).",
-          "recurring_frequency": "Določite urnik ponastavitve za to značko (npr. tedensko, mesečno).",
+          "recurring_frequency": "Define the reset cycle for this badge. Weekly and Biweekly are rolling cycles counted from the start date. Week-End, Month-End, Quarter-End and Year-End align to the calendar (Week-End resets on Sunday).",
           "custom_interval": "Za pogostost po meri določite ŠTEVILO dni, tednov, mesecev itd. (npr. 3, če nastavite 3 tedne).",
           "custom_interval_unit": "Izberite enoto za interval po meri (npr. dnevi, tedni).",
           "start_date": "Nastavite začetni datum za cikel ponastavitve (neobvezno).",
@@ -1360,7 +1359,7 @@
           "assigned_user_ids": "To značko dodelite določenim prejemnikom za sledenje.",
           "award_items": "Izberite eno ali več točk, nagrad, bonusov ali kazni. Vse izbrane postavke bodo dodeljene ali uporabljene, ko bo značka pridobljena. Kazni bodo uporabljene le, če značka ni pridobljena do končnega datuma ali datuma ponastavitve. (neobvezno)",
           "award_points": "Če so točke izbrana nagrada, navedite število točk, ki se uporabijo ob pridobitvi te značke. (neobvezno).",
-          "recurring_frequency": "Določite urnik ponastavitve za to značko (npr. tedensko, mesečno).",
+          "recurring_frequency": "Define the reset cycle for this badge. Weekly and Biweekly are rolling cycles counted from the start date. Week-End, Month-End, Quarter-End and Year-End align to the calendar (Week-End resets on Sunday).",
           "custom_interval": "Za pogostost po meri določite ŠTEVILO dni, tednov, mesecev itd. (npr. 3, če nastavite 3 tedne).",
           "custom_interval_unit": "Izberite enoto za interval po meri (npr. dnevi, tedni).",
           "start_date": "Nastavite začetni datum za cikel ponastavitve (neobvezno).",
@@ -1885,7 +1884,6 @@
       "error_daily_multi_times_too_few": "Za pogostost »Večkrat na dan« sta potrebna vsaj dvakrat. Za enkratni čas uporabite redno pogostost »Dnevno«.",
       "error_daily_multi_times_too_many": "Za frekvenco »Večkrat na dan« je dovoljenih največ 6-krat na dan.",
       "error_daily_multi_due_date_required": "Za pogostost »Večkrat na dan« je treba nastaviti rok. Datum določa začetek razporejanja, časi pa določajo okna razpoložljivosti za vsak dan.",
-      "rotation_min_assignees": "Za rotacijska opravila sta potrebna vsaj dva dodeljena delavca",
       "error_allow_steal_incompatible": "Obravnava zamud pri kraji je združljiva samo z opravili rotacije (rotation_simple ali rotation_smart), vrsto ponastavitve »Enkrat na dan« in zahteva rok, ki določa, kdaj se odpre okno za krajo.",
       "error_at_due_date_reset_requires_due_date": "Za vrste ponastavitve odobritve »Ob roku« (enkrat ali večkrat) je treba nastaviti rok. Brez roka se ponastavitev odobritve ne bo nikoli sprožila in opravilo bo ostalo odobreno za nedoločen čas.",
       "error_per_assignee_applicable_days_invalid": "Neveljavna veljavna oblika dni za enega ali več dodeljenih oseb. Dnevi morajo biti cela števila od 0 do 6 (ponedeljek–nedelja) brez dvojnikov.",
@@ -5439,9 +5437,6 @@
     },
     "rotation_unassigned_in_order": {
       "message": "Vsem dodeljenim osebam v vrstnem redu rotacije morajo biti dodeljene naloge."
-    },
-    "rotation_min_assignees": {
-      "message": "Za rotacijska opravila sta potrebna vsaj dva dodeljena delavca"
     },
     "not_rotation": {
       "message": "To opravilo ni v načinu rotacije"

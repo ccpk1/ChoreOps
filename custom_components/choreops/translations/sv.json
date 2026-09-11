@@ -472,7 +472,6 @@
       "invalid_challenge_name": "Ogiltigt utmaningsnamn",
       "invalid_chore": "Ogiltig syssla",
       "invalid_chore_count": "Ogiltigt antal sysslor",
-      "rotation_min_assignees": "Rotationssysslor kräver minst 2 tilldelade personer",
       "invalid_chore_name": "Ogiltigt namn på syssla",
       "custom_interval_required": "Anpassat intervall krävs för anpassade frekvenser",
       "custom_interval_invalid": "Anpassat intervall måste vara ett heltal större än noll",
@@ -880,7 +879,7 @@
           "assigned_user_ids": "Tilldela detta märke till specifika tilldelade personer för spårning.",
           "award_items": "Välj en eller flera av poäng, belöningar, bonusar eller straff. Alla valda objekt kommer att beviljas eller tillämpas när märket är intjänat. Straffar tillämpas endast om märket inte är intjänat senast slutdatumet eller återställningsdatumet. (valfritt)",
           "award_points": "Om poäng är en vald utmärkelse, ange antalet poäng som ska tillämpas när denna utmärkelse intjänas. (valfritt).",
-          "recurring_frequency": "Definiera återställningsschemat för den här badgen (t.ex. veckovis, månadsvis).",
+          "recurring_frequency": "Define the reset cycle for this badge. Weekly and Biweekly are rolling cycles counted from the start date. Week-End, Month-End, Quarter-End and Year-End align to the calendar (Week-End resets on Sunday).",
           "custom_interval": "Ange ANTAL dagar, veckor, månader etc. för Anpassad frekvens (t.ex. 3 om du anger 3 veckor).",
           "custom_interval_unit": "Välj enhet för det anpassade intervallet (t.ex. dagar, veckor).",
           "start_date": "Ställ in startdatum för återställningscykeln (valfritt).",
@@ -1360,7 +1359,7 @@
           "assigned_user_ids": "Tilldela detta märke till specifika tilldelade personer för spårning.",
           "award_items": "Välj en eller flera av poäng, belöningar, bonusar eller straff. Alla valda objekt kommer att beviljas eller tillämpas när märket är intjänat. Straffar tillämpas endast om märket inte är intjänat senast slutdatumet eller återställningsdatumet. (valfritt)",
           "award_points": "Om poäng är en vald utmärkelse, ange antalet poäng som ska tillämpas när denna utmärkelse intjänas. (valfritt).",
-          "recurring_frequency": "Definiera återställningsschemat för den här badgen (t.ex. veckovis, månadsvis).",
+          "recurring_frequency": "Define the reset cycle for this badge. Weekly and Biweekly are rolling cycles counted from the start date. Week-End, Month-End, Quarter-End and Year-End align to the calendar (Week-End resets on Sunday).",
           "custom_interval": "Ange ANTAL dagar, veckor, månader etc. för Anpassad frekvens (t.ex. 3 om du anger 3 veckor).",
           "custom_interval_unit": "Välj enhet för det anpassade intervallet (t.ex. dagar, veckor).",
           "start_date": "Ställ in startdatum för återställningscykeln (valfritt).",
@@ -1885,7 +1884,6 @@
       "error_daily_multi_times_too_few": "Minst 2 gånger krävs för frekvensen 'Flera gånger per dag'. För en enskild tid, använd vanlig frekvens 'Daglig'.",
       "error_daily_multi_times_too_many": "Maximalt 6 gånger tillåtet per dag för frekvensen 'Flera gånger per dag'.",
       "error_daily_multi_due_date_required": "Frekvensen \"Flera gånger per dag\" kräver att ett förfallodatum anges. Datumet avgör när schemaläggningen startar och tiderna avgör tillgänglighetsfönstren varje dag.",
-      "rotation_min_assignees": "Rotationssysslor kräver minst 2 tilldelade personer",
       "error_allow_steal_incompatible": "Tillåt hantering av försenade stjälningar är endast kompatibelt med rotationssysslor (rotation_simple eller rotation_smart), återställningstypen 'En gång per dag', och kräver ett förfallodatum för att definiera när stjälningsfönstret öppnas.",
       "error_at_due_date_reset_requires_due_date": "Godkännandeåterställningstyperna \"Vid förfallodatum\" (en gång eller flera gånger) kräver att ett förfallodatum anges. Utan ett förfallodatum kommer återställningen av godkännandet aldrig att utlösas och sysslan förblir godkänd på obestämd tid.",
       "error_per_assignee_applicable_days_invalid": "Ogiltigt tillämpligt dagsformat för en eller flera tilldelade. Dagarna måste vara heltal 0–6 (måndag–söndag) utan dubbletter.",
@@ -5439,9 +5437,6 @@
     },
     "rotation_unassigned_in_order": {
       "message": "Alla tilldelade i rotationsordning måste tilldelas sysslan"
-    },
-    "rotation_min_assignees": {
-      "message": "Rotationssysslor kräver minst 2 tilldelade personer"
     },
     "not_rotation": {
       "message": "Den här sysslan är inte i rotationsläge"
