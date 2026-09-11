@@ -1752,9 +1752,9 @@ class GamificationManager(BaseManager):
             return None
 
         if recurring_frequency in RecurrenceEngine.PERIOD_END_FREQUENCIES:
-            # Use RecurrenceEngine for period-end badge cycles.
-            # Returns 23:59 local time on the period-end date, then extracts
-            # the local date for the date-only badge cycle output.
+            # advance_period_end_preserve_time advances to the NEXT period end.
+            # get_next_occurrence resolves the period end of the current date and
+            # returns that same date, which stalls the rollover loop below.
             pe_config: ScheduleConfig = {
                 "frequency": recurring_frequency,
                 "base_date": current_end_iso,
@@ -1763,9 +1763,7 @@ class GamificationManager(BaseManager):
             current_end_dt = dt_parse(current_end_iso)
             if not isinstance(current_end_dt, datetime):
                 return None
-            next_dt = pe_engine.get_next_occurrence(
-                after=as_utc(current_end_dt), require_future=True
-            )
+            next_dt = pe_engine.advance_period_end_preserve_time(current_end_dt)
             if next_dt:
                 return as_local(next_dt).date().isoformat()
             return None
@@ -1777,6 +1775,39 @@ class GamificationManager(BaseManager):
             return_type=const.HELPER_RETURN_ISO_DATE,
         )
         return str(next_result) if next_result else None
+
+    @staticmethod
+    def _resolve_period_end_cycle_end(
+        recurring_frequency: str,
+        reference_iso: str,
+    ) -> str | None:
+        """Resolve the upcoming period end for a period-end frequency.
+
+        Unlike dt_next_schedule, which adds a full interval before snapping to the
+        period end, this returns the first period end at or after the reference date
+        so calendar-aligned cycles do not start one period late.
+
+        Args:
+            recurring_frequency: Period-end frequency constant.
+            reference_iso: Reference local date in ISO format.
+
+        Returns:
+            ISO date of the resolved period end, or None when unavailable.
+        """
+        pe_config: ScheduleConfig = {
+            "frequency": recurring_frequency,
+            "base_date": reference_iso,
+        }
+        pe_engine = RecurrenceEngine(pe_config)
+        reference_dt = dt_parse(reference_iso)
+        if not isinstance(reference_dt, datetime):
+            return None
+        period_end = pe_engine.get_next_occurrence(
+            after=as_utc(reference_dt), require_future=True
+        )
+        if not period_end:
+            return None
+        return as_local(period_end).date().isoformat()
 
     def _persist_target_progress_state(
         self,
@@ -4058,6 +4089,10 @@ class GamificationManager(BaseManager):
                     return_type=const.HELPER_RETURN_ISO_DATE,
                 )
                 next_end_date = str(result) if result else None
+        elif recurring_frequency in RecurrenceEngine.PERIOD_END_FREQUENCIES:
+            next_end_date = self._resolve_period_end_cycle_end(
+                str(recurring_frequency), today_iso
+            )
         else:
             result = dt_next_schedule(
                 today_iso,
@@ -4575,6 +4610,13 @@ class GamificationManager(BaseManager):
                     return_type=const.HELPER_RETURN_ISO_DATE,
                 )
                 return str(fallback_end) if fallback_end else today_local_iso
+
+            if recurring_frequency in RecurrenceEngine.PERIOD_END_FREQUENCIES:
+                period_end = self._resolve_period_end_cycle_end(
+                    recurring_frequency, today_local_iso
+                )
+                if period_end:
+                    return period_end
 
             next_end = dt_next_schedule(
                 today_local_iso,

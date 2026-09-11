@@ -996,9 +996,20 @@ def dt_next_schedule(
     Returns:
         Next scheduled date/time in requested format, or None on error.
 
+    Note:
+        require_future compares against "now" unless reference_datetime is given,
+        so results depend on the current time whenever it is left at its default.
+        Period-end types additionally add a full interval BEFORE snapping to the
+        period end, which places the result one period past the upcoming boundary.
+        Use RecurrenceEngine.get_next_occurrence to resolve the upcoming period end.
+
     Examples:
-        dt_next_schedule("2025-04-07", FREQUENCY_MONTHLY) → datetime(2025, 5, 7)
-        dt_next_schedule("2025-04-07", PERIOD_MONTH_END) → datetime(2025, 4, 30, 23, 59)
+        dt_next_schedule(
+            "2025-04-07", FREQUENCY_MONTHLY, reference_datetime="2025-04-07"
+        ) → datetime(2025, 5, 7)
+        dt_next_schedule(
+            "2025-04-07", PERIOD_MONTH_END, reference_datetime="2025-04-07"
+        ) → datetime(2025, 5, 31, 23, 59)  # already past 2025-04-30
     """
     if not base_date:
         _LOGGER.error("dt_next_schedule: base_date is None")
