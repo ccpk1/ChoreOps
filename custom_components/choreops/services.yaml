@@ -1367,7 +1367,7 @@ create_chore:
             - "auto_approve_pending"
     overdue_handling:
       name: "Overdue Handling"
-      description: "How to handle overdue status."
+      description: "How overdue chores behave at the due date and approval reset boundary."
       example: "at_due_date"
       required: false
       selector:
@@ -1586,7 +1586,7 @@ update_chore:
             - "auto_approve_pending"
     overdue_handling:
       name: "Overdue Handling"
-      description: "New overdue handling."
+      description: "New overdue handling behavior."
       example: "never_overdue"
       required: false
       selector:

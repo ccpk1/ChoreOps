@@ -2732,7 +2732,7 @@
         },
         "overdue_handling": {
           "name": "Overdue Handling",
-          "description": "Controls what happens when the due date passes and what happens to overdue chores at the approval reset boundary.",
+          "description": "How overdue chores behave at the due date and approval reset boundary.",
           "example": "at_due_date"
         },
         "chore_claim_lock_until_window": {
