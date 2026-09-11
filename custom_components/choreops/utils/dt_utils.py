@@ -926,7 +926,9 @@ def _apply_end_of_period(dt_obj: datetime, period: str) -> datetime:
     """Apply end-of-period adjustment to a datetime.
 
     Args:
-        dt_obj: Datetime to adjust
+        dt_obj: Datetime to adjust. Interval-based callers pass the result of
+            already adding one interval, so period-end types must not step past
+            the boundary that date lands on or before.
         period: Period constant (PERIOD_DAY_END, etc.)
 
     Returns:
@@ -936,10 +938,9 @@ def _apply_end_of_period(dt_obj: datetime, period: str) -> datetime:
         return dt_obj.replace(hour=23, minute=59, second=0, microsecond=0)
 
     if period == PERIOD_WEEK_END:
-        # Advance to Sunday
+        # A Sunday here is already the boundary one full period ahead, so it maps
+        # to itself. Pushing to the following Sunday double-counts the interval.
         days_until_sunday = (6 - dt_obj.weekday()) % 7
-        if days_until_sunday == 0:
-            days_until_sunday = 7  # Next Sunday if already Sunday
         result = dt_obj + timedelta(days=days_until_sunday)
         return result.replace(hour=23, minute=59, second=0, microsecond=0)
 

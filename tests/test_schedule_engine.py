@@ -7,12 +7,14 @@ Tests edge cases per Phase 2a plan:
 - EC-04: Empty applicable_days list
 - EC-05: Applicable_days constraint
 - EC-06: PERIOD_QUARTER_END calculations
+- Period-end parity: dt_utils and RecurrenceEngine must agree (see
+  TestPeriodEndParityWithDtUtils)
 - EC-07: CUSTOM_FROM_COMPLETE base date handling
 - EC-08: Midnight boundary edge cases
 - EC-09: MAX_ITERATIONS safety limit (stubbed for loop protection)
 """
 
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
@@ -24,6 +26,7 @@ from custom_components.choreops.engines.schedule_engine import (
     RecurrenceEngine,
     calculate_next_due_date,
 )
+from custom_components.choreops.utils.dt_utils import dt_next_schedule
 
 if TYPE_CHECKING:
     from custom_components.choreops.type_defs import ScheduleConfig
@@ -357,6 +360,107 @@ class TestPeriodEnds:
         result_local = dt_util.as_local(result)
         assert result_local.month == 12
         assert result_local.day == 31
+
+
+# =============================================================================
+# Period-end parity: dt_utils must agree with RecurrenceEngine
+# =============================================================================
+
+
+class TestPeriodEndParityWithDtUtils:
+    """Pin dt_utils period-end snapping to the RecurrenceEngine reference.
+
+    Period-end math exists in two places because the pure utils layer cannot
+    import the engine (that would be a circular import). These tests fail if the
+    two implementations drift apart again, which is what produced the Week-End
+    off-by-one-period defect.
+    """
+
+    PERIOD_END_FREQUENCIES = [
+        const.PERIOD_WEEK_END,
+        const.PERIOD_MONTH_END,
+        const.PERIOD_QUARTER_END,
+        const.PERIOD_YEAR_END,
+    ]
+
+    @pytest.mark.parametrize("frequency", PERIOD_END_FREQUENCIES)
+    def test_advance_matches_engine_for_every_day_of_year(
+        self,
+        frequency: str,
+    ) -> None:
+        """Advancing any base date agrees with the engine, including boundaries."""
+        engine = RecurrenceEngine(
+            {"frequency": frequency, "base_date": "2026-01-01T00:00:00+00:00"}
+        )
+
+        mismatches: list[str] = []
+        current = date(2026, 1, 1)
+        while current <= date(2026, 12, 31):
+            base_iso = current.isoformat()
+            from_utils = dt_next_schedule(
+                base_iso,
+                interval_type=frequency,
+                require_future=False,
+                return_type=const.HELPER_RETURN_ISO_DATE,
+            )
+            from_engine = engine.advance_period_end_preserve_time(
+                make_utc_dt(current.year, current.month, current.day, hour=0)
+            )
+            if from_engine is None:
+                mismatches.append(f"{base_iso}: engine returned None")
+            elif str(from_utils) != from_engine.date().isoformat():
+                mismatches.append(
+                    f"{base_iso} ({current.strftime('%a')}): "
+                    f"dt_utils={from_utils} engine={from_engine.date().isoformat()}"
+                )
+            current += timedelta(days=1)
+
+        assert not mismatches, (
+            f"{frequency} disagreed with RecurrenceEngine on "
+            f"{len(mismatches)} date(s): {mismatches[:5]}"
+        )
+
+    @pytest.mark.parametrize("frequency", PERIOD_END_FREQUENCIES)
+    def test_advance_from_boundary_moves_exactly_one_period(
+        self,
+        frequency: str,
+    ) -> None:
+        """A base already on the boundary advances by one period, not two."""
+        # 2026-09-13 is a Sunday, 2026-09-30 closes Q3, 2026-12-31 closes the year.
+        engine = RecurrenceEngine(
+            {"frequency": frequency, "base_date": "2026-01-01T00:00:00+00:00"}
+        )
+
+        boundary_by_frequency = {
+            const.PERIOD_WEEK_END: date(2026, 9, 13),
+            const.PERIOD_MONTH_END: date(2026, 9, 30),
+            const.PERIOD_QUARTER_END: date(2026, 9, 30),
+            const.PERIOD_YEAR_END: date(2026, 12, 31),
+        }
+        expected_by_frequency = {
+            const.PERIOD_WEEK_END: date(2026, 9, 20),
+            const.PERIOD_MONTH_END: date(2026, 10, 31),
+            const.PERIOD_QUARTER_END: date(2026, 12, 31),
+            const.PERIOD_YEAR_END: date(2027, 12, 31),
+        }
+
+        boundary = boundary_by_frequency[frequency]
+        result = dt_next_schedule(
+            boundary.isoformat(),
+            interval_type=frequency,
+            require_future=False,
+            return_type=const.HELPER_RETURN_ISO_DATE,
+        )
+
+        assert str(result) == expected_by_frequency[frequency].isoformat()
+        assert (
+            result
+            == engine.advance_period_end_preserve_time(
+                make_utc_dt(boundary.year, boundary.month, boundary.day, hour=0)
+            )
+            .date()
+            .isoformat()
+        )
 
 
 # =============================================================================
