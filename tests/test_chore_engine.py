@@ -1404,6 +1404,120 @@ class TestCalculateBoundaryAction:
         assert result == "skip"
 
 
+class TestCalculateBoundaryActionNeverOverdueClear:
+    """Boundary behaviour for never_overdue_clear_at_approval_reset.
+
+    This type presents like never_overdue but still starts a fresh cycle for an
+    uncompleted chore, so PENDING must reset rather than skip.
+    """
+
+    def _action(
+        self,
+        *,
+        current_state: str,
+        recurring_frequency: str = const.FREQUENCY_DAILY,
+        has_due_date: bool = True,
+    ) -> str:
+        return ChoreEngine.calculate_boundary_action(
+            current_state=current_state,
+            overdue_handling=(
+                const.OVERDUE_HANDLING_NEVER_OVERDUE_CLEAR_AT_APPROVAL_RESET
+            ),
+            pending_claims_handling=const.APPROVAL_RESET_PENDING_CLAIM_CLEAR,
+            recurring_frequency=recurring_frequency,
+            has_due_date=has_due_date,
+        )
+
+    def test_pending_recurring_with_due_date_resets(self) -> None:
+        """PENDING + due date + recurring → reset_and_reschedule, not skip."""
+        assert (
+            self._action(current_state=const.CHORE_STATE_PENDING)
+            == "reset_and_reschedule"
+        )
+
+    def test_pending_without_due_date_skips(self) -> None:
+        """PENDING without a due date → skip (no cycle to reschedule to)."""
+        assert (
+            self._action(current_state=const.CHORE_STATE_PENDING, has_due_date=False)
+            == "skip"
+        )
+
+    def test_pending_non_recurring_skips(self) -> None:
+        """PENDING + FREQUENCY_NONE → skip (avoids clearing the due date)."""
+        assert (
+            self._action(
+                current_state=const.CHORE_STATE_PENDING,
+                recurring_frequency=const.FREQUENCY_NONE,
+            )
+            == "skip"
+        )
+
+    def test_legacy_overdue_still_resets(self) -> None:
+        """A chore already persisted OVERDUE must still reset, not skip."""
+        assert (
+            self._action(current_state=const.CHORE_STATE_OVERDUE)
+            == "reset_and_reschedule"
+        )
+
+    def test_legacy_overdue_non_recurring_skips(self) -> None:
+        """OVERDUE + FREQUENCY_NONE → skip (nothing to reschedule)."""
+        assert (
+            self._action(
+                current_state=const.CHORE_STATE_OVERDUE,
+                recurring_frequency=const.FREQUENCY_NONE,
+            )
+            == "skip"
+        )
+
+    def test_never_overdue_still_skips_when_pending(self) -> None:
+        """Plain never_overdue is unchanged: PENDING still skips."""
+        result = ChoreEngine.calculate_boundary_action(
+            current_state=const.CHORE_STATE_PENDING,
+            overdue_handling=const.OVERDUE_HANDLING_NEVER_OVERDUE,
+            pending_claims_handling=const.APPROVAL_RESET_PENDING_CLAIM_CLEAR,
+            recurring_frequency=const.FREQUENCY_DAILY,
+            has_due_date=True,
+        )
+        assert result == "skip"
+
+
+class TestResolveAssigneeChoreStateNeverOverdueClear:
+    """FSM presentation for never_overdue_clear_at_approval_reset.
+
+    Must match never_overdue: derive `due` when past due, never `overdue`.
+    """
+
+    def _resolve(self, *, due_date: datetime, now: datetime) -> str:
+        chore_data = {
+            const.DATA_CHORE_OVERDUE_HANDLING_TYPE: (
+                const.OVERDUE_HANDLING_NEVER_OVERDUE_CLEAR_AT_APPROVAL_RESET
+            ),
+        }
+        state, _ = ChoreEngine.resolve_assignee_chore_state(
+            chore_data=chore_data,
+            assignee_id="assignee-1",
+            now=now,
+            is_approved_in_period=False,
+            has_pending_claim=False,
+            due_date=due_date,
+            due_window_start=None,
+        )
+        return state
+
+    def test_past_due_presents_as_due(self) -> None:
+        """Past the due date the chore is claimable `due`, never `overdue`."""
+        now = datetime(2026, 1, 15, 23, 30, tzinfo=UTC)
+        state = self._resolve(due_date=now - timedelta(minutes=30), now=now)
+        assert state == const.CHORE_STATE_DUE
+        assert state != const.CHORE_STATE_OVERDUE
+
+    def test_before_due_window_presents_as_pending(self) -> None:
+        """Before any due window the chore is still `pending`."""
+        now = datetime(2026, 1, 15, 12, 0, tzinfo=UTC)
+        state = self._resolve(due_date=now + timedelta(hours=8), now=now)
+        assert state == const.CHORE_STATE_PENDING
+
+
 class TestGetBoundaryCategory:
     """Test get_boundary_category() - combined categorization."""
 

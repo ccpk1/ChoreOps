@@ -1692,8 +1692,16 @@ class ChoreManager(BaseManager):
         context: ResetApplyContext,
         *,
         persist: bool = True,
+        suppress_rotation_advance: bool = False,
     ) -> dict[str, Any] | None:
         """Apply reset side effects for a single assignee/chore pair.
+
+        Args:
+            context: Reset decision and targeting details
+            persist: Persist immediately when True
+            suppress_rotation_advance: Skip the rotation advance normally done by
+                _transition_chore_state. Set by the boundary path for turn-holder
+                anchored rotation, which has already advanced the turn.
 
         Returns:
             Rotation signal payload when rotation advanced (emit after persist
@@ -1727,6 +1735,7 @@ class ChoreManager(BaseManager):
             reset_approval_period=True,
             clear_ownership=True,
             persist=persist,
+            suppress_rotation_advance=suppress_rotation_advance,
         )
 
     def _clear_due_date_after_reset(
@@ -1909,7 +1918,10 @@ class ChoreManager(BaseManager):
                 const.DATA_CHORE_OVERDUE_HANDLING_TYPE,
                 const.OVERDUE_HANDLING_AT_DUE_DATE,
             )
-            can_be_overdue = overdue_handling != const.OVERDUE_HANDLING_NEVER_OVERDUE
+            can_be_overdue = overdue_handling not in (
+                const.OVERDUE_HANDLING_NEVER_OVERDUE,
+                const.OVERDUE_HANDLING_NEVER_OVERDUE_CLEAR_AT_APPROVAL_RESET,
+            )
 
             # Parse offsets once per chore revision
             due_window_offset, reminder_offset = self._get_chore_offsets_cached(
@@ -2788,21 +2800,30 @@ class ChoreManager(BaseManager):
         ):
             self._record_chore_missed(assignee_id, chore_id)
 
+        # Turn-holder anchored rotation advances on any boundary reset from the
+        # holder, so a chore nobody completed still rotates to the next assignee.
+        # Other rotation types keep advancing only after an approval.
+        is_turn_holder_rotation = (
+            chore_info.get(const.DATA_CHORE_COMPLETION_CRITERIA)
+            == const.COMPLETION_CRITERIA_ROTATION_SIMPLE_FROM_TURN_HOLDER
+        )
+        current_turn_holder = chore_info.get(
+            const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID
+        )
         if (
-            assignee_state == const.CHORE_STATE_APPROVED
-            and ChoreEngine.is_rotation_mode(chore_info)
-        ):
-            current_turn_holder = chore_info.get(
-                const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID
+            ChoreEngine.is_rotation_mode(chore_info)
+            and current_turn_holder == assignee_id
+            and (
+                assignee_state == const.CHORE_STATE_APPROVED or is_turn_holder_rotation
             )
-            if current_turn_holder == assignee_id:
-                rotation_payload = self._advance_rotation(
-                    chore_id,
-                    assignee_id,
-                    method="auto",
-                )
-                if rotation_payload:
-                    rotation_payloads.append(rotation_payload)
+        ):
+            rotation_payload = self._advance_rotation(
+                chore_id,
+                assignee_id,
+                method="auto",
+            )
+            if rotation_payload:
+                rotation_payloads.append(rotation_payload)
 
         if (
             assignee_state == const.CHORE_STATE_MISSED
@@ -2833,6 +2854,7 @@ class ChoreManager(BaseManager):
                 "clear_due_date": plan.should_clear_due_date,
             },
             persist=persist,
+            suppress_rotation_advance=is_turn_holder_rotation,
         )
         if rotation_payload is not None:
             rotation_payloads.append(rotation_payload)
@@ -3752,9 +3774,9 @@ class ChoreManager(BaseManager):
         chore_info: ChoreData | dict[str, Any] = self._coordinator.chores_data.get(
             chore_id, {}
         )
-        if (
-            chore_info.get(const.DATA_CHORE_OVERDUE_HANDLING_TYPE)
-            != const.OVERDUE_HANDLING_NEVER_OVERDUE
+        if chore_info.get(const.DATA_CHORE_OVERDUE_HANDLING_TYPE) not in (
+            const.OVERDUE_HANDLING_NEVER_OVERDUE,
+            const.OVERDUE_HANDLING_NEVER_OVERDUE_CLEAR_AT_APPROVAL_RESET,
         ):
             return False
         due_dt = self.get_due_date(chore_id, None)
@@ -5005,6 +5027,7 @@ class ChoreManager(BaseManager):
         clear_ownership: bool = False,
         emit: bool = True,
         persist: bool = True,
+        suppress_rotation_advance: bool = False,
     ) -> dict[str, Any] | None:
         """Master method for chore state transitions.
 
@@ -5110,7 +5133,9 @@ class ChoreManager(BaseManager):
         rotation_signal_payload = None
         if new_state == const.CHORE_STATE_PENDING and reset_approval_period:
             # Advance rotation (returns payload for signal emission after persist)
-            if completed_by_assignee_id:
+            # suppress_rotation_advance is set by the boundary path for turn-holder
+            # anchored rotation, which advances once from the holder before reset.
+            if completed_by_assignee_id and not suppress_rotation_advance:
                 rotation_signal_payload = self._advance_rotation(
                     chore_id, completed_by_assignee_id, method="auto"
                 )
@@ -5416,6 +5441,7 @@ class ChoreManager(BaseManager):
             const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
             const.COMPLETION_CRITERIA_ROTATION_SMART,
             const.COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY,
+            const.COMPLETION_CRITERIA_ROTATION_SIMPLE_FROM_TURN_HOLDER,
         ):
             chore_data_dict = cast("dict[str, Any]", chore_data)
             for field in ownership_fields:
@@ -5563,6 +5589,18 @@ class ChoreManager(BaseManager):
             const.COMPLETION_CRITERIA_INDEPENDENT,
         )
 
+        # Anchor for the round-robin step. rotation_simple advances from whoever
+        # completed, which keeps a stealer's work from being handed onward.
+        # rotation_simple_from_turn_holder deliberately anchors on the turn
+        # holder instead, so an uncompleted chore still rotates.
+        anchor_assignee_id = completing_assignee_id
+        if (
+            completion_criteria
+            == const.COMPLETION_CRITERIA_ROTATION_SIMPLE_FROM_TURN_HOLDER
+            and previous_assignee_id
+        ):
+            anchor_assignee_id = previous_assignee_id
+
         # Get assigned assignees list
         assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
 
@@ -5572,6 +5610,12 @@ class ChoreManager(BaseManager):
         if method == "auto":
             # Determine method from completion criteria
             if completion_criteria == const.COMPLETION_CRITERIA_ROTATION_SIMPLE:
+                method = "simple"
+            elif (
+                completion_criteria
+                == const.COMPLETION_CRITERIA_ROTATION_SIMPLE_FROM_TURN_HOLDER
+            ):
+                # Same round-robin maths as rotation_simple; only the anchor differs.
                 method = "simple"
             elif completion_criteria == const.COMPLETION_CRITERIA_ROTATION_SMART:
                 method = "smart"
@@ -5602,7 +5646,7 @@ class ChoreManager(BaseManager):
         if method == "simple":
             # Simple rotation: round-robin by list index
             new_assignee_id = ChoreEngine.calculate_next_turn_simple(
-                assigned_assignees, completing_assignee_id
+                assigned_assignees, anchor_assignee_id
             )
 
         elif method == "smart":
@@ -5694,6 +5738,7 @@ class ChoreManager(BaseManager):
         new_is_rotation = new_criteria in (
             const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
             const.COMPLETION_CRITERIA_ROTATION_SMART,
+            const.COMPLETION_CRITERIA_ROTATION_SIMPLE_FROM_TURN_HOLDER,
         )
         if new_is_rotation:
             assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])

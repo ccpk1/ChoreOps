@@ -9,8 +9,8 @@ Tests verify:
 
 from __future__ import annotations
 
-from datetime import timedelta
-from typing import TYPE_CHECKING, Any
+from datetime import UTC, datetime, timedelta
+from typing import TYPE_CHECKING, Any, cast
 from unittest.mock import AsyncMock, MagicMock
 
 from homeassistant.exceptions import ServiceValidationError
@@ -25,7 +25,11 @@ from custom_components.choreops.managers.chore_manager import ChoreManager
 from custom_components.choreops.utils.dt_utils import dt_now_utc
 
 if TYPE_CHECKING:
-    from custom_components.choreops.type_defs import ResetContext, ResetDecision
+    from custom_components.choreops.type_defs import (
+        ChoreData,
+        ResetContext,
+        ResetDecision,
+    )
 
 # ============================================================================
 # Test Fixtures
@@ -638,6 +642,7 @@ class TestResetExecutor:
             reset_approval_period=True,
             clear_ownership=True,
             persist=True,
+            suppress_rotation_advance=False,
         )
         chore_manager._reschedule_chore_due.assert_called_once_with(
             "chore-1", "assignee-1"
@@ -900,6 +905,7 @@ class TestResetExecutor:
                 "clear_due_date": False,
             },
             persist=True,
+            suppress_rotation_advance=False,
         )
 
     @pytest.mark.asyncio
@@ -1042,6 +1048,267 @@ class TestResetExecutor:
             "chore_id": "chore-1",
             "assignee_id": "assignee-2",
         }
+
+
+class TestTurnHolderRotationAdvance:
+    """Turn-holder anchored rotation (rotation_simple_from_turn_holder).
+
+    The only behavioural difference from rotation_simple is the anchor: the turn
+    advances from the current turn holder instead of the last completer, so a
+    steal cannot hand the turn onward and an uncompleted chore still rotates.
+    """
+
+    _HOLDER = "assignee-1"
+    _COMPLETER = "assignee-3"
+    _ASSIGNEES = ["assignee-1", "assignee-2", "assignee-3"]
+
+    def _seed(
+        self,
+        chore_manager: ChoreManager,
+        criteria: str,
+    ) -> str:
+        chore_id = "chore-1"
+        chore_manager._coordinator.chores_data[chore_id] = cast(
+            "ChoreData",
+            {
+                const.DATA_CHORE_COMPLETION_CRITERIA: criteria,
+                const.DATA_CHORE_ASSIGNED_USER_IDS: list(self._ASSIGNEES),
+                const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID: self._HOLDER,
+            },
+        )
+        return chore_id
+
+    def test_anchors_on_holder_when_another_assignee_completes(
+        self,
+        chore_manager: ChoreManager,
+    ) -> None:
+        """A stealer completing does not become the anchor; the holder does."""
+        chore_id = self._seed(
+            chore_manager,
+            const.COMPLETION_CRITERIA_ROTATION_SIMPLE_FROM_TURN_HOLDER,
+        )
+
+        payload = chore_manager._advance_rotation(
+            chore_id,
+            self._COMPLETER,
+            method="auto",
+        )
+
+        assert payload is not None
+        assert payload["previous_assignee_id"] == self._HOLDER
+        # One step past the holder (assignee-1 -> assignee-2), not past the stealer.
+        assert payload["new_assignee_id"] == "assignee-2"
+
+    def test_rotation_simple_still_anchors_on_completer(
+        self,
+        chore_manager: ChoreManager,
+    ) -> None:
+        """Existing rotation_simple is unchanged: it anchors on the completer."""
+        chore_id = self._seed(
+            chore_manager,
+            const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
+        )
+
+        payload = chore_manager._advance_rotation(
+            chore_id,
+            self._COMPLETER,
+            method="auto",
+        )
+
+        assert payload is not None
+        # Wraps from the last assignee back to the first, i.e. anchored on the
+        # completer rather than the holder.
+        assert payload["new_assignee_id"] == "assignee-1"
+
+    @staticmethod
+    def _boundary_scan(criteria: str, state: str) -> dict[str, list[dict[str, Any]]]:
+        return {
+            const.CHORE_SCAN_RESULT_APPROVAL_RESET_SHARED: [
+                {
+                    const.CHORE_SCAN_ENTRY_CHORE_ID: "chore-1",
+                    const.CHORE_SCAN_ENTRY_CHORE_INFO: {
+                        const.DATA_CHORE_ASSIGNED_USER_IDS: [
+                            "assignee-1",
+                            "assignee-2",
+                        ],
+                        const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID: "assignee-1",
+                        const.DATA_CHORE_APPROVAL_RESET_PENDING_CLAIM_ACTION: (
+                            const.APPROVAL_RESET_PENDING_CLAIM_CLEAR
+                        ),
+                        const.DATA_CHORE_APPROVAL_RESET_TYPE: (
+                            const.APPROVAL_RESET_AT_MIDNIGHT_ONCE
+                        ),
+                        const.DATA_CHORE_OVERDUE_HANDLING_TYPE: (
+                            const.OVERDUE_HANDLING_AT_DUE_DATE
+                        ),
+                        const.DATA_CHORE_COMPLETION_CRITERIA: criteria,
+                        const.DATA_CHORE_STATE: state,
+                    },
+                }
+            ],
+            const.CHORE_SCAN_RESULT_APPROVAL_RESET_INDEPENDENT: [],
+        }
+
+    async def _run_boundary(
+        self,
+        chore_manager: ChoreManager,
+        *,
+        criteria: str,
+        state: str,
+    ) -> None:
+        chore_manager._get_assignee_chore_data = MagicMock(
+            return_value={const.DATA_USER_CHORE_DATA_STATE: state}
+        )
+        chore_manager._coordinator._persist = MagicMock()
+        chore_manager._coordinator.async_set_updated_data = MagicMock()
+        chore_manager._reschedule_chore_due = MagicMock()
+        chore_manager._apply_reset_action = MagicMock(return_value=None)
+        chore_manager._advance_rotation = MagicMock(
+            return_value={"chore_id": "chore-1", "assignee_id": "assignee-2"}
+        )
+        chore_manager.emit = MagicMock()
+
+        with pytest.MonkeyPatch.context() as monkeypatch:
+            monkeypatch.setattr(
+                "custom_components.choreops.managers.chore_manager.ChoreEngine."
+                "get_boundary_category",
+                lambda **_kwargs: (
+                    const.CHORE_RESET_BOUNDARY_CATEGORY_RESET_AND_RESCHEDULE
+                ),
+            )
+            await chore_manager._process_approval_reset_entries(
+                self._boundary_scan(criteria, state),
+                dt_now_utc(),
+                trigger=const.CHORE_SCAN_TRIGGER_MIDNIGHT,
+                persist=True,
+            )
+
+    async def test_boundary_advances_uncompleted_turn_holder_rotation(
+        self,
+        chore_manager: ChoreManager,
+    ) -> None:
+        """A chore nobody completed still rotates, exactly once."""
+        await self._run_boundary(
+            chore_manager,
+            criteria=const.COMPLETION_CRITERIA_ROTATION_SIMPLE_FROM_TURN_HOLDER,
+            state=const.CHORE_STATE_PENDING,
+        )
+
+        chore_manager._advance_rotation.assert_called_once_with(
+            "chore-1",
+            "assignee-1",
+            method="auto",
+        )
+
+    async def test_boundary_suppresses_duplicate_advance_for_new_criteria(
+        self,
+        chore_manager: ChoreManager,
+    ) -> None:
+        """The reset action must not advance a second time for the new criteria."""
+        await self._run_boundary(
+            chore_manager,
+            criteria=const.COMPLETION_CRITERIA_ROTATION_SIMPLE_FROM_TURN_HOLDER,
+            state=const.CHORE_STATE_PENDING,
+        )
+
+        assert (
+            chore_manager._apply_reset_action.call_args.kwargs[
+                "suppress_rotation_advance"
+            ]
+            is True
+        )
+
+    async def test_boundary_does_not_advance_uncompleted_rotation_simple(
+        self,
+        chore_manager: ChoreManager,
+    ) -> None:
+        """Existing rotation_simple stays reset-only for an uncompleted chore."""
+        await self._run_boundary(
+            chore_manager,
+            criteria=const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
+            state=const.CHORE_STATE_PENDING,
+        )
+
+        chore_manager._advance_rotation.assert_not_called()
+
+    async def test_boundary_keeps_duplicate_advance_for_existing_criteria(
+        self,
+        chore_manager: ChoreManager,
+    ) -> None:
+        """Existing rotation types keep the second (idempotent) advance site."""
+        await self._run_boundary(
+            chore_manager,
+            criteria=const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
+            state=const.CHORE_STATE_APPROVED,
+        )
+
+        assert (
+            chore_manager._apply_reset_action.call_args.kwargs[
+                "suppress_rotation_advance"
+            ]
+            is False
+        )
+
+
+class TestNeverOverdueClearNoChurn:
+    """Guards against a nightly reset loop for the new overdue option.
+
+    The option resets an uncompleted chore at the boundary, so the rescheduled
+    due date must land in the future. If it did not, the midnight inclusion gate
+    (`now_utc >= chore_due_utc`) would re-include the chore every night.
+    """
+
+    def test_weekly_reschedule_lands_on_next_future_occurrence(
+        self,
+        chore_manager: ChoreManager,
+    ) -> None:
+        """A stale weekly due date advances one hop to the next future slot."""
+        now = datetime(2026, 1, 15, 0, 5, tzinfo=UTC)
+        stale_due = now - timedelta(hours=6)
+
+        chore_info = {
+            const.DATA_CHORE_NAME: "Weekly Reset",
+            const.DATA_CHORE_RECURRING_FREQUENCY: const.FREQUENCY_WEEKLY,
+            const.DATA_CHORE_DUE_DATE: stale_due.isoformat(),
+            const.DATA_CHORE_OVERDUE_HANDLING_TYPE: (
+                const.OVERDUE_HANDLING_NEVER_OVERDUE_CLEAR_AT_APPROVAL_RESET
+            ),
+        }
+
+        next_due = chore_manager._calculate_next_due_date_for_chore(
+            chore_info,  # type: ignore[arg-type]
+            reference_time=now,
+        )
+
+        assert next_due is not None
+        # In the future, so the next midnight pass excludes it (no churn).
+        assert next_due > now
+        # One hop only: within the next week, not a compounded backlog.
+        assert next_due - stale_due < timedelta(days=14)
+
+    def test_reschedule_result_is_excluded_by_the_midnight_gate(
+        self,
+        chore_manager: ChoreManager,
+    ) -> None:
+        """The inclusion gate must skip the chore once it is rescheduled."""
+        now = datetime(2026, 1, 15, 0, 5, tzinfo=UTC)
+        next_due = chore_manager._calculate_next_due_date_for_chore(
+            cast(
+                "ChoreData",
+                {
+                    const.DATA_CHORE_NAME: "Daily Reset",
+                    const.DATA_CHORE_RECURRING_FREQUENCY: (const.FREQUENCY_DAILY),
+                    const.DATA_CHORE_DUE_DATE: (now - timedelta(hours=6)).isoformat(),
+                },
+            ),
+            reference_time=now,
+        )
+
+        assert next_due is not None
+        assert next_due > now
+        # Mirrors the gate in process_time_checks.
+        include_in_reset = now >= next_due
+        assert include_in_reset is False
 
 
 class TestApprovalResetExecutorLane:

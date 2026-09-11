@@ -1536,6 +1536,11 @@ COMPLETION_CRITERIA_SHARED_FIRST: Final = "shared_first"
 COMPLETION_CRITERIA_ROTATION_SIMPLE: Final = "rotation_simple"
 COMPLETION_CRITERIA_ROTATION_SMART: Final = "rotation_smart"
 COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY: Final = "rotation_primary_standby"
+# Turn-holder anchored simple rotation. Identical to rotation_simple except the
+# turn advances from the current turn holder rather than the last completer.
+COMPLETION_CRITERIA_ROTATION_SIMPLE_FROM_TURN_HOLDER: Final = (
+    "rotation_simple_from_turn_holder"
+)
 COMPLETION_CRITERIA_OPTIONS: Final = [
     {"value": COMPLETION_CRITERIA_INDEPENDENT, "label": "independent"},
     {
@@ -1546,6 +1551,10 @@ COMPLETION_CRITERIA_OPTIONS: Final = [
     {"value": COMPLETION_CRITERIA_SHARED_FIRST, "label": "shared_first"},
     {"value": COMPLETION_CRITERIA_ROTATION_SIMPLE, "label": "rotation_simple"},
     {"value": COMPLETION_CRITERIA_ROTATION_SMART, "label": "rotation_smart"},
+    {
+        "value": COMPLETION_CRITERIA_ROTATION_SIMPLE_FROM_TURN_HOLDER,
+        "label": "rotation_simple_from_turn_holder",
+    },
 ]
 
 # Approval reset type values
@@ -1570,6 +1579,11 @@ DEFAULT_APPROVAL_RESET_TYPE: Final = APPROVAL_RESET_AT_MIDNIGHT_ONCE
 # Controls when/if a chore shows as overdue
 OVERDUE_HANDLING_AT_DUE_DATE: Final = "at_due_date"
 OVERDUE_HANDLING_NEVER_OVERDUE: Final = "never_overdue"
+# Never overdue presentation with a reset at the approval boundary. Unlike
+# never_overdue, an uncompleted chore is reset and rescheduled each cycle.
+OVERDUE_HANDLING_NEVER_OVERDUE_CLEAR_AT_APPROVAL_RESET: Final = (
+    "never_overdue_clear_at_approval_reset"
+)
 OVERDUE_HANDLING_AT_DUE_DATE_CLEAR_AT_APPROVAL_RESET: Final = (
     "at_due_date_clear_at_approval_reset"
 )
@@ -1585,6 +1599,10 @@ OVERDUE_HANDLING_AT_DUE_DATE_MARK_MISSED_AND_LOCK: Final = (
 OVERDUE_HANDLING_AT_DUE_DATE_ALLOW_STEAL: Final = "at_due_date_allow_steal"
 OVERDUE_HANDLING_TYPE_OPTIONS: Final = [
     {"value": OVERDUE_HANDLING_NEVER_OVERDUE, "label": "never_overdue"},
+    {
+        "value": OVERDUE_HANDLING_NEVER_OVERDUE_CLEAR_AT_APPROVAL_RESET,
+        "label": "never_overdue_clear_at_approval_reset",
+    },
     {"value": OVERDUE_HANDLING_AT_DUE_DATE, "label": "at_due_date"},
     {
         "value": OVERDUE_HANDLING_AT_DUE_DATE_CLEAR_IMMEDIATE_ON_LATE,
@@ -3675,6 +3693,11 @@ TRANS_KEY_CFOF_CUSTOM_INTERVAL_UNIT_REQUIRED: Final = "custom_interval_unit_requ
 TRANS_KEY_CFOF_CUSTOM_INTERVAL_UNIT_INVALID: Final = "custom_interval_unit_invalid"
 TRANS_KEY_CFOF_INVALID_OVERDUE_RESET_COMBINATION: Final = (
     "invalid_overdue_reset_combination"
+)
+# Never-overdue-with-reset requires a due date, a recurring frequency and a
+# midnight approval boundary; without all three the reset can never occur.
+TRANS_KEY_CFOF_ERROR_NEVER_OVERDUE_CLEAR_INCOMPATIBLE: Final = (
+    "error_never_overdue_clear_incompatible"
 )
 TRANS_KEY_CFOF_NO_ASSIGNEES_ASSIGNED: Final = "no_assignees_assigned"
 TRANS_KEY_CFOF_ACHIEVEMENT_NO_ASSIGNEES_ASSIGNED: Final = (

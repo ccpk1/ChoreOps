@@ -650,14 +650,15 @@ class ChoreEngine:
             const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
             const.COMPLETION_CRITERIA_ROTATION_SMART,
             const.COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY,
+            const.COMPLETION_CRITERIA_ROTATION_SIMPLE_FROM_TURN_HOLDER,
         )
 
     @staticmethod
     def is_rotation_mode(chore_data: ChoreData | dict[str, Any]) -> bool:
         """Check if chore uses rotation completion criteria.
 
-        Returns True for rotation_simple, rotation_smart, and
-        rotation_primary_standby.
+        Returns True for rotation_simple, rotation_smart,
+        rotation_primary_standby, and rotation_simple_from_turn_holder.
         Part of Logic Adapter pattern (D-12) for v0.5.0 rotation feature.
         """
         criteria = chore_data.get(
@@ -668,6 +669,7 @@ class ChoreEngine:
             const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
             const.COMPLETION_CRITERIA_ROTATION_SMART,
             const.COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY,
+            const.COMPLETION_CRITERIA_ROTATION_SIMPLE_FROM_TURN_HOLDER,
         )
 
     @staticmethod
@@ -690,6 +692,7 @@ class ChoreEngine:
             const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
             const.COMPLETION_CRITERIA_ROTATION_SMART,
             const.COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY,
+            const.COMPLETION_CRITERIA_ROTATION_SIMPLE_FROM_TURN_HOLDER,
         )
 
     @staticmethod
@@ -866,7 +869,11 @@ class ChoreEngine:
         # The user opted out of overdue presentation; the chore is past due and
         # claimable, so `due` is the honest actionable token.
         if (
-            overdue_type == const.OVERDUE_HANDLING_NEVER_OVERDUE
+            overdue_type
+            in (
+                const.OVERDUE_HANDLING_NEVER_OVERDUE,
+                const.OVERDUE_HANDLING_NEVER_OVERDUE_CLEAR_AT_APPROVAL_RESET,
+            )
             and due_date is not None
             and now > due_date
         ):
@@ -1189,11 +1196,13 @@ class ChoreEngine:
             const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
             const.COMPLETION_CRITERIA_ROTATION_SMART,
             const.COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY,
+            const.COMPLETION_CRITERIA_ROTATION_SIMPLE_FROM_TURN_HOLDER,
         )
         new_is_rotation = new_criteria in (
             const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
             const.COMPLETION_CRITERIA_ROTATION_SMART,
             const.COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY,
+            const.COMPLETION_CRITERIA_ROTATION_SIMPLE_FROM_TURN_HOLDER,
         )
 
         # Non-rotation → rotation: Initialize rotation fields
@@ -1597,8 +1606,15 @@ class ChoreEngine:
         """
         should_reschedule = has_due_date and recurring_frequency != const.FREQUENCY_NONE
 
-        # PENDING state = nothing to do
+        # PENDING state = nothing to do, except for never-overdue-with-reset
+        # where an uncompleted chore still starts a fresh cycle at the boundary.
         if current_state == const.CHORE_STATE_PENDING:
+            if (
+                overdue_handling
+                == const.OVERDUE_HANDLING_NEVER_OVERDUE_CLEAR_AT_APPROVAL_RESET
+                and should_reschedule
+            ):
+                return "reset_and_reschedule"
             return "skip"
 
         # APPROVED state = always reset (approval_reset_type already filtered)
@@ -1638,7 +1654,15 @@ class ChoreEngine:
                 == const.OVERDUE_HANDLING_AT_DUE_DATE_CLEAR_IMMEDIATE_ON_LATE
             ):
                 return "skip"
-            # NEVER_OVERDUE = shouldn't be in OVERDUE state, but skip if so
+            # NEVER_OVERDUE = shouldn't be in OVERDUE state, but skip if so.
+            # NEVER_OVERDUE_CLEAR_AT_APPROVAL_RESET can be persisted OVERDUE by
+            # legacy data or a configuration change, and must still reset.
+            if (
+                overdue_handling
+                == const.OVERDUE_HANDLING_NEVER_OVERDUE_CLEAR_AT_APPROVAL_RESET
+                and should_reschedule
+            ):
+                return "reset_and_reschedule"
             if overdue_handling == const.OVERDUE_HANDLING_NEVER_OVERDUE:
                 return "skip"
 

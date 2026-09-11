@@ -1316,7 +1316,7 @@ create_chore:
             - "sun"
     completion_criteria:
       name: "Completion Criteria"
-      description: "How the chore is completed when multiple assignees are assigned: independent, shared_first, shared_all, rotation_simple, rotation_smart, or rotation_primary_standby."
+      description: "How the chore is completed when multiple assignees are assigned: independent, shared_first, shared_all, rotation_simple, rotation_smart, rotation_primary_standby, or rotation_simple_from_turn_holder."
       example: "independent"
       required: false
       selector:
@@ -1328,6 +1328,7 @@ create_chore:
             - "shared_first"
             - "rotation_simple"
             - "rotation_smart"
+            - "rotation_simple_from_turn_holder"
     standby_claim_mode:
       name: "Standby Claim Mode"
       description: "Controls when standbys can claim this chore (anytime, on_overdue, manual_only). Only applies to Primary & Standby completion criteria."
@@ -1366,13 +1367,14 @@ create_chore:
             - "auto_approve_pending"
     overdue_handling:
       name: "Overdue Handling"
-      description: "How to handle overdue status."
+      description: "How overdue chores behave at the due date and approval reset boundary."
       example: "at_due_date"
       required: false
       selector:
         select:
           options:
             - "never_overdue"
+            - "never_overdue_clear_at_approval_reset"
             - "at_due_date"
             - "at_due_date_clear_immediate_on_late"
             - "at_due_date_clear_at_approval_reset"
@@ -1584,13 +1586,14 @@ update_chore:
             - "auto_approve_pending"
     overdue_handling:
       name: "Overdue Handling"
-      description: "New overdue handling."
+      description: "New overdue handling behavior."
       example: "never_overdue"
       required: false
       selector:
         select:
           options:
             - "never_overdue"
+            - "never_overdue_clear_at_approval_reset"
             - "at_due_date"
             - "at_due_date_clear_immediate_on_late"
             - "at_due_date_clear_at_approval_reset"

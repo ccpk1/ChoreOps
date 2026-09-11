@@ -2087,7 +2087,8 @@
         "shared_first": "Shared First (First completion counts)",
         "rotation_simple": "Rotation Simple (Turn-holder only, strict order)",
         "rotation_smart": "Rotation Smart (Turn-holder only, fairness-weighted)",
-        "rotation_primary_standby": "Primary & Standby (Primary default turn, standby when eligible)"
+        "rotation_primary_standby": "Primary & Standby (Primary default turn, standby when eligible)",
+        "rotation_simple_from_turn_holder": "Rotation Simple (Advance From Current Turn Holder)"
       }
     },
     "standby_claim_mode": {
@@ -2110,6 +2111,7 @@
     "overdue_handling_type": {
       "options": {
         "never_overdue": "Never Overdue",
+        "never_overdue_clear_at_approval_reset": "Never Overdue (Reset at Approval Boundary)",
         "at_due_date": "Overdue Until Complete",
         "at_due_date_clear_at_approval_reset": "Overdue Until Approval Reset",
         "at_due_date_clear_immediate_on_late": "Overdue Until Complete (Clear Late Approvals Immediately)",
@@ -2715,7 +2717,7 @@
         },
         "completion_criteria": {
           "name": "Completion Criteria",
-          "description": "Controls how the chore is completed when multiple assignees are assigned: individual tracking, shared completion, or turn-based rotation.",
+          "description": "How the chore is completed when multiple assignees are assigned: independent, shared_first, shared_all, rotation_simple, rotation_smart, rotation_primary_standby, or rotation_simple_from_turn_holder.",
           "example": "independent"
         },
         "approval_reset_type": {
@@ -2730,7 +2732,7 @@
         },
         "overdue_handling": {
           "name": "Overdue Handling",
-          "description": "Controls what happens when the due date passes and what happens to overdue chores at the approval reset boundary.",
+          "description": "How overdue chores behave at the due date and approval reset boundary.",
           "example": "at_due_date"
         },
         "chore_claim_lock_until_window": {
@@ -3394,7 +3396,8 @@
               "shared_all": "Shared (All)",
               "rotation_simple": "Rotation Simple",
               "rotation_smart": "Rotation Smart",
-              "rotation_primary_standby": "Primary & Standby"
+              "rotation_primary_standby": "Primary & Standby",
+              "rotation_simple_from_turn_holder": "Rotation Simple (Turn Holder)"
             }
           },
           "approval_reset_type": {
@@ -3420,6 +3423,7 @@
             "name": "Overdue Handling Type",
             "state": {
               "never_overdue": "Never Overdue",
+              "never_overdue_clear_at_approval_reset": "Never Overdue (Reset at Approval Boundary)",
               "at_due_date": "Overdue Until Complete",
               "at_due_date_clear_at_approval_reset": "Overdue Until Approval Reset",
               "at_due_date_clear_immediate_on_late": "Overdue Until Complete (Clear Late Approvals Immediately)",
@@ -4355,7 +4359,8 @@
               "shared_all": "Shared (All Required)",
               "rotation_simple": "Rotation Simple",
               "rotation_smart": "Rotation Smart",
-              "rotation_primary_standby": "Primary & Standby"
+              "rotation_primary_standby": "Primary & Standby",
+              "rotation_simple_from_turn_holder": "Rotation Simple (Turn Holder)"
             }
           },
           "approval_reset_type": {
