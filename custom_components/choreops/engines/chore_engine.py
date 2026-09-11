@@ -650,14 +650,15 @@ class ChoreEngine:
             const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
             const.COMPLETION_CRITERIA_ROTATION_SMART,
             const.COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY,
+            const.COMPLETION_CRITERIA_ROTATION_SIMPLE_FROM_TURN_HOLDER,
         )
 
     @staticmethod
     def is_rotation_mode(chore_data: ChoreData | dict[str, Any]) -> bool:
         """Check if chore uses rotation completion criteria.
 
-        Returns True for rotation_simple, rotation_smart, and
-        rotation_primary_standby.
+        Returns True for rotation_simple, rotation_smart,
+        rotation_primary_standby, and rotation_simple_from_turn_holder.
         Part of Logic Adapter pattern (D-12) for v0.5.0 rotation feature.
         """
         criteria = chore_data.get(
@@ -668,6 +669,7 @@ class ChoreEngine:
             const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
             const.COMPLETION_CRITERIA_ROTATION_SMART,
             const.COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY,
+            const.COMPLETION_CRITERIA_ROTATION_SIMPLE_FROM_TURN_HOLDER,
         )
 
     @staticmethod
@@ -690,6 +692,7 @@ class ChoreEngine:
             const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
             const.COMPLETION_CRITERIA_ROTATION_SMART,
             const.COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY,
+            const.COMPLETION_CRITERIA_ROTATION_SIMPLE_FROM_TURN_HOLDER,
         )
 
     @staticmethod
@@ -1193,11 +1196,13 @@ class ChoreEngine:
             const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
             const.COMPLETION_CRITERIA_ROTATION_SMART,
             const.COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY,
+            const.COMPLETION_CRITERIA_ROTATION_SIMPLE_FROM_TURN_HOLDER,
         )
         new_is_rotation = new_criteria in (
             const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
             const.COMPLETION_CRITERIA_ROTATION_SMART,
             const.COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY,
+            const.COMPLETION_CRITERIA_ROTATION_SIMPLE_FROM_TURN_HOLDER,
         )
 
         # Non-rotation → rotation: Initialize rotation fields

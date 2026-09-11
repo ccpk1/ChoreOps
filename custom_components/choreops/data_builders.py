@@ -1404,6 +1404,7 @@ def validate_chore_data(
             const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
             const.COMPLETION_CRITERIA_ROTATION_SMART,
             const.COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY,
+            const.COMPLETION_CRITERIA_ROTATION_SIMPLE_FROM_TURN_HOLDER,
         )
 
     def _validate_due_date_value(raw_value: Any) -> str | None:
@@ -1609,6 +1610,7 @@ def validate_chore_data(
     rotation_criteria = {
         const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
         const.COMPLETION_CRITERIA_ROTATION_SMART,
+        const.COMPLETION_CRITERIA_ROTATION_SIMPLE_FROM_TURN_HOLDER,
     }
     if completion_criteria in rotation_criteria:
         if len(assigned_assignees) < 2:
@@ -1916,6 +1918,7 @@ def build_chore(
                             const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
                             const.COMPLETION_CRITERIA_ROTATION_SMART,
                             const.COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY,
+                            const.COMPLETION_CRITERIA_ROTATION_SIMPLE_FROM_TURN_HOLDER,
                         )
                     )
                     else None

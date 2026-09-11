@@ -638,6 +638,7 @@ class TestResetExecutor:
             reset_approval_period=True,
             clear_ownership=True,
             persist=True,
+            suppress_rotation_advance=False,
         )
         chore_manager._reschedule_chore_due.assert_called_once_with(
             "chore-1", "assignee-1"
@@ -900,6 +901,7 @@ class TestResetExecutor:
                 "clear_due_date": False,
             },
             persist=True,
+            suppress_rotation_advance=False,
         )
 
     @pytest.mark.asyncio

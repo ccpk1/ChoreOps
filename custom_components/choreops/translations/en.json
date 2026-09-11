@@ -2087,7 +2087,8 @@
         "shared_first": "Shared First (First completion counts)",
         "rotation_simple": "Rotation Simple (Turn-holder only, strict order)",
         "rotation_smart": "Rotation Smart (Turn-holder only, fairness-weighted)",
-        "rotation_primary_standby": "Primary & Standby (Primary default turn, standby when eligible)"
+        "rotation_primary_standby": "Primary & Standby (Primary default turn, standby when eligible)",
+        "rotation_simple_from_turn_holder": "Rotation Simple (Advance From Current Turn Holder)"
       }
     },
     "standby_claim_mode": {
@@ -2716,7 +2717,7 @@
         },
         "completion_criteria": {
           "name": "Completion Criteria",
-          "description": "Controls how the chore is completed when multiple assignees are assigned: individual tracking, shared completion, or turn-based rotation.",
+          "description": "How the chore is completed when multiple assignees are assigned: independent, shared_first, shared_all, rotation_simple, rotation_smart, rotation_primary_standby, or rotation_simple_from_turn_holder.",
           "example": "independent"
         },
         "approval_reset_type": {
@@ -3395,7 +3396,8 @@
               "shared_all": "Shared (All)",
               "rotation_simple": "Rotation Simple",
               "rotation_smart": "Rotation Smart",
-              "rotation_primary_standby": "Primary & Standby"
+              "rotation_primary_standby": "Primary & Standby",
+              "rotation_simple_from_turn_holder": "Rotation Simple (Turn Holder)"
             }
           },
           "approval_reset_type": {
@@ -4357,7 +4359,8 @@
               "shared_all": "Shared (All Required)",
               "rotation_simple": "Rotation Simple",
               "rotation_smart": "Rotation Smart",
-              "rotation_primary_standby": "Primary & Standby"
+              "rotation_primary_standby": "Primary & Standby",
+              "rotation_simple_from_turn_holder": "Rotation Simple (Turn Holder)"
             }
           },
           "approval_reset_type": {
