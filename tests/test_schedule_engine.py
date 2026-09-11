@@ -14,6 +14,7 @@ Tests edge cases per Phase 2a plan:
 - EC-09: MAX_ITERATIONS safety limit (stubbed for loop protection)
 """
 
+from collections.abc import Iterator
 from datetime import date, datetime, timedelta
 from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
@@ -30,6 +31,8 @@ from custom_components.choreops.utils.dt_utils import (
     as_local,
     dt_next_schedule,
     dt_parse,
+    get_default_timezone,
+    set_default_timezone,
 )
 
 if TYPE_CHECKING:
@@ -283,6 +286,22 @@ class TestApplicableDays:
 
 class TestPeriodEnds:
     """Test PERIOD_*_END frequency calculations."""
+
+    @pytest.fixture(autouse=True)
+    def align_dt_utils_timezone(self) -> Iterator[None]:
+        """Align dt_utils with HA's timezone the way integration setup does.
+
+        RecurrenceEngine resolves period ends through dt_utils, which only tracks
+        HA's timezone once set_default_timezone runs during setup. Without this,
+        the engine uses dt_utils' UTC default while assertions convert results with
+        HA's timezone, so hour-based checks compare two different frames.
+        """
+        original_tz = get_default_timezone()
+        set_default_timezone(dt_util.get_default_time_zone())
+        try:
+            yield
+        finally:
+            set_default_timezone(original_tz)
 
     def test_period_day_end(self) -> None:
         """PERIOD_DAY_END should return end of day (23:59:00)."""
