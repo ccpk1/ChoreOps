@@ -12,7 +12,7 @@
 - **Name / Code**: Auto-Advance Rotation & Always-Reset Chores (`ISSUE-255`)
 - **Target release / milestone**: v1.6.0 (TBD — confirm with owner)
 - **Owner / driver(s)**: ccpk1
-- **Status**: In progress — **Phases 1–4 complete and committed; Phase 5 (wiki, release notes) next**
+- **Status**: **Complete** — all five phases done and committed on `feat/issue-255-auto-advance-rotation` (choreops, choreops-dashboards, choreops-wiki). Release notes drafted for the owner to publish.
 
 ## Summary & immediate steps
 
@@ -22,13 +22,13 @@
 | Phase 2 – Feature 1 (`never_overdue_clear_at_approval_reset`)    | New overdue-lane option: never overdue presentation **plus** reset at the boundary  | **100%**   | ✅ Lint + mypy clean, 317 targeted tests pass. Presentation/scan pair updated together |
 | Phase 3 – Feature 2 (`rotation_simple_from_turn_holder`)         | New completion criteria: simple rotation anchored on the current turn holder        | **100%**   | ✅ Lint + mypy clean, 434 targeted tests pass. Includes boundary-advance + dedup |
 | Phase 4 – Tests                                                  | Engine, manager, workflow, and boundary tests for both features plus the guard      | **100%**   | ✅ 596 targeted tests pass. Steal-anchor, advance-once and no-churn all covered |
-| Phase 5 – Docs, dashboards & polish                              | Wiki, dashboard labels (canonical repo + sync), English translations, release notes | 0%         | Dashboards mandatory but minimal; only `en*` translation files are edited     |
+| Phase 5 – Docs, dashboards & polish                              | Wiki, dashboard labels (canonical repo + sync), English translations, release notes | **100%**   | ✅ Wiki updated (5 pages); release notes drafted; plan moved to completed     |
 
 1. **Key objective** – Deliver the two features requested in issue #255 as **new, opt-in** options, with **zero behaviour change** for any existing chore configuration.
 
 2. **Summary of recent work** – Deep code review and three correction rounds against maintainer feedback completed 2026-09-11. All ambiguities (A1–A6) are now closed; decisions D1–D12 are final. This document consolidates the parent plan and the dashboard-scope supporting document into one authoritative record.
 
-3. **Next steps (short term)** – Phases 1–4 are complete, validated and committed. Proceed to Phase 5 (wiki updates, release notes, issue reply). Full suite remains deferred to release validation.
+3. **Next steps (short term)** – None outstanding. Open the PR(s), then run the full test suite (`python -m pytest tests/ -v --tb=line`) as part of release validation. The release notes and issue reply are drafted for the owner to publish.
 
 4. **Risks / blockers** – Three critical traps:
    - **(a)** Omitting the new overdue type from `can_be_overdue` (`chore_manager.py:1912`) silently loses never-overdue presentation (C1).
@@ -38,7 +38,7 @@
 5. **References** – See "Notes & follow-up" for the full reference list.
 
 6. **Decisions & completion check**
-   - **Decisions captured**: D1–D17 and resolved ambiguities A1–A6 (see "Notes & follow-up").
+   - **Decisions captured**: D1–D18 and resolved ambiguities A1–A6 (see "Notes & follow-up").
    - **Completion confirmation**: `[ ]` All follow-up items completed (architecture updates, cleanup, documentation, etc.) before requesting owner approval to mark initiative done.
 
 ## Tracking expectations
