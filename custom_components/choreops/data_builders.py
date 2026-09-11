@@ -1606,22 +1606,14 @@ def validate_chore_data(
             )
             return errors
 
-    # === 11. Rotation requires ≥ 2 assigned assignees ===
-    rotation_criteria = {
-        const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
-        const.COMPLETION_CRITERIA_ROTATION_SMART,
-        const.COMPLETION_CRITERIA_ROTATION_SIMPLE_FROM_TURN_HOLDER,
-    }
-    if completion_criteria in rotation_criteria:
-        if len(assigned_assignees) < 2:
-            errors[const.CFOP_ERROR_ASSIGNED_USER_IDS] = (
-                const.TRANS_KEY_ERROR_ROTATION_MIN_ASSIGNEES
-            )
-            return errors
-
-    # === 12. at_due_date_allow_steal compatibility ===
+    # === 11. at_due_date_allow_steal compatibility ===
     if overdue_handling == const.OVERDUE_HANDLING_AT_DUE_DATE_ALLOW_STEAL:
         # Must be a rotation chore
+        rotation_criteria = {
+            const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
+            const.COMPLETION_CRITERIA_ROTATION_SMART,
+            const.COMPLETION_CRITERIA_ROTATION_SIMPLE_FROM_TURN_HOLDER,
+        }
         if (
             completion_criteria not in rotation_criteria
             or approval_reset != const.APPROVAL_RESET_AT_MIDNIGHT_ONCE
@@ -1632,7 +1624,7 @@ def validate_chore_data(
             )
             return errors
 
-    # === 13. never_overdue_clear_at_approval_reset compatibility ===
+    # === 12. never_overdue_clear_at_approval_reset compatibility ===
     # The reset only fires at a midnight boundary for a dated, recurring chore.
     # Anything else would silently never reset, so reject the combination.
     if overdue_handling == const.OVERDUE_HANDLING_NEVER_OVERDUE_CLEAR_AT_APPROVAL_RESET:

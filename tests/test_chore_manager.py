@@ -92,10 +92,10 @@ def mock_coordinator(sample_chore_data: dict, sample_assignee_data: dict) -> Mag
     coordinator._persist = MagicMock()
     coordinator._persist_and_update = MagicMock()
     coordinator.async_set_updated_data = MagicMock()
-    # Include chores data for tests that access _data[DATA_CHORES]
-    coordinator._data = {
-        const.DATA_CHORES: {"chore-1": sample_chore_data.copy()},
-    }
+    # Production exposes chores_data as a property over _data[DATA_CHORES], so both
+    # names must reference one object or manager writes land somewhere tests miss.
+    coordinator._data = {const.DATA_CHORES: {"chore-1": sample_chore_data}}
+    coordinator.chores_data = coordinator._data[const.DATA_CHORES]
 
     # Mock chore_is_approved_in_period
     coordinator.chore_is_approved_in_period = MagicMock(return_value=False)
@@ -2194,21 +2194,22 @@ class TestCompletionCriteria:
 class TestCriteriaTransitions:
     """Tests for manager-side completion criteria transition handling."""
 
-    def test_handle_criteria_transition_applies_changes_and_emits(
+    def test_update_chore_criteria_transition_seeds_rotation_fields(
         self,
         chore_manager: ChoreManager,
         mock_coordinator: MagicMock,
     ) -> None:
-        """Transition applies engine changes, persists, and emits update signal."""
+        """Transition to rotation seeds turn fields and applies the criteria change."""
         mock_coordinator.chores_data["chore-1"][const.DATA_CHORE_ASSIGNED_USER_IDS] = [
             "assignee-1",
             "assignee-2",
         ]
 
-        chore_manager._handle_criteria_transition(
-            chore_id="chore-1",
-            old_criteria=const.COMPLETION_CRITERIA_INDEPENDENT,
-            new_criteria=const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
+        chore_manager.update_chore(
+            "chore-1",
+            {
+                const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_ROTATION_SIMPLE
+            },
         )
 
         chore = mock_coordinator.chores_data["chore-1"]
@@ -2218,35 +2219,88 @@ class TestCriteriaTransitions:
         )
         assert chore[const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID] == "assignee-1"
         assert chore[const.DATA_CHORE_ROTATION_CYCLE_OVERRIDE] is False
-        mock_coordinator._persist_and_update.assert_called_once()
-        chore_manager.emit.assert_any_call(
-            const.SIGNAL_SUFFIX_CHORE_UPDATED,
-            chore_id="chore-1",
-            updated_fields=[
-                const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID,
-                const.DATA_CHORE_ROTATION_CYCLE_OVERRIDE,
-                const.DATA_CHORE_COMPLETION_CRITERIA,
-            ],
-        )
 
-    def test_handle_criteria_transition_rejects_rotation_with_one_assignee(
+    def test_update_chore_criteria_transition_keeps_other_updates(
         self,
         chore_manager: ChoreManager,
         mock_coordinator: MagicMock,
     ) -> None:
-        """Rotation criteria requires at least two assigned assignees."""
+        """A criteria change must not discard other fields edited in the same call."""
+        mock_coordinator.chores_data["chore-1"][const.DATA_CHORE_ASSIGNED_USER_IDS] = [
+            "assignee-1",
+            "assignee-2",
+        ]
+
+        chore_manager.update_chore(
+            "chore-1",
+            {
+                const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
+                const.DATA_CHORE_NAME: "Renamed",
+                const.DATA_CHORE_DEFAULT_POINTS: 42.0,
+                const.DATA_CHORE_NOTIFY_ON_CLAIM: False,
+            },
+        )
+
+        chore = mock_coordinator.chores_data["chore-1"]
+        assert (
+            chore[const.DATA_CHORE_COMPLETION_CRITERIA]
+            == const.COMPLETION_CRITERIA_ROTATION_SIMPLE
+        )
+        assert chore[const.DATA_CHORE_NAME] == "Renamed"
+        assert chore[const.DATA_CHORE_DEFAULT_POINTS] == 42.0
+        assert chore[const.DATA_CHORE_NOTIFY_ON_CLAIM] is False
+
+    def test_update_chore_rotation_transition_uses_updated_assignees(
+        self,
+        chore_manager: ChoreManager,
+        mock_coordinator: MagicMock,
+    ) -> None:
+        """Adding assignees while switching to rotation is evaluated post-update."""
         mock_coordinator.chores_data["chore-1"][const.DATA_CHORE_ASSIGNED_USER_IDS] = [
             "assignee-1"
         ]
 
-        with pytest.raises(ServiceValidationError) as exc:
-            chore_manager._handle_criteria_transition(
-                chore_id="chore-1",
-                old_criteria=const.COMPLETION_CRITERIA_INDEPENDENT,
-                new_criteria=const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
-            )
+        chore_manager.update_chore(
+            "chore-1",
+            {
+                const.DATA_CHORE_ASSIGNED_USER_IDS: ["assignee-1", "assignee-2"],
+                const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
+            },
+        )
 
-        assert exc.value.translation_key == const.TRANS_KEY_ERROR_ROTATION_MIN_ASSIGNEES
+        chore = mock_coordinator.chores_data["chore-1"]
+        assert (
+            chore[const.DATA_CHORE_COMPLETION_CRITERIA]
+            == const.COMPLETION_CRITERIA_ROTATION_SIMPLE
+        )
+        assert chore[const.DATA_CHORE_ASSIGNED_USER_IDS] == [
+            "assignee-1",
+            "assignee-2",
+        ]
+
+    def test_update_chore_criteria_transition_allows_single_assignee(
+        self,
+        chore_manager: ChoreManager,
+        mock_coordinator: MagicMock,
+    ) -> None:
+        """Assignee count is user discretion; rotation accepts a single assignee."""
+        mock_coordinator.chores_data["chore-1"][const.DATA_CHORE_ASSIGNED_USER_IDS] = [
+            "assignee-1"
+        ]
+
+        chore_manager.update_chore(
+            "chore-1",
+            {
+                const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_ROTATION_SIMPLE
+            },
+        )
+
+        chore = mock_coordinator.chores_data["chore-1"]
+        assert (
+            chore[const.DATA_CHORE_COMPLETION_CRITERIA]
+            == const.COMPLETION_CRITERIA_ROTATION_SIMPLE
+        )
+        assert chore[const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID] == "assignee-1"
 
 
 class TestRotationManagementValidation:

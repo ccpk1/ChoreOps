@@ -1416,6 +1416,48 @@ create_chore:
       required: false
       selector:
         text:
+    notify_on_claim:
+      name: "Notify on Claim"
+      description: "Send a notification when this chore is claimed. Omit to use the default (enabled)."
+      example: true
+      required: false
+      selector:
+        boolean:
+    notify_on_approval:
+      name: "Notify on Approval"
+      description: "Send a notification when this chore is approved. Omit to use the default (enabled)."
+      example: true
+      required: false
+      selector:
+        boolean:
+    notify_on_disapproval:
+      name: "Notify on Disapproval"
+      description: "Send a notification when this chore is disapproved. Omit to use the default (enabled)."
+      example: true
+      required: false
+      selector:
+        boolean:
+    notify_on_overdue:
+      name: "Notify on Overdue"
+      description: "Send a notification when this chore becomes overdue. Omit to use the default (enabled)."
+      example: true
+      required: false
+      selector:
+        boolean:
+    notify_on_due_window:
+      name: "Notify When Due Window Starts"
+      description: "Send a notification when this chore enters its due window. Omit to use the default (disabled)."
+      example: false
+      required: false
+      selector:
+        boolean:
+    notify_due_reminder:
+      name: "Notify at Due Reminder Time"
+      description: "Send a notification at the configured due reminder offset. Omit to use the default (enabled)."
+      example: true
+      required: false
+      selector:
+        boolean:
 
 update_chore:
   name: "Update Chore"
@@ -1646,6 +1688,48 @@ update_chore:
       required: false
       selector:
         text:
+    notify_on_claim:
+      name: "Notify on Claim"
+      description: "Set whether to notify when this chore is claimed. Omit to leave the current setting unchanged."
+      example: true
+      required: false
+      selector:
+        boolean:
+    notify_on_approval:
+      name: "Notify on Approval"
+      description: "Set whether to notify when this chore is approved. Omit to leave the current setting unchanged."
+      example: true
+      required: false
+      selector:
+        boolean:
+    notify_on_disapproval:
+      name: "Notify on Disapproval"
+      description: "Set whether to notify when this chore is disapproved. Omit to leave the current setting unchanged."
+      example: true
+      required: false
+      selector:
+        boolean:
+    notify_on_overdue:
+      name: "Notify on Overdue"
+      description: "Set whether to notify when this chore becomes overdue. Omit to leave the current setting unchanged."
+      example: true
+      required: false
+      selector:
+        boolean:
+    notify_on_due_window:
+      name: "Notify When Due Window Starts"
+      description: "Set whether to notify when this chore enters its due window. Omit to leave the current setting unchanged."
+      example: false
+      required: false
+      selector:
+        boolean:
+    notify_due_reminder:
+      name: "Notify at Due Reminder Time"
+      description: "Set whether to notify at the configured due reminder offset. Omit to leave the current setting unchanged."
+      example: true
+      required: false
+      selector:
+        boolean:
 
 delete_chore:
   name: "Delete Chore"

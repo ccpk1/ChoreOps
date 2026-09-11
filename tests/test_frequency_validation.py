@@ -871,17 +871,25 @@ class TestTurnHolderRotationConfig:
 
         assert chore[const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID] == "assignee-1"
 
-    def test_requires_at_least_two_assignees(self) -> None:
-        """Rotation needs at least two assignees to rotate between."""
+    def test_single_assignee_allowed(self) -> None:
+        """Assignee count is user discretion; rotation accepts a single assignee."""
         errors = validate_chore_data(
             self._data(**{const.DATA_CHORE_ASSIGNED_USER_IDS: ["assignee-1"]}),
             is_update=True,
             current_chore_id="validator-chore",
         )
 
-        assert errors.get(const.CFOP_ERROR_ASSIGNED_USER_IDS) == (
-            const.TRANS_KEY_ERROR_ROTATION_MIN_ASSIGNEES
+        assert errors == {}
+
+    def test_no_assignees_allowed(self) -> None:
+        """A rotation chore with no assignees is valid (dormant chore)."""
+        errors = validate_chore_data(
+            self._data(**{const.DATA_CHORE_ASSIGNED_USER_IDS: []}),
+            is_update=True,
+            current_chore_id="validator-chore",
         )
+
+        assert errors == {}
 
     def test_allow_steal_permitted(self) -> None:
         """The shared rotation set means allow_steal is compatible."""
