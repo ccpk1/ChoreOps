@@ -12,7 +12,7 @@
 - **Name / Code**: Auto-Advance Rotation & Always-Reset Chores (`ISSUE-255`)
 - **Target release / milestone**: v1.6.0 (TBD — confirm with owner)
 - **Owner / driver(s)**: ccpk1
-- **Status**: In progress — **Phases 1–3 complete and committed; Phase 4 (targeted tests) next**
+- **Status**: In progress — **Phases 1–4 complete and committed; Phase 5 (wiki, release notes) next**
 
 ## Summary & immediate steps
 
@@ -21,14 +21,14 @@
 | Phase 1 – Foundation                                            | New constants + validation error key                                                | **100%**   | ✅ Lint + mypy clean. Dedup mechanism **moved to Phase 3** (must be new-criteria-scoped) |
 | Phase 2 – Feature 1 (`never_overdue_clear_at_approval_reset`)    | New overdue-lane option: never overdue presentation **plus** reset at the boundary  | **100%**   | ✅ Lint + mypy clean, 317 targeted tests pass. Presentation/scan pair updated together |
 | Phase 3 – Feature 2 (`rotation_simple_from_turn_holder`)         | New completion criteria: simple rotation anchored on the current turn holder        | **100%**   | ✅ Lint + mypy clean, 434 targeted tests pass. Includes boundary-advance + dedup |
-| Phase 4 – Tests                                                  | Engine, manager, workflow, and boundary tests for both features plus the guard      | 0%         | Must include a "steal + complete" anchor test and a "no churn" multi-night test |
+| Phase 4 – Tests                                                  | Engine, manager, workflow, and boundary tests for both features plus the guard      | **100%**   | ✅ 596 targeted tests pass. Steal-anchor, advance-once and no-churn all covered |
 | Phase 5 – Docs, dashboards & polish                              | Wiki, dashboard labels (canonical repo + sync), English translations, release notes | 0%         | Dashboards mandatory but minimal; only `en*` translation files are edited     |
 
 1. **Key objective** – Deliver the two features requested in issue #255 as **new, opt-in** options, with **zero behaviour change** for any existing chore configuration.
 
 2. **Summary of recent work** – Deep code review and three correction rounds against maintainer feedback completed 2026-09-11. All ambiguities (A1–A6) are now closed; decisions D1–D12 are final. This document consolidates the parent plan and the dashboard-scope supporting document into one authoritative record.
 
-3. **Next steps (short term)** – Phases 1–3 are complete, validated and committed (`76c51a9`, `f6eb56f`, `48ce399`, `52afb9c`; dashboards `856ae6d`, `bdb2ea9`). Proceed to Phase 4 (feature tests), then Phase 5 (wiki, release notes).
+3. **Next steps (short term)** – Phases 1–4 are complete, validated and committed. Proceed to Phase 5 (wiki updates, release notes, issue reply). Full suite remains deferred to release validation.
 
 4. **Risks / blockers** – Three critical traps:
    - **(a)** Omitting the new overdue type from `can_be_overdue` (`chore_manager.py:1912`) silently loses never-overdue presentation (C1).
