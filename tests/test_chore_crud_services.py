@@ -20,16 +20,21 @@ See tests/AGENT_TEST_CREATION_INSTRUCTIONS.md for patterns used.
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from homeassistant.exceptions import HomeAssistantError
 import pytest
 import voluptuous as vol
+import yaml
 
 from custom_components.choreops import const
 from custom_components.choreops.engines.schedule_engine import coerce_applicable_days
-from custom_components.choreops.services import _DAY_OF_WEEK_VALUES
+from custom_components.choreops.services import (
+    _DAY_OF_WEEK_VALUES,
+    _SERVICE_TO_CHORE_DATA_MAPPING,
+)
 from tests.helpers import (
     DOMAIN,
     SERVICE_CREATE_CHORE,
@@ -1400,3 +1405,253 @@ class TestApplicableDaysCoercion:
         """Every value the schema accepts must be convertible."""
         assert set(_DAY_OF_WEEK_VALUES) == set(const.WEEKDAY_NAME_TO_INT)
         assert coerce_applicable_days(_DAY_OF_WEEK_VALUES) == [0, 1, 2, 3, 4, 5, 6]
+
+
+# ============================================================================
+# CHORE NOTIFICATION SERVICE FIELDS
+# ============================================================================
+
+_NOTIFY_KEYS = (
+    const.DATA_CHORE_NOTIFY_ON_CLAIM,
+    const.DATA_CHORE_NOTIFY_ON_APPROVAL,
+    const.DATA_CHORE_NOTIFY_ON_DISAPPROVAL,
+    const.DATA_CHORE_NOTIFY_ON_OVERDUE,
+    const.DATA_CHORE_NOTIFY_ON_DUE_WINDOW,
+    const.DATA_CHORE_NOTIFY_DUE_REMINDER,
+)
+
+_NOTIFY_DEFAULTS = {
+    const.DATA_CHORE_NOTIFY_ON_CLAIM: const.DEFAULT_NOTIFY_ON_CLAIM,
+    const.DATA_CHORE_NOTIFY_ON_APPROVAL: const.DEFAULT_NOTIFY_ON_APPROVAL,
+    const.DATA_CHORE_NOTIFY_ON_DISAPPROVAL: const.DEFAULT_NOTIFY_ON_DISAPPROVAL,
+    const.DATA_CHORE_NOTIFY_ON_OVERDUE: const.DEFAULT_NOTIFY_ON_OVERDUE,
+    const.DATA_CHORE_NOTIFY_ON_DUE_WINDOW: const.DEFAULT_NOTIFY_ON_DUE_WINDOW,
+    const.DATA_CHORE_NOTIFY_DUE_REMINDER: const.DEFAULT_NOTIFY_DUE_REMINDER,
+}
+
+
+def _notify_state(coordinator: Any, chore_id: str) -> dict[str, Any]:
+    """Return the stored notification settings for a chore."""
+    stored = coordinator.chores_data[chore_id]
+    return {key: stored.get(key) for key in _NOTIFY_KEYS}
+
+
+class TestChoreNotificationServiceFields:
+    """Notification preferences are readable and writable through chore services."""
+
+    @pytest.mark.asyncio
+    async def test_create_applies_defaults_when_omitted(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """Omitted notification fields fall back to the configured defaults."""
+        with patch.object(scenario_full.coordinator, "_persist", new=MagicMock()):
+            response = await hass.services.async_call(
+                DOMAIN,
+                SERVICE_CREATE_CHORE,
+                {
+                    "name": "Notify Defaults Chore",
+                    "assigned_user_names": ["Zoë"],
+                },
+                blocking=True,
+                return_response=True,
+            )
+
+        assert _notify_state(scenario_full.coordinator, response["id"]) == (
+            _NOTIFY_DEFAULTS
+        )
+
+    @pytest.mark.asyncio
+    async def test_create_defaults_pin_non_obvious_values(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """Due reminder defaults on while due-window notifications default off."""
+        with patch.object(scenario_full.coordinator, "_persist", new=MagicMock()):
+            response = await hass.services.async_call(
+                DOMAIN,
+                SERVICE_CREATE_CHORE,
+                {
+                    "name": "Notify Default Polarity Chore",
+                    "assigned_user_names": ["Zoë"],
+                },
+                blocking=True,
+                return_response=True,
+            )
+
+        state = _notify_state(scenario_full.coordinator, response["id"])
+        assert state[const.DATA_CHORE_NOTIFY_DUE_REMINDER] is True
+        assert state[const.DATA_CHORE_NOTIFY_ON_DUE_WINDOW] is False
+
+    @pytest.mark.asyncio
+    async def test_create_partial_selection_keeps_other_defaults(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """Selecting one notification does not reset the remaining defaults."""
+        with patch.object(scenario_full.coordinator, "_persist", new=MagicMock()):
+            response = await hass.services.async_call(
+                DOMAIN,
+                SERVICE_CREATE_CHORE,
+                {
+                    "name": "Notify Partial Chore",
+                    "assigned_user_names": ["Zoë"],
+                    "notify_on_overdue": False,
+                },
+                blocking=True,
+                return_response=True,
+            )
+
+        state = _notify_state(scenario_full.coordinator, response["id"])
+        assert state[const.DATA_CHORE_NOTIFY_ON_OVERDUE] is False
+        for key, expected in _NOTIFY_DEFAULTS.items():
+            if key != const.DATA_CHORE_NOTIFY_ON_OVERDUE:
+                assert state[key] == expected
+
+    @pytest.mark.asyncio
+    async def test_update_leaves_other_notifications_untouched(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """Changing one notification must not disturb the other five."""
+        chore_id = scenario_full.chore_ids["Täke Öut Trash"]
+
+        with patch.object(scenario_full.coordinator, "_persist", new=MagicMock()):
+            await hass.services.async_call(
+                DOMAIN,
+                SERVICE_UPDATE_CHORE,
+                {
+                    "id": chore_id,
+                    "notify_on_claim": True,
+                    "notify_on_approval": False,
+                    "notify_on_disapproval": True,
+                    "notify_on_due_window": False,
+                    "notify_due_reminder": True,
+                },
+                blocking=True,
+            )
+        baseline = _notify_state(scenario_full.coordinator, chore_id)
+
+        with patch.object(scenario_full.coordinator, "_persist", new=MagicMock()):
+            await hass.services.async_call(
+                DOMAIN,
+                SERVICE_UPDATE_CHORE,
+                {"id": chore_id, "notify_on_claim": False},
+                blocking=True,
+            )
+
+        after = _notify_state(scenario_full.coordinator, chore_id)
+        assert after[const.DATA_CHORE_NOTIFY_ON_CLAIM] is False
+        for key in _NOTIFY_KEYS:
+            if key != const.DATA_CHORE_NOTIFY_ON_CLAIM:
+                assert after[key] == baseline[key]
+
+    @pytest.mark.asyncio
+    async def test_update_without_notifications_preserves_everything(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """Updating unrelated fields leaves notification settings alone."""
+        chore_id = scenario_full.chore_ids["Täke Öut Trash"]
+
+        with patch.object(scenario_full.coordinator, "_persist", new=MagicMock()):
+            await hass.services.async_call(
+                DOMAIN,
+                SERVICE_UPDATE_CHORE,
+                {
+                    "id": chore_id,
+                    "notify_on_claim": False,
+                    "notify_on_approval": False,
+                },
+                blocking=True,
+            )
+        baseline = _notify_state(scenario_full.coordinator, chore_id)
+
+        with patch.object(scenario_full.coordinator, "_persist", new=MagicMock()):
+            await hass.services.async_call(
+                DOMAIN,
+                SERVICE_UPDATE_CHORE,
+                {"id": chore_id, "points": 33},
+                blocking=True,
+            )
+
+        assert _notify_state(scenario_full.coordinator, chore_id) == baseline
+
+    @pytest.mark.asyncio
+    async def test_update_can_disable_true_default_notification(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """A false value is stored as-is rather than being re-defaulted to true."""
+        chore_id = scenario_full.chore_ids["Täke Öut Trash"]
+        assert const.DEFAULT_NOTIFY_DUE_REMINDER is True
+
+        # Establish an explicit enabled state before disabling, so the assertion
+        # below cannot pass just because the field was already false.
+        with patch.object(scenario_full.coordinator, "_persist", new=MagicMock()):
+            await hass.services.async_call(
+                DOMAIN,
+                SERVICE_UPDATE_CHORE,
+                {"id": chore_id, "notify_due_reminder": True},
+                blocking=True,
+            )
+        stored = scenario_full.coordinator.chores_data[chore_id]
+        assert stored[const.DATA_CHORE_NOTIFY_DUE_REMINDER] is True
+
+        with patch.object(scenario_full.coordinator, "_persist", new=MagicMock()):
+            await hass.services.async_call(
+                DOMAIN,
+                SERVICE_UPDATE_CHORE,
+                {"id": chore_id, "notify_due_reminder": False},
+                blocking=True,
+            )
+
+        stored = scenario_full.coordinator.chores_data[chore_id]
+        assert stored[const.DATA_CHORE_NOTIFY_DUE_REMINDER] is False
+
+
+def test_every_notification_service_field_is_mapped() -> None:
+    """Each notification service field must map to storage or it is dropped."""
+    service_fields = (
+        const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_CLAIM,
+        const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_APPROVAL,
+        const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_DISAPPROVAL,
+        const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_OVERDUE,
+        const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_DUE_WINDOW,
+        const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_DUE_REMINDER,
+    )
+
+    for field in service_fields:
+        assert field in _SERVICE_TO_CHORE_DATA_MAPPING
+    assert sorted(_SERVICE_TO_CHORE_DATA_MAPPING[f] for f in service_fields) == sorted(
+        _NOTIFY_KEYS
+    )
+
+
+def test_services_yaml_documents_every_notification_field() -> None:
+    """Both chore services must document all notification fields without defaults."""
+    services_yaml_path = (
+        Path(__file__).parent.parent
+        / "custom_components"
+        / "choreops"
+        / "services.yaml"
+    )
+    with services_yaml_path.open(encoding="utf-8") as file_handle:
+        services_yaml = yaml.safe_load(file_handle)
+
+    expected_field_names = sorted(key for key in _NOTIFY_KEYS)
+
+    for service_name in ("create_chore", "update_chore"):
+        fields = services_yaml[service_name]["fields"]
+        for field_name in expected_field_names:
+            assert field_name in fields, f"{service_name} missing {field_name}"
+            assert "default" not in fields[field_name], (
+                f"{service_name}.{field_name} must not define a default; "
+                "a defaulted boolean would overwrite stored settings"
+            )

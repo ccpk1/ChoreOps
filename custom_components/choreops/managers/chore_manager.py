@@ -3476,7 +3476,8 @@ class ChoreManager(BaseManager):
         existing = chores_data[chore_id]
 
         # Phase 3 Step 5: Handle completion_criteria transitions (D-11)
-        # Wire transition handler for options flow (services remain immutable)
+        # Fold the transition's field changes into `updates` so the normal save path
+        # below applies them together with every other edited field.
         old_criteria = existing.get(
             const.DATA_CHORE_COMPLETION_CRITERIA,
             const.COMPLETION_CRITERIA_INDEPENDENT,
@@ -3484,10 +3485,17 @@ class ChoreManager(BaseManager):
         new_criteria = updates.get(const.DATA_CHORE_COMPLETION_CRITERIA)
 
         if new_criteria and new_criteria != old_criteria:
-            # Transition handler validates, initializes/clears fields, persists, emits
-            self._handle_criteria_transition(chore_id, old_criteria, new_criteria)
-            # Return updated chore data (transition handler already persisted)
-            return chores_data[chore_id]
+            # Engine reads assignees to seed the first turn, so evaluate against
+            # the post-update state rather than the stale stored values.
+            effective = {**existing, **updates}
+            transition_changes = ChoreEngine.get_criteria_transition_actions(
+                old_criteria=old_criteria,
+                new_criteria=new_criteria,
+                chore_data=effective,
+            )
+            transition_changes[const.DATA_CHORE_COMPLETION_CRITERIA] = new_criteria
+            # Caller-supplied values win over engine-derived defaults.
+            updates = {**transition_changes, **updates}
 
         # Build updated chore (merge existing with updates)
         updated_chore = dict(db.build_chore(updates, existing=existing))
@@ -5700,78 +5708,6 @@ class ChoreManager(BaseManager):
             "new_assignee_id": new_assignee_id,
             "method": method,
         }
-
-    def _handle_criteria_transition(
-        self, chore_id: str, old_criteria: str, new_criteria: str
-    ) -> None:
-        """Handle completion_criteria changes (D-11 — criteria is mutable).
-
-        When user edits chore's completion_criteria field, this method:
-        - Validates rotation requirements (≥2 assigned assignees)
-        - Initializes/clears rotation fields as needed
-        - Applies field changes from Engine transition logic
-        - Persists changes and emits CHORE_UPDATED signal
-
-        Args:
-            chore_id: The chore's internal ID
-            old_criteria: Previous completion_criteria value
-            new_criteria: New completion_criteria value
-
-        Raises:
-            ServiceValidationError: If rotation criteria with <2 assigned assignees
-        """
-        chore_data = self._coordinator.chores_data.get(chore_id)
-        if not chore_data:
-            raise ServiceValidationError(
-                translation_domain=const.DOMAIN,
-                translation_key=const.TRANS_KEY_ERROR_CHORE_NOT_FOUND,
-            )
-
-        # Get transition actions from Engine
-        changes = ChoreEngine.get_criteria_transition_actions(
-            old_criteria=old_criteria,
-            new_criteria=new_criteria,
-            chore_data=chore_data,
-        )
-
-        # Validate rotation requirements (D-14: rotation requires ≥2 assignees)
-        new_is_rotation = new_criteria in (
-            const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
-            const.COMPLETION_CRITERIA_ROTATION_SMART,
-            const.COMPLETION_CRITERIA_ROTATION_SIMPLE_FROM_TURN_HOLDER,
-        )
-        if new_is_rotation:
-            assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
-            if len(assigned_assignees) < 2:
-                raise ServiceValidationError(
-                    translation_domain=const.DOMAIN,
-                    translation_key=const.TRANS_KEY_ERROR_ROTATION_MIN_ASSIGNEES,
-                )
-
-        # Always update the completion_criteria field itself
-        changes[const.DATA_CHORE_COMPLETION_CRITERIA] = new_criteria
-
-        # Apply field changes to storage
-        for field_name, new_value in changes.items():
-            chore_data[field_name] = new_value  # type: ignore[literal-required]
-
-        # Persist changes
-        self._coordinator._persist_and_update()
-
-        # Emit CHORE_UPDATED signal (Phase 4 UX listens for dashboard refresh)
-        self.emit(
-            const.SIGNAL_SUFFIX_CHORE_UPDATED,
-            chore_id=chore_id,
-            updated_fields=list(changes.keys()),
-        )
-
-        const.LOGGER.debug(
-            "Criteria transition: chore=%s %s→%s (applied %d changes)",
-            chore_id,
-            old_criteria,
-            new_criteria,
-            len(changes),
-        )
 
     # ==========================================================================
     # PUBLIC ROTATION MANAGEMENT METHODS (Phase 3 Step 7 - v0.5.0)

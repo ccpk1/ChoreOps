@@ -248,6 +248,8 @@ class ChoreData(TypedDict):
     notify_on_approval: bool
     notify_on_disapproval: bool
     notify_on_overdue: NotRequired[bool]  # v0.5.0-beta4 schema 44+
+    notify_on_due_window: NotRequired[bool]
+    notify_due_reminder: NotRequired[bool]
 
     # Calendar and features
     show_on_calendar: NotRequired[bool]

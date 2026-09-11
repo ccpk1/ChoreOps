@@ -882,6 +882,20 @@ CREATE_CHORE_SCHEMA = vol.Schema(
             vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_DUE_REMINDER_OFFSET): vol.All(
                 cv.string, flow_helpers.validate_duration_string
             ),
+            # Notification preferences: omit any field to keep its stored value.
+            # Never add `default=` here; a defaulted key would overwrite storage.
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_CLAIM): cv.boolean,
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_APPROVAL): cv.boolean,
+            vol.Optional(
+                const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_DISAPPROVAL
+            ): cv.boolean,
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_OVERDUE): cv.boolean,
+            vol.Optional(
+                const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_DUE_WINDOW
+            ): cv.boolean,
+            vol.Optional(
+                const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_DUE_REMINDER
+            ): cv.boolean,
         }
     )
 )
@@ -959,6 +973,20 @@ UPDATE_CHORE_SCHEMA = vol.Schema(
             vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_DUE_REMINDER_OFFSET): vol.All(
                 cv.string, flow_helpers.validate_duration_string
             ),
+            # Notification preferences: omit any field to keep its stored value.
+            # Never add `default=` here; a defaulted key would overwrite storage.
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_CLAIM): cv.boolean,
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_APPROVAL): cv.boolean,
+            vol.Optional(
+                const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_DISAPPROVAL
+            ): cv.boolean,
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_OVERDUE): cv.boolean,
+            vol.Optional(
+                const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_DUE_WINDOW
+            ): cv.boolean,
+            vol.Optional(
+                const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_DUE_REMINDER
+            ): cv.boolean,
         }
     )
 )
@@ -998,6 +1026,12 @@ _SERVICE_TO_CHORE_DATA_MAPPING: dict[str, str] = {
     const.SERVICE_FIELD_CHORE_CRUD_AUTO_APPROVE: const.DATA_CHORE_AUTO_APPROVE,
     const.SERVICE_FIELD_CHORE_CRUD_DUE_WINDOW_OFFSET: const.DATA_CHORE_DUE_WINDOW_OFFSET,
     const.SERVICE_FIELD_CHORE_CRUD_DUE_REMINDER_OFFSET: const.DATA_CHORE_DUE_REMINDER_OFFSET,
+    const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_CLAIM: const.DATA_CHORE_NOTIFY_ON_CLAIM,
+    const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_APPROVAL: const.DATA_CHORE_NOTIFY_ON_APPROVAL,
+    const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_DISAPPROVAL: const.DATA_CHORE_NOTIFY_ON_DISAPPROVAL,
+    const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_OVERDUE: const.DATA_CHORE_NOTIFY_ON_OVERDUE,
+    const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_DUE_WINDOW: const.DATA_CHORE_NOTIFY_ON_DUE_WINDOW,
+    const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_DUE_REMINDER: const.DATA_CHORE_NOTIFY_DUE_REMINDER,
     # NOTE: due_date is handled specially via set_chore_due_date() hook
 }
 

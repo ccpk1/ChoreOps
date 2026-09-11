@@ -472,7 +472,6 @@
       "invalid_challenge_name": "Invalid challenge name",
       "invalid_chore": "Invalid chore",
       "invalid_chore_count": "Invalid chore count",
-      "rotation_min_assignees": "Rotation chores require at least 2 assigned assignees",
       "invalid_chore_name": "Invalid chore name",
       "custom_interval_required": "Custom interval is required for custom frequencies",
       "custom_interval_invalid": "Custom interval must be a whole number greater than zero",
@@ -1885,7 +1884,6 @@
       "error_daily_multi_times_too_few": "At least 2 times are required for 'Multiple times per day' frequency. For a single time, use regular 'Daily' frequency.",
       "error_daily_multi_times_too_many": "Maximum 6 times allowed per day for 'Multiple times per day' frequency.",
       "error_daily_multi_due_date_required": "'Multiple times per day' frequency requires a due date to be set. The date determines when scheduling starts and the times determine availability windows each day.",
-      "rotation_min_assignees": "Rotation chores require at least 2 assigned assignees",
       "error_allow_steal_incompatible": "Allow Steal overdue handling is only compatible with Rotation chores (rotation_simple or rotation_smart), 'Once per day' reset type, and requires a due date to define when the steal window opens.",
       "error_at_due_date_reset_requires_due_date": "'At Due Date' approval reset types (Once or Multi) require a due date to be set. Without a due date, the approval reset will never trigger and the chore will remain approved indefinitely.",
       "error_per_assignee_applicable_days_invalid": "Invalid applicable days format for one or more assignees. Days must be integers 0-6 (Monday-Sunday) with no duplicates.",
@@ -5439,9 +5437,6 @@
     },
     "rotation_unassigned_in_order": {
       "message": "All assignees in rotation order must be assigned to the chore"
-    },
-    "rotation_min_assignees": {
-      "message": "Rotation chores require at least 2 assigned assignees"
     },
     "not_rotation": {
       "message": "This chore is not in rotation mode"

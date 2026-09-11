@@ -45,7 +45,6 @@ from tests.helpers import (
     CFOF_SYSTEM_INPUT_POINTS_ICON,
     CFOF_SYSTEM_INPUT_POINTS_LABEL,
     COMPLETION_CRITERIA_INDEPENDENT,
-    COMPLETION_CRITERIA_ROTATION_SIMPLE,
     CONF_POINTS_ICON,
     CONF_POINTS_LABEL,
     CONF_UPDATE_INTERVAL,
@@ -1214,14 +1213,6 @@ async def _navigate_to_add_chore_form(
         ),
         (
             {
-                CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_ROTATION_SIMPLE,
-                CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: ["__single_assignee__"],
-            },
-            CFOF_CHORES_INPUT_ASSIGNED_USER_IDS,
-            "rotation_min_assignees",
-        ),
-        (
-            {
                 CFOF_CHORES_INPUT_OVERDUE_HANDLING_TYPE: "__allow_steal__",
                 CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: APPROVAL_RESET_AT_MIDNIGHT_ONCE,
                 CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_INDEPENDENT,
@@ -1237,7 +1228,6 @@ async def _navigate_to_add_chore_form(
         "overdue_reset_combo",
         "daily_multi_requires_due_date",
         "at_due_date_reset_requires_due_date",
-        "rotation_min_assignees",
         "allow_steal_incompatible",
     ],
 )
@@ -1272,14 +1262,6 @@ async def test_chore_validation_error_matrix_field_level_and_translated(
         CFOF_CHORES_INPUT_DUE_DATE: datetime.datetime.now(datetime.UTC)
         + datetime.timedelta(days=1),
     }
-
-    # Replace single-assignee sentinel with the first real assignee name for the
-    # rotation-min-assignees case.
-    if overrides.get(CFOF_CHORES_INPUT_ASSIGNED_USER_IDS) == ["__single_assignee__"]:
-        overrides = {
-            **overrides,
-            CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: [assignee_names[0]],
-        }
 
     form_input.update(overrides)
 

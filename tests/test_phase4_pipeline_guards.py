@@ -773,6 +773,7 @@ async def test_gremlin_3_immediate_reset_does_not_leave_stale_overdue_scan_windo
         clear_ownership: bool = False,
         emit: bool = True,
         persist: bool = True,
+        suppress_rotation_advance: bool = False,
     ) -> None:
         original_transition(
             wrapped_assignee_id,
@@ -782,6 +783,7 @@ async def test_gremlin_3_immediate_reset_does_not_leave_stale_overdue_scan_windo
             clear_ownership=clear_ownership,
             emit=emit,
             persist=persist,
+            suppress_rotation_advance=suppress_rotation_advance,
         )
 
         if (

@@ -3077,6 +3077,13 @@ SERVICE_FIELD_CHORE_CRUD_AUTO_APPROVE: Final = "auto_approve"
 SERVICE_FIELD_CHORE_CRUD_DUE_DATE: Final = "due_date"
 SERVICE_FIELD_CHORE_CRUD_DUE_WINDOW_OFFSET: Final = "due_window_offset"
 SERVICE_FIELD_CHORE_CRUD_DUE_REMINDER_OFFSET: Final = "due_reminder_offset"
+# Notification fields alias the stored keys so service and storage cannot drift.
+SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_CLAIM: Final = DATA_CHORE_NOTIFY_ON_CLAIM
+SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_APPROVAL: Final = DATA_CHORE_NOTIFY_ON_APPROVAL
+SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_DISAPPROVAL: Final = DATA_CHORE_NOTIFY_ON_DISAPPROVAL
+SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_OVERDUE: Final = DATA_CHORE_NOTIFY_ON_OVERDUE
+SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_DUE_WINDOW: Final = DATA_CHORE_NOTIFY_ON_DUE_WINDOW
+SERVICE_FIELD_CHORE_CRUD_NOTIFY_DUE_REMINDER: Final = DATA_CHORE_NOTIFY_DUE_REMINDER
 SERVICE_FIELD_CHORE_CRUD_ASSIGNMENT_ACTION: Final = "assignment_action"
 
 # Update Chore assignment action values
@@ -3396,10 +3403,6 @@ TRANS_KEY_ERROR_CHORE_NOT_FOUND: Final = (
 )
 TRANS_KEY_ERROR_MISSING_CHORE_IDENTIFIER: Final = (
     "missing_chore_identifier"  # Must provide chore_id or chore_name
-)
-# Rotation and claim restriction translations
-TRANS_KEY_ERROR_ROTATION_MIN_ASSIGNEES: Final = (
-    "rotation_min_assignees"  # Rotation chores require at least 2 assigned assignees
 )
 # Rotation management service error keys
 TRANS_KEY_ERROR_NOT_ROTATION: Final = "not_rotation"  # Chore is not in rotation mode
