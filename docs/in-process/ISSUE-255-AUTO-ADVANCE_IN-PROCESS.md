@@ -12,7 +12,7 @@
 - **Name / Code**: Auto-Advance Rotation & Always-Reset Chores (`ISSUE-255`)
 - **Target release / milestone**: v1.6.0 (TBD — confirm with owner)
 - **Owner / driver(s)**: ccpk1
-- **Status**: In progress — **Phases 1–2 complete and committed; Phase 3 next**
+- **Status**: In progress — **Phases 1–3 complete and committed; Phase 4 (targeted tests) next**
 
 ## Summary & immediate steps
 
@@ -20,7 +20,7 @@
 | --------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ---------- | ---------------------------------------------------------------------------- |
 | Phase 1 – Foundation                                            | New constants + validation error key                                                | **100%**   | ✅ Lint + mypy clean. Dedup mechanism **moved to Phase 3** (must be new-criteria-scoped) |
 | Phase 2 – Feature 1 (`never_overdue_clear_at_approval_reset`)    | New overdue-lane option: never overdue presentation **plus** reset at the boundary  | **100%**   | ✅ Lint + mypy clean, 317 targeted tests pass. Presentation/scan pair updated together |
-| Phase 3 – Feature 2 (`rotation_simple_from_turn_holder`)         | New completion criteria: simple rotation anchored on the current turn holder        | 0%         | Create-path holder initialization is a critical gap (`data_builders.py:1898`) |
+| Phase 3 – Feature 2 (`rotation_simple_from_turn_holder`)         | New completion criteria: simple rotation anchored on the current turn holder        | **100%**   | ✅ Lint + mypy clean, 434 targeted tests pass. Includes boundary-advance + dedup |
 | Phase 4 – Tests                                                  | Engine, manager, workflow, and boundary tests for both features plus the guard      | 0%         | Must include a "steal + complete" anchor test and a "no churn" multi-night test |
 | Phase 5 – Docs, dashboards & polish                              | Wiki, dashboard labels (canonical repo + sync), English translations, release notes | 0%         | Dashboards mandatory but minimal; only `en*` translation files are edited     |
 
@@ -28,7 +28,7 @@
 
 2. **Summary of recent work** – Deep code review and three correction rounds against maintainer feedback completed 2026-09-11. All ambiguities (A1–A6) are now closed; decisions D1–D12 are final. This document consolidates the parent plan and the dashboard-scope supporting document into one authoritative record.
 
-3. **Next steps (short term)** – Phases 1–2 are complete, validated and committed (`f6eb56f`; dashboards `856ae6d`). Proceed to Phase 3 (Feature 2), then Phase 4 (targeted tests) and Phase 5 (docs/dashboards).
+3. **Next steps (short term)** – Phases 1–3 are complete, validated and committed (`76c51a9`, `f6eb56f`, `48ce399`, `52afb9c`; dashboards `856ae6d`, `bdb2ea9`). Proceed to Phase 4 (feature tests), then Phase 5 (wiki, release notes).
 
 4. **Risks / blockers** – Three critical traps:
    - **(a)** Omitting the new overdue type from `can_be_overdue` (`chore_manager.py:1912`) silently loses never-overdue presentation (C1).
@@ -544,6 +544,7 @@ python -m pytest tests/test_chore_manager.py -k "rotation or boundary" -v --tb=l
 - **D14** – Only `en*.json` translation files are hand-edited; all other locales are owned by the translation pipeline.
 - **D15** – For the new criteria, the **boundary reset advances the turn regardless of completion state** (owner-approved 2026-09-11). This closes the C5 gap: a never-completed rotation chore must still rotate, which is the core of issue #255.
 - **D16** – The dedup is a **boundary-scoped local flag**, threaded `_execute_boundary_reset_plan` → `_apply_reset_action` → `_transition_chore_state`, and **gated on the new criteria**. A local value is used deliberately — no manager-level shared state, so there is no stale-set window.
+- **D18** – `services.yaml` field descriptions and the matching `en.json` `services.<service>.fields.<field>.description` values **must be kept identical**. The `frequency` field already followed this convention; `completion_criteria` had drifted (generic text in `en.json` vs an enumeration in `services.yaml`). When the `services.yaml` description gained the new criteria, the `en.json` description was updated to match. Phase 2's `overdue_handling` change was options-only, so no description update was required there.
 - **D17** – The original plan's **manager-level per-pass set is rejected**. It would be consulted by non-boundary `_transition_chore_state` callers (approval at `:1760`, `reset_overdue_chores` at `:3320`, data-reset at `:7063`/`:7209`), silently suppressing legitimate advances for **existing** criteria and breaking D6. It would also alter the steal-case anchor precedence: site 1 passes the plan's assignee while site 2 passes `completed_by`, and site 2 currently wins — so suppressing site 2 for existing types is itself a behaviour change.
 
 ### Resolved: open item 2 (approval-reset compatibility)
