@@ -2087,7 +2087,8 @@
         "shared_first": "Primer compartit (recompte de la primera finalització)",
         "rotation_simple": "Rotació simple (només titular de torn, ordre estricte)",
         "rotation_smart": "Rotació intel·ligent (només per al titular del torn, ponderat per la justícia)",
-        "rotation_primary_standby": "Principal i en espera (torn per defecte principal, en espera quan sigui possible)"
+        "rotation_primary_standby": "Principal i en espera (torn per defecte principal, en espera quan sigui possible)",
+        "rotation_simple_from_turn_holder": "Rotation Simple (Advance From Current Turn Holder)"
       }
     },
     "standby_claim_mode": {
@@ -2110,6 +2111,7 @@
     "overdue_handling_type": {
       "options": {
         "never_overdue": "Mai endarrerit",
+        "never_overdue_clear_at_approval_reset": "Never Overdue (Reset at Approval Boundary)",
         "at_due_date": "Endarrerit fins a completar-se",
         "at_due_date_clear_at_approval_reset": "Endarrerit fins a restabliment d'aprovació",
         "at_due_date_clear_immediate_on_late": "Endarrerit fins a completar-se (esborrar les aprovacions tardanes immediatament)",
@@ -2715,7 +2717,7 @@
         },
         "completion_criteria": {
           "name": "Criteris de finalització",
-          "description": "Controla com es completa la tasca quan s'assignen diverses persones: seguiment individual, finalització compartida o rotació per torns.",
+          "description": "How the chore is completed when multiple assignees are assigned: independent, shared_first, shared_all, rotation_simple, rotation_smart, rotation_primary_standby, or rotation_simple_from_turn_holder.",
           "example": "independent"
         },
         "approval_reset_type": {
@@ -2730,7 +2732,7 @@
         },
         "overdue_handling": {
           "name": "Gestió de venciments",
-          "description": "Controla què passa quan passa la data de venciment i què passa amb les tasques endarrerides al límit de restabliment de l'aprovació.",
+          "description": "How overdue chores behave at the due date and approval reset boundary.",
           "example": "data_de_venciment"
         },
         "chore_claim_lock_until_window": {
@@ -3394,7 +3396,8 @@
               "shared_all": "Compartit (Tot)",
               "rotation_simple": "Rotació simple",
               "rotation_smart": "Rotació intel·ligent",
-              "rotation_primary_standby": "Principal i de reserva"
+              "rotation_primary_standby": "Principal i de reserva",
+              "rotation_simple_from_turn_holder": "Rotation Simple (Turn Holder)"
             }
           },
           "approval_reset_type": {
@@ -3420,6 +3423,7 @@
             "name": "Tipus de gestió de venciments",
             "state": {
               "never_overdue": "Mai endarrerit",
+              "never_overdue_clear_at_approval_reset": "Never Overdue (Reset at Approval Boundary)",
               "at_due_date": "Endarrerit fins a completar-se",
               "at_due_date_clear_at_approval_reset": "Endarrerit fins a restabliment d'aprovació",
               "at_due_date_clear_immediate_on_late": "Endarrerit fins a completar-se (esborrar les aprovacions tardanes immediatament)",
@@ -4355,7 +4359,8 @@
               "shared_all": "Compartit (tot obligatori)",
               "rotation_simple": "Rotació simple",
               "rotation_smart": "Rotació intel·ligent",
-              "rotation_primary_standby": "Principal i de reserva"
+              "rotation_primary_standby": "Principal i de reserva",
+              "rotation_simple_from_turn_holder": "Rotation Simple (Turn Holder)"
             }
           },
           "approval_reset_type": {

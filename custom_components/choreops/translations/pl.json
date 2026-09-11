@@ -2087,7 +2087,8 @@
         "shared_first": "Udostępnione jako pierwsze (liczy się pierwsze ukończenie)",
         "rotation_simple": "Rotacja prosta (tylko dla trzymającego turę, ścisła kolejność)",
         "rotation_smart": "Rotacja inteligentna (tylko dla posiadacza tury, ważona uczciwością)",
-        "rotation_primary_standby": "Podstawowy i rezerwowy (domyślny tryb podstawowy, tryb rezerwowy, gdy jest dostępny)"
+        "rotation_primary_standby": "Podstawowy i rezerwowy (domyślny tryb podstawowy, tryb rezerwowy, gdy jest dostępny)",
+        "rotation_simple_from_turn_holder": "Rotation Simple (Advance From Current Turn Holder)"
       }
     },
     "standby_claim_mode": {
@@ -2110,6 +2111,7 @@
     "overdue_handling_type": {
       "options": {
         "never_overdue": "Nigdy nie spóźniony",
+        "never_overdue_clear_at_approval_reset": "Never Overdue (Reset at Approval Boundary)",
         "at_due_date": "Przeterminowane do ukończenia",
         "at_due_date_clear_at_approval_reset": "Przeterminowane do zatwierdzenia Reset",
         "at_due_date_clear_immediate_on_late": "Przeterminowane do ukończenia (natychmiastowe wyczyszczenie opóźnionych zatwierdzeń)",
@@ -2715,7 +2717,7 @@
         },
         "completion_criteria": {
           "name": "Kryteria ukończenia",
-          "description": "Kontroluje sposób wykonywania zadania w przypadku, gdy przypisano wielu osobom więcej niż jedno zadanie: indywidualne śledzenie, wspólne wykonywanie zadania lub rotacja oparta na turach.",
+          "description": "How the chore is completed when multiple assignees are assigned: independent, shared_first, shared_all, rotation_simple, rotation_smart, rotation_primary_standby, or rotation_simple_from_turn_holder.",
           "example": "niezależny"
         },
         "approval_reset_type": {
@@ -2730,7 +2732,7 @@
         },
         "overdue_handling": {
           "name": "Zaległe przetwarzanie",
-          "description": "Kontroluje, co się dzieje po upływie terminu wykonania oraz co dzieje się z zaległymi zadaniami po osiągnięciu granicy zatwierdzenia.",
+          "description": "How overdue chores behave at the due date and approval reset boundary.",
           "example": "w terminie"
         },
         "chore_claim_lock_until_window": {
@@ -3394,7 +3396,8 @@
               "shared_all": "Współdzielone (wszystkie)",
               "rotation_simple": "Rotacja prosta",
               "rotation_smart": "Inteligentny obrót",
-              "rotation_primary_standby": "Podstawowy i rezerwowy"
+              "rotation_primary_standby": "Podstawowy i rezerwowy",
+              "rotation_simple_from_turn_holder": "Rotation Simple (Turn Holder)"
             }
           },
           "approval_reset_type": {
@@ -3420,6 +3423,7 @@
             "name": "Typ przeterminowanej obsługi",
             "state": {
               "never_overdue": "Nigdy nie spóźniony",
+              "never_overdue_clear_at_approval_reset": "Never Overdue (Reset at Approval Boundary)",
               "at_due_date": "Przeterminowane do ukończenia",
               "at_due_date_clear_at_approval_reset": "Przeterminowane do zatwierdzenia Reset",
               "at_due_date_clear_immediate_on_late": "Przeterminowane do ukończenia (natychmiastowe wyczyszczenie opóźnionych zatwierdzeń)",
@@ -4355,7 +4359,8 @@
               "shared_all": "Współdzielone (wszystkie wymagane)",
               "rotation_simple": "Rotacja prosta",
               "rotation_smart": "Inteligentny obrót",
-              "rotation_primary_standby": "Podstawowy i rezerwowy"
+              "rotation_primary_standby": "Podstawowy i rezerwowy",
+              "rotation_simple_from_turn_holder": "Rotation Simple (Turn Holder)"
             }
           },
           "approval_reset_type": {

@@ -2087,7 +2087,8 @@
         "shared_first": "Zdieľané ako prvé (počíta sa prvé dokončenie)",
         "rotation_simple": "Jednoduchá rotácia (iba držiteľ otočného prvku, prísne poradie)",
         "rotation_smart": "Inteligentná rotácia (iba držitelia ťahov, vážené podľa spravodlivosti)",
-        "rotation_primary_standby": "Primárny a záložný (primárny predvolený obrat, záložný, ak je oprávnený)"
+        "rotation_primary_standby": "Primárny a záložný (primárny predvolený obrat, záložný, ak je oprávnený)",
+        "rotation_simple_from_turn_holder": "Rotation Simple (Advance From Current Turn Holder)"
       }
     },
     "standby_claim_mode": {
@@ -2110,6 +2111,7 @@
     "overdue_handling_type": {
       "options": {
         "never_overdue": "Nikdy po termíne",
+        "never_overdue_clear_at_approval_reset": "Never Overdue (Reset at Approval Boundary)",
         "at_due_date": "Po termíne do dokončenia",
         "at_due_date_clear_at_approval_reset": "Po termíne do schválenia Reset",
         "at_due_date_clear_immediate_on_late": "Po termíne do dokončenia (okamžite vymazať oneskorené schválenia)",
@@ -2715,7 +2717,7 @@
         },
         "completion_criteria": {
           "name": "Kritériá dokončenia",
-          "description": "Ovláda spôsob dokončenia úlohy, keď je priradených viacero osôb: individuálne sledovanie, zdieľané dokončenie alebo rotácia na základe ťahov.",
+          "description": "How the chore is completed when multiple assignees are assigned: independent, shared_first, shared_all, rotation_simple, rotation_smart, rotation_primary_standby, or rotation_simple_from_turn_holder.",
           "example": "nezávislý"
         },
         "approval_reset_type": {
@@ -2730,7 +2732,7 @@
         },
         "overdue_handling": {
           "name": "Oneskorené spracovanie",
-          "description": "Riadi, čo sa stane po uplynutí dátumu splatnosti a čo sa stane s oneskorenými úlohami na hranici resetovania schválenia.",
+          "description": "How overdue chores behave at the due date and approval reset boundary.",
           "example": "v_dátume_splatnosti"
         },
         "chore_claim_lock_until_window": {
@@ -3394,7 +3396,8 @@
               "shared_all": "Zdieľané (všetky)",
               "rotation_simple": "Jednoduchá rotácia",
               "rotation_smart": "Inteligentná rotácia",
-              "rotation_primary_standby": "Primárny a záložný"
+              "rotation_primary_standby": "Primárny a záložný",
+              "rotation_simple_from_turn_holder": "Rotation Simple (Turn Holder)"
             }
           },
           "approval_reset_type": {
@@ -3420,6 +3423,7 @@
             "name": "Typ spracovania po termíne",
             "state": {
               "never_overdue": "Nikdy po termíne",
+              "never_overdue_clear_at_approval_reset": "Never Overdue (Reset at Approval Boundary)",
               "at_due_date": "Po termíne do dokončenia",
               "at_due_date_clear_at_approval_reset": "Po termíne do schválenia Reset",
               "at_due_date_clear_immediate_on_late": "Po termíne do dokončenia (okamžite vymazať oneskorené schválenia)",
@@ -4355,7 +4359,8 @@
               "shared_all": "Zdieľané (všetky povinné)",
               "rotation_simple": "Jednoduchá rotácia",
               "rotation_smart": "Inteligentná rotácia",
-              "rotation_primary_standby": "Primárny a záložný"
+              "rotation_primary_standby": "Primárny a záložný",
+              "rotation_simple_from_turn_holder": "Rotation Simple (Turn Holder)"
             }
           },
           "approval_reset_type": {

@@ -2087,7 +2087,8 @@
         "shared_first": "Jaettu ensin (ensimmäinen suoritus lasketaan)",
         "rotation_simple": "Yksinkertainen kierto (vain vuoronpitäjä, tarkka järjestys)",
         "rotation_smart": "Rotation Smart (vain vuoronpitäjä, reiluuspainotteinen)",
-        "rotation_primary_standby": "Ensisijainen ja valmiustilassa (ensisijainen oletusvuoro, valmiustilassa, kun oikeutettu)"
+        "rotation_primary_standby": "Ensisijainen ja valmiustilassa (ensisijainen oletusvuoro, valmiustilassa, kun oikeutettu)",
+        "rotation_simple_from_turn_holder": "Rotation Simple (Advance From Current Turn Holder)"
       }
     },
     "standby_claim_mode": {
@@ -2110,6 +2111,7 @@
     "overdue_handling_type": {
       "options": {
         "never_overdue": "Ei koskaan myöhässä",
+        "never_overdue_clear_at_approval_reset": "Never Overdue (Reset at Approval Boundary)",
         "at_due_date": "Myöhässä, kunnes valmis",
         "at_due_date_clear_at_approval_reset": "Myöhässä, kunnes hyväksyntä on voimassa",
         "at_due_date_clear_immediate_on_late": "Myöhässä, kunnes valmis (tyhjennä myöhästyneet hyväksynnät välittömästi)",
@@ -2715,7 +2717,7 @@
         },
         "completion_criteria": {
           "name": "Suorituskriteerit",
-          "description": "Ohjaa, miten tehtävä suoritetaan, kun useita vastuuhenkilöitä on määritetty: yksilöllinen seuranta, jaettu suoritus tai vuoropohjainen kierto.",
+          "description": "How the chore is completed when multiple assignees are assigned: independent, shared_first, shared_all, rotation_simple, rotation_smart, rotation_primary_standby, or rotation_simple_from_turn_holder.",
           "example": "itsenäinen"
         },
         "approval_reset_type": {
@@ -2730,7 +2732,7 @@
         },
         "overdue_handling": {
           "name": "Myöhästyneiden käsittely",
-          "description": "Ohjaa, mitä tapahtuu, kun eräpäivä umpeutuu, ja mitä erääntyneille tehtäville tapahtuu hyväksynnän nollausrajalla.",
+          "description": "How overdue chores behave at the due date and approval reset boundary.",
           "example": "eräpäivä"
         },
         "chore_claim_lock_until_window": {
@@ -3394,7 +3396,8 @@
               "shared_all": "Jaettu (kaikki)",
               "rotation_simple": "Yksinkertainen kierto",
               "rotation_smart": "Älykäs pyöritys",
-              "rotation_primary_standby": "Ensisijainen ja varatila"
+              "rotation_primary_standby": "Ensisijainen ja varatila",
+              "rotation_simple_from_turn_holder": "Rotation Simple (Turn Holder)"
             }
           },
           "approval_reset_type": {
@@ -3420,6 +3423,7 @@
             "name": "Myöhästymiskäsittelyn tyyppi",
             "state": {
               "never_overdue": "Ei koskaan myöhässä",
+              "never_overdue_clear_at_approval_reset": "Never Overdue (Reset at Approval Boundary)",
               "at_due_date": "Myöhässä, kunnes valmis",
               "at_due_date_clear_at_approval_reset": "Myöhässä, kunnes hyväksyntä on voimassa",
               "at_due_date_clear_immediate_on_late": "Myöhässä, kunnes valmis (tyhjennä myöhästyneet hyväksynnät välittömästi)",
@@ -4355,7 +4359,8 @@
               "shared_all": "Jaettu (kaikki pakollisia)",
               "rotation_simple": "Yksinkertainen kierto",
               "rotation_smart": "Älykäs pyöritys",
-              "rotation_primary_standby": "Ensisijainen ja varatila"
+              "rotation_primary_standby": "Ensisijainen ja varatila",
+              "rotation_simple_from_turn_holder": "Rotation Simple (Turn Holder)"
             }
           },
           "approval_reset_type": {

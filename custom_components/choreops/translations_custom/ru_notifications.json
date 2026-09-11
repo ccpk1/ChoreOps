@@ -1,167 +1,167 @@
 {
   "_comment_assignee_section": "═════════════════════════════════════════════════════════════",
-  "_comment_assignee_desc": "УВЕДОМЛЕНИЯ ДЛЯ НАЗНАЧЕННЫХ ЛИЦ: В игровой форме, от второго лица, в ободряющем тоне с использованием смайликов. Без префикса «ChoreOps:».",
+  "_comment_assignee_desc": "УВЕДОМЛЕНИЯ ИСПОЛНИТЕЛЯМ: игровой тон, обращение на «вы», ободряюще, со смайликами. Без префикса «ChoreOps:».",
   "_comment_assignee_footer": "═════════════════════════════════════════════════════════════",
   "chore_approved_assignee": {
-    "title": "🎉 Задача одобрена!",
-    "message": "{chore_name} одобрено! Вы получили {points} {points_label}"
+    "title": "🎉 Задача подтверждена!",
+    "message": "«{chore_name}» подтверждена! +{points} {points_label}"
   },
   "chore_disapproved_assignee": {
-    "title": "↩️ Задача не одобрена",
-    "message": "{chore_name} требует доработки."
+    "title": "↩️ Задача возвращена",
+    "message": "«{chore_name}» требует доработки."
   },
   "chore_overdue_assignee": {
     "title": "⏰ Задача просрочена",
-    "message": "Задача \"{chore_name}\" просрочена! Выполните её сейчас, чтобы получить {points_label}: {points}"
+    "message": "«{chore_name}» просрочена! Выполните сейчас и получите +{points} {points_label}"
   },
   "chore_overdue_steal_available": {
-    "title": "⚡ Задача",
-    "message": "Задача \"{chore_name}\" просрочена и её можно перенять! Выполните её первым, чтобы получить {points_label}: {points}"
+    "title": "⚡ Задачу можно перехватить",
+    "message": "«{chore_name}» просрочена, и её можно перехватить! Выполните первым и получите +{points} {points_label}"
   },
   "chore_missed_assignee": {
-    "title": "😔 Срок выполнения задачи истёк",
-    "message": "У задачи \"{chore_name}\" истек срок выполнения."
+    "title": "😔 Задача пропущена",
+    "message": "«{chore_name}» так и осталась невыполненной."
   },
   "chore_due_reminder_assignee": {
-    "title": "⏰ Напоминание о задаче",
-    "message": "Задачу \"{chore_name}\" нужно сдать через {minutes} минут! Награда: {points} {points_label}"
+    "title": "⏰ Скоро срок",
+    "message": "«{chore_name}» нужно выполнить через {minutes} мин. Награда: +{points} {points_label}"
   },
   "chore_due_window_assignee": {
-    "title": "🎯 Задача к выполнению",
-    "message": "Задача \"{chore_name}\" к выполнению! Выполните её в течении {hours} часа(ов), чтобы заработать {points_label}: {points}"
+    "title": "🎯 Пора выполнять",
+    "message": "«{chore_name}» — пора выполнять! Успейте за {hours} ч. и получите +{points} {points_label}"
   },
   "chore_approved_assignee_no_points": {
-    "message": "Задача \"{chore_name}\" подтверждена!"
+    "message": "«{chore_name}» подтверждена!"
   },
   "chore_overdue_assignee_no_points": {
-    "message": "Задача \"{chore_name}\" просрочена! Выполните её сейчас"
+    "message": "«{chore_name}» просрочена! Выполните сейчас"
   },
   "chore_overdue_steal_available_no_points": {
-    "message": "Задача \"{chore_name}\" просрочена и её можно перенять! Выполните её первым"
+    "message": "«{chore_name}» просрочена, и её можно перехватить! Выполните первым"
   },
   "chore_standby_needed_no_points": {
-    "message": "{primary_name} просрочил(а) задачу \"{chore_name}\"! Переймите её прямо сейчас"
+    "message": "Задача «{chore_name}» у {primary_name} просрочена! Возьмите её сейчас"
   },
   "chore_due_reminder_assignee_no_points": {
-    "message": "Задача \"{chore_name}\" должна быть выполнена через {minutes} минут!"
+    "message": "«{chore_name}» нужно выполнить через {minutes} мин."
   },
   "chore_due_window_assignee_no_points": {
-    "message": "Задача \"{chore_name}\" к выполнению! Выполните ее в течении {hours} часа(ов)"
+    "message": "«{chore_name}» — пора выполнять! Успейте за {hours} ч."
   },
   "reward_approved_assignee": {
     "title": "🎉 Награда подтверждена!",
-    "message": "Награда \"{reward_name}\" подтверждена!"
+    "message": "«{reward_name}» подтверждена!"
   },
   "reward_disapproved_assignee": {
-    "title": "💭 Запрос на вознаграждение отклонен",
-    "message": "В этот раз награда \"{reward_name}\" не была подтверждена."
+    "title": "💭 Запрос награды возвращён",
+    "message": "«{reward_name}» в этот раз не подтвердили."
   },
   "badge_earned_assignee": {
     "title": "🥇 Получен значок!",
-    "message": "Вы заслужили значок \"{badge_name}\"!"
+    "message": "Вы получили значок «{badge_name}»!"
   },
   "achievement_earned_assignee": {
     "title": "🏆 Получено достижение!",
-    "message": "Вы заслужили достижение \"{achievement_name}\"! Продолжайте в том же духе"
+    "message": "Вы получили достижение «{achievement_name}»! Так держать"
   },
   "challenge_completed_assignee": {
-    "title": "🏁 Испытание выполнено!",
-    "message": "Вы выполнили испытание \"{challenge_name}\"! Продолжайте в том же духе"
+    "title": "🏁 Испытание пройдено!",
+    "message": "Вы прошли испытание «{challenge_name}»! Так держать"
   },
   "penalty_applied_assignee": {
-    "title": "⚠️ Применен штраф",
-    "message": "Штраф \"{penalty_name}\", вычтено: {points} {points_label}. Давайте вернемся к делу!"
+    "title": "⚠️ Наложен штраф",
+    "message": "«{penalty_name}»: −{points} {points_label}. Давайте вернёмся в строй!"
   },
   "bonus_applied_assignee": {
-    "title": "⭐ Применен бонус!",
-    "message": "Бонус \"{bonus_name}\", получено: {points} {points_label}! Отличная работа"
+    "title": "⭐ Начислен бонус!",
+    "message": "«{bonus_name}»: +{points} {points_label}! Отличная работа"
   },
   "multiplier_changed_assignee": {
-    "title": "⚖️ Обновлен множитель",
-    "message": "Ваш множитель для \"{points_label}\" изменился с {old_multiplier}x на {new_multiplier}x"
+    "title": "⚖️ Множитель обновлён",
+    "message": "Ваш множитель «{points_label}» изменился с {old_multiplier}x на {new_multiplier}x"
   },
   "_comment_approver_section": "═════════════════════════════════════════════════════════════",
-  "_comment_approver_desc": "УВЕДОМЛЕНИЯ ПОДТВЕРЖДАЮЩЕГО: Информативные, от третьего лица, с указанием действий. Формат: '{assignee_name}: Действие'. БЕЗ префикса 'ChoreOps:'.",
+  "_comment_approver_desc": "УВЕДОМЛЕНИЯ ПОДТВЕРЖДАЮЩЕМУ: информативно, о третьем лице, с понятным действием. Формат: «{assignee_name}: действие». Без префикса «ChoreOps:».",
   "_comment_approver_footer": "═════════════════════════════════════════════════════════════",
   "chore_claimed_approver": {
-    "title": "✋ {assignee_name}: Задача выполнена",
-    "message": "{assignee_name} выполнил(а) задачу \"{chore_name}\""
+    "title": "✋ {assignee_name}: задача взята",
+    "message": "Задачу «{chore_name}» взял(а) {assignee_name}"
   },
   "chore_reminder_approver": {
-    "title": "⏰ {assignee_name}: Требуется подтверждение",
-    "message": "Напоминание: задача \"{chore_name}\", выполненная пользователем {assignee_name}, ожидает вашей проверки"
+    "title": "⏰ {assignee_name}: нужно подтверждение",
+    "message": "Напоминание: задача «{chore_name}» от {assignee_name} ждёт вашей проверки"
   },
   "chore_overdue_approver": {
-    "title": "⚠️ {assignee_name}: Просроченная задача",
-    "message": "Просрочена задача \"{chore_name}\" пользователя {assignee_name} (срок выполнения: {due_date})"
+    "title": "⚠️ {assignee_name}: задача просрочена",
+    "message": "Задача «{chore_name}» у {assignee_name} просрочена (срок: {due_date})"
   },
   "pending_chores_approver": {
-    "title": "📋 {assignee_name}: {count} ожидают",
-    "message": "{count} задач, ожидающих проверки. Последняя: {latest_chore} (+{points} {points_label})"
+    "title": "📋 {assignee_name}: ожидают — {count}",
+    "message": "Задач ждёт проверки: {count}. Последняя: {latest_chore} (+{points} {points_label})"
   },
   "pending_chores_approver_no_points": {
-    "message": "{count} задач, ожидающих проверки. Последняя: {latest_chore}"
+    "message": "Задач ждёт проверки: {count}. Последняя: {latest_chore}"
   },
   "reward_claimed_approver": {
-    "title": "🎁 {assignee_name}: Запрошена награда",
-    "message": "{assignee_name} запросил награду \"{reward_name}\" за: {points} {points_label}"
+    "title": "🎁 {assignee_name}: запрос награды",
+    "message": "{assignee_name} запросил(а) награду «{reward_name}», цена: {points} {points_label}"
   },
   "reward_reminder_approver": {
-    "title": "⏰ {assignee_name}: Награда ждёт подтверждения",
-    "message": "Напоминание: награда \"{reward_name}\", запрошенная пользователем {assignee_name} ожидает вашего подтверждения"
+    "title": "⏰ {assignee_name}: награда ждёт",
+    "message": "Напоминание: награда «{reward_name}» от {assignee_name} ждёт вашего подтверждения"
   },
   "badge_earned_approver": {
-    "title": "🥇 {assignee_name}: Получен значок",
-    "message": "{assignee_name} получил значок \"{badge_name}\"!"
+    "title": "🥇 {assignee_name}: получен значок",
+    "message": "{assignee_name} получил(а) значок «{badge_name}»!"
   },
   "achievement_earned_approver": {
-    "title": "🏆 {assignee_name}: Достижение",
-    "message": "{assignee_name} заработал {achievement_name}"
+    "title": "🏆 {assignee_name}: достижение",
+    "message": "{assignee_name} получил(а) достижение «{achievement_name}»"
   },
   "challenge_completed_approver": {
-    "title": "🏁 {assignee_name}: Задание выполнено",
-    "message": "{assignee_name} выполнил(а) испытание \"{challenge_name}\""
+    "title": "🏁 {assignee_name}: испытание пройдено",
+    "message": "{assignee_name} прошёл(а) испытание «{challenge_name}»"
   },
   "multiplier_changed_approver": {
-    "title": "⚖️ {assignee_name}: Обновлен множитель",
-    "message": "Множитель для \"{points_label}\" пользователя {assignee_name} изменился с {old_multiplier}x на {new_multiplier}x"
+    "title": "⚖️ {assignee_name}: множитель обновлён",
+    "message": "Множитель «{points_label}» у {assignee_name} изменился с {old_multiplier}x на {new_multiplier}x"
   },
   "_comment_system_section": "═════════════════════════════════════════════════════════════",
-  "_comment_system_desc": "СИСТЕМНЫЕ/АДМИНИСТРАТИВНЫЕ УВЕДОМЛЕНИЯ: Действия по управлению данными",
+  "_comment_system_desc": "СИСТЕМНЫЕ УВЕДОМЛЕНИЯ: операции с данными",
   "_comment_system_footer": "═════════════════════════════════════════════════════════════",
   "data_reset": {
-    "title": "🔄 ChoreOps: Сброс данных",
-    "message": "Данные системы были сброшены"
+    "title": "🔄 ChoreOps: сброс данных",
+    "message": "Данные системы сброшены"
   },
   "data_reset_global": {
-    "title": "🔄 ChoreOps: Полный сброс",
-    "message": "Все системные данные сброшены до значений по умолчанию"
+    "title": "🔄 ChoreOps: полный сброс",
+    "message": "Все данные системы сброшены к значениям по умолчанию"
   },
   "data_reset_assignee": {
-    "title": "🔄 ChoreOps: Сброс данных исполняющего",
+    "title": "🔄 ChoreOps: сброс данных исполнителя",
     "message": "Данные сброшены для {assignee_name}"
   },
   "data_reset_item_type": {
-    "title": "🔄 ChoreOps: сброс для \"{item_type}\"",
-    "message": "Все данные для \"{item_type}\" были сброшены"
+    "title": "🔄 ChoreOps: сброс — {item_type}",
+    "message": "Все данные «{item_type}» сброшены"
   },
   "data_reset_item": {
-    "title": "🔄 ChoreOps: Сброс объекта",
-    "message": "Данные были сброшены для: {item_type} \"{item_name}\""
+    "title": "🔄 ChoreOps: сброс элемента",
+    "message": "{item_type} «{item_name}» сброшен"
   },
   "_comment_actions_section": "═════════════════════════════════════════════════════════════",
-  "_comment_actions_desc": "КНОПКИ ДЕЙСТВИЙ ДЛЯ УВЕДОМЛЕНИЙ: Более мягкая, ободряющая речь",
+  "_comment_actions_desc": "КНОПКИ ДЕЙСТВИЙ В УВЕДОМЛЕНИЯХ: мягче и дружелюбнее",
   "_comment_actions_footer": "═════════════════════════════════════════════════════════════",
   "actions": {
-    "approve": "✅ Одобрить",
+    "approve": "✅ Подтвердить",
     "claim": "✋ Это был я!",
     "complete": "✅ Выполнить",
     "disapprove": "↩️ Отклонить",
-    "remind_30": "⏰ Напомнить через 30 минут",
+    "remind_30": "⏰ Напомнить через 30 мин.",
     "skip": "⏭️ Пропустить"
   },
   "chore_standby_needed": {
-    "title": "🫲 Требуется помощь",
-    "message": "Просрочена задача \"{chore_name}\" пользователя {primary_name}! Переймите её сейчас, чтобы заработать {points_label}: {points}"
+    "title": "🫲 Нужен запасной",
+    "message": "Задача «{chore_name}» у {primary_name} просрочена! Возьмите её сейчас и получите +{points} {points_label}"
   }
 }

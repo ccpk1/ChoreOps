@@ -2087,7 +2087,8 @@
         "shared_first": "Delt først (første fuldførelse tæller)",
         "rotation_simple": "Rotation Simple (kun turholder, streng rækkefølge)",
         "rotation_smart": "Rotation Smart (kun turholder, fairness-vægtet)",
-        "rotation_primary_standby": "Primær & Standby (Primær standardtur, standby når det er muligt)"
+        "rotation_primary_standby": "Primær & Standby (Primær standardtur, standby når det er muligt)",
+        "rotation_simple_from_turn_holder": "Rotation Simple (Advance From Current Turn Holder)"
       }
     },
     "standby_claim_mode": {
@@ -2110,6 +2111,7 @@
     "overdue_handling_type": {
       "options": {
         "never_overdue": "Aldrig for sent",
+        "never_overdue_clear_at_approval_reset": "Never Overdue (Reset at Approval Boundary)",
         "at_due_date": "Forsinket indtil færdig",
         "at_due_date_clear_at_approval_reset": "Forfalden indtil godkendelse Nulstil",
         "at_due_date_clear_immediate_on_late": "Forsinket indtil færdig (Fjern forsinkede godkendelser med det samme)",
@@ -2715,7 +2717,7 @@
         },
         "completion_criteria": {
           "name": "Færdiggørelseskriterier",
-          "description": "Styrer, hvordan opgaven udføres, når flere personer er tildelt: individuel sporing, delt fuldførelse eller turbaseret rotation.",
+          "description": "How the chore is completed when multiple assignees are assigned: independent, shared_first, shared_all, rotation_simple, rotation_smart, rotation_primary_standby, or rotation_simple_from_turn_holder.",
           "example": "uafhængig"
         },
         "approval_reset_type": {
@@ -2730,7 +2732,7 @@
         },
         "overdue_handling": {
           "name": "Forsinket håndtering",
-          "description": "Styrer, hvad der sker, når forfaldsdatoen overskrides, og hvad der sker med forsinkede opgaver ved grænsen for nulstilling af godkendelse.",
+          "description": "How overdue chores behave at the due date and approval reset boundary.",
           "example": "forfaldsdato"
         },
         "chore_claim_lock_until_window": {
@@ -3394,7 +3396,8 @@
               "shared_all": "Delt (alle)",
               "rotation_simple": "Rotation Simple",
               "rotation_smart": "Rotationssmart",
-              "rotation_primary_standby": "Primær og standby"
+              "rotation_primary_standby": "Primær og standby",
+              "rotation_simple_from_turn_holder": "Rotation Simple (Turn Holder)"
             }
           },
           "approval_reset_type": {
@@ -3420,6 +3423,7 @@
             "name": "Forsinket håndteringstype",
             "state": {
               "never_overdue": "Aldrig for sent",
+              "never_overdue_clear_at_approval_reset": "Never Overdue (Reset at Approval Boundary)",
               "at_due_date": "Forsinket indtil færdig",
               "at_due_date_clear_at_approval_reset": "Forfalden indtil godkendelse Nulstil",
               "at_due_date_clear_immediate_on_late": "Forsinket indtil færdig (Fjern forsinkede godkendelser med det samme)",
@@ -4355,7 +4359,8 @@
               "shared_all": "Delt (alle obligatoriske)",
               "rotation_simple": "Rotation Simple",
               "rotation_smart": "Rotationssmart",
-              "rotation_primary_standby": "Primær og standby"
+              "rotation_primary_standby": "Primær og standby",
+              "rotation_simple_from_turn_holder": "Rotation Simple (Turn Holder)"
             }
           },
           "approval_reset_type": {
