@@ -12,7 +12,7 @@
 - **Name / Code**: Auto-Advance Rotation & Always-Reset Chores (`ISSUE-255`)
 - **Target release / milestone**: v1.6.0 (TBD — confirm with owner)
 - **Owner / driver(s)**: ccpk1
-- **Status**: Not started — **plan complete, all ambiguities resolved, ready for hand-off**
+- **Status**: In progress — **Phases 1–2 complete and committed; Phase 3 next**
 
 ## Summary & immediate steps
 
@@ -28,7 +28,7 @@
 
 2. **Summary of recent work** – Deep code review and three correction rounds against maintainer feedback completed 2026-09-11. All ambiguities (A1–A6) are now closed; decisions D1–D12 are final. This document consolidates the parent plan and the dashboard-scope supporting document into one authoritative record.
 
-3. **Next steps (short term)** – Begin Phase 1 (constants + validation error keys + dedup guard). Phase 1 must land and pass the targeted regression suite **before** any feature work starts.
+3. **Next steps (short term)** – Phases 1–2 are complete, validated and committed (`f6eb56f`; dashboards `856ae6d`). Proceed to Phase 3 (Feature 2), then Phase 4 (targeted tests) and Phase 5 (docs/dashboards).
 
 4. **Risks / blockers** – Three critical traps:
    - **(a)** Omitting the new overdue type from `can_be_overdue` (`chore_manager.py:1912`) silently loses never-overdue presentation (C1).
@@ -38,7 +38,7 @@
 5. **References** – See "Notes & follow-up" for the full reference list.
 
 6. **Decisions & completion check**
-   - **Decisions captured**: D1–D12 and resolved ambiguities A1–A6 (see "Notes & follow-up").
+   - **Decisions captured**: D1–D17 and resolved ambiguities A1–A6 (see "Notes & follow-up").
    - **Completion confirmation**: `[ ]` All follow-up items completed (architecture updates, cleanup, documentation, etc.) before requesting owner approval to mark initiative done.
 
 ## Tracking expectations
@@ -67,10 +67,12 @@
 
 **Hard rule: only `en*.json` files are ever hand-edited. Every other locale is owned by the translation pipeline (Crowdin). Never add placeholder keys to `de.json`, `fr.json`, or any other non-English file.**
 
-1. Update `custom_components/choreops/strings.json` (source of truth).
-2. Regenerate the English master: `python3 -m script.translations develop --integration choreops` → updates `translations/en.json`.
-3. Do **not** touch any other file in `translations/`.
-4. Confirm the option labels render (not raw enum values) and that `en.json` contains no orphaned keys.
+1. Edit `custom_components/choreops/translations/en.json` **directly**.
+   - There is **no `strings.json`** in this repo and **no `script.translations`** tooling. That is the Home Assistant *core* workflow and does not apply to a custom integration.
+2. Do **not** touch any other file in `translations/`.
+3. Confirm the option labels render (not raw enum values) and that `en.json` contains no orphaned keys.
+
+> Several enums appear in **two** blocks in `en.json` — a flow `options` block and a sensor `state` block. Add new keys to **both**, or the label renders as a raw value on one surface.
 
 New keys required (both features):
 
@@ -78,7 +80,7 @@ New keys required (both features):
 - `completion_criteria.options.rotation_simple_from_turn_holder`
 - One new validation error key for Phase 2 rule 13 (plus any additional compatibility error key from Phase 3).
 
-> `translations/en.json` is what tests load, **not** `strings.json` — regeneration is mandatory before running tests.
+> `translations/en.json` is what tests and runtime load, so it must be updated before running tests.
 
 ### Dashboard parity — REQUIRED, but MINIMAL scope
 
@@ -96,7 +98,7 @@ python utils/sync_dashboard_assets.py           # canonical → vendored
 python utils/sync_dashboard_assets.py --check   # verify parity
 ```
 
-> ⚠️ A **pre-existing** parity mismatch exists on `templates/zh-Hans_dashboard.json`. It is **unrelated** to this work — note it, do not fix it here, and do not let it block the parity check.
+> ✅ The **pre-existing** mismatch on `templates/zh-Hans_dashboard.json` was **resolved by the Phase 2 sync** (the vendored copy was stale; the canonical committed file is now mirrored). Both copies now hash identical. This is an accepted side effect of the one-way sync, not a scope change.
 
 **Corrected behaviour (supersedes earlier claims):** a missing dashboard label key does **not** render an error token. Both lookups degrade gracefully to a title-cased raw value:
 
@@ -326,11 +328,11 @@ Because `rotation_simple_from_turn_holder` **contains** `rotation`, `is_rotation
 
   7. **Service-layer enum** — `services.py:801-810` (`_OVERDUE_HANDLING_VALUES`) and `services.yaml` — the `overdue_handling:` option lists at `:1367` (create) and `:1585` (update). Add the raw value to both.
 
-  8. **English translations** — `translations/en.json` `overdue_handling_type.options` (around `:2112`). Add the new label via `strings.json` + regeneration. **Do not touch any other locale file.**
+  8. **English translations** — `translations/en.json`, edited **directly** (no `strings.json` or regeneration step exists in this repo). Add the new label to **both** `overdue_handling_type` blocks: the flow `options` block around `:2110` and the sensor `state` block around `:3419`. **Do not touch any other locale file.**
 
   9. **Dashboard label** — canonical `translations/en_dashboard.json` (key block around `:155`) only, plus the `overdue_handling_map` insertion described in "Dashboard parity" above.
 
-  10. **Regenerate** — run the translation regeneration and `utils/sync_dashboard_assets.py` before running tests.
+  10. **Sync dashboards** — run `python utils/sync_dashboard_assets.py` then `--check` before running tests. There is no translation regeneration step in this repo.
 
 - **Key issues**
   - C1/C3: the presentation pair (FSM P5.5 + `can_be_overdue`) must change **together**. Changing one without the other yields either an overdue-looking chore or a chore that never resets.
@@ -445,7 +447,7 @@ Because `rotation_simple_from_turn_holder` **contains** `rotation`, `is_rotation
      - `Advanced:-Chores.md:215-265` — document the new rotation type next to Rotation Simple, including the steal rule (holder anchors) and the "needs the always-reset option too" pairing (C5).
      - `Technical:-Chores.md:52` and `:195` if they enumerate overdue strategies.
      - ⚠️ Do not document the new options as "regenerate dashboards required" for all users — the values are opt-in (see step 4).
-  2. **Translations (integration)** — update `strings.json`, then run `python3 -m script.translations develop --integration choreops` to regenerate the **English master** `translations/en.json`. Tests load `en.json`, not `strings.json`, so regeneration is mandatory. **Do not hand-edit any other locale file** — the pipeline owns them.
+  2. **Translations (integration)** — edit `translations/en.json` **directly** (no `strings.json` or regeneration tooling exists in this repo). Add both new labels to **both** enum blocks where present. **Do not hand-edit any other locale file** — the pipeline owns them.
   3. **Dashboards (canonical repo only)** — add the two labels to `translations/en_dashboard.json` (**`en*` only**), add the new overdue key to the two `overdue_handling_map` blocks (`templates/admin-peruser-v1.yaml:1522`, `templates/admin-shared-v1.yaml:1590`), then run `python utils/sync_dashboard_assets.py` followed by `--check`. Verify the admin detail grid shows the new overdue label and that the rotation cards activate (C10). No template edit is needed for rotation.
   4. **Release notes** — state plainly that **Feature 1 resets** and **Feature 2 advances**, and that both are required for "auto-advance if not completed" (C5). Also note the due-time guidance (11:59 PM vs 12:00 AM). Both options are opt-in, so note that dashboards must be regenerated to pick up the new labels.
   5. **Respond on issue #255** — confirm scope, note the requester can use the existing automations until release, and mention dashboard regeneration for the new labels.
@@ -498,7 +500,7 @@ python -m pytest tests/test_chore_manager.py -k "rotation or boundary" -v --tb=l
 **Lint & types** (required before hand-off, and fast enough to run freely):
 
 1. `./utils/quick_lint.sh --fix`
-2. `mypy custom_components/choreops/`
+2. `mypy --config-file mypy_quick.ini --explicit-package-bases custom_components/choreops` — the bare `mypy custom_components/choreops/` form fails with a duplicate-module error in this repo.
 3. Targeted pytest as above
 
 **Deferred to release validation (owner runs before next release):**
