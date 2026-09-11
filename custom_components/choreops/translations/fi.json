@@ -472,7 +472,6 @@
       "invalid_challenge_name": "Virheellinen haasteen nimi",
       "invalid_chore": "Virheellinen työtehtävä",
       "invalid_chore_count": "Virheellinen tehtävien määrä",
-      "rotation_min_assignees": "Rotaatiotehtävät vaativat vähintään kaksi määrättyä vastuuhenkilöä",
       "invalid_chore_name": "Virheellinen työn nimi",
       "custom_interval_required": "Mukautettuja frekvenssejä varten vaaditaan mukautettu aikaväli",
       "custom_interval_invalid": "Mukautetun aikavälin on oltava kokonaisluku, joka on suurempi kuin nolla",
@@ -880,7 +879,7 @@
           "assigned_user_ids": "Anna tämä merkki tietyille henkilöille seurantaa varten.",
           "award_items": "Valitse yksi tai useampi pisteistä, palkinnoista, bonuksista tai rangaistuksia. Kaikki valitut kohteet myönnetään tai niitä käytetään, kun merkki ansaitaan. Rangaistuksia sovelletaan vain, jos merkkiä ei ansaita päättymispäivään tai nollauspäivään mennessä. (valinnainen)",
           "award_points": "Jos pisteet ovat valittu palkinto, määritä pisteiden määrä, joka lisätään, kun tämä ansiomerkki ansaitaan. (valinnainen)",
-          "recurring_frequency": "Määritä tämän merkin nollausaikataulu (esim. viikoittain, kuukausittain).",
+          "recurring_frequency": "Define the reset cycle for this badge. Weekly and Biweekly are rolling cycles counted from the start date. Week-End, Month-End, Quarter-End and Year-End align to the calendar (Week-End resets on Sunday).",
           "custom_interval": "Määritä päivien, viikkojen, kuukausien jne. MÄÄRÄ mukautetulle taajuudelle (esim. 3, jos asetat 3 viikkoa).",
           "custom_interval_unit": "Valitse mukautetun aikavälin yksikkö (esim. päivät, viikot).",
           "start_date": "Aseta nollausjakson aloituspäivämäärä (valinnainen).",
@@ -1360,7 +1359,7 @@
           "assigned_user_ids": "Anna tämä merkki tietyille henkilöille seurantaa varten.",
           "award_items": "Valitse yksi tai useampi pisteistä, palkinnoista, bonuksista tai rangaistuksia. Kaikki valitut kohteet myönnetään tai niitä käytetään, kun merkki ansaitaan. Rangaistuksia sovelletaan vain, jos merkkiä ei ansaita päättymispäivään tai nollauspäivään mennessä. (valinnainen)",
           "award_points": "Jos pisteet ovat valittu palkinto, määritä pisteiden määrä, joka lisätään, kun tämä ansiomerkki ansaitaan. (valinnainen)",
-          "recurring_frequency": "Määritä tämän merkin nollausaikataulu (esim. viikoittain, kuukausittain).",
+          "recurring_frequency": "Define the reset cycle for this badge. Weekly and Biweekly are rolling cycles counted from the start date. Week-End, Month-End, Quarter-End and Year-End align to the calendar (Week-End resets on Sunday).",
           "custom_interval": "Määritä päivien, viikkojen, kuukausien jne. MÄÄRÄ mukautetulle taajuudelle (esim. 3, jos asetat 3 viikkoa).",
           "custom_interval_unit": "Valitse mukautetun aikavälin yksikkö (esim. päivät, viikot).",
           "start_date": "Aseta nollausjakson aloituspäivämäärä (valinnainen).",
@@ -1885,7 +1884,6 @@
       "error_daily_multi_times_too_few": "Useita kertoja päivässä -tiheydelle vaaditaan vähintään kaksi kertaa. Yhden kerran tapauksessa käytä tavallista Päivittäistä-tiheyttä.",
       "error_daily_multi_times_too_many": "Enintään kuusi kertaa päivässä sallitaan 'Useita kertoja päivässä' -tiheydellä.",
       "error_daily_multi_due_date_required": "Useita kertoja päivässä -tiheys edellyttää määräpäivän asettamista. Päivämäärä määrittää aikataulutuksen aloituspäivän ja ajat määrittävät kunkin päivän saatavuusikkunat.",
-      "rotation_min_assignees": "Rotaatiotehtävät vaativat vähintään kaksi määrättyä vastuuhenkilöä",
       "error_allow_steal_incompatible": "Salli varastaa -myöhästymiskäsittely on yhteensopiva vain rotaatiotöiden (rotation_simple tai rotation_smart) kanssa, joiden nollaustyyppi on 'Kerran päivässä', ja se vaatii määräpäivän varausikkunan avautumisen määrittämiseksi.",
       "error_at_due_date_reset_requires_due_date": "Eräpäivänä tapahtuvat hyväksynnän nollaustyypit (kerran tai useita kertoja) edellyttävät eräpäivän asettamista. Ilman eräpäivää hyväksynnän nollaus ei koskaan käynnisty ja työ pysyy hyväksyttynä toistaiseksi.",
       "error_per_assignee_applicable_days_invalid": "Yhdelle tai useammalle vastuuhenkilölle on määritetty virheellinen päivien muoto. Päivien on oltava kokonaislukuja 0–6 (maanantai–sunnuntai) ilman kaksoiskappaleita.",
@@ -5439,9 +5437,6 @@
     },
     "rotation_unassigned_in_order": {
       "message": "Kaikki kiertojärjestyksessä olevat henkilöt on määrättävä tehtävään"
-    },
-    "rotation_min_assignees": {
-      "message": "Rotaatiotehtävät vaativat vähintään kaksi määrättyä vastuuhenkilöä"
     },
     "not_rotation": {
       "message": "Tämä työ ei ole rotaatiotilassa"

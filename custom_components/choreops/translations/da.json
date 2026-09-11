@@ -472,7 +472,6 @@
       "invalid_challenge_name": "Ugyldigt udfordringsnavn",
       "invalid_chore": "Ugyldig opgave",
       "invalid_chore_count": "Ugyldigt antal opgaver",
-      "rotation_min_assignees": "Rotationsopgaver kræver mindst 2 tildelte personer",
       "invalid_chore_name": "Ugyldigt navn på opgave",
       "custom_interval_required": "Brugerdefineret interval er påkrævet for brugerdefinerede frekvenser",
       "custom_interval_invalid": "Brugerdefineret interval skal være et heltal større end nul",
@@ -880,7 +879,7 @@
           "assigned_user_ids": "Tildel dette badge til bestemte tildelte personer til sporing.",
           "award_items": "Vælg en eller flere af point, belønninger, bonusser eller straffe. Alle valgte elementer vil blive tildelt eller anvendt, når badget er optjent. Straffer vil kun blive anvendt, hvis badget ikke er optjent inden slutdatoen eller nulstillingsdatoen. (valgfrit)",
           "award_points": "Hvis pointene er en valgt belønning, skal du angive antallet af point, der skal anvendes, når dette badge optjenes. (valgfrit).",
-          "recurring_frequency": "Definer nulstillingsplanen for dette badge (f.eks. ugentligt, månedligt).",
+          "recurring_frequency": "Define the reset cycle for this badge. Weekly and Biweekly are rolling cycles counted from the start date. Week-End, Month-End, Quarter-End and Year-End align to the calendar (Week-End resets on Sunday).",
           "custom_interval": "Angiv ANTAL dage, uger, måneder osv. for Brugerdefineret frekvens (f.eks. 3, hvis du angiver 3 uger).",
           "custom_interval_unit": "Vælg enheden for det brugerdefinerede interval (f.eks. dage, uger).",
           "start_date": "Indstil startdatoen for nulstillingscyklussen (valgfrit).",
@@ -1360,7 +1359,7 @@
           "assigned_user_ids": "Tildel dette badge til bestemte tildelte personer til sporing.",
           "award_items": "Vælg en eller flere af point, belønninger, bonusser eller straffe. Alle valgte elementer vil blive tildelt eller anvendt, når badget er optjent. Straffer vil kun blive anvendt, hvis badget ikke er optjent inden slutdatoen eller nulstillingsdatoen. (valgfrit)",
           "award_points": "Hvis pointene er en valgt belønning, skal du angive antallet af point, der skal anvendes, når dette badge optjenes. (valgfrit).",
-          "recurring_frequency": "Definer nulstillingsplanen for dette badge (f.eks. ugentligt, månedligt).",
+          "recurring_frequency": "Define the reset cycle for this badge. Weekly and Biweekly are rolling cycles counted from the start date. Week-End, Month-End, Quarter-End and Year-End align to the calendar (Week-End resets on Sunday).",
           "custom_interval": "Angiv ANTAL dage, uger, måneder osv. for Brugerdefineret frekvens (f.eks. 3, hvis du angiver 3 uger).",
           "custom_interval_unit": "Vælg enheden for det brugerdefinerede interval (f.eks. dage, uger).",
           "start_date": "Indstil startdatoen for nulstillingscyklussen (valgfrit).",
@@ -1885,7 +1884,6 @@
       "error_daily_multi_times_too_few": "Mindst 2 gange er påkrævet for frekvensen 'Flere gange om dagen'. For en enkelt gang skal du bruge den normale frekvens 'Daglig'.",
       "error_daily_multi_times_too_many": "Maksimalt 6 gange tilladt pr. dag for frekvensen 'Flere gange pr. dag'.",
       "error_daily_multi_due_date_required": "Hyppigheden 'Flere gange om dagen' kræver, at der angives en forfaldsdato. Datoen bestemmer, hvornår planlægningen starter, og tidspunkterne bestemmer tilgængelighedsvinduerne hver dag.",
-      "rotation_min_assignees": "Rotationsopgaver kræver mindst 2 tildelte personer",
       "error_allow_steal_incompatible": "Tillad håndtering af forfaldne opgaver ved stjæling er kun kompatibel med rotationsopgaver (rotation_simple eller rotation_smart) af nulstillingstypen 'Én gang om dagen' og kræver en forfaldsdato for at definere, hvornår stjælevinduet åbnes.",
       "error_at_due_date_reset_requires_due_date": "Godkendelsesnulstillingstyperne 'Ved forfaldsdato' (Én gang eller Flere gange) kræver, at der angives en forfaldsdato. Uden en forfaldsdato udløses nulstillingen af godkendelsen aldrig, og opgaven forbliver godkendt på ubestemt tid.",
       "error_per_assignee_applicable_days_invalid": "Ugyldigt gældende dagsformat for en eller flere tildelte. Dage skal være heltal 0-6 (mandag-søndag) uden dubletter.",
@@ -5439,9 +5437,6 @@
     },
     "rotation_unassigned_in_order": {
       "message": "Alle tildelte i rotationsrækkefølge skal tildeles opgaven"
-    },
-    "rotation_min_assignees": {
-      "message": "Rotationsopgaver kræver mindst 2 tildelte personer"
     },
     "not_rotation": {
       "message": "Denne opgave er ikke i rotationstilstand"

@@ -472,7 +472,6 @@
       "invalid_challenge_name": "Nom du défi invalide",
       "invalid_chore": "Tâche invalide",
       "invalid_chore_count": "Nombre de tâches invalide",
-      "rotation_min_assignees": "Les tâches de rotation nécessitent au moins 2 personnes désignées.",
       "invalid_chore_name": "Nom de tâche invalide",
       "custom_interval_required": "Un intervalle personnalisé est requis pour les fréquences personnalisées.",
       "custom_interval_invalid": "L'intervalle personnalisé doit être un nombre entier supérieur à zéro.",
@@ -880,7 +879,7 @@
           "assigned_user_ids": "Attribuez ce badge à des personnes spécifiques à des fins de suivi.",
           "award_items": "Sélectionnez un ou plusieurs éléments parmi les points, récompenses, bonus ou pénalités. Tous les éléments sélectionnés seront attribués ou appliqués lors de l'obtention du badge. Les pénalités ne seront appliquées que si le badge n'est pas obtenu avant la date limite ou la date de réinitialisation. (facultatif)",
           "award_points": "Si les points constituent une récompense sélectionnée, veuillez préciser le nombre de points à appliquer lors de l'obtention de ce badge. (facultatif).",
-          "recurring_frequency": "Définissez la fréquence de réinitialisation de ce badge (par exemple, hebdomadaire, mensuelle).",
+          "recurring_frequency": "Define the reset cycle for this badge. Weekly and Biweekly are rolling cycles counted from the start date. Week-End, Month-End, Quarter-End and Year-End align to the calendar (Week-End resets on Sunday).",
           "custom_interval": "Spécifiez le NOMBRE de jours, de semaines, de mois, etc. pour la fréquence personnalisée (par exemple, 3 si vous définissez 3 semaines).",
           "custom_interval_unit": "Sélectionnez l'unité de l'intervalle personnalisé (par exemple, jours, semaines).",
           "start_date": "Définissez la date de début du cycle de réinitialisation (facultatif).",
@@ -1360,7 +1359,7 @@
           "assigned_user_ids": "Attribuez ce badge à des personnes spécifiques à des fins de suivi.",
           "award_items": "Sélectionnez un ou plusieurs éléments parmi les points, récompenses, bonus ou pénalités. Tous les éléments sélectionnés seront attribués ou appliqués lors de l'obtention du badge. Les pénalités ne seront appliquées que si le badge n'est pas obtenu avant la date limite ou la date de réinitialisation. (facultatif)",
           "award_points": "Si les points constituent une récompense sélectionnée, veuillez préciser le nombre de points à appliquer lors de l'obtention de ce badge. (facultatif).",
-          "recurring_frequency": "Définissez la fréquence de réinitialisation de ce badge (par exemple, hebdomadaire, mensuelle).",
+          "recurring_frequency": "Define the reset cycle for this badge. Weekly and Biweekly are rolling cycles counted from the start date. Week-End, Month-End, Quarter-End and Year-End align to the calendar (Week-End resets on Sunday).",
           "custom_interval": "Spécifiez le NOMBRE de jours, de semaines, de mois, etc. pour la fréquence personnalisée (par exemple, 3 si vous définissez 3 semaines).",
           "custom_interval_unit": "Sélectionnez l'unité de l'intervalle personnalisé (par exemple, jours, semaines).",
           "start_date": "Définissez la date de début du cycle de réinitialisation (facultatif).",
@@ -1885,7 +1884,6 @@
       "error_daily_multi_times_too_few": "Il faut au moins deux utilisations pour une fréquence « Plusieurs fois par jour ». Pour une utilisation unique, utilisez la fréquence « Quotidienne ».",
       "error_daily_multi_times_too_many": "Un maximum de 6 fois par jour est autorisé pour la fréquence « Plusieurs fois par jour ».",
       "error_daily_multi_due_date_required": "L'option « Plusieurs fois par jour » nécessite la définition d'une date d'échéance. Cette date détermine le début de la planification, tandis que les heures définissent les plages horaires de disponibilité quotidiennes.",
-      "rotation_min_assignees": "Les tâches de rotation nécessitent au moins 2 personnes désignées.",
       "error_allow_steal_incompatible": "L'option « Autoriser la gestion des vols en retard » est uniquement compatible avec les tâches de rotation (rotation_simple ou rotation_smart), le type de réinitialisation « Une fois par jour » et nécessite une date d'échéance pour définir l'ouverture de la fenêtre de vol.",
       "error_at_due_date_reset_requires_due_date": "Les réinitialisations d'approbation de type « À l'échéance » (ponctuelles ou multiples) nécessitent la définition d'une date d'échéance. Sans date d'échéance, la réinitialisation de l'approbation ne sera jamais déclenchée et la tâche restera approuvée indéfiniment.",
       "error_per_assignee_applicable_days_invalid": "Format des jours applicables invalide pour un ou plusieurs destinataires. Les jours doivent être des nombres entiers de 0 à 6 (lundi-dimanche) sans doublons.",
@@ -5439,9 +5437,6 @@
     },
     "rotation_unassigned_in_order": {
       "message": "Tous les employés désignés, par ordre de rotation, doivent être affectés à la tâche."
-    },
-    "rotation_min_assignees": {
-      "message": "Les tâches de rotation nécessitent au moins 2 personnes désignées."
     },
     "not_rotation": {
       "message": "Cette tâche n'est pas en mode rotation"

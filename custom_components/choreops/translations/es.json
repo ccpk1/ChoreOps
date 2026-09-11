@@ -472,7 +472,6 @@
       "invalid_challenge_name": "Nombre de desafío no válido",
       "invalid_chore": "Tarea no válida",
       "invalid_chore_count": "Cantidad de tareas no válida",
-      "rotation_min_assignees": "Las tareas de rotación requieren al menos 2 personas asignadas",
       "invalid_chore_name": "Nombre de tarea no válido",
       "custom_interval_required": "Se requiere un intervalo personalizado para frecuencias personalizadas.",
       "custom_interval_invalid": "El intervalo personalizado debe ser un número entero mayor que cero.",
@@ -880,7 +879,7 @@
           "assigned_user_ids": "Asigne esta insignia a personas específicas para su seguimiento.",
           "award_items": "Selecciona uno o más elementos entre puntos, recompensas, bonificaciones o penalizaciones. Todos los elementos seleccionados se otorgarán o aplicarán al obtener la insignia. Las penalizaciones solo se aplicarán si no se obtiene la insignia antes de la fecha de finalización o de reinicio. (opcional)",
           "award_points": "Si los puntos son un premio seleccionado, especifique la cantidad de puntos que se aplicarán cuando se obtenga esta insignia. (opcional).",
-          "recurring_frequency": "Define el cronograma de reinicio para esta insignia (por ejemplo, semanal, mensual).",
+          "recurring_frequency": "Define the reset cycle for this badge. Weekly and Biweekly are rolling cycles counted from the start date. Week-End, Month-End, Quarter-End and Year-End align to the calendar (Week-End resets on Sunday).",
           "custom_interval": "Especifique la NÚMERO de días, semanas, meses, etc. para la Frecuencia personalizada (por ejemplo, 3 si establece 3 semanas).",
           "custom_interval_unit": "Seleccione la unidad para el intervalo personalizado (por ejemplo, días, semanas).",
           "start_date": "Establezca la fecha de inicio para el ciclo de reinicio (opcional).",
@@ -1360,7 +1359,7 @@
           "assigned_user_ids": "Asigne esta insignia a personas específicas para su seguimiento.",
           "award_items": "Selecciona uno o más entre puntos, recompensas, bonificaciones o penalizaciones. Todos los elementos seleccionados se otorgarán o aplicarán cuando se gane la insignia. Las penalizaciones solo se aplicarán si la insignia no se gana antes de la fecha final o de reinicio (opcional).",
           "award_points": "Si los puntos son un premio seleccionado, especifica el número de puntos a aplicar cuando se gane esta insignia (opcional).",
-          "recurring_frequency": "Define el calendario de reinicio para esta insignia (ej: semanal, mensual).",
+          "recurring_frequency": "Define the reset cycle for this badge. Weekly and Biweekly are rolling cycles counted from the start date. Week-End, Month-End, Quarter-End and Year-End align to the calendar (Week-End resets on Sunday).",
           "custom_interval": "Especifica el NÚMERO de días, semanas, meses, etc. para Frecuencia Personalizada (ej: 3 si estableces 3 semanas).",
           "custom_interval_unit": "Selecciona la unidad para el intervalo personalizado (ej: días, semanas).",
           "start_date": "Establece la fecha de inicio para el ciclo de reinicio (opcional).",
@@ -1885,7 +1884,6 @@
       "error_daily_multi_times_too_few": "Se requieren al menos 2 veces para la frecuencia \"Varias veces al día\". Para una sola vez, use la frecuencia \"Diaria\".",
       "error_daily_multi_times_too_many": "Se permite un máximo de 6 veces por día para la frecuencia \"Varias veces por día\".",
       "error_daily_multi_due_date_required": "La frecuencia \"Varias veces al día\" requiere establecer una fecha de vencimiento. La fecha determina cuándo comienza la programación y las horas determinan los intervalos de disponibilidad diarios.",
-      "rotation_min_assignees": "Las tareas de rotación requieren al menos 2 personas asignadas",
       "error_allow_steal_incompatible": "Permitir el manejo de robos vencidos solo es compatible con tareas de rotación (rotation_simple o rotation_smart), tipo de reinicio \"Una vez al día\" y requiere una fecha de vencimiento para definir cuándo se abre la ventana de robo.",
       "error_at_due_date_reset_requires_due_date": "Los tipos de restablecimiento de aprobación \"En fecha de vencimiento\" (Única o Múltiple) requieren que se establezca una fecha de vencimiento. Sin una fecha de vencimiento, el restablecimiento de aprobación nunca se activará y la tarea permanecerá aprobada indefinidamente.",
       "error_per_assignee_applicable_days_invalid": "Formato de días aplicable no válido para uno o más asignados. Los días deben ser enteros del 0 al 6 (de lunes a domingo) sin duplicados.",
@@ -5439,9 +5437,6 @@
     },
     "rotation_unassigned_in_order": {
       "message": "Todos los asignados en orden de rotación deben ser asignados a la tarea."
-    },
-    "rotation_min_assignees": {
-      "message": "Las tareas de rotación requieren al menos 2 personas asignadas"
     },
     "not_rotation": {
       "message": "Esta tarea no está en modo de rotación"

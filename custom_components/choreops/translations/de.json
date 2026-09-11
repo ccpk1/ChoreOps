@@ -472,7 +472,6 @@
       "invalid_challenge_name": "Ungültiger Name der Herausforderung",
       "invalid_chore": "Ungültige Aufgabe",
       "invalid_chore_count": "Ungültige Anzahl von Aufgaben",
-      "rotation_min_assignees": "Rotierende Aufgaben erfordern mindestens zwei zugewiesene Personen",
       "invalid_chore_name": "Ungültiger Name der Aufgabe",
       "custom_interval_required": "Für benutzerdefinierte Wiederholungen ist ein benutzerdefiniertes Intervall erforderlich",
       "custom_interval_invalid": "Das benutzerdefinierte Intervall muss eine ganze Zahl größer als null sein",
@@ -880,7 +879,7 @@
           "assigned_user_ids": "Weisen Sie dieses Abzeichen bestimmten zugewiesenen Personen zur Nachverfolgung zu.",
           "award_items": "Wählen Sie eine oder mehrere Auszeichnungen aus: Punkte, Belohnungen, Boni oder Strafen. Alle ausgewählten Auszeichnungen werden beim Erhalt des Abzeichens vergeben oder angewendet. Strafen werden nur angewendet, wenn das Abzeichen bis zum Enddatum oder zum Datum der Genehmigungsrücksetzung nicht erreicht wurde (optional).",
           "award_points": "Wenn „Punkte“ als Auszeichnung ausgewählt wurden, geben Sie die Anzahl der Punkte an, die beim Erhalt dieses Abzeichens vergeben werden (optional).",
-          "recurring_frequency": "Legen Sie den Rücksetzzeitplan für dieses Abzeichen fest (z. B. wöchentlich oder monatlich).",
+          "recurring_frequency": "Define the reset cycle for this badge. Weekly and Biweekly are rolling cycles counted from the start date. Week-End, Month-End, Quarter-End and Year-End align to the calendar (Week-End resets on Sunday).",
           "custom_interval": "Geben Sie die ANZAHL der Tage, Wochen, Monate usw. für die benutzerdefinierte Wiederholung an (z. B. 3 bei „alle 3 Wochen“).",
           "custom_interval_unit": "Wählen Sie die Einheit für das benutzerdefinierte Intervall aus (z. B. Tage oder Wochen).",
           "start_date": "Legen Sie das Startdatum für den Rücksetzzyklus fest (optional).",
@@ -1360,7 +1359,7 @@
           "assigned_user_ids": "Weisen Sie dieses Abzeichen bestimmten zugewiesenen Personen zur Nachverfolgung zu.",
           "award_items": "Wählen Sie eine oder mehrere Auszeichnungen aus: Punkte, Belohnungen, Boni oder Strafen. Alle ausgewählten Auszeichnungen werden beim Erhalt des Abzeichens vergeben oder angewendet. Strafen werden nur angewendet, wenn das Abzeichen bis zum Enddatum oder Rücksetzungsdatum nicht erreicht wurde (optional).",
           "award_points": "Wenn „Punkte“ als Auszeichnung ausgewählt wurden, geben Sie die Anzahl der Punkte an, die beim Erhalt dieses Abzeichens vergeben werden (optional).",
-          "recurring_frequency": "Legen Sie den Rücksetzzyklus für dieses Abzeichen fest (z. B. wöchentlich oder monatlich).",
+          "recurring_frequency": "Define the reset cycle for this badge. Weekly and Biweekly are rolling cycles counted from the start date. Week-End, Month-End, Quarter-End and Year-End align to the calendar (Week-End resets on Sunday).",
           "custom_interval": "Geben Sie die ANZAHL der Tage, Wochen, Monate usw. für die benutzerdefinierte Wiederholung an (z. B. 3 bei „alle 3 Wochen“).",
           "custom_interval_unit": "Wählen Sie die Einheit für das benutzerdefinierte Intervall aus (z. B. Tage oder Wochen).",
           "start_date": "Legen Sie das Startdatum des Rücksetzzyklus fest (optional).",
@@ -1885,7 +1884,6 @@
       "error_daily_multi_times_too_few": "Für die Wiederholung „Mehrmals täglich“ sind mindestens zwei Zeiten erforderlich. Verwenden Sie für nur eine Zeit die Wiederholung „Täglich“.",
       "error_daily_multi_times_too_many": "Für die Wiederholung „Mehrmals täglich“ sind maximal sechs Zeiten pro Tag zulässig.",
       "error_daily_multi_due_date_required": "Die Wiederholung „Mehrmals täglich“ erfordert einen Fälligkeitstermin. Das Datum bestimmt den Beginn des Zeitplans, die Uhrzeiten bestimmen die täglichen Verfügbarkeitsfenster.",
-      "rotation_min_assignees": "Rotationsaufgaben erfordern mindestens zwei zugewiesene Personen",
       "error_allow_steal_incompatible": "Die Option „Überfällige Aufgaben übernehmen zulassen“ ist nur mit Rotationsaufgaben (rotation_simple oder rotation_smart), der Zurücksetzungsart „Einmal täglich“ und einem Fälligkeitstermin kompatibel, der den Beginn des Übernahmefensters festlegt.",
       "error_at_due_date_reset_requires_due_date": "Die Option „Überfällige Aufgaben übernehmen zulassen“ ist nur mit Rotationsaufgaben (rotation_simple oder rotation_smart), der Zurücksetzungsart „Einmal täglich“ und einem Fälligkeitstermin kompatibel, der den Beginn des Übernahmefensters festlegt.",
       "error_per_assignee_applicable_days_invalid": "Ungültiges Format für die anwendbaren Tage bei einer oder mehreren zugewiesenen Personen. Die Tage müssen ganze Zahlen von 0 bis 6 (Montag bis Sonntag) ohne Duplikate sein.",
@@ -5439,9 +5437,6 @@
     },
     "rotation_unassigned_in_order": {
       "message": "Alle Personen in der Rotationsreihenfolge müssen dieser Aufgabe zugewiesen sein"
-    },
-    "rotation_min_assignees": {
-      "message": "Rotationsaufgaben benötigen mindestens zwei zugewiesene Personen"
     },
     "not_rotation": {
       "message": "Diese Aufgabe befindet sich nicht im Rotationsmodus"

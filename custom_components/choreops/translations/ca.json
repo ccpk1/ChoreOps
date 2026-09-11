@@ -472,7 +472,6 @@
       "invalid_challenge_name": "Nom de repte no vàlid",
       "invalid_chore": "Tasca no vàlida",
       "invalid_chore_count": "Recompte de tasques no vàlid",
-      "rotation_min_assignees": "Les tasques de rotació requereixen almenys 2 persones assignades",
       "invalid_chore_name": "Nom de tasca no vàlid",
       "custom_interval_required": "Cal un interval personalitzat per a les freqüències personalitzades",
       "custom_interval_invalid": "L'interval personalitzat ha de ser un nombre enter superior a zero.",
@@ -880,7 +879,7 @@
           "assigned_user_ids": "Assigneu aquesta insígnia a persones assignades específiques per al seguiment.",
           "award_items": "Seleccioneu un o més dels següents: punts, recompenses, bonificacions o penalitzacions. Tots els elements seleccionats s'atorgaran o s'aplicaran quan s'obtingui la insígnia. Les penalitzacions només s'aplicaran si no s'obtingui la insígnia abans de la data de finalització o de restabliment. (opcional)",
           "award_points": "Si els punts són un premi seleccionat, especifiqueu el nombre de punts que s'aplicaran quan s'obtingui aquesta insígnia (opcional).",
-          "recurring_frequency": "Defineix la programació de restabliment per a aquesta insígnia (per exemple, setmanal, mensual).",
+          "recurring_frequency": "Define the reset cycle for this badge. Weekly and Biweekly are rolling cycles counted from the start date. Week-End, Month-End, Quarter-End and Year-End align to the calendar (Week-End resets on Sunday).",
           "custom_interval": "Especifiqueu el NOMBRE de dies, setmanes, mesos, etc. per a la Freqüència personalitzada (per exemple, 3 si definiu 3 setmanes).",
           "custom_interval_unit": "Seleccioneu la unitat per a l'interval personalitzat (per exemple, dies, setmanes).",
           "start_date": "Estableix la data d'inici del cicle de reinici (opcional).",
@@ -1360,7 +1359,7 @@
           "assigned_user_ids": "Assigneu aquesta insígnia a persones assignades específiques per al seguiment.",
           "award_items": "Seleccioneu un o més dels següents: punts, recompenses, bonificacions o penalitzacions. Tots els elements seleccionats s'atorgaran o s'aplicaran quan s'obtingui la insígnia. Les penalitzacions només s'aplicaran si no s'obtingui la insígnia abans de la data de finalització o de restabliment. (opcional)",
           "award_points": "Si els punts són un premi seleccionat, especifiqueu el nombre de punts que s'aplicaran quan s'obtingui aquesta insígnia (opcional).",
-          "recurring_frequency": "Defineix la programació de restabliment per a aquesta insígnia (per exemple, setmanal, mensual).",
+          "recurring_frequency": "Define the reset cycle for this badge. Weekly and Biweekly are rolling cycles counted from the start date. Week-End, Month-End, Quarter-End and Year-End align to the calendar (Week-End resets on Sunday).",
           "custom_interval": "Especifiqueu el NOMBRE de dies, setmanes, mesos, etc. per a la Freqüència personalitzada (per exemple, 3 si definiu 3 setmanes).",
           "custom_interval_unit": "Seleccioneu la unitat per a l'interval personalitzat (per exemple, dies, setmanes).",
           "start_date": "Estableix la data d'inici del cicle de reinici (opcional).",
@@ -1885,7 +1884,6 @@
       "error_daily_multi_times_too_few": "Calen com a mínim 2 vegades per a la freqüència \"Diverses vegades al dia\". Per a una sola vegada, utilitzeu la freqüència \"Diària\" habitual.",
       "error_daily_multi_times_too_many": "Màxim de 6 vegades per dia per a la freqüència \"Diverses vegades per dia\".",
       "error_daily_multi_due_date_required": "La freqüència de \"Diverses vegades al dia\" requereix que s'estableixi una data de venciment. La data determina quan comença la programació i els horaris determinen les finestres de disponibilitat cada dia.",
-      "rotation_min_assignees": "Les tasques de rotació requereixen almenys 2 persones assignades",
       "error_allow_steal_incompatible": "Permetre la gestió de retards de robatori només és compatible amb les tasques de rotació (rotation_simple o rotation_smart), tipus de restabliment \"Un cop al dia\" i requereix una data de venciment per definir quan s'obre la finestra de robatori.",
       "error_at_due_date_reset_requires_due_date": "Els tipus de restabliment d'aprovació \"A la data de venciment\" (Una o Múltiple) requereixen que s'estableixi una data de venciment. Sense una data de venciment, el restabliment d'aprovació no s'activarà mai i la tasca romandrà aprovada indefinidament.",
       "error_per_assignee_applicable_days_invalid": "Format de dies aplicable no vàlid per a un o més assignats. Els dies han de ser nombres enters del 0 al 6 (de dilluns a diumenge) sense duplicats.",
@@ -5439,9 +5437,6 @@
     },
     "rotation_unassigned_in_order": {
       "message": "Totes les persones assignades per ordre de rotació han de ser assignades a la tasca."
-    },
-    "rotation_min_assignees": {
-      "message": "Les tasques de rotació requereixen almenys 2 persones assignades"
     },
     "not_rotation": {
       "message": "Aquesta tasca no està en mode de rotació"

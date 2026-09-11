@@ -472,7 +472,6 @@
       "invalid_challenge_name": "Nieprawidłowa nazwa wyzwania",
       "invalid_chore": "Nieprawidłowe zadanie",
       "invalid_chore_count": "Nieprawidłowa liczba zadań",
-      "rotation_min_assignees": "Do wykonywania obowiązków rotacyjnych wymagane są co najmniej 2 przydzielone osoby",
       "invalid_chore_name": "Nieprawidłowa nazwa zadania",
       "custom_interval_required": "W przypadku niestandardowych częstotliwości wymagany jest niestandardowy interwał",
       "custom_interval_invalid": "Interwał niestandardowy musi być liczbą całkowitą większą od zera",
@@ -880,7 +879,7 @@
           "assigned_user_ids": "Przypisz tę odznakę konkretnym osobom w celu śledzenia.",
           "award_items": "Wybierz jeden lub więcej z punktów, nagród, bonusów lub kar. Wszystkie wybrane elementy zostaną przyznane lub zastosowane po zdobyciu odznaki. Kary zostaną naliczone tylko wtedy, gdy odznaka nie zostanie zdobyta do daty końcowej lub daty resetowania. (opcjonalnie)",
           "award_points": "Jeśli wybraną nagrodą są punkty, podaj liczbę punktów, która ma zostać naliczona po zdobyciu tej odznaki. (opcjonalnie).",
-          "recurring_frequency": "Zdefiniuj harmonogram resetowania tego odznaki (np. co tydzień, co miesiąc).",
+          "recurring_frequency": "Define the reset cycle for this badge. Weekly and Biweekly are rolling cycles counted from the start date. Week-End, Month-End, Quarter-End and Year-End align to the calendar (Week-End resets on Sunday).",
           "custom_interval": "Podaj LICZBĘ dni, tygodni, miesięcy itd. dla Częstotliwości niestandardowej (np. 3, jeśli ustawisz 3 tygodnie).",
           "custom_interval_unit": "Wybierz jednostkę dla niestandardowego interwału (np. dni, tygodnie).",
           "start_date": "Ustaw datę rozpoczęcia cyklu resetowania (opcjonalnie).",
@@ -1360,7 +1359,7 @@
           "assigned_user_ids": "Przypisz tę odznakę konkretnym osobom w celu śledzenia.",
           "award_items": "Wybierz jeden lub więcej z punktów, nagród, bonusów lub kar. Wszystkie wybrane elementy zostaną przyznane lub zastosowane po zdobyciu odznaki. Kary zostaną naliczone tylko wtedy, gdy odznaka nie zostanie zdobyta do daty końcowej lub daty resetowania. (opcjonalnie)",
           "award_points": "Jeśli wybraną nagrodą są punkty, podaj liczbę punktów, która ma zostać naliczona po zdobyciu tej odznaki. (opcjonalnie).",
-          "recurring_frequency": "Zdefiniuj harmonogram resetowania tego odznaki (np. co tydzień, co miesiąc).",
+          "recurring_frequency": "Define the reset cycle for this badge. Weekly and Biweekly are rolling cycles counted from the start date. Week-End, Month-End, Quarter-End and Year-End align to the calendar (Week-End resets on Sunday).",
           "custom_interval": "Podaj LICZBĘ dni, tygodni, miesięcy itd. dla Częstotliwości niestandardowej (np. 3, jeśli ustawisz 3 tygodnie).",
           "custom_interval_unit": "Wybierz jednostkę dla niestandardowego interwału (np. dni, tygodnie).",
           "start_date": "Ustaw datę rozpoczęcia cyklu resetowania (opcjonalnie).",
@@ -1885,7 +1884,6 @@
       "error_daily_multi_times_too_few": "W przypadku częstotliwości „Kilka razy dziennie” wymagane są co najmniej 2 razy. W przypadku jednorazowego użycia należy użyć standardowej częstotliwości „Codziennie”.",
       "error_daily_multi_times_too_many": "Maksymalnie 6 razy dziennie dla częstotliwości „Kilka razy dziennie”.",
       "error_daily_multi_due_date_required": "Częstotliwość „Kilka razy dziennie” wymaga ustawienia daty końcowej. Data określa moment rozpoczęcia harmonogramu, a godziny określają okna dostępności każdego dnia.",
-      "rotation_min_assignees": "Do wykonywania obowiązków rotacyjnych wymagane są co najmniej 2 przydzielone osoby",
       "error_allow_steal_incompatible": "Opcja Zezwalaj na obsługę przeterminowanych kradzieży jest zgodna tylko z zadaniami rotacji (rotation_simple lub rotation_smart), typem resetowania „Raz dziennie” i wymaga podania daty końcowej, kiedy otwiera się okno kradzieży.",
       "error_at_due_date_reset_requires_due_date": "Typy resetowania zatwierdzenia „W terminie” (jednorazowe lub wielokrotne) wymagają ustawienia terminu. Bez terminu resetowanie zatwierdzenia nigdy nie zostanie aktywowane, a zadanie pozostanie zatwierdzone na czas nieokreślony.",
       "error_per_assignee_applicable_days_invalid": "Nieprawidłowy format dni dla co najmniej jednego przypisanego. Dni muszą być liczbami całkowitymi od 0 do 6 (od poniedziałku do niedzieli) i nie mogą zawierać duplikatów.",
@@ -5439,9 +5437,6 @@
     },
     "rotation_unassigned_in_order": {
       "message": "Wszyscy pracownicy w kolejności rotacyjnej muszą zostać przypisani do zadania"
-    },
-    "rotation_min_assignees": {
-      "message": "Do wykonywania obowiązków rotacyjnych wymagane są co najmniej 2 przydzielone osoby"
     },
     "not_rotation": {
       "message": "To zadanie nie jest w trybie rotacyjnym"

@@ -472,7 +472,6 @@
       "invalid_challenge_name": "Nome de desafio inválido",
       "invalid_chore": "Tarefa inválida",
       "invalid_chore_count": "Contagem de tarefas inválida",
-      "rotation_min_assignees": "As tarefas rotativas requerem pelo menos 2 pessoas atribuídas.",
       "invalid_chore_name": "Nome de tarefa inválido",
       "custom_interval_required": "É necessário um intervalo personalizado para frequências personalizadas.",
       "custom_interval_invalid": "O intervalo personalizado deve ser um número inteiro superior a zero.",
@@ -880,7 +879,7 @@
           "assigned_user_ids": "Atribua este crachá a responsáveis específicos para efeitos de rastreio.",
           "award_items": "Selecione um ou mais itens entre pontos, recompensas, bónus ou penalizações. Todos os artigos selecionados serão atribuídos ou aplicados quando o distintivo for conquistado. As penalizações serão aplicadas apenas se o distintivo não for conquistado até à data final ou à data de reinicialização. (opcional)",
           "award_points": "Se os pontos forem uma das recompensas selecionadas, especifique a quantidade de pontos a considerar quando este distintivo for conquistado. (opcional)",
-          "recurring_frequency": "Defina a frequência de reinicialização deste selo (por exemplo, semanal, mensal).",
+          "recurring_frequency": "Define the reset cycle for this badge. Weekly and Biweekly are rolling cycles counted from the start date. Week-End, Month-End, Quarter-End and Year-End align to the calendar (Week-End resets on Sunday).",
           "custom_interval": "Especifique o NÚMERO de dias, semanas, meses, etc. para a Frequência Personalizada (por exemplo, 3 se definir 3 semanas).",
           "custom_interval_unit": "Selecione a unidade para o intervalo personalizado (por exemplo, dias, semanas).",
           "start_date": "Defina a data de início do ciclo de reinicialização (opcional).",
@@ -1360,7 +1359,7 @@
           "assigned_user_ids": "Atribua este crachá a responsáveis específicos para efeitos de rastreio.",
           "award_items": "Selecione um ou mais itens entre pontos, recompensas, bónus ou penalizações. Todos os artigos selecionados serão atribuídos ou aplicados quando o distintivo for conquistado. As penalizações serão aplicadas apenas se o distintivo não for conquistado até à data final ou à data de reinicialização. (opcional)",
           "award_points": "Se os pontos forem uma das recompensas selecionadas, especifique a quantidade de pontos a considerar quando este distintivo for conquistado. (opcional)",
-          "recurring_frequency": "Defina a frequência de reinicialização deste selo (por exemplo, semanal, mensal).",
+          "recurring_frequency": "Define the reset cycle for this badge. Weekly and Biweekly are rolling cycles counted from the start date. Week-End, Month-End, Quarter-End and Year-End align to the calendar (Week-End resets on Sunday).",
           "custom_interval": "Especifique o NÚMERO de dias, semanas, meses, etc. para a Frequência Personalizada (por exemplo, 3 se definir 3 semanas).",
           "custom_interval_unit": "Selecione a unidade para o intervalo personalizado (por exemplo, dias, semanas).",
           "start_date": "Defina a data de início do ciclo de reinicialização (opcional).",
@@ -1885,7 +1884,6 @@
       "error_daily_multi_times_too_few": "Para a frequência \"Várias vezes por dia\", são necessárias pelo menos 2 aplicações. Para uma única aplicação, utilize a frequência \"Diária\".",
       "error_daily_multi_times_too_many": "No máximo 6 vezes por dia para a frequência 'Várias vezes por dia'.",
       "error_daily_multi_due_date_required": "A frequência \"várias vezes por dia\" exige a definição de uma data de vencimento. A data determina quando começa o agendamento e os horários determinam os períodos de disponibilidade em cada dia.",
-      "rotation_min_assignees": "As tarefas rotativas requerem pelo menos 2 pessoas atribuídas.",
       "error_allow_steal_incompatible": "A opção \"Permitir roubo\" com tratamento de tarefas atrasadas é compatível apenas com tarefas de rotação (rotation_simple ou rotation_smart), tipo de reposição \"Uma vez por dia\" e requer uma data de vencimento para definir quando a janela de roubo será aberta.",
       "error_at_due_date_reset_requires_due_date": "Os tipos de reposição de aprovação \"Na Data de Vencimento\" (Uma vez ou Várias) exigem que seja definida uma data de vencimento. Sem data de vencimento, a reposição da aprovação nunca será acionada e a tarefa permanecerá aprovada indefinidamente.",
       "error_per_assignee_applicable_days_invalid": "Formato de dias aplicáveis inválido para um ou mais responsáveis. Os dias devem ser números inteiros de 0 a 6 (de segunda-feira a domingo), sem duplicados.",
@@ -5439,9 +5437,6 @@
     },
     "rotation_unassigned_in_order": {
       "message": "Todos os funcionários designados, por ordem de rotação, devem ser alocados à tarefa."
-    },
-    "rotation_min_assignees": {
-      "message": "As tarefas rotativas requerem pelo menos 2 pessoas atribuídas."
     },
     "not_rotation": {
       "message": "Esta tarefa não está em modo de rotação."
