@@ -2087,7 +2087,8 @@
         "shared_first": "共享优先（首次完成计入）",
         "rotation_simple": "轮换简单（仅限轮换支架，严格顺序）",
         "rotation_smart": "轮换智能（仅限回合持有者，公平性加权）",
-        "rotation_primary_standby": "主执行人和备用执行人（默认由主执行人执行，符合条件时备用执行人可接手）"
+        "rotation_primary_standby": "主执行人和备用执行人（默认由主执行人执行，符合条件时备用执行人可接手）",
+        "rotation_simple_from_turn_holder": "Rotation Simple (Advance From Current Turn Holder)"
       }
     },
     "standby_claim_mode": {
@@ -2110,6 +2111,7 @@
     "overdue_handling_type": {
       "options": {
         "never_overdue": "永不逾期",
+        "never_overdue_clear_at_approval_reset": "Never Overdue (Reset at Approval Boundary)",
         "at_due_date": "逾期直至完成",
         "at_due_date_clear_at_approval_reset": "逾期直至审批周期重置",
         "at_due_date_clear_immediate_on_late": "逾期未完成（立即清除逾期审批）",
@@ -2715,7 +2717,7 @@
         },
         "completion_criteria": {
           "name": "完成标准",
-          "description": "控制当分配多个执行人时如何完成家务：个人跟踪、共同完成或轮流完成。",
+          "description": "How the chore is completed when multiple assignees are assigned: independent, shared_first, shared_all, rotation_simple, rotation_smart, rotation_primary_standby, or rotation_simple_from_turn_holder.",
           "example": "independent"
         },
         "approval_reset_type": {
@@ -2730,7 +2732,7 @@
         },
         "overdue_handling": {
           "name": "逾期处理",
-          "description": "控制到期日过后会发生什么，以及在审批重置边界处逾期家务会发生什么。",
+          "description": "How overdue chores behave at the due date and approval reset boundary.",
           "example": "at_due_date"
         },
         "chore_claim_lock_until_window": {
@@ -3394,7 +3396,8 @@
               "shared_all": "共享（全部）",
               "rotation_simple": "简单轮换（严格顺序）",
               "rotation_smart": "智能轮换（公平轮换）",
-              "rotation_primary_standby": "主执行人和备用执行人"
+              "rotation_primary_standby": "主执行人和备用执行人",
+              "rotation_simple_from_turn_holder": "Rotation Simple (Turn Holder)"
             }
           },
           "approval_reset_type": {
@@ -3420,6 +3423,7 @@
             "name": "逾期处理类型",
             "state": {
               "never_overdue": "永不逾期",
+              "never_overdue_clear_at_approval_reset": "Never Overdue (Reset at Approval Boundary)",
               "at_due_date": "逾期直至完成",
               "at_due_date_clear_at_approval_reset": "逾期直至审批周期重置",
               "at_due_date_clear_immediate_on_late": "逾期未完成（立即清除逾期审批）",
@@ -4355,7 +4359,8 @@
               "shared_all": "共享（全部必填）",
               "rotation_simple": "简单轮换（严格顺序）",
               "rotation_smart": "智能轮换（公平轮换）",
-              "rotation_primary_standby": "主执行人和备用执行人"
+              "rotation_primary_standby": "主执行人和备用执行人",
+              "rotation_simple_from_turn_holder": "Rotation Simple (Turn Holder)"
             }
           },
           "approval_reset_type": {

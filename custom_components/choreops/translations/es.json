@@ -2087,7 +2087,8 @@
         "shared_first": "Compartido Primero (La primera finalización cuenta)",
         "rotation_simple": "Rotación simple (solo titular del turno, orden estricto)",
         "rotation_smart": "Rotación inteligente (solo para titulares de turnos, ponderación justa)",
-        "rotation_primary_standby": "Principal y de reserva (principal por defecto, reserva cuando corresponda)"
+        "rotation_primary_standby": "Principal y de reserva (principal por defecto, reserva cuando corresponda)",
+        "rotation_simple_from_turn_holder": "Rotation Simple (Advance From Current Turn Holder)"
       }
     },
     "standby_claim_mode": {
@@ -2110,6 +2111,7 @@
     "overdue_handling_type": {
       "options": {
         "never_overdue": "Nunca vencido",
+        "never_overdue_clear_at_approval_reset": "Never Overdue (Reset at Approval Boundary)",
         "at_due_date": "Vencido hasta completar",
         "at_due_date_clear_at_approval_reset": "Vencido hasta restablecimiento de aprobación",
         "at_due_date_clear_immediate_on_late": "Atrasado hasta completar (Liquidar aprobaciones tardías inmediatamente)",
@@ -2715,7 +2717,7 @@
         },
         "completion_criteria": {
           "name": "Criterios de finalización",
-          "description": "Controla cómo se completa la tarea cuando se asignan varios usuarios: seguimiento individual, finalización compartida o rotación por turnos.",
+          "description": "How the chore is completed when multiple assignees are assigned: independent, shared_first, shared_all, rotation_simple, rotation_smart, rotation_primary_standby, or rotation_simple_from_turn_holder.",
           "example": "independiente"
         },
         "approval_reset_type": {
@@ -2730,7 +2732,7 @@
         },
         "overdue_handling": {
           "name": "Manejo de vencimientos",
-          "description": "Controla lo que sucede cuando pasa la fecha de vencimiento y lo que sucede con las tareas vencidas en el límite de restablecimiento de aprobación.",
+          "description": "How overdue chores behave at the due date and approval reset boundary.",
           "example": "en la fecha de vencimiento"
         },
         "chore_claim_lock_until_window": {
@@ -3394,7 +3396,8 @@
               "shared_all": "Compartido (Todos)",
               "rotation_simple": "Rotación simple",
               "rotation_smart": "Rotación inteligente",
-              "rotation_primary_standby": "Principal y de reserva"
+              "rotation_primary_standby": "Principal y de reserva",
+              "rotation_simple_from_turn_holder": "Rotation Simple (Turn Holder)"
             }
           },
           "approval_reset_type": {
@@ -3420,6 +3423,7 @@
             "name": "Tipo de manejo de vencimiento",
             "state": {
               "never_overdue": "Nunca vencido",
+              "never_overdue_clear_at_approval_reset": "Never Overdue (Reset at Approval Boundary)",
               "at_due_date": "Vencido hasta completar",
               "at_due_date_clear_at_approval_reset": "Vencido hasta restablecimiento de aprobación",
               "at_due_date_clear_immediate_on_late": "Atrasado hasta su finalización (Liquidar aprobaciones tardías de inmediato)",
@@ -4355,7 +4359,8 @@
               "shared_all": "Compartido (Todos requeridos)",
               "rotation_simple": "Rotación simple",
               "rotation_smart": "Rotación inteligente",
-              "rotation_primary_standby": "Principal y de reserva"
+              "rotation_primary_standby": "Principal y de reserva",
+              "rotation_simple_from_turn_holder": "Rotation Simple (Turn Holder)"
             }
           },
           "approval_reset_type": {

@@ -2087,7 +2087,8 @@
         "shared_first": "Condivisione prioritaria (conta il primo completamento)",
         "rotation_simple": "Rotazione semplice (solo per chi tiene il turno, ordine rigoroso)",
         "rotation_smart": "Rotazione intelligente (solo per chi tiene il volante, ponderata in base all'equità)",
-        "rotation_primary_standby": "Primario e di riserva (turno primario predefinito, di riserva quando disponibile)"
+        "rotation_primary_standby": "Primario e di riserva (turno primario predefinito, di riserva quando disponibile)",
+        "rotation_simple_from_turn_holder": "Rotation Simple (Advance From Current Turn Holder)"
       }
     },
     "standby_claim_mode": {
@@ -2110,6 +2111,7 @@
     "overdue_handling_type": {
       "options": {
         "never_overdue": "Mai in ritardo",
+        "never_overdue_clear_at_approval_reset": "Never Overdue (Reset at Approval Boundary)",
         "at_due_date": "In ritardo fino al completamento",
         "at_due_date_clear_at_approval_reset": "In ritardo fino al ripristino dell'approvazione",
         "at_due_date_clear_immediate_on_late": "In ritardo fino al completamento (sbloccare immediatamente le approvazioni in ritardo)",
@@ -2715,7 +2717,7 @@
         },
         "completion_criteria": {
           "name": "Criteri di completamento",
-          "description": "Controlla la modalità di completamento dell'attività quando sono assegnati più incaricati: monitoraggio individuale, completamento condiviso o rotazione a turni.",
+          "description": "How the chore is completed when multiple assignees are assigned: independent, shared_first, shared_all, rotation_simple, rotation_smart, rotation_primary_standby, or rotation_simple_from_turn_holder.",
           "example": "indipendente"
         },
         "approval_reset_type": {
@@ -2730,7 +2732,7 @@
         },
         "overdue_handling": {
           "name": "Gestione dei ritardi",
-          "description": "Controlla cosa succede quando la data di scadenza è superata e cosa succede alle attività in ritardo al momento del ripristino dell'approvazione.",
+          "description": "How overdue chores behave at the due date and approval reset boundary.",
           "example": "alla data di scadenza"
         },
         "chore_claim_lock_until_window": {
@@ -3394,7 +3396,8 @@
               "shared_all": "Condiviso (Tutti)",
               "rotation_simple": "Rotazione semplice",
               "rotation_smart": "Rotazione intelligente",
-              "rotation_primary_standby": "Primario e di riserva"
+              "rotation_primary_standby": "Primario e di riserva",
+              "rotation_simple_from_turn_holder": "Rotation Simple (Turn Holder)"
             }
           },
           "approval_reset_type": {
@@ -3420,6 +3423,7 @@
             "name": "Tipo di gestione dei ritardi",
             "state": {
               "never_overdue": "Mai in ritardo",
+              "never_overdue_clear_at_approval_reset": "Never Overdue (Reset at Approval Boundary)",
               "at_due_date": "In ritardo fino al completamento",
               "at_due_date_clear_at_approval_reset": "In ritardo fino al ripristino dell'approvazione",
               "at_due_date_clear_immediate_on_late": "In ritardo fino al completamento (sbloccare immediatamente le approvazioni in ritardo)",
@@ -4355,7 +4359,8 @@
               "shared_all": "Condiviso (Tutti i campi obbligatori)",
               "rotation_simple": "Rotazione semplice",
               "rotation_smart": "Rotazione intelligente",
-              "rotation_primary_standby": "Primario e di riserva"
+              "rotation_primary_standby": "Primario e di riserva",
+              "rotation_simple_from_turn_holder": "Rotation Simple (Turn Holder)"
             }
           },
           "approval_reset_type": {

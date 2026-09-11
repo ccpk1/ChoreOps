@@ -2087,7 +2087,8 @@
         "shared_first": "Deljeno prvo (šteje se prvo dokončanje)",
         "rotation_simple": "Preprosta rotacija (samo za imetnike zavihkov, strog vrstni red)",
         "rotation_smart": "Pametna rotacija (samo za imetnike pravic, ponderirano glede na pravičnost)",
-        "rotation_primary_standby": "Primarni in rezervni (primarni privzeti obrat, rezervni, ko je upravičen)"
+        "rotation_primary_standby": "Primarni in rezervni (primarni privzeti obrat, rezervni, ko je upravičen)",
+        "rotation_simple_from_turn_holder": "Rotation Simple (Advance From Current Turn Holder)"
       }
     },
     "standby_claim_mode": {
@@ -2110,6 +2111,7 @@
     "overdue_handling_type": {
       "options": {
         "never_overdue": "Nikoli zamudno",
+        "never_overdue_clear_at_approval_reset": "Never Overdue (Reset at Approval Boundary)",
         "at_due_date": "Zamuja do dokončanja",
         "at_due_date_clear_at_approval_reset": "Zamuda do odobritve Ponastavitev",
         "at_due_date_clear_immediate_on_late": "Zamuda do dokončanja (takojšnje potrditev)",
@@ -2715,7 +2717,7 @@
         },
         "completion_criteria": {
           "name": "Merila za dokončanje",
-          "description": "Nadzira, kako se opravilo zaključi, ko je dodeljenih več dodeljevalcem: individualno sledenje, skupno dokončanje ali rotacija po vrsti.",
+          "description": "How the chore is completed when multiple assignees are assigned: independent, shared_first, shared_all, rotation_simple, rotation_smart, rotation_primary_standby, or rotation_simple_from_turn_holder.",
           "example": "neodvisen"
         },
         "approval_reset_type": {
@@ -2730,7 +2732,7 @@
         },
         "overdue_handling": {
           "name": "Zamujeno ravnanje",
-          "description": "Nadzira, kaj se zgodi, ko rok poteče, in kaj se zgodi z zamujenimi opravili na meji ponastavitve odobritve.",
+          "description": "How overdue chores behave at the due date and approval reset boundary.",
           "example": "ob_roku_"
         },
         "chore_claim_lock_until_window": {
@@ -3394,7 +3396,8 @@
               "shared_all": "Deljeno (vse)",
               "rotation_simple": "Preprosta rotacija",
               "rotation_smart": "Pametno vrtenje",
-              "rotation_primary_standby": "Primarno in rezervno"
+              "rotation_primary_standby": "Primarno in rezervno",
+              "rotation_simple_from_turn_holder": "Rotation Simple (Turn Holder)"
             }
           },
           "approval_reset_type": {
@@ -3420,6 +3423,7 @@
             "name": "Vrsta ravnanja z zamudo",
             "state": {
               "never_overdue": "Nikoli zamudno",
+              "never_overdue_clear_at_approval_reset": "Never Overdue (Reset at Approval Boundary)",
               "at_due_date": "Zamuja do dokončanja",
               "at_due_date_clear_at_approval_reset": "Zamuda do odobritve Ponastavitev",
               "at_due_date_clear_immediate_on_late": "Zamuda do dokončanja (takojšnje potrditev)",
@@ -4355,7 +4359,8 @@
               "shared_all": "Deljeno (vse obvezno)",
               "rotation_simple": "Preprosta rotacija",
               "rotation_smart": "Pametno vrtenje",
-              "rotation_primary_standby": "Primarno in rezervno"
+              "rotation_primary_standby": "Primarno in rezervno",
+              "rotation_simple_from_turn_holder": "Rotation Simple (Turn Holder)"
             }
           },
           "approval_reset_type": {

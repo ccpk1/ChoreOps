@@ -2087,7 +2087,8 @@
         "shared_first": "Partajat Mai întâi (Primele finalizări numără)",
         "rotation_simple": "Rotație simplă (doar titular de tură, ordine strictă)",
         "rotation_smart": "Rotație inteligentă (doar pentru titularul de tură, ponderat în funcție de corectitudine)",
-        "rotation_primary_standby": "Principal și în așteptare (tura implicită principală, în așteptare când este eligibil)"
+        "rotation_primary_standby": "Principal și în așteptare (tura implicită principală, în așteptare când este eligibil)",
+        "rotation_simple_from_turn_holder": "Rotation Simple (Advance From Current Turn Holder)"
       }
     },
     "standby_claim_mode": {
@@ -2110,6 +2111,7 @@
     "overdue_handling_type": {
       "options": {
         "never_overdue": "Niciodată întârziat",
+        "never_overdue_clear_at_approval_reset": "Never Overdue (Reset at Approval Boundary)",
         "at_due_date": "Restanțat până la finalizare",
         "at_due_date_clear_at_approval_reset": "Restanțat până la resetarea aprobării",
         "at_due_date_clear_immediate_on_late": "Restanțat până la finalizare (Ștergeți imediat aprobările întârziate)",
@@ -2715,7 +2717,7 @@
         },
         "completion_criteria": {
           "name": "Criterii de finalizare",
-          "description": "Controlează modul în care se finalizează sarcina atunci când sunt atribuite mai multe persoane: urmărire individuală, finalizare partajată sau rotație pe ture.",
+          "description": "How the chore is completed when multiple assignees are assigned: independent, shared_first, shared_all, rotation_simple, rotation_smart, rotation_primary_standby, or rotation_simple_from_turn_holder.",
           "example": "independent"
         },
         "approval_reset_type": {
@@ -2730,7 +2732,7 @@
         },
         "overdue_handling": {
           "name": "Gestionarea restanțelor",
-          "description": "Controlează ce se întâmplă când trece data scadenței și ce se întâmplă cu sarcinile restante la limita de resetare a aprobării.",
+          "description": "How overdue chores behave at the due date and approval reset boundary.",
           "example": "la_data_scadentă"
         },
         "chore_claim_lock_until_window": {
@@ -3394,7 +3396,8 @@
               "shared_all": "Partajat (Toate)",
               "rotation_simple": "Rotație simplă",
               "rotation_smart": "Rotație inteligentă",
-              "rotation_primary_standby": "Principal și de rezervă"
+              "rotation_primary_standby": "Principal și de rezervă",
+              "rotation_simple_from_turn_holder": "Rotation Simple (Turn Holder)"
             }
           },
           "approval_reset_type": {
@@ -3420,6 +3423,7 @@
             "name": "Tip de gestionare a restanțelor",
             "state": {
               "never_overdue": "Niciodată întârziat",
+              "never_overdue_clear_at_approval_reset": "Never Overdue (Reset at Approval Boundary)",
               "at_due_date": "Restanțat până la finalizare",
               "at_due_date_clear_at_approval_reset": "Restanțat până la resetarea aprobării",
               "at_due_date_clear_immediate_on_late": "Restanțat până la finalizare (Ștergeți imediat aprobările întârziate)",
@@ -4355,7 +4359,8 @@
               "shared_all": "Partajat (Toate obligatorii)",
               "rotation_simple": "Rotație simplă",
               "rotation_smart": "Rotație inteligentă",
-              "rotation_primary_standby": "Principal și de rezervă"
+              "rotation_primary_standby": "Principal și de rezervă",
+              "rotation_simple_from_turn_holder": "Rotation Simple (Turn Holder)"
             }
           },
           "approval_reset_type": {
