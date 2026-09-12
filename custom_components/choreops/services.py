@@ -896,6 +896,7 @@ CREATE_CHORE_SCHEMA = vol.Schema(
             vol.Optional(
                 const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_DUE_REMINDER
             ): cv.boolean,
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_SHOW_ON_CALENDAR): cv.boolean,
         }
     )
 )
@@ -987,6 +988,7 @@ UPDATE_CHORE_SCHEMA = vol.Schema(
             vol.Optional(
                 const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_DUE_REMINDER
             ): cv.boolean,
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_SHOW_ON_CALENDAR): cv.boolean,
         }
     )
 )
@@ -1032,6 +1034,7 @@ _SERVICE_TO_CHORE_DATA_MAPPING: dict[str, str] = {
     const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_OVERDUE: const.DATA_CHORE_NOTIFY_ON_OVERDUE,
     const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_DUE_WINDOW: const.DATA_CHORE_NOTIFY_ON_DUE_WINDOW,
     const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_DUE_REMINDER: const.DATA_CHORE_NOTIFY_DUE_REMINDER,
+    const.SERVICE_FIELD_CHORE_CRUD_SHOW_ON_CALENDAR: const.DATA_CHORE_SHOW_ON_CALENDAR,
     # NOTE: due_date is handled specially via set_chore_due_date() hook
 }
 
