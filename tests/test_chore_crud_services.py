@@ -20,6 +20,7 @@ See tests/AGENT_TEST_CREATION_INSTRUCTIONS.md for patterns used.
 from __future__ import annotations
 
 from datetime import UTC, datetime
+import json
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -1616,26 +1617,127 @@ class TestChoreNotificationServiceFields:
         assert stored[const.DATA_CHORE_NOTIFY_DUE_REMINDER] is False
 
 
-def test_every_notification_service_field_is_mapped() -> None:
-    """Each notification service field must map to storage or it is dropped."""
-    service_fields = (
-        const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_CLAIM,
-        const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_APPROVAL,
-        const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_DISAPPROVAL,
-        const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_OVERDUE,
-        const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_DUE_WINDOW,
-        const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_DUE_REMINDER,
-    )
+class TestChoreShowOnCalendarServiceField:
+    """The show_on_calendar toggle is readable and writable through chore services."""
 
-    for field in service_fields:
+    @pytest.mark.asyncio
+    async def test_create_defaults_to_enabled(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """Omitting show_on_calendar keeps the chore on the calendar."""
+        with patch.object(scenario_full.coordinator, "_persist", new=MagicMock()):
+            response = await hass.services.async_call(
+                DOMAIN,
+                SERVICE_CREATE_CHORE,
+                {
+                    "name": "Calendar Default Chore",
+                    "assigned_user_names": ["Zoë"],
+                },
+                blocking=True,
+                return_response=True,
+            )
+
+        stored = scenario_full.coordinator.chores_data[response["id"]]
+        assert stored[const.DATA_CHORE_SHOW_ON_CALENDAR] is True
+
+    @pytest.mark.asyncio
+    async def test_create_can_hide_from_calendar(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """Explicitly disabling show_on_calendar is stored as sent."""
+        with patch.object(scenario_full.coordinator, "_persist", new=MagicMock()):
+            response = await hass.services.async_call(
+                DOMAIN,
+                SERVICE_CREATE_CHORE,
+                {
+                    "name": "Hidden Calendar Chore",
+                    "assigned_user_names": ["Zoë"],
+                    "show_on_calendar": False,
+                },
+                blocking=True,
+                return_response=True,
+            )
+
+        stored = scenario_full.coordinator.chores_data[response["id"]]
+        assert stored[const.DATA_CHORE_SHOW_ON_CALENDAR] is False
+
+    @pytest.mark.asyncio
+    async def test_update_toggles_both_directions(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """The toggle can be turned off and back on."""
+        chore_id = scenario_full.chore_ids["Täke Öut Trash"]
+
+        for expected in (False, True):
+            with patch.object(scenario_full.coordinator, "_persist", new=MagicMock()):
+                await hass.services.async_call(
+                    DOMAIN,
+                    SERVICE_UPDATE_CHORE,
+                    {"id": chore_id, "show_on_calendar": expected},
+                    blocking=True,
+                )
+
+            stored = scenario_full.coordinator.chores_data[chore_id]
+            assert stored[const.DATA_CHORE_SHOW_ON_CALENDAR] is expected
+
+    @pytest.mark.asyncio
+    async def test_update_of_other_fields_leaves_it_untouched(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """Updating unrelated fields does not change the calendar toggle."""
+        chore_id = scenario_full.chore_ids["Täke Öut Trash"]
+
+        with patch.object(scenario_full.coordinator, "_persist", new=MagicMock()):
+            await hass.services.async_call(
+                DOMAIN,
+                SERVICE_UPDATE_CHORE,
+                {"id": chore_id, "show_on_calendar": False},
+                blocking=True,
+            )
+
+        with patch.object(scenario_full.coordinator, "_persist", new=MagicMock()):
+            await hass.services.async_call(
+                DOMAIN,
+                SERVICE_UPDATE_CHORE,
+                {"id": chore_id, "points": 21},
+                blocking=True,
+            )
+
+        stored = scenario_full.coordinator.chores_data[chore_id]
+        assert stored[const.DATA_CHORE_SHOW_ON_CALENDAR] is False
+
+
+_BOOLEAN_SERVICE_FIELDS = (
+    const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_CLAIM,
+    const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_APPROVAL,
+    const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_DISAPPROVAL,
+    const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_OVERDUE,
+    const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_DUE_WINDOW,
+    const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_DUE_REMINDER,
+    const.SERVICE_FIELD_CHORE_CRUD_SHOW_ON_CALENDAR,
+)
+
+
+def test_every_boolean_service_field_is_mapped() -> None:
+    """Each boolean service field must map to storage or it is silently dropped."""
+    for field in _BOOLEAN_SERVICE_FIELDS:
         assert field in _SERVICE_TO_CHORE_DATA_MAPPING
-    assert sorted(_SERVICE_TO_CHORE_DATA_MAPPING[f] for f in service_fields) == sorted(
-        _NOTIFY_KEYS
-    )
+
+    assert sorted(
+        _SERVICE_TO_CHORE_DATA_MAPPING[f] for f in _BOOLEAN_SERVICE_FIELDS
+    ) == sorted((*_NOTIFY_KEYS, const.DATA_CHORE_SHOW_ON_CALENDAR))
 
 
-def test_services_yaml_documents_every_notification_field() -> None:
-    """Both chore services must document all notification fields without defaults."""
+def test_services_yaml_documents_every_boolean_field() -> None:
+    """Both chore services document every boolean field, without defaults."""
     services_yaml_path = (
         Path(__file__).parent.parent
         / "custom_components"
@@ -1645,13 +1747,35 @@ def test_services_yaml_documents_every_notification_field() -> None:
     with services_yaml_path.open(encoding="utf-8") as file_handle:
         services_yaml = yaml.safe_load(file_handle)
 
-    expected_field_names = sorted(key for key in _NOTIFY_KEYS)
-
     for service_name in ("create_chore", "update_chore"):
         fields = services_yaml[service_name]["fields"]
-        for field_name in expected_field_names:
+        for field_name in _BOOLEAN_SERVICE_FIELDS:
             assert field_name in fields, f"{service_name} missing {field_name}"
             assert "default" not in fields[field_name], (
                 f"{service_name}.{field_name} must not define a default; "
                 "a defaulted boolean would overwrite stored settings"
             )
+
+
+def test_en_translations_cover_every_documented_service_field() -> None:
+    """Every services.yaml field needs an en.json entry so it can be translated."""
+    component_dir = Path(__file__).parent.parent / "custom_components" / "choreops"
+    with (component_dir / "services.yaml").open(encoding="utf-8") as file_handle:
+        services_yaml = yaml.safe_load(file_handle)
+    with (component_dir / "translations" / "en.json").open(
+        encoding="utf-8"
+    ) as file_handle:
+        translations = json.load(file_handle)
+
+    for service_name in ("create_chore", "update_chore"):
+        documented = set(services_yaml[service_name]["fields"])
+        translated = set(translations["services"][service_name]["fields"])
+
+        assert documented - translated == set(), (
+            f"{service_name} fields missing from translations/en.json: "
+            f"{sorted(documented - translated)}"
+        )
+        assert translated - documented == set(), (
+            f"{service_name} translations without a services.yaml field: "
+            f"{sorted(translated - documented)}"
+        )
