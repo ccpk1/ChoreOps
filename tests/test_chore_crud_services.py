@@ -20,6 +20,7 @@ See tests/AGENT_TEST_CREATION_INSTRUCTIONS.md for patterns used.
 from __future__ import annotations
 
 from datetime import UTC, datetime
+import json
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -1754,3 +1755,27 @@ def test_services_yaml_documents_every_boolean_field() -> None:
                 f"{service_name}.{field_name} must not define a default; "
                 "a defaulted boolean would overwrite stored settings"
             )
+
+
+def test_en_translations_cover_every_documented_service_field() -> None:
+    """Every services.yaml field needs an en.json entry so it can be translated."""
+    component_dir = Path(__file__).parent.parent / "custom_components" / "choreops"
+    with (component_dir / "services.yaml").open(encoding="utf-8") as file_handle:
+        services_yaml = yaml.safe_load(file_handle)
+    with (component_dir / "translations" / "en.json").open(
+        encoding="utf-8"
+    ) as file_handle:
+        translations = json.load(file_handle)
+
+    for service_name in ("create_chore", "update_chore"):
+        documented = set(services_yaml[service_name]["fields"])
+        translated = set(translations["services"][service_name]["fields"])
+
+        assert documented - translated == set(), (
+            f"{service_name} fields missing from translations/en.json: "
+            f"{sorted(documented - translated)}"
+        )
+        assert translated - documented == set(), (
+            f"{service_name} translations without a services.yaml field: "
+            f"{sorted(translated - documented)}"
+        )

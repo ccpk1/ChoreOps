@@ -2761,6 +2761,51 @@
         "standby_claim_mode": {
           "name": "Standby Claim Mode",
           "description": "Controls when standbys can claim this chore (anytime, on_overdue, manual_only). Only applies to Primary & Standby completion criteria."
+        },
+        "custom_interval": {
+          "name": "Custom Interval",
+          "description": "Number of time units between repetitions when frequency is custom or custom_from_complete.",
+          "example": "6"
+        },
+        "custom_interval_unit": {
+          "name": "Custom Interval Unit",
+          "description": "Time unit used with custom_interval when frequency is custom or custom_from_complete.",
+          "example": "months"
+        },
+        "notify_on_claim": {
+          "name": "Notify on Claim",
+          "description": "Send a notification when this chore is claimed. Omit to use the default (enabled).",
+          "example": "true"
+        },
+        "notify_on_approval": {
+          "name": "Notify on Approval",
+          "description": "Send a notification when this chore is approved. Omit to use the default (enabled).",
+          "example": "true"
+        },
+        "notify_on_disapproval": {
+          "name": "Notify on Disapproval",
+          "description": "Send a notification when this chore is disapproved. Omit to use the default (enabled).",
+          "example": "true"
+        },
+        "notify_on_overdue": {
+          "name": "Notify on Overdue",
+          "description": "Send a notification when this chore becomes overdue. Omit to use the default (enabled).",
+          "example": "true"
+        },
+        "notify_on_due_window": {
+          "name": "Notify When Due Window Starts",
+          "description": "Send a notification when this chore enters its due window. Omit to use the default (disabled).",
+          "example": "false"
+        },
+        "notify_due_reminder": {
+          "name": "Notify at Due Reminder Time",
+          "description": "Send a notification at the configured due reminder offset. Omit to use the default (enabled).",
+          "example": "true"
+        },
+        "show_on_calendar": {
+          "name": "Show on Calendar",
+          "description": "Show this chore on the ChoreOps calendar. Omit to use the default (enabled).",
+          "example": "true"
         }
       }
     },
@@ -2871,6 +2916,51 @@
         "standby_claim_mode": {
           "name": "Standby Claim Mode",
           "description": "Controls when standbys can claim this chore (anytime, on_overdue, manual_only). Only applies to Primary & Standby completion criteria."
+        },
+        "custom_interval": {
+          "name": "Custom Interval",
+          "description": "New number of time units between repetitions when frequency is custom or custom_from_complete.",
+          "example": "6"
+        },
+        "custom_interval_unit": {
+          "name": "Custom Interval Unit",
+          "description": "New time unit used with custom_interval when frequency is custom or custom_from_complete.",
+          "example": "months"
+        },
+        "notify_on_claim": {
+          "name": "Notify on Claim",
+          "description": "Set whether to notify when this chore is claimed. Omit to leave the current setting unchanged.",
+          "example": "true"
+        },
+        "notify_on_approval": {
+          "name": "Notify on Approval",
+          "description": "Set whether to notify when this chore is approved. Omit to leave the current setting unchanged.",
+          "example": "true"
+        },
+        "notify_on_disapproval": {
+          "name": "Notify on Disapproval",
+          "description": "Set whether to notify when this chore is disapproved. Omit to leave the current setting unchanged.",
+          "example": "true"
+        },
+        "notify_on_overdue": {
+          "name": "Notify on Overdue",
+          "description": "Set whether to notify when this chore becomes overdue. Omit to leave the current setting unchanged.",
+          "example": "true"
+        },
+        "notify_on_due_window": {
+          "name": "Notify When Due Window Starts",
+          "description": "Set whether to notify when this chore enters its due window. Omit to leave the current setting unchanged.",
+          "example": "false"
+        },
+        "notify_due_reminder": {
+          "name": "Notify at Due Reminder Time",
+          "description": "Set whether to notify at the configured due reminder offset. Omit to leave the current setting unchanged.",
+          "example": "true"
+        },
+        "show_on_calendar": {
+          "name": "Show on Calendar",
+          "description": "Set whether this chore appears on the ChoreOps calendar. Omit to leave the current setting unchanged.",
+          "example": "true"
         }
       }
     },
