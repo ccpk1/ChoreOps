@@ -1367,6 +1367,20 @@ class GamificationManager(BaseManager):
 
         return True
 
+    @staticmethod
+    def _resolve_badge_cycle_start(
+        reset_schedule: dict[str, Any],
+        today_iso: str,
+    ) -> str:
+        """Resolve the cycle start date used for badge window scoping.
+
+        Periodic badges get a start date written on cycle rollover; daily badges
+        cover a single day. Falls back to today when unset so a missing anchor
+        never fabricates earlier-in-cycle failures.
+        """
+        raw_start = reset_schedule.get(const.DATA_BADGE_RESET_SCHEDULE_START_DATE)
+        return raw_start if isinstance(raw_start, str) and raw_start else today_iso
+
     def _build_target_runtime_context(
         self,
         base_context: EvaluationContext,
@@ -1423,6 +1437,7 @@ class GamificationManager(BaseManager):
         )
         window_start_iso = start_date_iso or today_iso
         window_end_iso = end_date_iso or today_iso
+        cycle_start_iso = self._resolve_badge_cycle_start(reset_schedule, today_iso)
         target_type = canonical_target.get("source_raw_type")
 
         if target_type in {
@@ -1447,6 +1462,7 @@ class GamificationManager(BaseManager):
                 assignee_id,
                 tracked_chores,
                 today_iso=today_iso,
+                cycle_start_iso=cycle_start_iso,
                 only_due_today=False,
             )
         )
@@ -1455,6 +1471,7 @@ class GamificationManager(BaseManager):
                 assignee_id,
                 tracked_chores,
                 today_iso=today_iso,
+                cycle_start_iso=cycle_start_iso,
                 only_due_today=True,
             )
         )
@@ -2781,6 +2798,7 @@ class GamificationManager(BaseManager):
                 assignee_id,
                 tracked_chores,
                 today_iso=today_iso,
+                cycle_start_iso=today_iso,
                 only_due_today=False,
             )
         )
@@ -2789,6 +2807,7 @@ class GamificationManager(BaseManager):
                 assignee_id,
                 tracked_chores,
                 today_iso=today_iso,
+                cycle_start_iso=today_iso,
                 only_due_today=True,
             )
         )

@@ -46,7 +46,7 @@ from ..helpers.entity_helpers import (
     remove_orphaned_shared_chore_sensors,
 )
 from ..utils.dt_utils import (
-    HELPER_RETURN_DATETIME_LOCAL,
+    dt_local_date_iso,
     dt_now_utc_iso,
     dt_parse,
     dt_parse_duration,
@@ -970,12 +970,8 @@ class ChoreManager(BaseManager):
                 0,
             )
             if not assigned_previous_streak and assigned_last_completed:
-                assigned_local_dt = dt_parse(
-                    assigned_last_completed,
-                    return_type=HELPER_RETURN_DATETIME_LOCAL,
-                )
-                if assigned_local_dt and isinstance(assigned_local_dt, datetime):
-                    assigned_date_key = assigned_local_dt.date().isoformat()
+                assigned_date_key = dt_local_date_iso(assigned_last_completed)
+                if assigned_date_key:
                     assigned_last_data = assigned_daily.get(assigned_date_key, {})
                     assigned_previous_streak = assigned_last_data.get(
                         const.DATA_USER_CHORE_DATA_PERIOD_STREAK_TALLY, 0
@@ -4849,6 +4845,16 @@ class ChoreManager(BaseManager):
             self._approval_locks[lock_key] = asyncio.Lock()
         return self._approval_locks[lock_key]
 
+    def _chore_tracks_overdue(self, chore_id: str) -> bool:
+        """Return False for never-overdue chores, which never register lateness."""
+        chore_info: ChoreData | dict[str, Any] = self._coordinator.chores_data.get(
+            chore_id, {}
+        )
+        return chore_info.get(const.DATA_CHORE_OVERDUE_HANDLING_TYPE) not in (
+            const.OVERDUE_HANDLING_NEVER_OVERDUE,
+            const.OVERDUE_HANDLING_NEVER_OVERDUE_CLEAR_AT_APPROVAL_RESET,
+        )
+
     def _set_assignee_chore_state(
         self,
         assignee_id: str,
@@ -4865,6 +4871,11 @@ class ChoreManager(BaseManager):
             ),
         )
         now_iso = dt_now_utc_iso()
+        # Disapprove/undo can force OVERDUE from due-date math alone, so a
+        # never-overdue chore must not register as lateness.
+        tracking_overdue = new_state == const.CHORE_STATE_OVERDUE and (
+            self._chore_tracks_overdue(chore_id)
+        )
 
         if previous_state == new_state:
             if new_state == const.CHORE_STATE_OVERDUE:
@@ -4876,6 +4887,12 @@ class ChoreManager(BaseManager):
                         now_iso,
                     ),
                 )
+                if tracking_overdue:
+                    # Same episode: keep its first detection.
+                    assignee_chore_data.setdefault(
+                        const.DATA_USER_CHORE_DATA_LAST_OVERDUE,
+                        now_iso,
+                    )
             else:
                 assignee_chore_data.pop(
                     const.DATA_USER_CHORE_DATA_OVERDUE_STARTED_AT,
@@ -4892,6 +4909,9 @@ class ChoreManager(BaseManager):
                     now_iso,
                 )
             )
+            if tracking_overdue:
+                # New episode: refresh the detection timestamp.
+                assignee_chore_data[const.DATA_USER_CHORE_DATA_LAST_OVERDUE] = now_iso
         elif previous_state == const.CHORE_STATE_OVERDUE:
             self._queue_overdue_resolution_signal(
                 assignee_id,

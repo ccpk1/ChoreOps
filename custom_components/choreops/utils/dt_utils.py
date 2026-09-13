@@ -17,6 +17,7 @@ Functions:
     - dt_format_duration: Format timedelta to human-readable string
     - dt_time_until: Calculate time remaining until target
     - dt_parse_date: Parse date strings
+    - dt_local_date_iso: Convert a stored timestamp to its local date key
     - dt_format_short: Format datetime for notifications
     - dt_format: Format datetime to various output types
     - dt_parse: Normalize datetime inputs
@@ -409,6 +410,29 @@ def dt_to_utc(dt_str: str | None) -> datetime | None:
         return_type=HELPER_RETURN_DATETIME_UTC,
     )
     return cast("datetime | None", result)
+
+
+def dt_local_date_iso(timestamp: str | None) -> str | None:
+    """Convert a stored UTC timestamp to its local calendar date key.
+
+    Timestamps are stored as UTC ISO strings while period bucket keys are local
+    dates (DEVELOPMENT_STANDARDS § 6). Slicing the raw string would yield the UTC
+    date, which can shift a late-evening event into the following day.
+
+    Args:
+        timestamp: Stored UTC ISO datetime string, or None.
+
+    Returns:
+        Local date key (YYYY-MM-DD), or None when the input is missing or
+        unparseable.
+
+    Example:
+        In UTC-4, "2025-04-08T02:00:00+00:00" → "2025-04-07"
+    """
+    parsed = dt_parse(timestamp, return_type=HELPER_RETURN_DATETIME_LOCAL)
+    if not isinstance(parsed, datetime):
+        return None
+    return parsed.date().isoformat()
 
 
 # ==============================================================================

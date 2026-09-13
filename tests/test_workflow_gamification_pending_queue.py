@@ -230,10 +230,16 @@ class TestGamificationPendingQueueEvents:
             tracked_chores: list[str],
             *,
             today_iso: str,
+            cycle_start_iso: str,
             only_due_today: bool,
         ) -> dict[str, Any]:
             captured_tracked.append(list(tracked_chores))
-            return {"approved_count": 0, "total_count": 0, "has_overdue": False}
+            return {
+                "approved_count": 0,
+                "total_count": 0,
+                "has_overdue": False,
+                "cycle_failed": False,
+            }
 
         coordinator.statistics_manager.get_badge_scoped_today_stats = (
             _capture_today_stats

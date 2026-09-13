@@ -39,7 +39,7 @@ from typing import TYPE_CHECKING, Any, cast
 from homeassistant.core import callback
 
 from .. import const
-from ..utils.dt_utils import dt_add_interval, dt_now_local, dt_parse
+from ..utils.dt_utils import dt_add_interval, dt_local_date_iso, dt_now_local, dt_parse
 from ..utils.math_utils import calculate_average
 from .base_manager import BaseManager
 
@@ -2537,6 +2537,7 @@ class StatisticsManager(BaseManager):
         tracked_chores: list[str],
         *,
         today_iso: str,
+        cycle_start_iso: str,
         only_due_today: bool,
     ) -> dict[str, Any]:
         """Get badge-scoped completion snapshot for today.
@@ -2547,10 +2548,14 @@ class StatisticsManager(BaseManager):
             assignee_id: Assignee internal ID.
             tracked_chores: Chore IDs in scope for current badge.
             today_iso: Today date key (YYYY-MM-DD).
+            cycle_start_iso: First local date of the badge cycle (YYYY-MM-DD).
+                Lets lateness anywhere in the cycle count, not just today.
             only_due_today: If True, include only chores due today.
 
         Returns:
-            Dict with keys: approved_count, total_count, has_overdue.
+            Dict with keys: approved_count, total_count, has_overdue, cycle_failed.
+                `cycle_failed` is True when a tracked chore went overdue or was
+                missed on or after `cycle_start_iso`, even if since resolved.
         """
         assignee_info = self._get_assignee(assignee_id)
         if not assignee_info:
@@ -2558,6 +2563,7 @@ class StatisticsManager(BaseManager):
                 "approved_count": 0,
                 "total_count": 0,
                 "has_overdue": False,
+                "cycle_failed": False,
             }
 
         chore_data = cast(
@@ -2567,6 +2573,7 @@ class StatisticsManager(BaseManager):
         approved_count = 0
         total_count = 0
         has_overdue = False
+        cycle_failed = False
 
         for chore_id in tracked_chores:
             chore_info = cast(
@@ -2602,10 +2609,24 @@ class StatisticsManager(BaseManager):
             ):
                 has_overdue = True
 
+            overdue_on = dt_local_date_iso(
+                chore_entry.get(const.DATA_USER_CHORE_DATA_LAST_OVERDUE)
+            )
+            missed_on = dt_local_date_iso(
+                chore_entry.get(const.DATA_USER_CHORE_DATA_LAST_MISSED)
+            )
+            latest_failure = max(
+                (value for value in (overdue_on, missed_on) if value is not None),
+                default=None,
+            )
+            if latest_failure is not None and latest_failure >= cycle_start_iso:
+                cycle_failed = True
+
         return {
             "approved_count": approved_count,
             "total_count": total_count,
             "has_overdue": has_overdue,
+            "cycle_failed": cycle_failed,
         }
 
     def _is_chore_due_today_for_assignee(

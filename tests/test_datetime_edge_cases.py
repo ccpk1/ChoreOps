@@ -11,14 +11,20 @@ Extracted from test_datetime_helpers_comprehensive.py focusing on
 unique edge cases that provide value in the modern test suite.
 """
 
+from collections.abc import Iterator
 from datetime import date, datetime
 from zoneinfo import ZoneInfo
 
+import pytest
+
 from custom_components.choreops.utils.dt_utils import (
     dt_add_interval,
+    dt_local_date_iso,
     dt_parse,
     dt_parse_date,
     dt_to_utc,
+    get_default_timezone,
+    set_default_timezone,
 )
 
 
@@ -274,3 +280,63 @@ class TestDatetimeIntervalAdjustment:
         if result:
             if isinstance(result, datetime):
                 assert result.month == 8
+
+
+class TestLocalDateIso:
+    """Tests for dt_local_date_iso (stored UTC timestamp -> local date key)."""
+
+    @pytest.fixture
+    def new_york_tz(self) -> Iterator[ZoneInfo]:
+        """Run with UTC-4/5 configured, then restore the default timezone."""
+        original = get_default_timezone()
+        set_default_timezone(ZoneInfo("America/New_York"))
+        yield ZoneInfo("America/New_York")
+        set_default_timezone(original)
+
+    @pytest.mark.parametrize(
+        ("timestamp", "expected"),
+        [
+            pytest.param(
+                "2025-04-08T02:00:00+00:00",
+                "2025-04-07",
+                id="utc_rollover_shifts_to_previous_local_day",
+            ),
+            pytest.param(
+                "2025-04-07T16:00:00+00:00",
+                "2025-04-07",
+                id="same_local_day",
+            ),
+            pytest.param(
+                "2025-04-07T04:00:00+00:00",
+                "2025-04-07",
+                id="local_midnight_boundary",
+            ),
+        ],
+    )
+    def test_uses_local_calendar_day(
+        self,
+        new_york_tz: ZoneInfo,
+        timestamp: str,
+        expected: str,
+    ) -> None:
+        """Conversion must use the local calendar day, not the UTC day."""
+        assert dt_local_date_iso(timestamp) == expected
+
+    @pytest.mark.parametrize(
+        "timestamp",
+        [
+            pytest.param(None, id="none"),
+            pytest.param("", id="empty_string"),
+            pytest.param("not-a-date", id="unparseable"),
+        ],
+    )
+    def test_unusable_input_returns_none(self, timestamp: str | None) -> None:
+        """Missing or malformed timestamps yield None so callers can skip."""
+        assert dt_local_date_iso(timestamp) is None
+
+    def test_naive_timestamp_is_interpreted_as_configured_zone(
+        self,
+        new_york_tz: ZoneInfo,
+    ) -> None:
+        """Naive input falls back to the configured timezone, not UTC."""
+        assert dt_local_date_iso("2025-04-07T23:30:00") == "2025-04-07"

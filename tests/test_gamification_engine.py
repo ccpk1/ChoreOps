@@ -44,6 +44,7 @@ def make_context(
     approved_count: int = 0,
     total_count: int = 0,
     has_overdue: bool = False,
+    cycle_failed: bool = False,
     approved_all_time: int = 0,
     streak_yesterday: bool = False,
     last_update_day: str | None = None,
@@ -77,11 +78,13 @@ def make_context(
                 "approved_count": approved_count,
                 "total_count": total_count,
                 "has_overdue": has_overdue,
+                "cycle_failed": cycle_failed,
             },
             "today_completion_due": {
                 "approved_count": approved_count,
                 "total_count": total_count,
                 "has_overdue": has_overdue,
+                "cycle_failed": cycle_failed,
             },
             # v43+: chore_stats deleted, use chore_periods_all_time
             "chore_periods_all_time": {
@@ -497,6 +500,73 @@ class TestEvaluateDailyCompletion:
         assert result["current_value"] == 5
         assert result["met"] is True
 
+    def test_no_overdue_variant_fails_on_resolved_cycle_overdue(self) -> None:
+        """Cycle failure fails the badge even when nothing is overdue right now.
+
+        Mirrors the issue #293 report: a chore that went overdue earlier in the
+        cycle and was since resolved must still block a no-overdue badge.
+        """
+        context = make_context(
+            days_cycle_count=6,
+            approved_count=10,
+            total_count=10,
+            has_overdue=False,
+            cycle_failed=True,
+        )
+        target = make_badge_target(threshold=7)
+
+        result = GamificationEngine._evaluate_daily_completion(
+            context,
+            target,
+            percent_required=1.0,
+            only_due_today=False,
+            require_no_overdue=True,
+        )
+
+        assert result["met"] is False
+        assert result["current_value"] == 0
+
+    def test_no_overdue_cycle_failure_clears_accumulated_progress(self) -> None:
+        """Strict mode is a survival check: in-cycle lateness zeroes progress."""
+        context = make_context(
+            days_cycle_count=9,
+            approved_count=10,
+            total_count=10,
+            cycle_failed=True,
+        )
+        target = make_badge_target(threshold=10)
+
+        result = GamificationEngine._evaluate_daily_completion(
+            context,
+            target,
+            percent_required=1.0,
+            only_due_today=False,
+            require_no_overdue=True,
+        )
+
+        assert result["current_value"] == 0
+        assert result["progress"] == 0.0
+
+    def test_cycle_failure_is_ignored_without_no_overdue_requirement(self) -> None:
+        """Cycle failure must not affect variants that do not require punctuality."""
+        context = make_context(
+            days_cycle_count=6,
+            approved_count=10,
+            total_count=10,
+            cycle_failed=True,
+        )
+        target = make_badge_target(threshold=7)
+
+        result = GamificationEngine._evaluate_daily_completion(
+            context,
+            target,
+            percent_required=1.0,
+            only_due_today=False,
+        )
+
+        assert result["current_value"] == 7
+        assert result["met"] is True
+
 
 # =============================================================================
 # TEST: _evaluate_streak
@@ -637,6 +707,32 @@ class TestEvaluateStreak:
             approved_count=10,
             total_count=10,
             has_overdue=True,
+            streak_yesterday=True,
+        )
+        target = make_badge_target(
+            target_type=const.BADGE_TARGET_THRESHOLD_TYPE_STREAK_SELECTED_CHORES_NO_OVERDUE,
+            threshold=7,
+        )
+
+        result = GamificationEngine._evaluate_streak(
+            context,
+            target,
+            percent_required=1.0,
+            only_due_today=False,
+            require_no_overdue=True,
+        )
+
+        assert result["current_value"] == 0
+        assert result["met"] is False
+
+    def test_streak_no_overdue_variant_fails_on_resolved_cycle_overdue(self) -> None:
+        """No-overdue streak fails on in-cycle lateness that was since resolved."""
+        context = make_context(
+            days_cycle_count=6,
+            approved_count=10,
+            total_count=10,
+            has_overdue=False,
+            cycle_failed=True,
             streak_yesterday=True,
         )
         target = make_badge_target(
