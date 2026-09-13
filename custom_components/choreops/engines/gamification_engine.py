@@ -928,6 +928,7 @@ class GamificationEngine:
         approved_count = int(daily_status.get("approved_count", 0))
         total_count = int(daily_status.get("total_count", 0))
         has_overdue = bool(daily_status.get("has_overdue", False))
+        cycle_failed = bool(daily_status.get("cycle_failed", False))
         already_counted_today = bool(daily_status.get("already_counted_today", False))
 
         # Determine if today meets criteria
@@ -940,12 +941,14 @@ class GamificationEngine:
                 today_met = percent_complete >= percent_required
 
             # Check overdue constraint
-            if today_met and require_no_overdue and has_overdue:
+            if today_met and require_no_overdue and (has_overdue or cycle_failed):
                 today_met = False
 
-        # If today meets criteria, increment cycle (conceptually)
-        # Actual cycle update happens in Manager
-        if today_met:
+        # Strict mode is a survival check: lateness anywhere in the cycle cannot
+        # be recovered from until the cycle resets, so progress drops to zero.
+        if require_no_overdue and cycle_failed:
+            current_value = 0
+        elif today_met:
             current_value = cycle_count if already_counted_today else cycle_count + 1
         else:
             current_value = cycle_count
@@ -1113,6 +1116,7 @@ class GamificationEngine:
         approved_count = int(daily_status.get("approved_count", 0))
         total_count = int(daily_status.get("total_count", 0))
         has_overdue = bool(daily_status.get("has_overdue", False))
+        cycle_failed = bool(daily_status.get("cycle_failed", False))
         streak_yesterday = bool(daily_status.get("streak_yesterday", False))
         already_counted_today = bool(daily_status.get("already_counted_today", False))
 
@@ -1123,7 +1127,7 @@ class GamificationEngine:
             today_met = percent_complete >= percent_required
 
             # Check overdue constraint
-            if today_met and require_no_overdue and has_overdue:
+            if today_met and require_no_overdue and (has_overdue or cycle_failed):
                 today_met = False
 
         # Streak logic:
@@ -1281,6 +1285,7 @@ class GamificationEngine:
         approved_count = int(today_completion.get("approved_count", 0))
         total_count = int(today_completion.get("total_count", 0))
         has_overdue = bool(today_completion.get("has_overdue", False))
+        cycle_failed = bool(today_completion.get("cycle_failed", False))
 
         today_stats: Any = context.get("today_stats") or {}
         streak_yesterday = bool(today_stats.get("streak_yesterday", False))
@@ -1293,6 +1298,7 @@ class GamificationEngine:
             "approved_count": approved_count,
             "total_count": total_count,
             "has_overdue": has_overdue,
+            "cycle_failed": cycle_failed,
             "streak_yesterday": streak_yesterday,
         }
 
