@@ -446,27 +446,35 @@ permanently neutral — never advancing and never breaking.
      existing `_is_chore_due_today_for_assignee` (`:2632`) — do not add a second schedule check —
      and set both from the same loop that already tracks `total_count` / `approved_count`.
      These two values are the single source of the eligible scope for **both** families.
-  2. Add `missed_since_advance: bool` to the same snapshot, implemented to the **`missed_since_advance`
-     contract** above. Mirror the schedule-config assembly already in `ChoreEngine.calculate_streak`
-     (`engines/chore_engine.py:1500-1528`) for `frequency` / `interval` / `applicable_days` /
-     `daily_multi_times`. Extract that assembly into one shared builder rather than copying it —
-     see the drift precedent in Notes.
-  3. Implement the **`missed_since_advance` contract** above exactly. The contract fixes the
-     ordering (it must run before the neutral hold), the anchor, the upper bound and the skip
-     condition; none of those are free choices. Only the *placement* is open: compute it eagerly in
-     the snapshot, or expose enough for the engine to compute it. If eager, short-circuit on the
-     first missed chore.
-  4. Fail safe on a missing or unparseable `last_completed` / `last_update_day` — treat as
+  2. **Extract one shared schedule-config builder** for the `frequency` / `interval` /
+     `applicable_days` / `daily_multi_times` assembly that `ChoreEngine.calculate_streak`
+     currently builds inline (`engines/chore_engine.py:1500-1528`), and have that method call it.
+     Step 3 needs the same assembly, and duplicating it repeats a drift this codebase has already
+     been bitten by (see Notes, opportunity 1). Behavioural no-op — pinned by
+     `tests/test_workflow_streak_schedule.py`.
+  3. Add `missed_since_advance: bool` to the snapshot from step 1, implementing the
+     **`missed_since_advance` contract** above exactly, using the builder from step 2. The contract
+     fixes the anchor, the upper bound and the skip condition; none are free choices. Short-circuit
+     on the first missed chore.
+  4. Decide the *placement* of the miss check and document it in the code: compute it eagerly inside
+     the snapshot (simplest, but an rrule per tracked chore per badge), or expose the raw inputs and
+     let the streak evaluator compute it when it needs it. Either is acceptable; the ordering
+     requirement in the contract is not.
+  5. Fail safe on a missing or unparseable `last_completed` / `last_update_day` — treat as
      "no miss". Mirror the `_streak_alive` convention (`managers/gamification_manager.py:2871`).
-  5. Declare the new keys in the snapshot contract in `type_defs.py` (see the `today_completion` /
+  6. Declare the new keys in the snapshot contract in `type_defs.py` (see the `today_completion` /
      `today_completion_due` fields around `type_defs.py:900`) so the engine reads them from a
      typed surface rather than an untyped `dict[str, Any]`.
-  6. Add focused unit tests for each new key in isolation: `due_count` with mixed schedules;
+  7. Add focused unit tests for each new key in isolation: `due_count` with mixed schedules;
      `approved_due_today`; miss detection for daily / weekly / `never_overdue`; and one test per
      contract trap (start-of-today upper bound, no-window skip, anchor-only).
 - **Key issues**
-  - **Purity/layering**: `schedule_engine` lives in `engines/`, and this code lives in a manager,
-     which may import engines. Verify with the boundary checker rather than assuming.
+  - **Purity/layering — verified, no blocker.** The boundary checker only forbids `homeassistant`
+    imports in pure modules (`utils/`, `engines/`); managers are not pure, and
+    `managers/chore_manager.py:30-39` already imports `../engines/chore_engine` and
+    `../engines/schedule_engine`. `statistics_manager` may therefore import `RecurrenceEngine`
+    directly. `statistics_manager` already reads `self.coordinator.chores_data`, so the schedule
+    inputs are in reach.
    - **Loop cost**: only evaluate tracked chores, short-circuit on the first miss. The check cannot
      be skipped on neutral days (see the contract's ordering note) — that restriction is a
      correctness requirement, not a performance choice.
