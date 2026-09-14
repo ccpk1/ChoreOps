@@ -67,8 +67,9 @@
      would let a streak survive indefinitely while nothing is done. The chosen signal avoids this.
    - **Performance**: `has_missed_occurrences` builds an rrule per chore. The snapshot is rebuilt
      per badge in `_build_target_runtime_context`, so cost is badges × tracked chores ×
-     evaluations. Short-circuit on the first miss and skip the check entirely when the day is
-     neutral; profile if a household has many badges.
+     evaluations. Short-circuit on the first miss. Note the check cannot be skipped on neutral days
+     (see the contract), so there is no "cheap path" for a dormant badge — profile if a household
+     has many badges over many chores.
 
 5. **References**
    - [ARCHITECTURE.md](../ARCHITECTURE.md) — data model, storage, schema checkpoints
@@ -249,9 +250,13 @@ Fail safe: a missing or unparseable `last_update_day` must yield "no miss", so a
 never wrongly zeroed — the same convention as `_streak_alive`
 (`gamification_manager.py:2871`).
 
-Evaluation order note: the check is only needed once the day is not neutral and not already
-satisfied, so compute it after rules 1 and 3 in the engine's terms, or accept eager computation
-and short-circuit per chore. See Phase 1 step 2 for the placement decision.
+Evaluation order note: the check **cannot** be made conditional on the day being non-neutral, even
+though it is only consulted for one outcome. The decisive case is a missed occurrence followed by
+a neutral day: Monday's occurrence goes unsatisfied, Tuesday has nothing due, and only the miss
+check can break the streak on Tuesday — the neutral-hold rule (3) would otherwise keep it alive
+indefinitely. This is exactly why rule 2 precedes rule 3. The only safe skip is `lower >= upper`
+(no window). If profiling makes the eager rrule cost a problem, the fallback is to short-circuit
+per chore on the first miss, not to defer the whole check.
 
 ---
 
@@ -287,10 +292,11 @@ and short-circuit per chore. See Phase 1 step 2 for the placement decision.
      (`engines/chore_engine.py:1500-1528`) for `frequency` / `interval` / `applicable_days` /
      `daily_multi_times`. Extract that assembly into one shared builder rather than copying it —
      see the drift precedent in Notes.
-  3. Decide and document placement: the contract note above explains the trade-off between eager
-     computation in the snapshot (simpler, costs an rrule per chore per badge) and computing it
-     inside the engine's streak path (lazier, but moves engine logic into the evaluator). Whichever
-     is chosen, skip the check when `due_count == 0`.
+  3. Implement the **`missed_since_advance` contract** above exactly. The contract fixes the
+     ordering (it must run before the neutral hold), the anchor, the upper bound and the skip
+     condition; none of those are free choices. Only the *placement* is open: compute it eagerly in
+     the snapshot, or expose enough for the engine to compute it. If eager, short-circuit on the
+     first missed chore.
   4. Fail safe on a missing or unparseable `last_completed` / `last_update_day` — treat as
      "no miss". Mirror the `_streak_alive` convention (`managers/gamification_manager.py:2871`).
   5. Declare the new keys in the snapshot contract in `type_defs.py` (see the `today_completion` /
@@ -303,8 +309,9 @@ and short-circuit per chore. See Phase 1 step 2 for the placement decision.
 - **Key issues**
   - **Purity/layering**: `schedule_engine` lives in `engines/`, and this code lives in a manager,
      which may import engines. Verify with the boundary checker rather than assuming.
-  - **Loop cost**: only evaluate tracked chores, short-circuit on the first miss, and skip
-     entirely when `due_count == 0`.
+   - **Loop cost**: only evaluate tracked chores, short-circuit on the first miss. The check cannot
+     be skipped on neutral days (see the contract's ordering note) — that restriction is a
+     correctness requirement, not a performance choice.
   - `has_missed_occurrences` takes UTC datetimes; the snapshot is ISO-date based. Convert
      explicitly with the `dt_*` helpers (`utils/dt_utils.py`) — never raw `datetime`.
   - The shared schedule-config builder must not change `calculate_streak`'s behaviour; pin that
