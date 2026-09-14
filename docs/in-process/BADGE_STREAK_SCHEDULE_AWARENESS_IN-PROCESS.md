@@ -135,6 +135,50 @@
         - Bonus: `Streak: Selected Chores Completed` becomes "100% of the chores due today, overdue
           tolerated" — a behaviour that previously had no option, so the release also adds a
           capability. Worth mentioning in the release note.
+
+     10. **CONFIRMED BY DEFAULT — the `Days Minimum 3/5/7` variants keep the all-selected scope.**
+         These options count an **absolute number** of completed chores, not a ratio
+         (`count_required` compared against `approved_count`, `gamification_engine.py:936-947`).
+         Applying the eligible scope to them would make the threshold unreachable whenever fewer
+         chores are due than the required count — e.g. only 3 chores due today but `Days Minimum 5`
+         requires 5 approvals among 3 eligible chores. The badge would stop advancing permanently.
+
+         Decision: the eligible scope applies to the **percentage** variants only. The min-count
+         variants continue to count completions of **all selected chores**, which is what the label
+         literally promises ("at least N chores completed that day") and what they do today.
+
+         - Consequence: this is a deliberate distinction, not an inconsistency, and it must be
+           stated in the help text and wiki so it does not read as an oversight. A non-due chore is
+           an *impossible obstacle* to a ratio but *extra credit* to an absolute count.
+         - Alternative if uniform semantics are preferred later: clamp the requirement to the
+           eligible count (`required = min(N, eligible_count)`). Not the default, because it
+           silently makes existing min-count badges easier and the "minimum 5" label becomes
+           misleading.
+         - Phase 4 must pin this: `Days Minimum 5` with only 3 chores eligible must remain
+           satisfiable by completing 5 selected chores, and must never become permanently unmet.
+
+     11. **CONFIRMED BY DEFAULT — "eligible" means *actionable today*, so a selected chore with no
+         due date and no recurrence stays in scope.**
+
+         Background: `_is_chore_due_today_for_assignee` treats a chore as due today only if it has a
+         due date falling today, or it is a **daily** chore with no due date. A chore with
+         `frequency = none` and no due date is never "due today" (first guard in
+         `no_due_date_daily_matches_today`, `chore_manager.py:3911`).
+
+         Decision: a chore that is **open and uncompleted with no fixed date** counts as eligible.
+         It is available to be done today, so excluding it would mean a badge scoped to it silently
+         ignores it — and if *all* selected chores were of that kind, the badge would have an
+         eligible count of 0 every day and sit permanently neutral (never advancing, never
+         breaking).
+
+         - Consequence: behaviour for these chores is unchanged from today. Completing one still
+           helps a ratio badge; missing one still counts against it.
+         - Alternative: strict "due today" only, treating open one-time chores as outside the badge.
+           Not chosen — it silently removes chores the user explicitly selected, and creates the
+           permanently-neutral badge described above.
+         - Phase 4 must pin: a badge scoped to a dateless one-time chore still advances when it is
+           completed, and the "all selected chores are open one-timers" case does not stall forever.
+
    - **Completion confirmation**: `[ ]` All follow-up items completed (architecture updates, cleanup, documentation, etc.) before requesting owner approval to mark initiative done.
 
 > **Important:** Keep the entire Summary section (table + bullets) current with every meaningful update.
@@ -318,6 +362,59 @@ weekly chore due Saturday, badge scoped to all 5, on a Tuesday where the 4 daili
 The fix is to make "selected" mean "selected **and due today**" everywhere. That single change is
 what decisions 8 and 9 are about.
 
+### Days family: worked answers and eligibility rules
+
+Answers to the concrete question *"5 chores selected, threshold 5/day, 3 with due dates and 2
+without — what counts as a successful day?"*, verified by evaluating the real evaluators.
+
+**Eligibility rule (what "counts today" means).** `_is_chore_due_today_for_assignee`
+(`statistics_manager.py:2632`) returns true when either:
+
+1. the chore has a due date for this assignee and it falls today; or
+2. the chore has no due date **and** is a daily recurring chore (and today matches its applicable
+   days, if it has any).
+
+A chore with **no due date and no recurrence** (`frequency = none`) is **never** "due today" —
+guard (a) in `no_due_date_daily_matches_today` returns false for any frequency other than daily.
+This matters for decision 11.
+
+Because both of the dateless chores in the question are daily recurring, they *are* eligible today.
+So the eligible count is 5, and the answers are:
+
+| Day | `Days Minimum 5` | `Days 100% Selected` | `Days 80% Selected` |
+| --- | --- | --- | --- |
+| All 5 completed | ✅ day counts | ✅ 5/5 | ✅ |
+| Missed one **with** a due date | ❌ only 4 completed | ❌ 4/5 = 80% | ✅ 4/5 |
+| Missed one **without** a due date | ❌ only 4 completed | ❌ 4/5 = 80% | ✅ 4/5 |
+
+**The key answer: there is currently no distinction between missing a dated and a dateless chore.**
+Both weigh exactly the same, because the evaluators count all selected chores and all approvals
+regardless of schedule. A dateless daily chore is treated as an obligation on every day, which is
+consistent with how it behaves everywhere else in the integration.
+
+**What this initiative changes for that scenario: nothing.** Both dateless chores are eligible, so
+the eligible count equals the selected count and every row above is unchanged. The fix only alters
+outcomes when a selected chore is genuinely **not available** today — a weekly chore on the wrong
+day, a day-restricted chore, or a one-time chore whose due date is elsewhere. That is the case
+where the old logic demanded an impossible completion.
+
+### Days family: two gaps this analysis exposed
+
+Both are new decisions, taken by default to **preserve existing behaviour**, because in each case
+the alternative silently changes or permanently breaks existing badges.
+
+**Gap A — the `Days Minimum 3/5/7` options break under the eligible scope (decision 10).** These
+variants use an **absolute count**, not a percentage: `count_required` is compared against
+`approved_count` (`gamification_engine.py:936-947`). If the eligible scope replaces the denominator
+there, a household with only 3 chores due today can never satisfy `Days Minimum 5` — the threshold
+becomes unreachable and the badge stops advancing permanently.
+
+**Gap B — a selected chore with no due date and no recurrence would be dropped (decision 11).**
+Such a chore is never "due today", so a strict eligible scope would exclude it from the badge
+entirely: completing it would stop helping, and missing it would stop mattering. Worse, a badge
+scoped *only* to such chores would have an eligible count of 0 every day, so it would sit
+permanently neutral — never advancing and never breaking.
+
 ---
 
 ## Detailed phase tracking
@@ -425,9 +522,20 @@ what decisions 8 and 9 are about.
   4. Add `tests/test_badge_streak_schedule_awareness.py` covering the matrix: Mon/Wed/Fri (`applicable_days`), weekly with a rescheduled due date, biweekly, custom-interval, monthly, and a mixed daily+weekly badge. Assert: neutral days hold; consecutive occurrences advance; a genuinely missed occurrence breaks; a gap with no missed occurrence resumes.
   5. Add the regression case that motivated this plan: **4 daily chores + 1 weekly due Monday, all dailies done every day → the 100% streak badge reaches the threshold** (currently caps at 1 with a break). Cover both the partial-progress and full-day orderings, since the advance path previously reset to 1.
   6. Add **Days-family** coverage required by decision 8: the primer's table with 4 dailies + 1 weekly must show `Days 100%` advancing on a day the weekly is absent (currently stalls), and the 10-mixed-chores/3-due case must score 3/3 rather than 3/10. Also cover the "Days Minimum 3/5/7" scope shift.
-  7. Add the contract-trap tests, one per trap named in Phase 1 step 6, and the `never_overdue` case explicitly: skipping a due occurrence must still break the streak (the case a lateness-flag design gets wrong).
-  8. Parametrize across retention settings (including a low `retention_daily`) to prove the design does not depend on period history surviving.
-  9. Run the targeted suites, then the badge/gamification set, then the release-gate commands from [RELEASE_CHECKLIST.md](../RELEASE_CHECKLIST.md) §2: `./utils/quick_lint.sh --fix`, `mypy custom_components/choreops/`, `python -m pytest tests/ -v --tb=line`.
+  7. Add the two gap pins from decisions 10 and 11:
+     - `Days Minimum 5` with only 3 chores eligible must remain satisfiable by completing 5
+       selected chores (never permanently unmet), and the min-count variants must keep counting
+       completions of non-due selected chores.
+     - A badge scoped to a dateless one-time chore (`frequency = none`, no due date) must still
+       advance when that chore is completed, and a badge whose selected chores are all open
+       one-timers must not sit permanently neutral.
+  8. Add the reference scenario from the "Days family: worked answers" section as a test: 5
+     selected chores (3 dated, 2 dateless daily), asserting the three rows of that table — and
+     confirm the outcomes are unchanged by this initiative, since both dateless chores are
+     eligible.
+  9. Add the contract-trap tests, one per trap named in Phase 1 step 6, and the `never_overdue` case explicitly: skipping a due occurrence must still break the streak (the case a lateness-flag design gets wrong).
+  10. Parametrize across retention settings (including a low `retention_daily`) to prove the design does not depend on period history surviving.
+  11. Run the targeted suites, then the badge/gamification set, then the release-gate commands from [RELEASE_CHECKLIST.md](../RELEASE_CHECKLIST.md) §2: `./utils/quick_lint.sh --fix`, `mypy custom_components/choreops/`, `python -m pytest tests/ -v --tb=line`.
 - **Key issues**
   - Timezone correctness: the scheduling layer stores UTC while day keys are local. Follow the established convention in `tests/test_badge_period_end_cycles.py` (explicit `set_default_timezone` with `try/finally`) rather than relying on the default zone.
   - The full suite is a release step, not a CI gate — validate broadly before release, since cross-test state (the `dt_utils` default-timezone module global) can only appear in a full run.
@@ -457,12 +565,28 @@ what decisions 8 and 9 are about.
      are due today"), then regenerate the English file with
      `python3 -m script.translations develop --integration choreops` (tests read
      `translations/en.json`, not `strings.json`).
-  5. Add the streak definition to [DEVELOPMENT_STANDARDS.md](../DEVELOPMENT_STANDARDS.md) so future
+  5. **Recommended guidance to include verbatim in the badges wiki** — strengthen the existing
+     streak/days sections with an explicit recommendation, because the fix makes these badges
+     *work* with schedules but does not make them *sensible* with long-cycle schedules:
+     > Streak and Days badges now respect each chore's schedule, so a chore that is not due today
+     > no longer counts against the badge. They will behave correctly with weekly, biweekly or
+     > monthly chores. In practice, though, these badges are easiest to reason about — and most
+     > predictable for the user — when the selected chores are **daily recurring**. A streak over
+     > a monthly chore, for example, advances only once a month, so "7 in a row" takes seven
+     > months. If you want a badge that recognises steady effort on a less frequent chore, prefer
+     > a count-based or points-based target, or scope the badge to the daily chores.
+  6. Document the two documented distinctions from decisions 10 and 11 in the same
+     periodic-badges page, since both are visible in the picker and either could be read as a bug:
+     the `Days Minimum 3/5/7` options count completed chores regardless of due date (an absolute
+     count, not a ratio), and a selected chore with no schedule still counts as available every
+     day.
+  7. Add the streak definition to [DEVELOPMENT_STANDARDS.md](../DEVELOPMENT_STANDARDS.md) so future
      work does not reintroduce calendar-day counting — including the `missed_since_advance`
      contract and its three traps, which are the easiest part of this design to re-break.
-  6. Draft the release note describing the behaviour change: in-progress streak counts may rise;
-     badges already held are unaffected; some Days badges may be easier to earn (if decision 8 is (b)).
-  7. Update `docs/ARCHITECTURE.md` for the shared schedule-config builder introduced in Phase 1.
+  8. Draft the release note describing the behaviour change: in-progress streak counts may rise;
+     badges already held are unaffected; some Days badges may be easier to earn (decision 8); the
+     Days/Days-Minimum scope distinctions above.
+  9. Update `docs/ARCHITECTURE.md` for the shared schedule-config builder introduced in Phase 1.
 - **Key issues**
   - Wiki is a separate repository with no PR flow (commit directly to `choreops-wiki` `master`).
   - Any new user-facing string must be a `TRANS_KEY_*` constant in `const.py`; the engine's `reason` strings are existing English f-strings and stay internal, so no new translation key is expected — confirm during implementation.
