@@ -7,7 +7,8 @@
   **together in one release** (decided 2026-09-14). From the user's perspective this is one bug
   ("streak badges don't work"); the analysis just found several distinct defects behind it.
 - **Owner / driver(s)**: ChoreOps maintainer + ChoreOps Builder (ChoreOps Test Builder for Phase 4)
-- **Status**: In progress — Phase 0 and Phase 1 committed; Phases 2–5 not started. All decisions resolved.
+- **Status**: In progress — Phases 0 and 1 committed; Phase 1B next (blocks Phase 2); Phases 2–6 not
+  started. All decisions resolved (14 total, one deferred).
 - **Branch / delivery**: `ccpk1/issue294` carries both the #294 hotfix and this initiative, which
   ship as a single release. Keep the phases as **separate commits** regardless — reviewers follow
   commit history, and the hotfix commit (`73e97d5`) doubles as a bisect point if the wider change
@@ -18,11 +19,14 @@
 | Phase / Step                                            | Description                                                                   | % complete | Quick notes                                                        |
 | ------------------------------------------------------- | ----------------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------ |
 | Phase 0 – Prerequisite (#294 hotfix)                    | Land the calendar-midnight streak fix so this defect becomes observable        | 100%       | ✅ Committed `73e97d5` (3 files, +499/−6)                           |
-| Phase 1 – Schedule-aware day classification (data layer) | Surface due-chore scope and schedule-derived miss signal in the stats snapshot | 100%       | ✅ `due_count`, `approved_due_today`, `missed_since_advance` + shared builder; 19 new tests |
-| Phase 2 – Evaluator semantics (both families)           | Streaks: neutral days hold, break/resume by missed occurrence. Both: eligible-day scope | 0%         | `gamification_engine.py`; days evaluator in scope too (decision 8) |
+| Phase 1 – Snapshot fields (data layer)                   | Surface due-chore scope and schedule-derived miss signal in the stats snapshot | 100%       | ✅ `due_count`, `approved_due_today`, `missed_since_advance` + shared builder; 19 new tests |
+| Phase 1B – Eligible scope must mean "counts toward today" (O1) | Legitimacy-aware scope so rotation/standby assignees are not charged | 0%         | **Blocks Phase 2** — closes conflict C1                                  |
+| Phase 1C – Single missed-occurrence authority (O2)       | One helper for "was an occurrence missed between X and Y"                      | 0%         | Refactor of Phase 1 code; unblocks Phase 6 (O3)                     |
+| Phase 2 – Evaluator semantics (both families)           | Streaks: neutral days hold, break/resume by missed occurrence. Both: eligible-day scope | 0%         | Depends on 1B + 1C                                                  |
 | Phase 3 – Persistence & status alignment                | Ensure neutral days write nothing and status transitions stay coherent         | 0%         | `gamification_manager.py` days_cycle bucket + status transition |
 | Phase 4 – Tests & validation                            | Extend the #294 regression suite; add schedule-matrix + days-family coverage    | 0%         | Reuses the day-replay harness built for #294                       |
 | Phase 5 – Docs, wiki & release notes                    | Document eligible-occurrence semantics, option equivalence, and the behaviour change | 0%    | Wiki + help text + Development Standards + release note            |
+| Phase 6 – Streak subsystem unification (O3/O4/O5)        | Achievements adopt the shared helper; retire dead calendar streak code; settle open-ended semantics | 0% | **After release** — decision 14, requires its own release note |
 
 1. **Key objective** – Make badge streak target types count **consecutive satisfied eligible occurrences** instead of consecutive calendar days, so a streak respects each tracked chore's schedule. A badge must not break (or stall) on a day when the tracked chores are simply not due, and must never award from a gap where an occurrence genuinely passed unmet.
 
@@ -44,12 +48,25 @@
      avoids leaking schedule-building into the pure engine.
 
 3. **Next steps (short term)** –
-   1. ✅ Decisions 8 and 9 confirmed (2026-09-14): both families; leave redundant options in place.
-   2. ✅ Decisions 10 and 11 confirmed by default (2026-09-14).
-   3. ✅ Phase 1 complete — data layer in place, no evaluator behaviour changed.
-   4. Awaiting approval to start Phase 2 (the behaviour-changing phase: both evaluators).
+   1. ✅ Decisions 8–11 confirmed (2026-09-14).
+   2. ✅ Phase 1 complete — data layer in place, no evaluator behaviour changed.
+   3. ✅ Post-Phase-1 audit found four conflicts (C1–C4) and five unification opportunities.
+   4. ✅ Decisions 12 (O1) and 13 (O2) added to the critical path; 14 (O3/O4/O5) deferred to Phase 6.
+   5. **Next: Phase 1B** — legitimacy-aware eligible scope. This now blocks Phase 2, because
+      shipping the evaluator change first would introduce unfair breaks for rotation and standby
+      chores (conflict C1).
 
 4. **Risks / blockers** –
+   - **BLOCKER (C1) — the eligible scope is currently too coarse.** `_is_chore_due_today_for_assignee`
+     is schedule-only, so a rotation or primary-standby chore reads as owed by **every** assigned
+     assignee while only the turn holder (or a window-permitted standby) can complete it. Phase 2
+     must not ship before Phase 1B, or the fix introduces a new unfair-break vector. Detail under
+     "Conflicts found during Phase 1 review".
+   - **DEFECT NOT COVERED (C2) — achievement streaks still break on non-daily schedules.**
+     `_streak_alive` gates on a literal today-or-yesterday calendar window and zeroes a valid
+     weekly-chore streak (verified: Monday completion ⇒ 0 on Wednesday). This initiative fixes
+     badges only; users will not distinguish the two systems when they report it. Scheduled as
+     Phase 6 / O3, so it needs a deliberate answer in the release note rather than silence.
    - **Sequencing**: the original plan required the #294 hotfix to land first. Both now live on
      `ccpk1/issue294` and ship in one release, with the hotfix isolated in `73e97d5` so reviewers
      can follow it separately.
@@ -105,6 +122,10 @@
         surfaced through `has_overdue` / `cycle_failed`, which remain gated behind
         `require_no_overdue` (strict modes). Rationale: keep the existing strict/non-strict
         contract intact; the strict variants are the documented "survival check" modes.
+        **⚠️ SUPERSEDED IN PART by decision 12** — schedule-alone eligibility is too coarse and
+        wrongly includes rotation chores for non-turn assignees (conflict C1). The overdue/missed
+        half of this decision stands; the "due today" half is replaced by
+        **counts toward today's obligation**.
      3. **Miss detection uses schedule math on completion timestamps**, via the tested `RecurrenceEngine.has_missed_occurrences` primitive, **not** lateness flags and **not** daily period history. Rationale: works regardless of overdue-handling configuration (the `never_overdue` case), is retention-independent, and reuses a shipped, unit-tested implementation (`test_schedule_engine_streaks.py`).
      4. **Neutral days never advance the streak** — only days where at least one tracked chore is eligible can advance it. Prevents a long dormant stretch (e.g. a monthly chore) from inflating the count.
      5. **No storage schema bump expected.** The design reuses `days_cycle_count`, `last_update_day` and existing completion timestamps. `SCHEMA_VERSION_CURRENT` (150) stays unchanged. A bump becomes necessary only if the fallback design (Option B below) is chosen.
@@ -167,19 +188,18 @@
          - Phase 4 must pin this: `Days Minimum 5` with only 3 chores eligible must remain
            satisfiable by completing 5 selected chores, and must never become permanently unmet.
 
-     11. **CONFIRMED BY DEFAULT — "eligible" means *actionable today*, so a selected chore with no
-         due date and no recurrence stays in scope.**
+     11. **CONFIRMED BY DEFAULT — a selected chore with no due date and no recurrence stays in
+         scope.** (Terminology per decision 12: "counts toward today's obligation", not
+         "actionable" — see the naming trap there.)
 
          Background: `_is_chore_due_today_for_assignee` treats a chore as due today only if it has a
          due date falling today, or it is a **daily** chore with no due date. A chore with
          `frequency = none` and no due date is never "due today" (first guard in
          `no_due_date_daily_matches_today`, `chore_manager.py:3911`).
 
-         Decision: a chore that is **open and uncompleted with no fixed date** counts as eligible.
-         It is available to be done today, so excluding it would mean a badge scoped to it silently
-         ignores it — and if *all* selected chores were of that kind, the badge would have an
-         eligible count of 0 every day and sit permanently neutral (never advancing, never
-         breaking).
+         Decision: a chore that is **open and uncompleted with no fixed date** counts toward the
+         day. It is legitimately owed today, so excluding it would mean a badge scoped to it
+         silently ignores it.
 
          - Consequence: behaviour for these chores is unchanged from today. Completing one still
            helps a ratio badge; missing one still counts against it.
@@ -190,6 +210,71 @@
            completed, and the "all selected chores are open one-timers" case does not stall forever.
 
    - **Completion confirmation**: `[ ]` All follow-up items completed (architecture updates, cleanup, documentation, etc.) before requesting owner approval to mark initiative done.
+
+     12. **CONFIRMED — the eligible scope becomes *counts toward today's obligation*, not
+        "scheduled today". (O1, closes conflict C1.)** Phase 1B. A chore counts toward an
+        assignee's day when it is scheduled today **and** that assignee is the one who owes it.
+
+        Three deliberate properties:
+        - **It includes chores the assignee already completed.** The question is "does this chore
+          form part of today's obligation for this assignee", not "can they still act". This is
+          the naming trap: an "actionable" or "outstanding" naming would exclude completed chores
+          and make every day permanently unsatisfiable — re-creating the original bug in a new
+          form. `ChoreManager.chore_counts_toward_due_today_summary` answers the *other* question
+          ("should this appear in the to-do list") and therefore **cannot be reused**: it returns
+          False for `completed`.
+        - **It excludes assignees who do not owe the chore today.** For `rotation_simple` /
+          `rotation_smart`, only the turn holder (or a `rotation_cycle_override`) owes it. For
+          `rotation_primary_standby`, the turn holder owes it, plus standbys whose claim window and
+          `standby_claim_mode` permit acting. Non-turn assignees see `not_my_turn` / `standby` and
+          must not be charged for the chore.
+        - **It requires the assignee to still be assigned.** Port the guard from
+          `chore_counts_toward_due_today_summary` (added for issue #205) so a stale chore entry
+          cannot inflate `due_count` with a chore the assignee can no longer be credited for.
+
+        Naming: the two concepts must be named apart so they cannot be confused again —
+        `scheduled_today` (date-only, what `_is_chore_due_today_for_assignee` does now) versus
+        `counts_toward_today` (what badges consume). Keep the old helper as the schedule primitive
+        rather than deleting it; the sensor and other callers still need the date-only answer.
+
+        Non-rotation modes are unaffected in behaviour: for `independent` / `shared_first` /
+        `shared_all`, every assigned assignee already owes the chore, so the new scope resolves to
+        the same set as before.
+
+     13. **CONFIRMED — one authority for "was an occurrence missed between X and Y". (O2, closes
+        conflicts C2/C3 at the source.)** Phase 1C. Three consumers currently answer this same
+        question differently: `ChoreEngine.calculate_streak` (inline schedule-config assembly),
+        `StatisticsManager._has_missed_occurrence_since_advance` (added in Phase 1), and
+        `GamificationManager._streak_alive` (a calendar shortcut -- see decision 14). Consolidate
+        on a single engine-level helper that takes the chore definition plus two bounds and answers
+        it, with `calculate_streak` and the badge snapshot both calling it.
+
+        The helper must preserve two behaviours that exist only inside `calculate_streak` today,
+        because forgetting either is a silent regression:
+        - **Day-based schedules are normalised to local day boundaries** (`start_of_local_day`),
+          so DST shifts do not create phantom missed occurrences between consecutive dates.
+        - **`daily_multi` and hour/minute interval units are exempt from that normalisation**,
+          since their occurrences are not day-aligned.
+
+        Anchor semantics stay caller-supplied, because the correct anchor genuinely differs: the
+        badge path anchors on the badge's `last_update_day`, while `calculate_streak` anchors on the
+        previous completion. The helper owns *how* to detect a miss, not *when* to look.
+
+     14. **DEFERRED — streak subsystem unification moves to Phase 6** (O3, O4, O5). Recorded here
+        so the intent is not lost, but deliberately **out of scope for the release-blocking
+        phases**: Phase 6 changes achievement behaviour and deletes a public-looking engine method,
+        both of which deserve their own review rather than being buckled onto the badge fix.
+        - **O3** -- `COMPLETION_STREAK` achievements adopt the shared helper, removing the last
+          calendar-day streak gate in the system (conflict C2).
+        - **O4** -- `last_update_day` is now overloaded three ways (same-day idempotency gate,
+          miss-check anchor, and the source of `streak_yesterday`). No behaviour change intended;
+          needs an explicit typed comment so a future writer understands the blast radius.
+        - **O5** -- remove or fix the dead `StatisticsEngine.update_streak` / `get_streak` pair
+          (conflict C4), which currently preserves the exact anti-pattern this initiative removes.
+
+        **Sequencing note:** Phase 6 must not begin until Phases 1B-5 have shipped and the badge
+        behaviour is confirmed in the field. Doing O3 in the same release as the badge change would
+        make it impossible to attribute any remaining streak report to the right subsystem.
 
 > **Important:** Keep the entire Summary section (table + bullets) current with every meaningful update.
 
@@ -333,6 +418,71 @@ check can break the streak on Tuesday — the neutral-hold rule (3) would otherw
 indefinitely. This is exactly why rule 2 precedes rule 3. The only safe skip is `lower >= upper`
 (no window). If profiling makes the eager rrule cost a problem, the fallback is to short-circuit
 per chore on the first miss, not to defer the whole check.
+
+### Conflicts found during Phase 1 review (2026-09-14)
+
+A post-Phase 1 audit of every streak implementation and every "due today" notion in the codebase.
+These are **not** hypothetical: two of them would ship defects into the exact feature we are
+fixing.
+
+**C1 — The eligible scope is coarser than the dashboard's, so rotation chores will be wrongly
+required. (Blocks Phase 2; addressed by Phase 1B.)**
+
+`_is_chore_due_today_for_assignee` (our eligibility source) is **schedule-only**: pause guard →
+per-assignee due date → dateless-daily. `ChoreManager.chore_counts_toward_due_today_summary`
+(`chore_manager.py:4572`) — what the dashboard's "Due Today" means — is **schedule *and*
+legitimacy**, and additionally excludes `not_my_turn`, `standby`, `overdue`, `missed`, `paused` and
+six blocked claim modes.
+
+Verified mechanics: `ChoreEngine.resolve_assignee_chore_state` (`chore_engine.py:714`) returns
+`not_my_turn` for rotation assignees other than the turn holder (P3), and `standby` for non-turn
+assignees on `rotation_primary_standby`. Only the turn holder (or a window-permitted standby) can
+complete the chore. But `_is_chore_due_today_for_assignee` falls back to the chore-level due date,
+so **every** assignee reads as eligible on a dated rotation chore.
+
+Consequence once Phase 2 lands: a badge scoped to a rotation chore counts an uncompletable chore
+for every non-turn assignee → the day can never be satisfied → stall or break. **This is the same
+bug class we are fixing, entering through a different door.**
+
+Eligibility also lacks the **assignment guard** that `chore_counts_toward_due_today_summary`
+carries explicitly *because of issue #205* ("prevents stale entries from inflating Due Today after
+a user is removed"). If a tracked chore outlives the assignment, `due_count` increments while
+`approved` cannot — an uncompletable chore again.
+
+**C2 — Achievement streaks still break on non-daily schedules. (Addressed by Phase 6 / O3.)**
+
+`GamificationManager._streak_alive` (`gamification_manager.py:2881`) requires `last_completed` to be
+**today or yesterday**. Verified against the real logic for a weekly chore whose schedule-aware
+chore streak is 3, evaluated on a Wednesday:
+
+| Last completed | Streak reported to the achievement |
+| --- | --- |
+| Monday (2 days ago) | **0** |
+| Yesterday | 3 |
+| Today | 3 |
+
+So `COMPLETION_STREAK` achievements carry the **same defect** as badges did: a weekly-chore streak
+can never exceed 1 for the achievement. The plan's earlier claim that achievements "inherit"
+schedule awareness was half right — they inherit the value, but this calendar gate destroys it.
+`_streak_alive` is precisely the approximation we rejected for badges.
+
+**C3 — Open-ended chores have two contradictory "missed" semantics. (Phase 6 / O2.)**
+
+`ChoreEngine.calculate_streak` for `FREQUENCY_NONE` uses a calendar check (`days_diff <= 1` breaks
+the streak), while `RecurrenceEngine.has_missed_occurrences` returns `False` for `FREQUENCY_NONE`
+(no schedule ⇒ nothing to miss). Same chore, two answers. Not a live conflict today, but it means
+an open-ended chore can never *break* a badge streak, only stall it — which should be a deliberate
+choice rather than an accident.
+
+**C4 — Dead code carrying the exact anti-pattern we just removed. (Phase 6 / O5.)**
+
+`StatisticsEngine.update_streak` / `get_streak` (`statistics_engine.py:333`, `:408`) have **zero
+production callers** (verified: only their own docstrings and `test_statistics_engine.py`, which
+has 13 tests pinning them green). They implement literal calendar-yesterday logic, are generically
+named, and their docstring documents the behaviour as correct. That is an attractive trap — the
+next person adding a streak would plausibly reach for them and reintroduce this entire bug class.
+
+---
 
 ### Badge target type primer (read this before the decisions)
 
@@ -491,6 +641,72 @@ permanently neutral — never advancing and never breaking.
     `last_completed` would have used the wrong anchor. `test_todays_pending_occurrence_is_not_a_miss`
     pins the start-of-today upper bound, which is the trap that would have re-created the #294
     symptom mid-day.
+
+### Phase 1B – Eligible scope must mean "counts toward today's obligation" (O1)
+
+- **Goal**: Replace schedule-only eligibility with legitimacy-aware eligibility, so a chore an
+  assignee cannot be credited for never counts against them (closes conflict C1).
+- **Why before Phase 2**: Phase 2 consumes `due_count` / `approved_due_today`. Shipping Phase 2
+  first would introduce unfair breaks for rotation and standby chores — the exact failure mode this
+  initiative exists to remove.
+- **Steps / detailed work items**
+  1. Add a legitimacy-aware scope resolver, named apart from the schedule primitive: keep
+     `_is_chore_due_today_for_assignee` as `scheduled_today`, and add `counts_toward_today`
+     implementing decision 12 (scheduled today **and** this assignee owes it **and** still
+     assigned).
+  2. **Do not reuse `chore_counts_toward_due_today_summary`.** It answers the dashboard's question
+     and returns False for `completed`, which would make every day unsatisfiable. Reuse only its
+     **assignment guard** (the issue #205 fix).
+  3. Derive "owes it today" from the existing resolution rather than re-implementing rotation
+     rules: `ChoreEngine.resolve_assignee_chore_state` already encodes `not_my_turn` (P3) and
+     `standby`, including the primary-standby claim-window/`standby_claim_mode` gate. Consuming
+     that resolution keeps rotation semantics in one place.
+  4. Rewire `get_badge_scoped_today_completion` so `due_count` / `approved_due_today` use the new
+     scope. `total_count` / `approved_count` stay unchanged, so the change is additive and the
+     existing snapshot contract holds.
+  5. Tests: rotation_simple and rotation_smart (non-turn assignees must not be charged, turn holder
+     must be); rotation_primary_standby (standby within the window counts, outside it does not);
+     stale-assignment guard; and a regression test proving a **completed** chore still counts
+     toward the day.
+- **Key issues**
+  - **The completed-chore trap is the highest-risk part of the whole initiative.** Any naming or
+    reuse that excludes `completed` makes `approved_due_today / due_count` unreachable and every
+    badge unsatisfiable. Pin it with an explicit test, not just a comment.
+  - Non-rotation modes must be provably unchanged: add a test asserting `independent` /
+    `shared_first` / `shared_all` produce identical `due_count` before and after.
+  - `resolve_assignee_chore_state` is read-time and needs `now`, `due_date` and `due_window_start`.
+    Calling it per chore per badge adds cost; if profiling shows a problem, short-circuit on the
+    already-cheap conditions (assigned, not paused, non-rotation) before resolving.
+
+### Phase 1C – Single missed-occurrence authority (O2)
+
+- **Goal**: One engine-level helper answers "was an occurrence missed between X and Y", used by
+  both chore streaks and badge streaks (closes the divergence behind conflicts C2/C3).
+- **Steps / detailed work items**
+  1. Extract the helper into the schedule layer, taking a chore definition plus two bounds and
+     returning whether a scheduled occurrence was missed in that window.
+  2. Have `ChoreEngine.calculate_streak` call it, replacing its inline config assembly and direct
+     `has_missed_occurrences` call. Behavioural no-op, pinned by the existing
+     `test_workflow_streak_schedule.py` suite (11 tests).
+  3. Have `StatisticsManager._has_missed_occurrence_since_advance` call it, deleting the Phase 1
+     duplicate of the builder + check.
+  4. Preserve the two normalisation behaviours that exist only inside `calculate_streak` today:
+     local-day-boundary normalisation for day-based schedules, and the exemption for `daily_multi`
+     and hour/minute units. Forgetting either silently changes streak behaviour.
+  5. Keep anchors caller-supplied: the badge path anchors on `last_update_day`, the chore path on
+     the previous completion. The helper owns *how* to detect a miss, not *when* to look.
+  6. Tests: pin that both callers produce identical results for the same chore and window, and add
+     a DST-boundary case (the normalisation's entire purpose).
+- **Key issues**
+  - This is a refactor of freshly written Phase 1 code. Land it as its own commit and rely on the
+    Phase 1 tests as the safety net — if they still pass unchanged, the consolidation preserved
+    behaviour.
+  - The local-day normalisation currently exists in `calculate_streak` only, and the Phase 1 badge
+    path coincidentally matches it (both resolve to local-midnight UTC bounds). The helper should
+    normalise explicitly rather than relying on that coincidence.
+
+### Phase 2 – Evaluator semantics (both families)
+
 - **Goal**: Apply the eligibility rule to the streak evaluator, and the eligible denominator to
   **both** the streak and days evaluators (decision 8).
 - **Steps / detailed work items**
@@ -605,6 +821,42 @@ permanently neutral — never advancing and never breaking.
   - Wiki is a separate repository with no PR flow (commit directly to `choreops-wiki` `master`).
   - Any new user-facing string must be a `TRANS_KEY_*` constant in `const.py`; the engine's `reason` strings are existing English f-strings and stay internal, so no new translation key is expected — confirm during implementation.
 
+### Phase 6 – Streak subsystem unification (O3, O4, O5) — DELIBERATELY LATER
+
+- **Goal**: Remove the remaining calendar-day streak logic and the anti-patterns that would
+  reintroduce it. **Not part of the badge fix release** (decision 14).
+- **Entry criteria**: Phases 1B-5 shipped and the badge behaviour confirmed in the field, so any new
+  streak report can be attributed to the right subsystem.
+- **Steps / detailed work items**
+  1. **O3 — achievements adopt the shared helper.** Replace `_streak_alive` (today-or-yesterday
+     calendar gate) with the schedule-aware check, and retire `_streak_alive`. This is the highest
+     value item: it closes conflict C2 and removes the last calendar-day streak gate in the system.
+     Note the behavioural consequence — achievement streaks over weekly/monthly chores will start
+     accumulating where they previously capped at 1, so it is release-notable in its own right.
+  2. **O4 — document `last_update_day`'s three roles** (same-day idempotency gate, miss-check
+     anchor, `streak_yesterday` source) with a typed comment at the definition site. Decide
+     explicitly whether `streak_yesterday` should still be computed once Phase 2 stops consuming
+     it; if not, delete the field and its `dt_add_interval` computation
+     (`statistics_manager.py:2462`) as noted in the Phase 1 opportunities list.
+  3. **O5 — remove or fix the dead `StatisticsEngine.update_streak` / `get_streak` pair**
+     (`statistics_engine.py:333`, `:408`). Zero production callers, 13 tests pinning calendar
+     semantics green. Either delete them with their tests, or make them schedule-aware via the
+     shared helper. Deleting is preferred — dead generic API carrying the exact anti-pattern we
+     just removed is a trap for the next contributor.
+  4. **C3 — settle the open-ended-chore semantics.** Decide whether an open-ended chore
+     (`FREQUENCY_NONE`) can break a streak. Today `calculate_streak` says yes (calendar gap) and
+     `has_missed_occurrences` says no. Pick one and make both paths agree.
+  5. **C1 follow-up — evaluate unifying the two "today" notions** (`scheduled_today` and the
+     dashboard's `chore_counts_toward_due_today_summary`) behind one named authority, now that
+     Phase 1B has separated the concepts. Optional; only if Phase 1B shows the duplication is
+     genuinely burdening maintenance.
+- **Key issues**
+  - O3 changes achievement behaviour, so it needs its own release note and its own validation pass.
+  - O5 touches `test_statistics_engine.py` (13 tests). Deleting a tested public method is a
+    deliberate act; state the rationale in the commit rather than quietly removing.
+  - This phase must not be started opportunistically mid-release. Its whole value is that the badge
+    change has already been proven independently.
+
 ---
 
 ## Testing & validation
@@ -612,6 +864,10 @@ permanently neutral — never advancing and never breaking.
 - **Commands (per phase, targeted):**
   - `python -m pytest tests/test_badge_streak_midnight_reset.py tests/test_gamification_engine.py -v`
   - `python -m pytest tests/test_badge_target_types.py tests/test_badge_no_overdue_cycles.py tests/test_badge_period_end_cycles.py tests/test_workflow_streak_schedule.py tests/test_gamification_streak_reset.py tests/test_schedule_engine_streaks.py -v`
+  - Phase 1B adds: `python -m pytest tests/test_badge_schedule_snapshot.py -v` (extended with rotation /
+    standby / stale-assignment / completed-still-counts cases)
+  - Phase 1C adds: `python -m pytest tests/test_workflow_streak_schedule.py tests/test_schedule_engine_streaks.py -v`
+    (must stay green unchanged — that is the proof the consolidation preserved behaviour)
 - **Commands (release gate):**
   - `./utils/quick_lint.sh --fix`
   - `mypy custom_components/choreops/`
@@ -635,33 +891,44 @@ permanently neutral — never advancing and never breaking.
 
 ### Opportunities surfaced during contract review
 
-1. **Extract one shared schedule-config builder.** The `frequency` / `interval` / `applicable_days`
-   / `daily_multi_times` assembly exists in `ChoreEngine.calculate_streak` and would be needed a
-   second time for the miss check. This codebase has already been bitten by duplicated scheduling
-   math — period-end calculation lived in both `dt_utils` and `RecurrenceEngine`, drifted, and
-   needed a parity test to pin it. Extracting one builder in Phase 1 avoids repeating that, and
-   Phase 1 already includes the parity step (`test_workflow_streak_schedule.py` must stay green).
-2. **`_streak_alive` and `missed_since_advance` are the same question** ("is this streak still
-   alive?") answered for two different systems. `_streak_alive` is the cheap calendar
-   approximation used by achievement streaks; `missed_since_advance` is the schedule-accurate
-   version. Once it exists, achievement streaks could adopt it and gain the same correctness.
-   Out of scope here — noted so the duplication is a conscious choice.
-3. **The equivalence of the streak options is a documentation opportunity, not just a risk.**
-   Describing `Streak: 80% of Selected Chores Completed` and `Streak: 80% of Selected Due Chores
-   Completed` as equivalent lets users migrate to the better-named option at their leisure, which
-   makes a later picker consolidation safe rather than disruptive. Related: after the fix,
-   `Streak: Selected Chores Completed` becomes "100% of the chores due today, overdue tolerated" —
-   a useful behaviour that has no option today, so the fix also *adds* a capability.
-4. **`days_cycle_count` is not exposed on the badge progress sensor** (verified: `sensor.py`
+**O1/O2 were promoted to the critical path** (decisions 12, 13 — Phases 1B, 1C) because they close
+defects that would otherwise ship:
+
+1. **O1 — one "what must this assignee do today" notion.** Promoted to Phase 1B. Two definitions
+   of *today* drive two user-visible features, and the schedule-only one would wrongly charge
+   rotation/standby assignees. Resolved by naming the concepts apart (`scheduled_today` vs
+   `counts_toward_today`) and having badges consume the legitimacy-aware one.
+2. **O2 — one "missed occurrence since X" authority.** Promoted to Phase 1C. Three consumers
+   answer the question differently today; consolidating removes the divergence that makes C2 and
+   C3 possible, and is the prerequisite for O3.
+
+**O3–O5 are deferred to Phase 6** (decision 14) — they change other subsystems and deserve separate
+review:
+
+3. **O3 — achievement streaks adopt the shared helper.** The highest-value item available: it
+   closes conflict C2 and removes the last calendar-day streak gate in the system. Not in the badge
+   release, because it changes achievement behaviour and must be attributable on its own.
+4. **O4 — `last_update_day` now serves three roles** (same-day idempotency gate, miss-check anchor,
+   and the source of `streak_yesterday`). No behaviour change intended; needs an explicit typed
+   comment so a future writer understands the blast radius. Decide the fate of `streak_yesterday`
+   at the same time.
+5. **O5 — remove or fix the dead `StatisticsEngine.update_streak` / `get_streak` pair.** Dead
+   generic API whose docstring documents calendar-yesterday logic as correct — precisely the
+   anti-pattern this initiative removes. Deleting is preferred over fixing.
+6. **Inefficiency introduced by Phase 1:** `_has_missed_occurrence_since_advance` is currently
+   called **twice per badge** (once for the all-tracked snapshot, once for the due-only snapshot).
+   Both use the same chores and the same anchor, and `only_due_today` does not affect the result,
+   so the second call is a duplicate rrule pass for an identical answer. Fold the dedupe into
+   Phase 1C, which is already touching this code.
+
+### Earlier opportunities (kept)
+
+7. **`days_cycle_count` is not exposed on the badge progress sensor** (verified: `sensor.py`
    surfaces `status`, `overall_progress`, `criteria_met`, `last_update_day`). Anyone diagnosing a
    streak currently cannot see the counter. Consider exposing it while streak semantics are in
    flux — it would have made #294 self-evident and would make this change verifiable in the field.
-5. **`streak_yesterday` becomes dead weight after Phase 2.** Verified: only `_evaluate_streak`
-   reads it; `_evaluate_daily_completion` uses `cycle_count` and `already_counted_today` instead,
-   and has its own hold/strict branches. Once the streak path stops consuming it, the field — and
-   the `dt_add_interval` computation that builds it in
-   `get_badge_scoped_today_stats` (`statistics_manager.py:2462`) — can be deleted. Small perf win
-   and one less confusing concept; worth doing in Phase 3 while that file is already open.
+8. **`_streak_alive` and the shared helper are the same question** for two systems — this is O3,
+   now scheduled in Phase 6.
 
 ### Other notes
 
