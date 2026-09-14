@@ -613,13 +613,35 @@ class TestEvaluateStreak:
         assert result["met"] is False
         assert result["current_value"] == 1  # Fresh start
 
-    def test_streak_breaks_when_today_fails(self) -> None:
-        """Streak resets to 0 when today doesn't meet criteria."""
+    def test_streak_holds_while_today_is_still_in_progress(self) -> None:
+        """An unmet day that is still in progress does not break the streak.
+
+        Regression guard for issue #294: the nightly rollover evaluates a
+        brand-new day with nothing approved yet, which used to zero the streak
+        before any chore could be completed.
+        """
         context = make_context(
             days_cycle_count=5,
             approved_count=5,
-            total_count=10,  # Only 50%
+            total_count=10,  # Only 50%, but the day is not over
             streak_yesterday=True,
+        )
+        target = make_badge_target(threshold=7)
+
+        result = GamificationEngine._evaluate_streak(
+            context, target, percent_required=1.0, only_due_today=False
+        )
+
+        assert result["met"] is False
+        assert result["current_value"] == 5  # Streak held
+
+    def test_streak_breaks_after_a_full_day_without_completion(self) -> None:
+        """The streak resets once a full day passed without meeting criteria."""
+        context = make_context(
+            days_cycle_count=5,
+            approved_count=0,
+            total_count=10,
+            streak_yesterday=False,  # Yesterday was not satisfied either
         )
         target = make_badge_target(threshold=7)
 

@@ -1089,7 +1089,8 @@ class GamificationEngine:
         """Core streak evaluation logic.
 
         Streaks require CONSECUTIVE days meeting criteria.
-        Missing a day resets progress to 0.
+        A day that ends without meeting the criteria resets progress to 0.
+        A day still in progress does not break the streak.
 
         Context Requirements:
         - today_stats.streak_yesterday: Whether yesterday maintained streak
@@ -1133,8 +1134,15 @@ class GamificationEngine:
         # Streak logic:
         # - If yesterday had streak AND today meets criteria: continue streak
         # - If today meets criteria but no yesterday streak: start new streak (1)
-        # - If today doesn't meet criteria: streak breaks (0)
-        if today_met:
+        # - If today doesn't meet criteria yet the streak is still credited to
+        #   today or yesterday: hold, because the day is not over
+        # - Otherwise a full day passed unmet: streak breaks (0)
+        if require_no_overdue and (has_overdue or cycle_failed):
+            # Strict mode is a survival check: lateness anywhere in the cycle
+            # cannot be recovered from until the cycle resets, so it breaks
+            # immediately rather than waiting for the day to end.
+            current_value = 0
+        elif today_met:
             if already_counted_today:
                 current_value = cycle_count
             elif streak_yesterday:
@@ -1142,6 +1150,11 @@ class GamificationEngine:
             else:
                 # Starting fresh streak today
                 current_value = 1
+        elif streak_yesterday:
+            # Today is still in progress. A streak only breaks once a full day
+            # has passed without meeting the criteria, which shows up as the
+            # streak no longer being credited to today or yesterday.
+            current_value = cycle_count
         else:
             # Streak broken
             current_value = 0
