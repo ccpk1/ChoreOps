@@ -40,7 +40,6 @@ from homeassistant.core import callback
 
 from .. import const
 from ..engines.chore_engine import ChoreEngine
-from ..engines.schedule_engine import RecurrenceEngine
 from ..utils.dt_utils import (
     as_utc,
     dt_add_interval,
@@ -2550,6 +2549,7 @@ class StatisticsManager(BaseManager):
         cycle_start_iso: str,
         only_due_today: bool,
         last_update_day_iso: str = "",
+        missed_since_advance: bool | None = None,
     ) -> BadgeScopedCompletionSnapshot:
         """Get badge-scoped completion snapshot for today.
 
@@ -2564,6 +2564,9 @@ class StatisticsManager(BaseManager):
             only_due_today: If True, include only chores due today.
             last_update_day_iso: Day the badge streak last advanced. Bounds the
                 missed-occurrence window; empty means no window to evaluate.
+            missed_since_advance: Precomputed miss result. Callers that build both
+                scope variants of the same badge pass it so the check runs once;
+                `None` computes it.
 
         Returns:
             Dict with keys: approved_count, total_count, due_count,
@@ -2658,14 +2661,18 @@ class StatisticsManager(BaseManager):
             "approved_due_today": approved_due_today,
             "has_overdue": has_overdue,
             "cycle_failed": cycle_failed,
-            "missed_since_advance": self._has_missed_occurrence_since_advance(
-                tracked_chores,
-                last_update_day_iso=last_update_day_iso,
-                today_iso=today_iso,
+            "missed_since_advance": (
+                self.has_missed_occurrence_since_advance(
+                    tracked_chores,
+                    last_update_day_iso=last_update_day_iso,
+                    today_iso=today_iso,
+                )
+                if missed_since_advance is None
+                else missed_since_advance
             ),
         }
 
-    def _has_missed_occurrence_since_advance(
+    def has_missed_occurrence_since_advance(
         self,
         tracked_chores: list[str],
         *,
@@ -2711,16 +2718,11 @@ class StatisticsManager(BaseManager):
             if not chore_info:
                 continue
 
-            schedule_config = ChoreEngine.build_schedule_config(
+            if ChoreEngine.has_missed_occurrence_between(
                 chore_info,
-                base_date_iso=window_start.isoformat(),
-            )
-            try:
-                engine = RecurrenceEngine(schedule_config)
-            except (ValueError, KeyError, TypeError):
-                # Unusable schedule data must not be reported as a miss.
-                continue
-            if engine.has_missed_occurrences(window_start, window_end):
+                window_start_utc=window_start,
+                window_end_utc=window_end,
+            ):
                 return True
 
         return False

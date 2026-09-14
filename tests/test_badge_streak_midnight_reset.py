@@ -456,3 +456,45 @@ class TestStreakStillBreaks:
         await replay.complete_day(day_key(-1))
 
         assert replay.days_cycle_count == 1, "A broken streak did not restart at 1"
+
+
+# ============================================================================
+# TESTS: the miss check runs once per badge, not once per scope variant
+# ============================================================================
+
+
+class TestMissCheckIsComputedOnce:
+    """Both scope variants of a badge share one miss result."""
+
+    async def test_single_miss_check_per_evaluation(
+        self,
+        hass: HomeAssistant,
+        streak_scenario: SetupResult,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """An evaluation runs the miss check once, not once per snapshot.
+
+        The answer depends on the badge's advance day, not on the chore scope, so
+        building both the all-tracked and due-only snapshots must not repeat the
+        schedule evaluation.
+        """
+        badge_id = await _add_streak_badge(hass, streak_scenario)
+        replay = StreakDayReplay(streak_scenario, badge_id)
+
+        statistics_manager = streak_scenario.coordinator.statistics_manager
+        original = statistics_manager.has_missed_occurrence_since_advance
+        calls: list[str] = []
+
+        def counting(*args: Any, **kwargs: Any) -> bool:
+            calls.append("call")
+            return original(*args, **kwargs)
+
+        monkeypatch.setattr(
+            statistics_manager, "has_missed_occurrence_since_advance", counting
+        )
+
+        await replay.complete_day(day_key(-1))
+
+        assert len(calls) == 1, (
+            f"expected one miss check per evaluation, saw {len(calls)}"
+        )

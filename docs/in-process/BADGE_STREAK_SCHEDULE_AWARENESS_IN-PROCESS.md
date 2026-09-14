@@ -7,8 +7,9 @@
   **together in one release** (decided 2026-09-14). From the user's perspective this is one bug
   ("streak badges don't work"); the analysis just found several distinct defects behind it.
 - **Owner / driver(s)**: ChoreOps maintainer + ChoreOps Builder (ChoreOps Test Builder for Phase 4)
-- **Status**: In progress — Phases 0, 1 and 1B committed; 1C next (unblocks Phase 2); Phases 2–6 not
-  started. All decisions resolved (14 total, one deferred).
+- **Status**: In progress — Phases 0, 1, 1B and 1C committed; **Phase 2 next** (the
+  behaviour-changing phase); Phases 2–6 not started. All decisions resolved (14 total, one
+  deferred).
 - **Branch / delivery**: `ccpk1/issue294` carries both the #294 hotfix and this initiative, which
   ship as a single release. Keep the phases as **separate commits** regardless — reviewers follow
   commit history, and the hotfix commit (`73e97d5`) doubles as a bisect point if the wider change
@@ -21,7 +22,7 @@
 | Phase 0 – Prerequisite (#294 hotfix)                    | Land the calendar-midnight streak fix so this defect becomes observable        | 100%       | ✅ Committed `73e97d5` (3 files, +499/−6)                           |
 | Phase 1 – Snapshot fields (data layer)                   | Surface due-chore scope and schedule-derived miss signal in the stats snapshot | 100%       | ✅ `due_count`, `approved_due_today`, `missed_since_advance` + shared builder; 19 new tests |
 | Phase 1B – Eligible scope must mean "counts toward today" (O1) | Legitimacy-aware scope so rotation/standby assignees are not charged | 100%       | ✅ Claim-mode deny-list; 18 new tests; closes conflict C1              |
-| Phase 1C – Single missed-occurrence authority (O2)       | One helper for "was an occurrence missed between X and Y"                      | 0%         | Refactor of Phase 1 code; unblocks Phase 6 (O3)                     |
+| Phase 1C – Single missed-occurrence authority (O2)       | One helper for "was an occurrence missed between X and Y"                      | 100%       | ✅ `has_missed_occurrence_between`; 27 new tests; closes O2          |
 | Phase 2 – Evaluator semantics (both families)           | Streaks: neutral days hold, break/resume by missed occurrence. Both: eligible-day scope | 0%         | Depends on 1B + 1C                                                  |
 | Phase 3 – Persistence & status alignment                | Ensure neutral days write nothing and status transitions stay coherent         | 0%         | `gamification_manager.py` days_cycle bucket + status transition |
 | Phase 4 – Tests & validation                            | Extend the #294 regression suite; add schedule-matrix + days-family coverage    | 0%         | Reuses the day-replay harness built for #294                       |
@@ -52,10 +53,10 @@
    2. ✅ Phase 1 complete — data layer in place, no evaluator behaviour changed.
    3. ✅ Post-Phase-1 audit found four conflicts (C1–C4) and five unification opportunities.
    4. ✅ Decisions 12 (O1) and 13 (O2) added to the critical path; 14 (O3/O4/O5) deferred to Phase 6.
-   5. **Next: Phase 1C** — single missed-occurrence authority. Phase 1B has landed, so the blocker on
-      Phase 2 is cleared once 1C lands (Phase 2 also consumes the helper 1C consolidates).
-   6. Implemented out of order against the original plan text: Phase 1B was done before 1C because
-      1B is the correctness blocker and 1C is a refactor of working code.
+   5. ✅ Phase 1C complete — one missed-occurrence authority shared by chore and badge streaks.
+   6. **Next: Phase 2** — evaluator semantics. This is the behaviour-changing phase and the only one
+      expected to require modifying existing tests rather than only adding them (the two
+      `TestStreakStillBreaks` guards rely on the calendar gate and must be re-expressed).
 
 4. **Risks / blockers** –
    - **BLOCKER (C1) — the eligible scope is currently too coarse.** `_is_chore_due_today_for_assignee`
@@ -736,28 +737,49 @@ permanently neutral — never advancing and never breaking.
 
 - **Goal**: One engine-level helper answers "was an occurrence missed between X and Y", used by
   both chore streaks and badge streaks (closes the divergence behind conflicts C2/C3).
+- **Status**: ✅ **Complete** (2026-09-14). Closes O2.
 - **Steps / detailed work items**
-  1. Extract the helper into the schedule layer, taking a chore definition plus two bounds and
-     returning whether a scheduled occurrence was missed in that window.
-  2. Have `ChoreEngine.calculate_streak` call it, replacing its inline config assembly and direct
-     `has_missed_occurrences` call. Behavioural no-op, pinned by the existing
-     `test_workflow_streak_schedule.py` suite (11 tests).
-  3. Have `StatisticsManager._has_missed_occurrence_since_advance` call it, deleting the Phase 1
-     duplicate of the builder + check.
-  4. Preserve the two normalisation behaviours that exist only inside `calculate_streak` today:
-     local-day-boundary normalisation for day-based schedules, and the exemption for `daily_multi`
-     and hour/minute units. Forgetting either silently changes streak behaviour.
-  5. Keep anchors caller-supplied: the badge path anchors on `last_update_day`, the chore path on
-     the previous completion. The helper owns *how* to detect a miss, not *when* to look.
-  6. Tests: pin that both callers produce identical results for the same chore and window, and add
-     a DST-boundary case (the normalisation's entire purpose).
+  1. ✅ Added `ChoreEngine.has_missed_occurrence_between(chore_data, *, window_start_utc,
+     window_end_utc, unusable_schedule_counts_as_miss=False)`. It builds the schedule config,
+     normalises, constructs `RecurrenceEngine` and reports whether an occurrence was missed.
+  2. ✅ `calculate_streak` now delegates, replacing its inline config assembly, its inline
+     normalisation and its direct `has_missed_occurrences` call. Behaviour preserved:
+     `test_workflow_streak_schedule.py` passes **unchanged** (11 tests), which is the evidence the
+     refactor was a no-op.
+  3. ✅ `StatisticsManager.has_missed_occurrence_since_advance` now delegates, and the Phase 1
+     duplicate of the builder + check was deleted along with the now-unused `RecurrenceEngine`
+     import in `statistics_manager.py`.
+  4. ✅ Both normalisation behaviours moved into the helper as a single expression: local-day
+     boundaries for day-based schedules, and the exemption for `daily_multi` and hour/minute
+     units. Previously the badge path matched the chore path only by coincidence; now it is
+     explicit and shared.
+  5. ✅ Anchors stay caller-supplied: the badge path passes the badge's advance day, the chore path
+     the previous completion.
+  6. ✅ Added `tests/test_missed_occurrence_authority.py` — 27 tests: helper contract,
+     cross-caller parity, the time-of-day insensitivity invariant, sub-day exemption, a DST
+     transition case, and the error-policy split.
+- **⚠️ Finding not in the plan — the two callers deliberately disagree on the error path.** The
+  old `calculate_streak` wrapped schedule evaluation in a bare `except` and returned **1 (broke
+  the streak)** on failure; the badge path fails safe with **False (no miss)** so bad data never
+  breaks a valid streak. Both were intentional, so the helper takes
+  `unusable_schedule_counts_as_miss` and each caller states its own policy at the call site
+  rather than inheriting the other's. This is also why the boundary checker's bare-exception
+  allowlist entry for `chore_engine.py` ("any failure safely resets streak") is now unnecessary —
+  `chore_engine.py` no longer contains a bare `except`.
 - **Key issues**
-  - This is a refactor of freshly written Phase 1 code. Land it as its own commit and rely on the
-    Phase 1 tests as the safety net — if they still pass unchanged, the consolidation preserved
-    behaviour.
-  - The local-day normalisation currently exists in `calculate_streak` only, and the Phase 1 badge
-    path coincidentally matches it (both resolve to local-midnight UTC bounds). The helper should
-    normalise explicitly rather than relying on that coincidence.
+  - **The FREQUENCY_NONE divergence is preserved, not fixed.** `calculate_streak` decays an
+    open-ended chore with a calendar rule (`days_diff <= 1`) while the helper returns "no miss"
+    for `FREQUENCY_NONE`. That is conflict **C3**, deliberately deferred to Phase 6, so the
+    helper documents it rather than silently unifying it. Do not "fix" it here — the two would
+    then disagree for every open-ended chore.
+  - `RecurrenceEngine` barely raises: probing unknown frequencies (`"bogus"`, `"custom"`, `None`)
+    found no exception, so the error path is defensive only. The policy split is therefore pinned
+    with a monkeypatch rather than by finding a naturally failing input.
+  - Verified the dedupe rather than assuming it: without the precomputed value the miss check ran
+    **twice** per badge evaluation (once per scope variant); with it, **once**. The test asserting
+    a single call would fail at two, so it is not vacuous.
+  - Helper has no Home Assistant dependency and stays in the pure engine layer; the manager
+    supplies `chore_data` from `coordinator.chores_data`.
 
 ### Phase 2 – Evaluator semantics (both families)
 
@@ -941,6 +963,12 @@ permanently neutral — never advancing and never breaking.
   `test_rotation_primary_standby`, `test_rotation_services`, `test_workflow_streak_schedule`,
   `test_badge_no_overdue_cycles`, `test_shared_chore_features` → **193 passed**; `quick_lint.sh`
   green with mypy 0 errors. Phases 1C–6 must not regress these.
+- **Baseline for Phase 1C (2026-09-14):** `test_missed_occurrence_authority.py` **27/27 pass**;
+  targeted set across `test_missed_occurrence_authority`, `test_badge_schedule_snapshot`,
+  `test_badge_streak_midnight_reset`, `test_workflow_streak_schedule`, `test_schedule_engine_streaks`,
+  `test_gamification_engine`, `test_gamification_streak_reset`, `test_badge_target_types`,
+  `test_badge_no_overdue_cycles`, `test_chore_engine` → **349 passed**; `quick_lint.sh` green with
+  mypy 0 errors. Phases 2–6 must not regress these.
 - **Testing discipline**: run targeted suites per phase. The full `pytest tests/ -v --tb=line`
   run is a release step, not a per-phase gate (see Notes: the suite is a release process).
 - **Outstanding tests:** none yet — Phase 4 defines the schedule matrix and days-family coverage.
@@ -976,11 +1004,10 @@ review:
 5. **O5 — remove or fix the dead `StatisticsEngine.update_streak` / `get_streak` pair.** Dead
    generic API whose docstring documents calendar-yesterday logic as correct — precisely the
    anti-pattern this initiative removes. Deleting is preferred over fixing.
-6. **Inefficiency introduced by Phase 1:** `_has_missed_occurrence_since_advance` is currently
-   called **twice per badge** (once for the all-tracked snapshot, once for the due-only snapshot).
-   Both use the same chores and the same anchor, and `only_due_today` does not affect the result,
-   so the second call is a duplicate rrule pass for an identical answer. Fold the dedupe into
-   Phase 1C, which is already touching this code.
+6. ✅ **DONE in Phase 1C — duplicate miss check removed.** `has_missed_occurrence_since_advance`
+   was called twice per badge (once for the all-tracked snapshot, once for the due-only snapshot)
+   for an identical answer. The manager now computes it once and passes it to both via
+   `missed_since_advance`; verified one call per evaluation instead of two.
 
 ### Earlier opportunities (kept)
 

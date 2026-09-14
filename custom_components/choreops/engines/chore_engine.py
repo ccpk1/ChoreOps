@@ -1476,6 +1476,76 @@ class ChoreEngine:
         }
 
     @staticmethod
+    def has_missed_occurrence_between(
+        chore_data: ChoreData | dict[str, Any],
+        *,
+        window_start_utc: datetime,
+        window_end_utc: datetime,
+        unusable_schedule_counts_as_miss: bool = False,
+    ) -> bool:
+        """Check whether a scheduled occurrence went unmet inside a window.
+
+        Single authority for missed-occurrence detection. Callers own the anchor,
+        because the correct one genuinely differs: chore-level streaks anchor on
+        the previous completion, while badge streaks anchor on the day the badge
+        streak last advanced. This method owns *how* a miss is detected, not
+        *when* to look.
+
+        Day-based schedules are normalised to local day boundaries so a DST shift
+        between two consecutive dates does not look like a skipped occurrence.
+        Sub-day schedules (hour/minute intervals, `daily_multi`) are exempt, since
+        their occurrences are not day-aligned.
+
+        Args:
+            chore_data: Chore definition containing the scheduling fields.
+            window_start_utc: Exclusive lower bound (UTC).
+            window_end_utc: Exclusive upper bound (UTC).
+            unusable_schedule_counts_as_miss: What to report when the schedule
+                cannot be evaluated. The two callers deliberately differ: a chore
+                streak treats it as a break (conservative), a badge streak as no
+                miss (never break a valid streak over unusable data).
+
+        Returns:
+            True when at least one scheduled occurrence fell inside the window.
+        """
+        from .schedule_engine import RecurrenceEngine
+
+        if window_start_utc >= window_end_utc:
+            return False
+
+        frequency = chore_data.get(
+            const.DATA_CHORE_RECURRING_FREQUENCY, const.FREQUENCY_NONE
+        )
+        # An open-ended chore has no occurrences to miss. Its streak decay is a
+        # separate calendar rule, deliberately not unified here.
+        if frequency == const.FREQUENCY_NONE:
+            return False
+
+        interval_unit = chore_data.get(
+            const.DATA_CHORE_CUSTOM_INTERVAL_UNIT, const.TIME_UNIT_DAYS
+        )
+
+        window_start = window_start_utc
+        window_end = window_end_utc
+        if frequency != const.FREQUENCY_DAILY_MULTI and interval_unit not in (
+            const.TIME_UNIT_HOURS,
+            const.TIME_UNIT_MINUTES,
+        ):
+            window_start = as_utc(start_of_local_day(window_start))
+            window_end = as_utc(start_of_local_day(window_end))
+
+        schedule_config = ChoreEngine.build_schedule_config(
+            chore_data,
+            base_date_iso=window_start.isoformat(),
+        )
+        try:
+            engine = RecurrenceEngine(schedule_config)
+        except (ValueError, KeyError, TypeError):
+            return unusable_schedule_counts_as_miss
+
+        return engine.has_missed_occurrences(window_start, window_end)
+
+    @staticmethod
     def calculate_streak(
         current_streak: int,
         previous_last_completed_iso: str | None,
@@ -1497,7 +1567,6 @@ class ChoreEngine:
             New streak value: 1 if first completion or streak broken,
                              current_streak + 1 if on-time
         """
-        from .schedule_engine import RecurrenceEngine
 
         # First completion ever = streak of 1
         if not previous_last_completed_iso:
@@ -1506,9 +1575,6 @@ class ChoreEngine:
         # Get schedule configuration from chore
         frequency = chore_data.get(
             const.DATA_CHORE_RECURRING_FREQUENCY, const.FREQUENCY_NONE
-        )
-        interval_unit = chore_data.get(
-            const.DATA_CHORE_CUSTOM_INTERVAL_UNIT, const.TIME_UNIT_DAYS
         )
 
         # No schedule (manual/one-time chore) = simple daily logic
@@ -1530,37 +1596,15 @@ class ChoreEngine:
         if not prev_dt or not current_dt:
             return 1  # Can't calculate, reset streak
 
-        schedule_prev_dt = prev_dt
-        schedule_current_dt = current_dt
-
-        # Streak continuity is based on work dates, not exact wall-clock deltas.
-        # Normalize day-based schedules to local day boundaries so DST shifts do
-        # not create phantom missed occurrences between consecutive dates.
-        if frequency != const.FREQUENCY_DAILY_MULTI and interval_unit not in (
-            const.TIME_UNIT_HOURS,
-            const.TIME_UNIT_MINUTES,
-        ):
-            schedule_prev_dt = as_utc(start_of_local_day(prev_dt))
-            schedule_current_dt = as_utc(start_of_local_day(current_dt))
-
-        # Build schedule config for RecurrenceEngine
-        schedule_config = ChoreEngine.build_schedule_config(
+        if ChoreEngine.has_missed_occurrence_between(
             chore_data,
-            base_date_iso=schedule_prev_dt.isoformat(),
-        )
+            window_start_utc=prev_dt,
+            window_end_utc=current_dt,
+            unusable_schedule_counts_as_miss=True,
+        ):
+            return 1  # Missed a scheduled occurrence, streak broke
 
-        try:
-            engine = RecurrenceEngine(schedule_config)
-
-            # Check if any scheduled occurrences were missed
-            if engine.has_missed_occurrences(schedule_prev_dt, schedule_current_dt):
-                return 1  # Broke streak
-
-            return current_streak + 1  # On-time, continue streak
-
-        except Exception:
-            # If schedule calculation fails, fallback to simple daily logic
-            return 1
+        return current_streak + 1  # On-time, continue streak
 
     # =========================================================================
     # TIMER BOUNDARY DECISION METHODS

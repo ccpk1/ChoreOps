@@ -1414,6 +1414,11 @@ class GamificationManager(BaseManager):
         current_badge_progress = cast(
             "dict[str, Any]", badge_progress.get(badge_id, {})
         )
+        last_update_day_iso = str(
+            current_badge_progress.get(
+                const.DATA_USER_BADGE_PROGRESS_LAST_UPDATE_DAY, ""
+            )
+        )
 
         tracked_chores = canonical_target.get(
             "tracked_chore_ids"
@@ -1424,6 +1429,15 @@ class GamificationManager(BaseManager):
             tracked_chores,
             today_iso=today_iso,
             current_badge_progress=current_badge_progress,
+        )
+        # One miss check serves both scope variants: the answer depends on the
+        # badge's advance day, not on the chore scope.
+        missed_since_advance = (
+            self.coordinator.statistics_manager.has_missed_occurrence_since_advance(
+                tracked_chores,
+                last_update_day_iso=last_update_day_iso,
+                today_iso=today_iso,
+            )
         )
         reset_schedule = cast(
             "dict[str, Any]",
@@ -1464,11 +1478,8 @@ class GamificationManager(BaseManager):
                 today_iso=today_iso,
                 cycle_start_iso=cycle_start_iso,
                 only_due_today=False,
-                last_update_day_iso=str(
-                    current_badge_progress.get(
-                        const.DATA_USER_BADGE_PROGRESS_LAST_UPDATE_DAY, ""
-                    )
-                ),
+                last_update_day_iso=last_update_day_iso,
+                missed_since_advance=missed_since_advance,
             )
         )
         today_completion_due = (
@@ -1478,11 +1489,8 @@ class GamificationManager(BaseManager):
                 today_iso=today_iso,
                 cycle_start_iso=cycle_start_iso,
                 only_due_today=True,
-                last_update_day_iso=str(
-                    current_badge_progress.get(
-                        const.DATA_USER_BADGE_PROGRESS_LAST_UPDATE_DAY, ""
-                    )
-                ),
+                last_update_day_iso=last_update_day_iso,
+                missed_since_advance=missed_since_advance,
             )
         )
 
