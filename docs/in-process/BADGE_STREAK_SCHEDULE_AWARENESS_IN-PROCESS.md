@@ -7,7 +7,7 @@
   **together in one release** (decided 2026-09-14). From the user's perspective this is one bug
   ("streak badges don't work"); the analysis just found several distinct defects behind it.
 - **Owner / driver(s)**: ChoreOps maintainer + ChoreOps Builder (ChoreOps Test Builder for Phase 4)
-- **Status**: In progress — Phase 0 committed; Phase 1 complete (pending commit); Phases 2–5 not started. All decisions resolved.
+- **Status**: In progress — Phase 0 and Phase 1 committed; Phases 2–5 not started. All decisions resolved.
 - **Branch / delivery**: `ccpk1/issue294` carries both the #294 hotfix and this initiative, which
   ship as a single release. Keep the phases as **separate commits** regardless — reviewers follow
   commit history, and the hotfix commit (`73e97d5`) doubles as a bisect point if the wider change
@@ -33,6 +33,15 @@
    - **Impact verified by walking real schedules** (see "Verified evidence"):
      `Streak: Selected Chores Completed` (100%) cannot accumulate in any household that has a
      non-daily chore, **even at 100% compliance**.
+   - **Phase 1 complete** (`69335e5`, 2026-09-14): `due_count`, `approved_due_today` and
+     `missed_since_advance` now available on the completion snapshot; `build_schedule_config`
+     extracted as one shared builder; `BadgeScopedCompletionSnapshot` TypedDict added so mypy
+     enforces the contract (it caught four unenforced call sites during implementation). 19 new
+     tests. **No evaluator behaviour changed** — all existing badge/gamification suites pass
+     unmodified, which is the evidence that Phase 1 stayed a pure data-layer change.
+   - **Placement decision recorded**: the miss check is computed **eagerly in the snapshot**, not
+     deferred to the evaluator. The manager already holds `coordinator.chores_data`, and this
+     avoids leaking schedule-building into the pure engine.
 
 3. **Next steps (short term)** –
    1. ✅ Decisions 8 and 9 confirmed (2026-09-14): both families; leave redundant options in place.
@@ -607,8 +616,17 @@ permanently neutral — never advancing and never breaking.
   - `./utils/quick_lint.sh --fix`
   - `mypy custom_components/choreops/`
   - `python -m pytest tests/ -v --tb=line`
-- **Baseline established for #294 (commit `73e97d5`):** new suite 6/6 pass; `test_gamification_engine.py` + `test_gamification_streak_reset.py` 64 pass; 7 badge/gamification suites 113 pass / 4 skip; `quick_lint.sh` green (ruff + mypy + 13 boundary checks). Phase 4 must not regress these.
-- **Outstanding tests:** none yet — Phase 4 defines the matrix.
+- **Baseline for #294 (commit `73e97d5`):** new suite 6/6 pass; `test_gamification_engine.py` +
+  `test_gamification_streak_reset.py` 64 pass; 7 badge/gamification suites 113 pass / 4 skip;
+  `quick_lint.sh` green (ruff + mypy + 13 boundary checks).
+- **Baseline for Phase 1 (commit `69335e5`):** `test_badge_schedule_snapshot.py` 19/19 pass;
+  **12 badge + gamification suites 212 pass / 4 skip**; **5 statistics + chore suites 371 pass**
+  (including `test_workflow_streak_schedule.py`, which proves the extracted
+  `build_schedule_config` did not change `calculate_streak`); `quick_lint.sh` green with mypy
+  0 errors. Phases 2–5 must not regress these.
+- **Testing discipline**: run targeted suites per phase. The full `pytest tests/ -v --tb=line`
+  run is a release step, not a per-phase gate (see Notes: the suite is a release process).
+- **Outstanding tests:** none yet — Phase 4 defines the schedule matrix and days-family coverage.
 - **Links to failing logs:** n/a.
 
 ---
