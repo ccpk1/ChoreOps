@@ -7,7 +7,7 @@
   **together in one release** (decided 2026-09-14). From the user's perspective this is one bug
   ("streak badges don't work"); the analysis just found several distinct defects behind it.
 - **Owner / driver(s)**: ChoreOps maintainer + ChoreOps Builder (ChoreOps Test Builder for Phase 4)
-- **Status**: In progress — Phases 0 and 1 committed; Phase 1B next (blocks Phase 2); Phases 2–6 not
+- **Status**: In progress — Phases 0, 1 and 1B committed; 1C next (unblocks Phase 2); Phases 2–6 not
   started. All decisions resolved (14 total, one deferred).
 - **Branch / delivery**: `ccpk1/issue294` carries both the #294 hotfix and this initiative, which
   ship as a single release. Keep the phases as **separate commits** regardless — reviewers follow
@@ -20,7 +20,7 @@
 | ------------------------------------------------------- | ----------------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------ |
 | Phase 0 – Prerequisite (#294 hotfix)                    | Land the calendar-midnight streak fix so this defect becomes observable        | 100%       | ✅ Committed `73e97d5` (3 files, +499/−6)                           |
 | Phase 1 – Snapshot fields (data layer)                   | Surface due-chore scope and schedule-derived miss signal in the stats snapshot | 100%       | ✅ `due_count`, `approved_due_today`, `missed_since_advance` + shared builder; 19 new tests |
-| Phase 1B – Eligible scope must mean "counts toward today" (O1) | Legitimacy-aware scope so rotation/standby assignees are not charged | 0%         | **Blocks Phase 2** — closes conflict C1                                  |
+| Phase 1B – Eligible scope must mean "counts toward today" (O1) | Legitimacy-aware scope so rotation/standby assignees are not charged | 100%       | ✅ Claim-mode deny-list; 18 new tests; closes conflict C1              |
 | Phase 1C – Single missed-occurrence authority (O2)       | One helper for "was an occurrence missed between X and Y"                      | 0%         | Refactor of Phase 1 code; unblocks Phase 6 (O3)                     |
 | Phase 2 – Evaluator semantics (both families)           | Streaks: neutral days hold, break/resume by missed occurrence. Both: eligible-day scope | 0%         | Depends on 1B + 1C                                                  |
 | Phase 3 – Persistence & status alignment                | Ensure neutral days write nothing and status transitions stay coherent         | 0%         | `gamification_manager.py` days_cycle bucket + status transition |
@@ -52,9 +52,10 @@
    2. ✅ Phase 1 complete — data layer in place, no evaluator behaviour changed.
    3. ✅ Post-Phase-1 audit found four conflicts (C1–C4) and five unification opportunities.
    4. ✅ Decisions 12 (O1) and 13 (O2) added to the critical path; 14 (O3/O4/O5) deferred to Phase 6.
-   5. **Next: Phase 1B** — legitimacy-aware eligible scope. This now blocks Phase 2, because
-      shipping the evaluator change first would introduce unfair breaks for rotation and standby
-      chores (conflict C1).
+   5. **Next: Phase 1C** — single missed-occurrence authority. Phase 1B has landed, so the blocker on
+      Phase 2 is cleared once 1C lands (Phase 2 also consumes the helper 1C consolidates).
+   6. Implemented out of order against the original plan text: Phase 1B was done before 1C because
+      1B is the correctness blocker and 1C is a refactor of working code.
 
 4. **Risks / blockers** –
    - **BLOCKER (C1) — the eligible scope is currently too coarse.** `_is_chore_due_today_for_assignee`
@@ -646,37 +647,53 @@ permanently neutral — never advancing and never breaking.
 
 - **Goal**: Replace schedule-only eligibility with legitimacy-aware eligibility, so a chore an
   assignee cannot be credited for never counts against them (closes conflict C1).
+- **Status**: ✅ **Complete** (2026-09-14). Closes conflict C1.
 - **Why before Phase 2**: Phase 2 consumes `due_count` / `approved_due_today`. Shipping Phase 2
   first would introduce unfair breaks for rotation and standby chores — the exact failure mode this
   initiative exists to remove.
+- **⚠️ Implementation correction — keyed on claim mode, not display state.** The plan originally
+  said to derive "owes it" from the display state. A test disproved that: for
+  `rotation_primary_standby`, `resolve_assignee_chore_state` returns **`standby` in both cases** —
+  whether the standby may act or not — and only the *lock reason* / claim mode separates them. A
+  state-based deny-list therefore wrongly excluded a standby whose `standby_claim_mode` is
+  `anytime`, which is a legitimate obligation.
+  The implemented signal is the **claim mode** (`CHORE_CTX_CLAIM_MODE`), because it is the field
+  that actually encodes who may act. Recorded here because the plan text is now wrong on this
+  point, and a future reader would otherwise re-derive the broken approach.
 - **Steps / detailed work items**
-  1. Add a legitimacy-aware scope resolver, named apart from the schedule primitive: keep
-     `_is_chore_due_today_for_assignee` as `scheduled_today`, and add `counts_toward_today`
-     implementing decision 12 (scheduled today **and** this assignee owes it **and** still
-     assigned).
-  2. **Do not reuse `chore_counts_toward_due_today_summary`.** It answers the dashboard's question
-     and returns False for `completed`, which would make every day unsatisfiable. Reuse only its
-     **assignment guard** (the issue #205 fix).
-  3. Derive "owes it today" from the existing resolution rather than re-implementing rotation
-     rules: `ChoreEngine.resolve_assignee_chore_state` already encodes `not_my_turn` (P3) and
-     `standby`, including the primary-standby claim-window/`standby_claim_mode` gate. Consuming
-     that resolution keeps rotation semantics in one place.
-  4. Rewire `get_badge_scoped_today_completion` so `due_count` / `approved_due_today` use the new
-     scope. `total_count` / `approved_count` stay unchanged, so the change is additive and the
-     existing snapshot contract holds.
-  5. Tests: rotation_simple and rotation_smart (non-turn assignees must not be charged, turn holder
-     must be); rotation_primary_standby (standby within the window counts, outside it does not);
-     stale-assignment guard; and a regression test proving a **completed** chore still counts
-     toward the day.
+  1. ✅ Kept `_is_chore_due_today_for_assignee` as the schedule primitive, renamed to
+     `_is_chore_scheduled_today_for_assignee` so the two concepts cannot be confused again.
+     Added `_chore_counts_toward_today` implementing decision 12.
+  2. ✅ Did **not** reuse `chore_counts_toward_due_today_summary`. Its assignment guard (the issue
+     #205 fix) was ported into the new resolver instead.
+  3. ✅ Derives legitimacy from the existing resolution via
+     `ChoreManager.get_chore_status_context`, so rotation and standby semantics stay in one place.
+  4. ✅ Rewired `get_badge_scoped_today_completion` so `due_count` / `approved_due_today` use the
+     new scope. `total_count` / `approved_count` unchanged.
+  5. ✅ Added `CHORE_CLAIM_MODES_OWED_BY_ANOTHER` to `const.py` — a four-entry deny-list:
+     `blocked_completed_by_other`, `blocked_not_my_turn`, `blocked_standby`, `blocked_paused`.
+  6. ✅ 18 new tests in `tests/test_badge_schedule_snapshot.py` covering rotation, shared modes,
+     primary-standby claim modes, the stale-assignment guard, and non-rotation invariance.
 - **Key issues**
-  - **The completed-chore trap is the highest-risk part of the whole initiative.** Any naming or
-    reuse that excludes `completed` makes `approved_due_today / due_count` unreachable and every
-    badge unsatisfiable. Pin it with an explicit test, not just a comment.
-  - Non-rotation modes must be provably unchanged: add a test asserting `independent` /
-    `shared_first` / `shared_all` produce identical `due_count` before and after.
-  - `resolve_assignee_chore_state` is read-time and needs `now`, `due_date` and `due_window_start`.
-    Calling it per chore per badge adds cost; if profiling shows a problem, short-circuit on the
-    already-cheap conditions (assigned, not paused, non-rotation) before resolving.
+  - **The completed-chore trap is the highest-risk part of the whole initiative**, and it appears in
+    two forms: the display state (`completed` / `approved`) and the claim mode
+    (`blocked_already_approved`). Both must keep counting. Pinned by
+    `test_completed_chore_keeps_counting_for_the_completer`, which also asserts the claim mode is
+    `blocked_already_approved` so it cannot pass vacuously.
+  - Non-rotation modes are pinned as unchanged by `test_non_rotation_modes_exclude_nothing`
+    (`due_count == total_count` for `shared_all` / `shared_first` / `independent`).
+  - `CHORE_CLAIM_MODES_OWED_BY_ANOTHER` must stay a **minimal** deny-list. Adding
+    `blocked_already_approved`, `blocked_waiting_window` or `blocked_missed_locked` would silently
+    make satisfied days unsatisfiable.
+  - **`steal_available` counts as owed.** Untested edge case: when a rotation chore with
+    `allow_steal` goes overdue, the stealer reads as obligated. Deliberate — a chore left undone
+    should be someone's failure — but it is the least certain entry in the list and should be
+    revisited if it generates a report.
+  - **Performance**: `get_chore_status_context` now runs per tracked chore per badge snapshot (two
+    per badge). It is the same read path sensors use and evaluation is debounced, so no short-circuit
+    was added. If profiling shows a problem, gate it on non-rotation and non-`shared_first` chores
+    first — both are cheap checks that skip the resolution entirely.
+
 
 ### Phase 1C – Single missed-occurrence authority (O2)
 
@@ -879,7 +896,12 @@ permanently neutral — never advancing and never breaking.
   **12 badge + gamification suites 212 pass / 4 skip**; **5 statistics + chore suites 371 pass**
   (including `test_workflow_streak_schedule.py`, which proves the extracted
   `build_schedule_config` did not change `calculate_streak`); `quick_lint.sh` green with mypy
-  0 errors. Phases 2–5 must not regress these.
+  0 errors.
+- **Baseline for Phase 1B (2026-09-14):** `test_badge_schedule_snapshot.py` **37/37 pass**
+  (19 from Phase 1 + 18 new); targeted set across `test_badge_schedule_snapshot`,
+  `test_badge_streak_midnight_reset`, `test_gamification_engine`, `test_badge_target_types`,
+  `test_rotation_fsm_states`, `test_workflow_streak_schedule` → **135 passed**; `quick_lint.sh`
+  green with mypy 0 errors. Phases 1C–6 must not regress these.
 - **Testing discipline**: run targeted suites per phase. The full `pytest tests/ -v --tb=line`
   run is a release step, not a per-phase gate (see Notes: the suite is a release process).
 - **Outstanding tests:** none yet — Phase 4 defines the schedule matrix and days-family coverage.

@@ -2603,8 +2603,8 @@ class StatisticsManager(BaseManager):
             chore_info = cast(
                 "dict[str, Any]", self.coordinator.chores_data.get(chore_id, {})
             )
-            due_today = self._is_chore_due_today_for_assignee(
-                chore_info, assignee_id, today_iso
+            due_today = self._chore_counts_toward_today(
+                chore_id, chore_info, assignee_id, today_iso
             )
             if only_due_today and not due_today:
                 continue
@@ -2725,13 +2725,67 @@ class StatisticsManager(BaseManager):
 
         return False
 
-    def _is_chore_due_today_for_assignee(
+    def _chore_counts_toward_today(
+        self,
+        chore_id: str,
+        chore_info: dict[str, Any],
+        assignee_id: str,
+        today_iso: str,
+    ) -> bool:
+        """Return True when a chore forms part of the assignee's obligation today.
+
+        Stricter than the schedule primitive below: a chore only counts when the
+        assignee still holds it and is the assignee who owes it. A rotation chore
+        owed by another assignee, or a single-completer chore someone else
+        finished, cannot be completed by this assignee — charging them for it
+        would make the day unsatisfiable.
+
+        Uses the **claim mode** rather than the display state, because a
+        primary-standby chore reports `standby` both for a standby that may act
+        and for one that may not; only the claim mode separates them.
+
+        Deliberately a deny-list (see `CHORE_CLAIM_MODES_OWED_BY_ANOTHER`) so an
+        unanticipated mode counts by default. A chore this assignee already
+        completed must keep counting, or the obligation could never be met.
+
+        Args:
+            chore_id: Chore internal ID.
+            chore_info: Chore definition.
+            assignee_id: Assignee internal ID.
+            today_iso: Today's local date key.
+
+        Returns:
+            True when the chore counts toward the assignee's day.
+        """
+        # Stale per-assignee entries can survive an assignment change, which
+        # used to inflate the dashboard's due-today count (issue #205).
+        if assignee_id not in chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, []):
+            return False
+
+        if not self._is_chore_scheduled_today_for_assignee(
+            chore_info, assignee_id, today_iso
+        ):
+            return False
+
+        status_context = self.coordinator.chore_manager.get_chore_status_context(
+            assignee_id, chore_id
+        )
+        claim_mode = str(status_context.get(const.CHORE_CTX_CLAIM_MODE) or "")
+        return claim_mode not in const.CHORE_CLAIM_MODES_OWED_BY_ANOTHER
+
+    def _is_chore_scheduled_today_for_assignee(
         self,
         chore_info: dict[str, Any],
         assignee_id: str,
         today_iso: str,
     ) -> bool:
-        """Return True if this chore is assignee-actionable today."""
+        """Return True when a chore's schedule puts it on today for the assignee.
+
+        Schedule primitive only: it answers whether the calendar says the chore
+        falls on today. It says nothing about whether this assignee is the one
+        who owes it (turn order, standby) or can still act on it. Badge
+        eligibility must use `_chore_counts_toward_today` instead.
+        """
         # Pause guard: Paused users have no actionable chores
         user_data = self.coordinator._data.get(const.DATA_USERS, {}).get(
             assignee_id, {}

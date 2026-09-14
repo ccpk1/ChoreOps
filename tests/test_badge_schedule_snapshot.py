@@ -335,3 +335,323 @@ class TestBuildScheduleConfig:
         )
 
         assert config["frequency"] == const.FREQUENCY_NONE
+
+
+# ============================================================================
+# Phase 1B — obligation scope
+# ============================================================================
+
+SHARED_ASSIGNEES = ("Zoë", "Max!", "Lila")
+STANDBY_ASSIGNEES = ("Zoë", "Max!")
+APPROVER_NAME = "Môm Astrid Stârblüm"
+
+
+@pytest.fixture
+async def shared_scenario(
+    hass: HomeAssistant,
+    mock_hass_users: dict[str, Any],
+) -> SetupResult:
+    """Load the shared scenario: 3 assignees, shared_* and rotation chores."""
+    return await setup_from_yaml(
+        hass,
+        mock_hass_users,
+        "tests/scenarios/scenario_shared.yaml",
+    )
+
+
+@pytest.fixture
+async def standby_scenario(
+    hass: HomeAssistant,
+    mock_hass_users: dict[str, Any],
+) -> SetupResult:
+    """Load the primary-standby scenario: 2 assignees, one mode per chore."""
+    return await setup_from_yaml(
+        hass,
+        mock_hass_users,
+        "tests/scenarios/scenario_primary_standby.yaml",
+    )
+
+
+def counts_toward(setup: SetupResult, assignee_name: str, chore_name: str) -> bool:
+    """Return whether a chore forms part of an assignee's obligation today."""
+    chore_id = setup.chore_ids[chore_name]
+    return setup.coordinator.statistics_manager._chore_counts_toward_today(
+        chore_id,
+        setup.coordinator.chores_data[chore_id],
+        setup.assignee_ids[assignee_name],
+        dt_utils.dt_today_iso(),
+    )
+
+
+def turn_holder_id(setup: SetupResult, chore_name: str) -> str:
+    """Return the current turn holder's internal ID for a rotation chore."""
+    chore_info = setup.coordinator.chores_data[setup.chore_ids[chore_name]]
+    turn_holder = chore_info[const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID]
+    assert isinstance(turn_holder, str) and turn_holder, "no turn holder set"
+    return turn_holder
+
+
+def name_of(setup: SetupResult, assignee_id: str) -> str:
+    """Return an assignee's display name from their internal ID."""
+    for name, internal_id in setup.assignee_ids.items():
+        if internal_id == assignee_id:
+            return name
+    raise AssertionError(f"Unknown assignee id: {assignee_id}")
+
+
+class TestObligationScopeRotation:
+    """Only the assignee who owes a rotation chore is charged for it."""
+
+    def test_rotation_charges_exactly_one_assignee(
+        self,
+        shared_scenario: SetupResult,
+    ) -> None:
+        """A rotation chore is one assignee's obligation, not everyone's.
+
+        Before Phase 1B every assigned assignee was charged, so a badge scoped to
+        a rotation chore could never be satisfied by the non-turn assignees.
+        """
+        charged = [
+            name
+            for name in SHARED_ASSIGNEES
+            if counts_toward(shared_scenario, name, "Dishes Rotation")
+        ]
+
+        assert charged == [
+            name_of(shared_scenario, turn_holder_id(shared_scenario, "Dishes Rotation"))
+        ]
+
+    def test_rotation_charges_the_turn_holder(
+        self,
+        shared_scenario: SetupResult,
+    ) -> None:
+        """The assignee whose turn it is must be charged."""
+        holder = name_of(
+            shared_scenario, turn_holder_id(shared_scenario, "Dishes Rotation")
+        )
+
+        assert counts_toward(shared_scenario, holder, "Dishes Rotation") is True
+
+    @pytest.mark.parametrize(
+        "chore_name",
+        [
+            pytest.param("Dishes Rotation", id="rotation_simple_daily"),
+            pytest.param("Vacuum Living Room", id="rotation_simple_weekly"),
+        ],
+    )
+    def test_rotation_does_not_charge_non_turn_assignees(
+        self,
+        shared_scenario: SetupResult,
+        chore_name: str,
+    ) -> None:
+        """Assignees who do not hold the turn cannot complete it, so it is not theirs."""
+        holder_id = turn_holder_id(shared_scenario, chore_name)
+
+        for name in SHARED_ASSIGNEES:
+            if shared_scenario.assignee_ids[name] == holder_id:
+                continue
+            assert counts_toward(shared_scenario, name, chore_name) is False
+
+
+class TestObligationScopeShared:
+    """Shared modes charge the assignees who can actually act."""
+
+    @pytest.mark.parametrize(
+        "chore_name",
+        [
+            pytest.param("Family dinner cleanup", id="shared_all_three"),
+            pytest.param("Take out trash", id="shared_first_three"),
+            pytest.param("Walk the dog", id="shared_all_two_subset"),
+        ],
+    )
+    def test_directly_assigned_assignees_are_charged(
+        self,
+        shared_scenario: SetupResult,
+        chore_name: str,
+    ) -> None:
+        """Before any completion, every directly assigned assignee owes the chore."""
+        assigned = shared_scenario.coordinator.chores_data[
+            shared_scenario.chore_ids[chore_name]
+        ][const.DATA_CHORE_ASSIGNED_USER_IDS]
+
+        for name in SHARED_ASSIGNEES:
+            if shared_scenario.assignee_ids[name] not in assigned:
+                continue
+            assert counts_toward(shared_scenario, name, chore_name) is True
+
+    async def test_completed_by_other_relieves_the_other_assignees(
+        self,
+        shared_scenario: SetupResult,
+    ) -> None:
+        """A single-completer chore finished by one assignee stops being owed by others.
+
+        This is also the completed-chore guard: the assignee who finished it must
+        keep being charged, or the obligation could never be satisfied.
+        """
+        coordinator = shared_scenario.coordinator
+        chore_id = shared_scenario.chore_ids["Take out trash"]
+        zoë_id = shared_scenario.assignee_ids["Zoë"]
+
+        await coordinator.chore_manager.approve_chore(APPROVER_NAME, zoë_id, chore_id)
+
+        assert counts_toward(shared_scenario, "Zoë", "Take out trash") is True
+        assert counts_toward(shared_scenario, "Max!", "Take out trash") is False
+        assert counts_toward(shared_scenario, "Lila", "Take out trash") is False
+
+    async def test_completed_chore_keeps_counting_for_the_completer(
+        self,
+        shared_scenario: SetupResult,
+    ) -> None:
+        """**Highest-risk trap**: a chore the assignee completed still owes.
+
+        Excluding `completed` from the obligation would make every satisfied day
+        unsatisfiable, so this asserts the deny-list default directly. The claim
+        mode is asserted too, so the test cannot pass vacuously by ending up in
+        some unrelated state.
+        """
+        coordinator = shared_scenario.coordinator
+        chore_id = shared_scenario.chore_ids["Family dinner cleanup"]
+        zoë_id = shared_scenario.assignee_ids["Zoë"]
+
+        await coordinator.chore_manager.approve_chore(APPROVER_NAME, zoë_id, chore_id)
+
+        context = coordinator.chore_manager.get_chore_status_context(zoë_id, chore_id)
+        assert context[const.CHORE_CTX_CLAIM_MODE] == (
+            const.CHORE_CLAIM_MODE_BLOCKED_ALREADY_APPROVED
+        )
+        assert counts_toward(shared_scenario, "Zoë", "Family dinner cleanup") is True
+
+    @pytest.mark.parametrize(
+        "chore_name",
+        [
+            pytest.param("Family dinner cleanup", id="shared_all"),
+            pytest.param("Take out trash", id="shared_first"),
+        ],
+    )
+    def test_non_rotation_modes_exclude_nothing(
+        self,
+        shared_scenario: SetupResult,
+        chore_name: str,
+    ) -> None:
+        """Non-rotation modes are unchanged: every scheduled chore still counts.
+
+        Guards against Phase 1B narrowing the scope for modes that had no
+        turn-order problem to begin with. These chores are dateless dailies, so
+        the obligation covers the whole tracked chore for every assignee.
+        """
+        chore_id = shared_scenario.chore_ids[chore_name]
+
+        for name in SHARED_ASSIGNEES:
+            snapshot = shared_scenario.coordinator.statistics_manager.get_badge_scoped_today_completion(
+                shared_scenario.assignee_ids[name],
+                [chore_id],
+                today_iso=dt_utils.dt_today_iso(),
+                cycle_start_iso=dt_utils.dt_today_iso(),
+                only_due_today=False,
+            )
+            assert snapshot["total_count"] == 1
+            assert snapshot["due_count"] == snapshot["total_count"], (
+                f"{name} lost {chore_name} from the obligation scope"
+            )
+
+    async def test_snapshot_due_count_excludes_unowed_chores(
+        self,
+        shared_scenario: SetupResult,
+    ) -> None:
+        """The snapshot denominator reflects the obligation, not the assignment list.
+
+        A shared_first chore completed by Zoë must drop out of Max's denominator
+        while staying in Zoë's.
+        """
+        coordinator = shared_scenario.coordinator
+        chore_id = shared_scenario.chore_ids["Take out trash"]
+        zoë_id = shared_scenario.assignee_ids["Zoë"]
+
+        await coordinator.chore_manager.approve_chore(APPROVER_NAME, zoë_id, chore_id)
+
+        def due_count_for(assignee_name: str) -> int:
+            snapshot = coordinator.statistics_manager.get_badge_scoped_today_completion(
+                shared_scenario.assignee_ids[assignee_name],
+                [chore_id],
+                today_iso=dt_utils.dt_today_iso(),
+                cycle_start_iso=dt_utils.dt_today_iso(),
+                only_due_today=False,
+            )
+            assert snapshot["total_count"] == 1
+            return snapshot["due_count"]
+
+        assert due_count_for("Zoë") == 1
+        assert due_count_for("Max!") == 0
+
+    def test_unassigned_assignee_is_not_charged(
+        self,
+        shared_scenario: SetupResult,
+    ) -> None:
+        """A stale per-assignee entry cannot inflate the denominator (issue #205)."""
+        chore_info = shared_scenario.coordinator.chores_data[
+            shared_scenario.chore_ids["Family dinner cleanup"]
+        ]
+        max_id = shared_scenario.assignee_ids["Max!"]
+        chore_info[const.DATA_CHORE_ASSIGNED_USER_IDS].remove(max_id)
+
+        assert counts_toward(shared_scenario, "Max!", "Family dinner cleanup") is False
+        assert counts_toward(shared_scenario, "Zoë", "Family dinner cleanup") is True
+
+
+class TestObligationScopePrimaryStandby:
+    """Standby assignees are charged only when the mode lets them act."""
+
+    def test_primary_is_charged(
+        self,
+        standby_scenario: SetupResult,
+    ) -> None:
+        """The primary always owes the chore."""
+        primary_id = turn_holder_id(standby_scenario, "Daily Chore (anytime)")
+
+        assert (
+            counts_toward(
+                standby_scenario,
+                name_of(standby_scenario, primary_id),
+                "Daily Chore (anytime)",
+            )
+            is True
+        )
+
+    @pytest.mark.parametrize(
+        ("chore_name", "standby_charged"),
+        [
+            pytest.param("Daily Chore (anytime)", True, id="anytime_can_act"),
+            pytest.param(
+                "Daily Chore (manual_only)", False, id="manual_only_cannot_act"
+            ),
+            pytest.param(
+                "Weekly Chore (on_overdue)",
+                False,
+                id="on_overdue_not_yet_due",
+            ),
+        ],
+    )
+    def test_standby_charge_follows_claim_mode(
+        self,
+        standby_scenario: SetupResult,
+        chore_name: str,
+        standby_charged: bool,
+    ) -> None:
+        """A standby is charged only when its claim mode lets it act today."""
+        primary_id = turn_holder_id(standby_scenario, chore_name)
+        standby_name = next(
+            name
+            for name in STANDBY_ASSIGNEES
+            if standby_scenario.assignee_ids[name] != primary_id
+        )
+
+        assert (
+            counts_toward(standby_scenario, standby_name, chore_name) is standby_charged
+        )
+
+    def test_single_assignee_rotation_chore_is_charged(
+        self,
+        standby_scenario: SetupResult,
+    ) -> None:
+        """A rotation chore with one assignee has no standby to exclude."""
+        assert counts_toward(standby_scenario, "Zoë", "Solo Chore (single)") is True

@@ -2053,6 +2053,31 @@ CHORE_CLAIM_MODES: Final[frozenset[str]] = frozenset(
     }
 )
 
+CHORE_CLAIM_MODES_OWED_BY_ANOTHER: Final[frozenset[str]] = frozenset(
+    {
+        # A single-completer chore another assignee already finished.
+        CHORE_CLAIM_MODE_BLOCKED_COMPLETED_BY_OTHER,
+        # Another assignee holds the rotation turn.
+        CHORE_CLAIM_MODE_BLOCKED_NOT_MY_TURN,
+        # Standby whose claim mode does not let it act today.
+        CHORE_CLAIM_MODE_BLOCKED_STANDBY,
+        # Chore processing is suspended for this assignee.
+        CHORE_CLAIM_MODE_BLOCKED_PAUSED,
+    }
+)
+"""Claim modes where the chore's obligation belongs to another assignee.
+
+Keyed on claim mode rather than display state because a primary-standby chore
+reports `standby` for a claimable standby and a blocked one alike; only the claim
+mode separates them.
+
+Deliberately a deny-list: every other mode counts toward the day. In particular
+`CHORE_CLAIM_MODE_BLOCKED_ALREADY_APPROVED` (this assignee finished it) and
+`CHORE_CLAIM_MODE_BLOCKED_WAITING_WINDOW` / `CHORE_CLAIM_MODE_BLOCKED_MISSED_LOCKED`
+(still this assignee's obligation) must keep counting, or a satisfied day could
+never be recognised.
+"""
+
 # Chore status context keys (get_chore_status_context return contract)
 CHORE_CTX_STATE: Final = "state"
 CHORE_CTX_STORED_STATE: Final = "stored_state"
