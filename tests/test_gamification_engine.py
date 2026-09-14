@@ -43,10 +43,12 @@ def make_context(
     today_approved: int = 0,
     approved_count: int = 0,
     total_count: int = 0,
+    due_count: int | None = None,
+    approved_due_today: int | None = None,
+    missed_since_advance: bool = False,
     has_overdue: bool = False,
     cycle_failed: bool = False,
     approved_all_time: int = 0,
-    streak_yesterday: bool = False,
     last_update_day: str | None = None,
     today_iso: str | None = None,
     cumulative_baseline: float = 0.0,
@@ -55,7 +57,15 @@ def make_context(
     """Build a minimal EvaluationContext for testing.
 
     This creates the context structure that GamificationEngine expects.
+
+    `due_count` / `approved_due_today` default to the all-tracked counts, so a
+    context describes a day where every tracked chore is owed unless a test says
+    otherwise.
     """
+    effective_due_count = total_count if due_count is None else due_count
+    effective_approved_due = (
+        approved_count if approved_due_today is None else approved_due_today
+    )
     return cast(
         "EvaluationContext",
         {
@@ -72,17 +82,22 @@ def make_context(
                 "today_points": today_points,
                 "today_approved": today_approved,
                 "total_earned": total_points_earned,
-                "streak_yesterday": streak_yesterday,
             },
             "today_completion": {
                 "approved_count": approved_count,
                 "total_count": total_count,
+                "due_count": effective_due_count,
+                "approved_due_today": effective_approved_due,
+                "missed_since_advance": missed_since_advance,
                 "has_overdue": has_overdue,
                 "cycle_failed": cycle_failed,
             },
             "today_completion_due": {
                 "approved_count": approved_count,
                 "total_count": total_count,
+                "due_count": effective_due_count,
+                "approved_due_today": effective_approved_due,
+                "missed_since_advance": missed_since_advance,
                 "has_overdue": has_overdue,
                 "cycle_failed": cycle_failed,
             },
@@ -576,13 +591,12 @@ class TestEvaluateDailyCompletion:
 class TestEvaluateStreak:
     """Tests for streak criterion evaluation."""
 
-    def test_streak_continues_when_yesterday_had_streak(self) -> None:
-        """Streak increments when yesterday had streak and today meets criteria."""
+    def test_streak_continues_when_today_meets_criteria(self) -> None:
+        """The streak advances when today is satisfied and nothing was missed."""
         context = make_context(
-            days_cycle_count=5,  # Yesterday's streak
+            days_cycle_count=5,
             approved_count=10,
             total_count=10,
-            streak_yesterday=True,
         )
         target = make_badge_target(
             target_type=const.BADGE_TARGET_THRESHOLD_TYPE_STREAK_SELECTED_CHORES,
@@ -596,13 +610,16 @@ class TestEvaluateStreak:
         assert result["met"] is False  # 5 + 1 = 6 < 7
         assert result["current_value"] == 6
 
-    def test_streak_starts_fresh_without_yesterday(self) -> None:
-        """Streak starts at 1 when no yesterday streak but today meets criteria."""
+    def test_streak_starts_at_one_when_no_credit_exists(self) -> None:
+        """A satisfied day with no prior credit starts the streak at 1.
+
+        Continuity is no longer inferred from calendar adjacency, so the only way
+        to be starting fresh is to have no credited days at all.
+        """
         context = make_context(
-            days_cycle_count=5,
+            days_cycle_count=0,
             approved_count=10,
             total_count=10,
-            streak_yesterday=False,  # No streak yesterday
         )
         target = make_badge_target(threshold=7)
 
@@ -611,7 +628,7 @@ class TestEvaluateStreak:
         )
 
         assert result["met"] is False
-        assert result["current_value"] == 1  # Fresh start
+        assert result["current_value"] == 1
 
     def test_streak_holds_while_today_is_still_in_progress(self) -> None:
         """An unmet day that is still in progress does not break the streak.
@@ -624,7 +641,6 @@ class TestEvaluateStreak:
             days_cycle_count=5,
             approved_count=5,
             total_count=10,  # Only 50%, but the day is not over
-            streak_yesterday=True,
         )
         target = make_badge_target(threshold=7)
 
@@ -635,13 +651,18 @@ class TestEvaluateStreak:
         assert result["met"] is False
         assert result["current_value"] == 5  # Streak held
 
-    def test_streak_breaks_after_a_full_day_without_completion(self) -> None:
-        """The streak resets once a full day passed without meeting criteria."""
+    def test_streak_breaks_when_an_occurrence_was_missed(self) -> None:
+        """The streak resets to 0 once a scheduled occurrence went unmet.
+
+        The break signal is `missed_since_advance`, not calendar staleness: an
+        unmet day that is still in progress holds (see the test above), while an
+        occurrence that has actually passed unmet breaks.
+        """
         context = make_context(
             days_cycle_count=5,
             approved_count=0,
             total_count=10,
-            streak_yesterday=False,  # Yesterday was not satisfied either
+            missed_since_advance=True,
         )
         target = make_badge_target(threshold=7)
 
@@ -652,13 +673,92 @@ class TestEvaluateStreak:
         assert result["met"] is False
         assert result["current_value"] == 0  # Streak broken
 
+    def test_streak_breaks_on_a_miss_even_when_today_is_satisfied(self) -> None:
+        """Today being satisfied does not rescue a streak with a missed occurrence.
+
+        Precedence matters: the miss check runs before the advance branch, so a
+        missed occurrence is not silently forgiven by a strong day.
+        """
+        context = make_context(
+            days_cycle_count=5,
+            approved_count=10,
+            total_count=10,
+            missed_since_advance=True,
+        )
+        target = make_badge_target(threshold=7)
+
+        result = GamificationEngine._evaluate_streak(
+            context, target, percent_required=1.0, only_due_today=False
+        )
+
+        assert result["current_value"] == 0
+
+    def test_neutral_day_holds_the_streak(self) -> None:
+        """A day with nothing owed neither advances nor breaks the streak."""
+        context = make_context(
+            days_cycle_count=5,
+            approved_count=0,
+            total_count=3,
+            due_count=0,
+            approved_due_today=0,
+        )
+        target = make_badge_target(threshold=7)
+
+        result = GamificationEngine._evaluate_streak(
+            context, target, percent_required=1.0, only_due_today=False
+        )
+
+        assert result["current_value"] == 5
+        assert "nothing owed today" in result["reason"]
+
+    def test_neutral_day_still_breaks_on_a_miss(self) -> None:
+        """A missed occurrence breaks the streak even if today has nothing owed.
+
+        Without this ordering a streak could survive indefinitely: an occurrence
+        is missed, and every following day is neutral so nothing else reports it.
+        """
+        context = make_context(
+            days_cycle_count=5,
+            total_count=3,
+            due_count=0,
+            approved_due_today=0,
+            missed_since_advance=True,
+        )
+        target = make_badge_target(threshold=7)
+
+        result = GamificationEngine._evaluate_streak(
+            context, target, percent_required=1.0, only_due_today=False
+        )
+
+        assert result["current_value"] == 0
+
+    def test_non_due_chores_do_not_count_against_the_day(self) -> None:
+        """A chore that is not owed today cannot make the day unsatisfiable.
+
+        This is the defect the initiative exists to fix: scoring 4/5 because a
+        weekly chore was not due made the day impossible and broke streaks.
+        """
+        context = make_context(
+            days_cycle_count=5,
+            approved_count=4,
+            total_count=5,
+            due_count=4,
+            approved_due_today=4,
+        )
+        target = make_badge_target(threshold=7)
+
+        result = GamificationEngine._evaluate_streak(
+            context, target, percent_required=1.0, only_due_today=False
+        )
+
+        assert result["current_value"] == 6
+
     def test_streak_meets_threshold(self) -> None:
         """Streak meets threshold returns met=True."""
         context = make_context(
-            days_cycle_count=6,  # Yesterday's streak
+            days_cycle_count=6,
             approved_count=10,
             total_count=10,
-            streak_yesterday=True,
         )
         target = make_badge_target(threshold=7)
 
@@ -675,7 +775,6 @@ class TestEvaluateStreak:
             days_cycle_count=6,
             approved_count=10,
             total_count=10,
-            streak_yesterday=True,
             today_iso="2026-02-13",
             last_update_day="2026-02-13",
         )
@@ -700,11 +799,13 @@ class TestEvaluateStreak:
             days_cycle_count=4,
             approved_count=0,
             total_count=0,
-            streak_yesterday=True,
         )
         context["today_completion_due"] = {
             "approved_count": 3,
             "total_count": 3,
+            "due_count": 3,
+            "approved_due_today": 3,
+            "missed_since_advance": False,
             "has_overdue": False,
         }
         target = make_badge_target(
@@ -729,7 +830,6 @@ class TestEvaluateStreak:
             approved_count=10,
             total_count=10,
             has_overdue=True,
-            streak_yesterday=True,
         )
         target = make_badge_target(
             target_type=const.BADGE_TARGET_THRESHOLD_TYPE_STREAK_SELECTED_CHORES_NO_OVERDUE,
@@ -755,7 +855,6 @@ class TestEvaluateStreak:
             total_count=10,
             has_overdue=False,
             cycle_failed=True,
-            streak_yesterday=True,
         )
         target = make_badge_target(
             target_type=const.BADGE_TARGET_THRESHOLD_TYPE_STREAK_SELECTED_CHORES_NO_OVERDUE,
@@ -1047,3 +1146,127 @@ class TestHandlerRegistry:
         assert "threshold" in result
         assert "progress" in result
         assert "criterion_type" in result
+
+
+# =============================================================================
+# TEST: eligible scope for the daily-completion (Days) family
+# =============================================================================
+
+
+class TestDailyCompletionEligibleScope:
+    """The Days family scores against the chores actually owed today."""
+
+    def test_percentage_uses_only_owed_chores(self) -> None:
+        """A chore that is not owed today cannot make the day unsatisfiable.
+
+        Scoring 3/10 because seven chores were not due made the day impossible;
+        the day is judged on the chores that were actually available.
+        """
+        context = make_context(
+            days_cycle_count=0,
+            approved_count=3,
+            total_count=10,
+            due_count=3,
+            approved_due_today=3,
+        )
+        target = make_badge_target(
+            target_type=const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_SELECTED_CHORES,
+            threshold=5,
+        )
+
+        result = GamificationEngine._evaluate_daily_completion(
+            context, target, percent_required=1.0, only_due_today=False
+        )
+
+        assert result["current_value"] == 1
+
+    def test_partial_completion_of_owed_chores_does_not_advance(self) -> None:
+        """Only some of the owed chores done leaves the day unsatisfied."""
+        context = make_context(
+            days_cycle_count=0,
+            approved_count=2,
+            total_count=10,
+            due_count=3,
+            approved_due_today=2,
+        )
+        target = make_badge_target(
+            target_type=const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_SELECTED_CHORES,
+            threshold=5,
+        )
+
+        result = GamificationEngine._evaluate_daily_completion(
+            context, target, percent_required=1.0, only_due_today=False
+        )
+
+        assert result["current_value"] == 0
+
+    def test_neutral_day_holds_the_counter(self) -> None:
+        """A day with nothing owed neither advances nor empties the counter."""
+        context = make_context(
+            days_cycle_count=3,
+            approved_count=0,
+            total_count=4,
+            due_count=0,
+            approved_due_today=0,
+        )
+        target = make_badge_target(
+            target_type=const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_SELECTED_CHORES,
+            threshold=5,
+        )
+
+        result = GamificationEngine._evaluate_daily_completion(
+            context, target, percent_required=1.0, only_due_today=False
+        )
+
+        assert result["current_value"] == 3
+        assert "nothing owed today" in result["reason"]
+
+    def test_min_count_keeps_the_all_selected_scope(self) -> None:
+        """An absolute count must stay satisfiable when fewer chores are owed.
+
+        Decision 10: applying the eligible scope here would make the target
+        unreachable whenever fewer chores are due than the required count, so the
+        badge could never advance again.
+        """
+        context = make_context(
+            days_cycle_count=0,
+            approved_count=5,
+            total_count=5,
+            due_count=3,
+            approved_due_today=3,
+        )
+        target = make_badge_target(
+            target_type=const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_MIN_5_CHORES,
+            threshold=5,
+        )
+
+        result = GamificationEngine._evaluate_daily_completion(
+            context, target, count_required=5
+        )
+
+        assert result["current_value"] == 1
+        assert "5+" in result["reason"]
+
+    def test_min_count_counts_completions_of_not_owed_chores(self) -> None:
+        """A non-due chore is extra credit for an absolute count, not an obstacle.
+
+        The deliberate asymmetry with the percentage variants: an unavailable
+        chore makes a ratio impossible but can still be counted as extra effort.
+        """
+        context = make_context(
+            days_cycle_count=0,
+            approved_count=5,
+            total_count=5,
+            due_count=2,
+            approved_due_today=2,
+        )
+        target = make_badge_target(
+            target_type=const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_MIN_5_CHORES,
+            threshold=5,
+        )
+
+        result = GamificationEngine._evaluate_daily_completion(
+            context, target, count_required=5
+        )
+
+        assert result["current_value"] == 1

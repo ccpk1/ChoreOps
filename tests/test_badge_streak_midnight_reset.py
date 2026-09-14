@@ -498,3 +498,100 @@ class TestMissCheckIsComputedOnce:
         assert len(calls) == 1, (
             f"expected one miss check per evaluation, saw {len(calls)}"
         )
+
+
+# ============================================================================
+# TESTS: a chore that is not due today must not make the day unsatisfiable
+# ============================================================================
+
+MIXED_SCOPE_CHORES = ("Make bed", "Brush teeth", "Do homework", "Clean room")
+"""Three daily chores plus one weekly due days from now.
+
+The weekly chore is scheduled today in the calendar sense but is not *owed*
+today, so it must not count against the day.
+"""
+MIXED_ELIGIBLE_COUNT = len(MIXED_SCOPE_CHORES) - 1
+
+
+class TestNonDueChoreDoesNotBlockTheDay:
+    """The defect the initiative exists to fix, proven end to end."""
+
+    async def test_streak_advances_when_only_due_chores_are_done(
+        self,
+        hass: HomeAssistant,
+        streak_scenario: SetupResult,
+    ) -> None:
+        """Completing every owed chore satisfies the day despite an undated weekly.
+
+        Before the eligible scope this scored 3/4, so the day could never be met
+        and the streak could not accumulate even at full compliance.
+        """
+        badge_id = await _add_streak_badge(
+            hass,
+            streak_scenario,
+            tracked_chore_names=MIXED_SCOPE_CHORES,
+        )
+        replay = StreakDayReplay(
+            streak_scenario,
+            badge_id,
+            tracked_chore_names=MIXED_SCOPE_CHORES,
+        )
+
+        await replay.advance_day(day_key(-1), approved_count=MIXED_ELIGIBLE_COUNT)
+
+        assert replay.days_cycle_count == 1, (
+            "a chore that was not due today blocked the day, so the streak could "
+            "not start even with every owed chore completed"
+        )
+        assert replay.criteria_met is False  # threshold is higher than one day
+
+    async def test_streak_accumulates_across_consecutive_days(
+        self,
+        hass: HomeAssistant,
+        streak_scenario: SetupResult,
+    ) -> None:
+        """The streak keeps climbing instead of breaking on the undated chore."""
+        badge_id = await _add_streak_badge(
+            hass,
+            streak_scenario,
+            tracked_chore_names=MIXED_SCOPE_CHORES,
+        )
+        replay = StreakDayReplay(
+            streak_scenario,
+            badge_id,
+            tracked_chore_names=MIXED_SCOPE_CHORES,
+        )
+
+        for offset in (-3, -2, -1):
+            await replay.advance_day(
+                day_key(offset), approved_count=MIXED_ELIGIBLE_COUNT
+            )
+
+        assert replay.days_cycle_count == STREAK_THRESHOLD, (
+            "the streak did not accumulate across consecutive satisfied days"
+        )
+        assert replay.criteria_met is True
+        assert replay.earned is True
+
+    async def test_undated_weekly_chore_is_not_owed_today(
+        self,
+        hass: HomeAssistant,
+        streak_scenario: SetupResult,
+    ) -> None:
+        """Confirms the scenario: the weekly chore is scheduled but not owed.
+
+        Guards the test above from passing for the wrong reason - if the weekly
+        were owed, the eligible count would be four and the assertion would be
+        measuring something else.
+        """
+        chore_id = streak_scenario.chore_ids["Clean room"]
+        snapshot = streak_scenario.coordinator.statistics_manager.get_badge_scoped_today_completion(
+            streak_scenario.assignee_ids[ASSIGNEE_NAME],
+            [chore_id],
+            today_iso=dt_utils.dt_today_iso(),
+            cycle_start_iso=dt_utils.dt_today_iso(),
+            only_due_today=False,
+        )
+
+        assert snapshot["total_count"] == 1
+        assert snapshot["due_count"] == 0

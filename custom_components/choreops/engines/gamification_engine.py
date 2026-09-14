@@ -903,15 +903,15 @@ class GamificationEngine:
 
         Context Requirements:
         - today_completion: Pre-computed completion stats with keys:
-            - approved_count: Number of approved chores
-            - total_count: Total tracked chores
-            - has_overdue: Whether any overdue chores exist
+            - approved_count / total_count: all tracked chores
+            - due_count / approved_due_today: the eligible scope
+            - has_overdue / cycle_failed: lateness
 
         Args:
             context: EvaluationContext with current_badge_progress, today_completion
             target: Badge target with threshold_value (days needed)
             percent_required: Minimum completion percentage (0.0-1.0)
-            only_due_today: Only count chores due today (affects context prep)
+            only_due_today: Read the due-only completion snapshot
             require_no_overdue: Fail if any overdue chores exist
             count_required: Minimum chore count (overrides percent_required)
 
@@ -927,22 +927,34 @@ class GamificationEngine:
         cycle_count = int(daily_status.get("cycle_count", 0))
         approved_count = int(daily_status.get("approved_count", 0))
         total_count = int(daily_status.get("total_count", 0))
+        eligible_total = int(daily_status.get("eligible_total", 0))
+        approved_eligible = int(daily_status.get("approved_eligible", 0))
         has_overdue = bool(daily_status.get("has_overdue", False))
         cycle_failed = bool(daily_status.get("cycle_failed", False))
         already_counted_today = bool(daily_status.get("already_counted_today", False))
 
+        # Absolute-count targets keep the all-selected scope. The eligible scope
+        # would make them unachievable whenever fewer chores are due than the
+        # required count (e.g. requiring 5 chores on a day only 3 are due), and a
+        # non-due chore is an impossible obstacle to a ratio but extra credit to
+        # an absolute count.
+        if count_required is not None:
+            denominator = total_count
+            numerator = approved_count
+        else:
+            denominator = eligible_total
+            numerator = approved_eligible
+
         # Determine if today meets criteria
         today_met = False
-        if total_count > 0:
-            if count_required is not None:
-                today_met = approved_count >= count_required
-            else:
-                percent_complete = approved_count / total_count
-                today_met = percent_complete >= percent_required
+        if count_required is not None:
+            today_met = approved_count >= count_required
+        elif denominator > 0:
+            today_met = (numerator / denominator) >= percent_required
 
-            # Check overdue constraint
-            if today_met and require_no_overdue and (has_overdue or cycle_failed):
-                today_met = False
+        # Check overdue constraint
+        if today_met and require_no_overdue and (has_overdue or cycle_failed):
+            today_met = False
 
         # Strict mode is a survival check: lateness anywhere in the cycle cannot
         # be recovered from until the cycle resets, so progress drops to zero.
@@ -964,9 +976,11 @@ class GamificationEngine:
         )
         due_str = " (due)" if only_due_today else ""
         overdue_str = ", no overdue" if require_no_overdue else ""
-        reason_detail = (
-            f"{current_value}/{threshold} (today: {approved_count}/{total_count})"
-        )
+        if denominator == 0 and count_required is None:
+            day_detail = "nothing owed today"
+        else:
+            day_detail = f"today: {numerator}/{denominator}"
+        reason_detail = f"{current_value}/{threshold} ({day_detail})"
 
         return GamificationEngine._make_criterion_result(
             criterion_type=target.get(const.DATA_BADGE_TARGET_TYPE, "daily"),
@@ -1093,15 +1107,15 @@ class GamificationEngine:
         A day still in progress does not break the streak.
 
         Context Requirements:
-        - today_stats.streak_yesterday: Whether yesterday maintained streak
-        - today_completion: Pre-computed completion stats
+        - today_completion: Pre-computed completion stats, including the eligible
+          scope (`due_count` / `approved_due_today`) and `missed_since_advance`
         - current_badge_progress.days_cycle_count: Current streak count
 
         Args:
             context: EvaluationContext with streak and completion stats
             target: Badge target with threshold_value (consecutive days needed)
             percent_required: Minimum completion percentage (0.0-1.0)
-            only_due_today: Only count chores due today
+            only_due_today: Read the due-only completion snapshot
             require_no_overdue: Fail if any overdue chores exist
 
         Returns:
@@ -1114,50 +1128,51 @@ class GamificationEngine:
             only_due_today=only_due_today,
         )
         cycle_count = int(daily_status.get("cycle_count", 0))
-        approved_count = int(daily_status.get("approved_count", 0))
-        total_count = int(daily_status.get("total_count", 0))
+        eligible_total = int(daily_status.get("eligible_total", 0))
+        approved_eligible = int(daily_status.get("approved_eligible", 0))
         has_overdue = bool(daily_status.get("has_overdue", False))
         cycle_failed = bool(daily_status.get("cycle_failed", False))
-        streak_yesterday = bool(daily_status.get("streak_yesterday", False))
+        missed_since_advance = bool(daily_status.get("missed_since_advance", False))
         already_counted_today = bool(daily_status.get("already_counted_today", False))
 
-        # Determine if today meets criteria
+        # Scored against the eligible scope: a chore that was not owed today
+        # cannot be completed today, so it must not count against the day.
         today_met = False
-        if total_count > 0:
-            percent_complete = approved_count / total_count
-            today_met = percent_complete >= percent_required
+        if eligible_total > 0:
+            today_met = (approved_eligible / eligible_total) >= percent_required
 
-            # Check overdue constraint
-            if today_met and require_no_overdue and (has_overdue or cycle_failed):
-                today_met = False
-
-        # Streak logic:
-        # - If yesterday had streak AND today meets criteria: continue streak
-        # - If today meets criteria but no yesterday streak: start new streak (1)
-        # - If today doesn't meet criteria yet the streak is still credited to
-        #   today or yesterday: hold, because the day is not over
-        # - Otherwise a full day passed unmet: streak breaks (0)
-        if require_no_overdue and (has_overdue or cycle_failed):
-            # Strict mode is a survival check: lateness anywhere in the cycle
-            # cannot be recovered from until the cycle resets, so it breaks
-            # immediately rather than waiting for the day to end.
+        # Streak logic, in precedence order:
+        # 1. Strict mode is a survival check: lateness anywhere in the cycle
+        #    cannot be recovered from until the cycle resets, so it breaks
+        #    immediately rather than waiting for the day to end.
+        # 2. A scheduled occurrence went unmet since the streak last advanced, so
+        #    the streak is broken even if today is neutral or already satisfied.
+        #    Only checked while a streak exists: with no credited days there is
+        #    nothing to break, and blocking a restart on a past miss would make a
+        #    streak unrecoverable. The anchor only moves when the streak advances,
+        #    so it cannot pass an old miss on its own.
+        # 3. Nothing is owed today, so the day is neutral: it neither advances
+        #    nor breaks the streak. A scheduled chore is not the same as no
+        #    opportunity to miss one, which is why rule 2 precedes this.
+        # 4. Today is satisfied and already credited: hold, so re-evaluation on
+        #    the same day is idempotent.
+        # 5. Today is satisfied: advance. Continuity comes from the absence of a
+        #    missed occurrence (rule 2), not from the calendar, so a streak
+        #    survives neutral days between eligible ones.
+        # 6. Otherwise the day is still in progress: hold.
+        if (
+            require_no_overdue
+            and (has_overdue or cycle_failed)
+            or cycle_count > 0
+            and missed_since_advance
+        ):
             current_value = 0
-        elif today_met:
-            if already_counted_today:
-                current_value = cycle_count
-            elif streak_yesterday:
-                current_value = cycle_count + 1
-            else:
-                # Starting fresh streak today
-                current_value = 1
-        elif streak_yesterday:
-            # Today is still in progress. A streak only breaks once a full day
-            # has passed without meeting the criteria, which shows up as the
-            # streak no longer being credited to today or yesterday.
+        elif eligible_total == 0:
             current_value = cycle_count
+        elif today_met:
+            current_value = cycle_count if already_counted_today else cycle_count + 1
         else:
-            # Streak broken
-            current_value = 0
+            current_value = cycle_count
 
         progress = min(1.0, current_value / threshold) if threshold > 0 else 0.0
         criteria_met = current_value >= threshold
@@ -1165,9 +1180,13 @@ class GamificationEngine:
         pct_str = f"{int(percent_required * 100)}%"
         due_str = " (due)" if only_due_today else ""
         overdue_str = ", no overdue" if require_no_overdue else ""
+        if eligible_total == 0 and not (has_overdue or cycle_failed):
+            day_detail = "nothing owed today"
+        else:
+            day_detail = f"today: {approved_eligible}/{eligible_total}"
         reason = (
             f"Streak {pct_str}{due_str}{overdue_str}: "
-            f"{current_value}/{threshold} consecutive days"
+            f"{current_value}/{threshold} consecutive days ({day_detail})"
         )
 
         return GamificationEngine._make_criterion_result(
@@ -1300,8 +1319,16 @@ class GamificationEngine:
         has_overdue = bool(today_completion.get("has_overdue", False))
         cycle_failed = bool(today_completion.get("cycle_failed", False))
 
-        today_stats: Any = context.get("today_stats") or {}
-        streak_yesterday = bool(today_stats.get("streak_yesterday", False))
+        # Eligible scope: only chores this assignee actually owes today. A chore
+        # that is not due today cannot be completed today, so counting it would
+        # make the day unsatisfiable. Falls back to the all-tracked counts for
+        # contexts that predate the eligible scope, which is the same reading
+        # they had before.
+        eligible_total = int(today_completion.get("due_count", total_count))
+        approved_eligible = int(
+            today_completion.get("approved_due_today", approved_count)
+        )
+        missed_since_advance = bool(today_completion.get("missed_since_advance", False))
 
         return {
             "cycle_count": cycle_count,
@@ -1310,9 +1337,11 @@ class GamificationEngine:
             "already_counted_today": already_counted_today,
             "approved_count": approved_count,
             "total_count": total_count,
+            "eligible_total": eligible_total,
+            "approved_eligible": approved_eligible,
+            "missed_since_advance": missed_since_advance,
             "has_overdue": has_overdue,
             "cycle_failed": cycle_failed,
-            "streak_yesterday": streak_yesterday,
         }
 
     @staticmethod

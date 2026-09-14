@@ -69,6 +69,24 @@ def missed(
     )
 
 
+@pytest.fixture(autouse=True)
+def pin_default_timezone() -> Any:
+    """Pin UTC for every test in this module.
+
+    The helper normalises day-based schedules to *local* day boundaries, so its
+    answers depend on the ambient default timezone. That value is a module global
+    other test modules mutate, which made these tests pass in isolation but fail
+    in a fuller run. Pinning it here keeps the expectations stable regardless of
+    what ran before.
+    """
+    original = get_default_timezone()
+    set_default_timezone(ZoneInfo("UTC"))
+    try:
+        yield
+    finally:
+        set_default_timezone(original)
+
+
 def find_dst_transition(tz: ZoneInfo) -> tuple[str, str]:
     """Return the two consecutive local dates a DST transition spans."""
     day = date(2026, 1, 1)

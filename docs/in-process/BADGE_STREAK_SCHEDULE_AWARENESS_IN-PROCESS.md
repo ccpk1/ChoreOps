@@ -7,9 +7,8 @@
   **together in one release** (decided 2026-09-14). From the user's perspective this is one bug
   ("streak badges don't work"); the analysis just found several distinct defects behind it.
 - **Owner / driver(s)**: ChoreOps maintainer + ChoreOps Builder (ChoreOps Test Builder for Phase 4)
-- **Status**: In progress — Phases 0, 1, 1B and 1C committed; **Phase 2 next** (the
-  behaviour-changing phase); Phases 2–6 not started. All decisions resolved (14 total, one
-  deferred).
+- **Status**: In progress — Phases 0, 1, 1B, 1C and 2 committed; **Phase 3 next**; Phases 3–6 not
+  started. All decisions resolved (14 total, one deferred).
 - **Branch / delivery**: `ccpk1/issue294` carries both the #294 hotfix and this initiative, which
   ship as a single release. Keep the phases as **separate commits** regardless — reviewers follow
   commit history, and the hotfix commit (`73e97d5`) doubles as a bisect point if the wider change
@@ -23,7 +22,7 @@
 | Phase 1 – Snapshot fields (data layer)                   | Surface due-chore scope and schedule-derived miss signal in the stats snapshot | 100%       | ✅ `due_count`, `approved_due_today`, `missed_since_advance` + shared builder; 19 new tests |
 | Phase 1B – Eligible scope must mean "counts toward today" (O1) | Legitimacy-aware scope so rotation/standby assignees are not charged | 100%       | ✅ Claim-mode deny-list; 18 new tests; closes conflict C1              |
 | Phase 1C – Single missed-occurrence authority (O2)       | One helper for "was an occurrence missed between X and Y"                      | 100%       | ✅ `has_missed_occurrence_between`; 27 new tests; closes O2          |
-| Phase 2 – Evaluator semantics (both families)           | Streaks: neutral days hold, break/resume by missed occurrence. Both: eligible-day scope | 0%         | Depends on 1B + 1C                                                  |
+| Phase 2 – Evaluator semantics (both families)           | Streaks: neutral days hold, break/resume by missed occurrence. Both: eligible-day scope | 100%       | ✅ Motivating case now works end to end; restart gate added (see below) |
 | Phase 3 – Persistence & status alignment                | Ensure neutral days write nothing and status transitions stay coherent         | 0%         | `gamification_manager.py` days_cycle bucket + status transition |
 | Phase 4 – Tests & validation                            | Extend the #294 regression suite; add schedule-matrix + days-family coverage    | 0%         | Reuses the day-replay harness built for #294                       |
 | Phase 5 – Docs, wiki & release notes                    | Document eligible-occurrence semantics, option equivalence, and the behaviour change | 0%    | Wiki + help text + Development Standards + release note            |
@@ -54,9 +53,14 @@
    3. ✅ Post-Phase-1 audit found four conflicts (C1–C4) and five unification opportunities.
    4. ✅ Decisions 12 (O1) and 13 (O2) added to the critical path; 14 (O3/O4/O5) deferred to Phase 6.
    5. ✅ Phase 1C complete — one missed-occurrence authority shared by chore and badge streaks.
-   6. **Next: Phase 2** — evaluator semantics. This is the behaviour-changing phase and the only one
-      expected to require modifying existing tests rather than only adding them (the two
-      `TestStreakStillBreaks` guards rely on the calendar gate and must be re-expressed).
+   6. ✅ Phase 2 complete — eligible scope live in both evaluators; the motivating regression is
+      fixed end to end.
+   7. **Next: Phase 3** — persistence and status alignment. Confirm a neutral day writes nothing,
+      and that the break path still leaves `last_update_day` un-advanced (now the miss anchor).
+      Note Phase 2 added a reason to double-check it: the miss check is gated on `cycle_count > 0`,
+      so a *stale-looking* anchor is only harmful while a streak exists.
+   8. Retire `streak_yesterday` deliberately in Phase 3 or Phase 6 — Phase 2 stopped consuming it,
+      so its computation in `statistics_manager.py` is now dead weight with no consumer.
 
 4. **Risks / blockers** –
    - **BLOCKER (C1) — the eligible scope is currently too coarse.** `_is_chore_due_today_for_assignee`
@@ -785,19 +789,56 @@ permanently neutral — never advancing and never breaking.
 
 - **Goal**: Apply the eligibility rule to the streak evaluator, and the eligible denominator to
   **both** the streak and days evaluators (decision 8).
+- **Status**: ✅ **Complete** (2026-09-14).
 - **Steps / detailed work items**
-  1. Extend `_resolve_daily_status` (`engines/gamification_engine.py:1278`) to surface `due_count`, `approved_due_today` and `missed_since_advance` alongside the existing keys, keeping the `dict[str, Any]` contract. This is the shared layer, so both evaluators inherit the eligible scope from here.
-  2. Rewrite the decision block in `_evaluate_streak` (`:1134-1159`) to the reference implementation precedence, in that exact order: strict break → **missed break** → neutral hold → idempotent hold → advance → in-progress hold.
-  3. Replace the literal calendar gate: the advance branch must no longer read `streak_yesterday`. Continuity is carried by rule 2 instead. Leave the `streak_yesterday` key in place (see Key issues) but stop consuming it on the streak path.
-  4. Switch the day denominator to the eligible scope (`due_count` / `approved_due_today`) in the shared status layer, so both evaluators stop counting non-due chores. Note the consequence for the days evaluator: its "days met" count now reflects days the *available* chores were completed, which is the confirmed intent.
-  5. Update the days evaluator's (`_evaluate_daily_completion`) `reason` string and docstring so it reflects the eligible scope — it currently reports `(today: approved/total)` over all tracked chores, which will be misleading once the scope changes.
-  6. Update the streak docstring to define an eligible occurrence, a neutral day and a missed occurrence, and replace the now-misleading `streak_yesterday` context requirement line with the new contract.
-  7. Update the streak `reason` string so a neutral day is self-explanatory (it must not render as `0/7 consecutive days` on a day with nothing due), and so a neutral-hold is distinguishable from an in-progress hold when debugging.
+  1. ✅ `_resolve_daily_status` now surfaces `eligible_total`, `approved_eligible` and
+     `missed_since_advance` alongside the existing keys, so both evaluators read the eligible
+     scope from one place. With decision 8 confirmed the scope is **not** per-evaluator.
+  2. ✅ `_evaluate_streak`'s decision block rewritten to the precedence: strict break → **missed
+     break** → neutral hold → idempotent hold → advance → in-progress hold. The no-overdue check
+     was removed from `today_met` because the strict branch already handles it ahead of every
+     other rule.
+  3. ✅ The advance branch no longer reads `streak_yesterday`; continuity now comes from the
+     absence of a missed occurrence. The key and its `STATISTICS_MANAGER` computation are left in
+     place for Phase 6 / O4 to retire deliberately.
+  4. ✅ Both evaluators score percentages against the eligible scope. The absolute-count variants
+     (`Days Minimum 3/5/7`) deliberately keep the all-selected scope (decision 10).
+  5. ✅ `reason` strings updated: a neutral day reports "nothing owed today" rather than an
+     alarming `0/7`, and the day detail shows the eligible fraction actually used.
+  6. ✅ Docstrings rewritten to define an eligible occurrence, a neutral day and a missed
+     occurrence, and the `streak_yesterday` context requirement removed from the streak contract.
+  7. ✅ `make_context` in `tests/test_gamification_engine.py` gained `due_count`,
+     `approved_due_today` and `missed_since_advance`, and lost the now-inert `streak_yesterday`.
+- **⚠️ Defect found while implementing — a broken streak could never restart.** The plan assumed
+  the anchor would clear once the streak restarted, but the restart was itself blocked by the old
+  miss, a circular dependency: the miss breaks the streak → the streak does not advance →
+  `last_update_day` is only stamped on an advance → the anchor stays behind the miss → the miss is
+  detected again forever. Verified by direct evaluation: `cycle_count=2` and `cycle_count=0` both
+  returned 0 on a satisfied day with the miss still in the window.
+
+  Fixed in the engine with **`cycle_count > 0` gating the miss check**: a miss only matters when
+  there is a streak to break. With no credited days there is nothing to protect, and a past miss
+  must not permanently block a restart. This keeps every break-detection case working (all of them
+  have an active streak) while making recovery possible, and needs no schema, persistence or extra
+  field — unlike the fallback design in the Notes.
 - **Key issues**
-  - `streak_yesterday` is read by `_resolve_daily_status` for `_evaluate_daily_completion`. The days evaluator does **not** use it — it only uses `already_counted_today` / `cycle_count` — so it can be dropped from the status dict once the streak path stops reading it. Verify before removing; if any consumer remains, keep it.
-  - `criteria_met` must not be recomputed in a way that lets a neutral day flip an already-earned criteria state.
-  - The days evaluator has one behaviour that must be preserved: a day that is **not** met but not yet over must hold rather than zero the counter (`current_value = cycle_count`) except in strict mode. Verify the eligibility change does not disturb that, and that strict mode still zeroes immediately.
-  - Verified today: the days family **holds** rather than breaks on a non-due day today (a `Days` target returned 3), so it stalls and can over-count rather than resetting. The change is a correctness improvement there, not a regression fix, which is why it is in scope but lower risk than the streak path.
+  - **Existing tests required re-expression, as predicted.** The two `TestStreakStillBreaks` guards
+    in `test_badge_streak_midnight_reset.py` relied on the calendar gate and were updated to drive
+    the miss mechanism; they pass unchanged in intent. In `test_gamification_engine.py`,
+    `test_streak_starts_fresh_without_yesterday` became
+    `test_streak_starts_at_one_when_no_credit_exists` (a fresh start now requires no credited
+    days, since calendar adjacency no longer implies continuity), and
+    `test_streak_breaks_after_a_full_day_without_completion` became
+    `test_streak_breaks_when_an_occurrence_was_missed`.
+  - **Test-isolation defect fixed in the Phase 1C tests.** `test_missed_occurrence_authority.py`
+    passed in isolation but failed in a fuller run, because the helper normalises to *local* day
+    boundaries and the default timezone is a module global other test files mutate. It now pins
+    UTC with an autouse fixture that restores the previous value. This is the documented
+    cross-test timezone hazard, and it was introduced by Phase 1C — the tests were passing by luck.
+  - `criteria_met` is still derived from `current_value`, so a neutral day cannot flip an
+    already-earned criteria state.
+  - The days evaluator's hold-instead-of-zero behaviour is preserved, and strict mode still zeroes
+    immediately.
 
 ### Phase 3 – Persistence & status alignment
 
@@ -969,8 +1010,17 @@ permanently neutral — never advancing and never breaking.
   `test_gamification_engine`, `test_gamification_streak_reset`, `test_badge_target_types`,
   `test_badge_no_overdue_cycles`, `test_chore_engine` → **349 passed**; `quick_lint.sh` green with
   mypy 0 errors. Phases 2–6 must not regress these.
-- **Testing discipline**: run targeted suites per phase. The full `pytest tests/ -v --tb=line`
-  run is a release step, not a per-phase gate (see Notes: the suite is a release process).
+- **Baseline for Phase 2 (2026-09-14):** `test_gamification_engine.py` **52/52 pass** (47 + 5 new
+  Days-family cases); targeted set across `test_gamification_engine`, `test_badge_streak_midnight_reset`,
+  `test_badge_schedule_snapshot`, `test_missed_occurrence_authority`, `test_badge_target_types`,
+  `test_badge_no_overdue_cycles`, `test_badge_period_end_cycles`, `test_badge_cumulative`,
+  `test_gamification_streak_reset`, `test_gamification_shadow_comparison`,
+  `test_workflow_gamification_pending_queue`, `test_workflow_streak_schedule`,
+  `test_rotation_fsm_states`, `test_rotation_primary_standby`, `test_shared_chore_features` →
+  **300 passed / 4 skipped**; `quick_lint.sh` green with mypy 0 errors.
+  **Motivating regression confirmed fixed end to end:** 3 daily chores + 1 weekly not due today,
+  all dailies done → the streak advances and reaches the threshold (was: capped at 1, then broke).
+  Phases 3–6 must not regress these.
 - **Outstanding tests:** none yet — Phase 4 defines the schedule matrix and days-family coverage.
 - **Links to failing logs:** n/a.
 
