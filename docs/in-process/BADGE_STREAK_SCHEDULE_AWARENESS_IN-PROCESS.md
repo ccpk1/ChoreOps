@@ -7,7 +7,7 @@
   **together in one release** (decided 2026-09-14). From the user's perspective this is one bug
   ("streak badges don't work"); the analysis just found several distinct defects behind it.
 - **Owner / driver(s)**: ChoreOps maintainer + ChoreOps Builder (ChoreOps Test Builder for Phase 4)
-- **Status**: In progress — Phase 0 committed; Phases 1–5 not started. All decisions resolved.
+- **Status**: In progress — Phase 0 committed; Phase 1 complete (pending commit); Phases 2–5 not started. All decisions resolved.
 - **Branch / delivery**: `ccpk1/issue294` carries both the #294 hotfix and this initiative, which
   ship as a single release. Keep the phases as **separate commits** regardless — reviewers follow
   commit history, and the hotfix commit (`73e97d5`) doubles as a bisect point if the wider change
@@ -18,7 +18,7 @@
 | Phase / Step                                            | Description                                                                   | % complete | Quick notes                                                        |
 | ------------------------------------------------------- | ----------------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------ |
 | Phase 0 – Prerequisite (#294 hotfix)                    | Land the calendar-midnight streak fix so this defect becomes observable        | 100%       | ✅ Committed `73e97d5` (3 files, +499/−6)                           |
-| Phase 1 – Schedule-aware day classification (data layer) | Surface due-chore scope and schedule-derived miss signal in the stats snapshot | 0%         | `statistics_manager.py` + `type_defs.py`; miss check is a backstop only |
+| Phase 1 – Schedule-aware day classification (data layer) | Surface due-chore scope and schedule-derived miss signal in the stats snapshot | 100%       | ✅ `due_count`, `approved_due_today`, `missed_since_advance` + shared builder; 19 new tests |
 | Phase 2 – Evaluator semantics (both families)           | Streaks: neutral days hold, break/resume by missed occurrence. Both: eligible-day scope | 0%         | `gamification_engine.py`; days evaluator in scope too (decision 8) |
 | Phase 3 – Persistence & status alignment                | Ensure neutral days write nothing and status transitions stay coherent         | 0%         | `gamification_manager.py` days_cycle bucket + status transition |
 | Phase 4 – Tests & validation                            | Extend the #294 regression suite; add schedule-matrix + days-family coverage    | 0%         | Reuses the day-replay harness built for #294                       |
@@ -36,8 +36,9 @@
 
 3. **Next steps (short term)** –
    1. ✅ Decisions 8 and 9 confirmed (2026-09-14): both families; leave redundant options in place.
-   2. Start Phase 1 — no gates remain.
-   3. Review the plan once Phase 1 lands, before Phase 2 changes evaluator behaviour.
+   2. ✅ Decisions 10 and 11 confirmed by default (2026-09-14).
+   3. ✅ Phase 1 complete — data layer in place, no evaluator behaviour changed.
+   4. Awaiting approval to start Phase 2 (the behaviour-changing phase: both evaluators).
 
 4. **Risks / blockers** –
    - **Sequencing**: the original plan required the #294 hotfix to land first. Both now live on
@@ -438,36 +439,32 @@ permanently neutral — never advancing and never breaking.
 ### Phase 1 – Schedule-aware day classification (data layer)
 
 - **Goal**: Give the engine everything it needs to classify a day, without touching any evaluation maths yet.
+- **Status**: ✅ **Complete** (2026-09-14). No evaluator behaviour changed — confirmed by all
+  existing badge/gamification suites passing unmodified.
 - **Precondition**: ✅ satisfied — decision 8 is confirmed as *both families*, so the eligible scope
   is applied in the shared day-status layer and consumed by every evaluator.
 - **Steps / detailed work items**
-  1. Add `due_count` and `approved_due_today` to the completion snapshot returned by
-     `get_badge_scoped_today_completion` (`managers/statistics_manager.py:2534`). Reuse the
-     existing `_is_chore_due_today_for_assignee` (`:2632`) — do not add a second schedule check —
-     and set both from the same loop that already tracks `total_count` / `approved_count`.
-     These two values are the single source of the eligible scope for **both** families.
-  2. **Extract one shared schedule-config builder** for the `frequency` / `interval` /
-     `applicable_days` / `daily_multi_times` assembly that `ChoreEngine.calculate_streak`
-     currently builds inline (`engines/chore_engine.py:1500-1528`), and have that method call it.
-     Step 3 needs the same assembly, and duplicating it repeats a drift this codebase has already
-     been bitten by (see Notes, opportunity 1). Behavioural no-op — pinned by
-     `tests/test_workflow_streak_schedule.py`.
-  3. Add `missed_since_advance: bool` to the snapshot from step 1, implementing the
-     **`missed_since_advance` contract** above exactly, using the builder from step 2. The contract
-     fixes the anchor, the upper bound and the skip condition; none are free choices. Short-circuit
-     on the first missed chore.
-  4. Decide the *placement* of the miss check and document it in the code: compute it eagerly inside
-     the snapshot (simplest, but an rrule per tracked chore per badge), or expose the raw inputs and
-     let the streak evaluator compute it when it needs it. Either is acceptable; the ordering
-     requirement in the contract is not.
-  5. Fail safe on a missing or unparseable `last_completed` / `last_update_day` — treat as
-     "no miss". Mirror the `_streak_alive` convention (`managers/gamification_manager.py:2871`).
-  6. Declare the new keys in the snapshot contract in `type_defs.py` (see the `today_completion` /
-     `today_completion_due` fields around `type_defs.py:900`) so the engine reads them from a
-     typed surface rather than an untyped `dict[str, Any]`.
-  7. Add focused unit tests for each new key in isolation: `due_count` with mixed schedules;
-     `approved_due_today`; miss detection for daily / weekly / `never_overdue`; and one test per
-     contract trap (start-of-today upper bound, no-window skip, anchor-only).
+  1. ✅ Add `due_count` and `approved_due_today` to the completion snapshot returned by
+     `get_badge_scoped_today_completion` (`managers/statistics_manager.py`). Reuses the existing
+     `_is_chore_due_today_for_assignee` — no second schedule check was added — and computes both
+     in the same loop as `total_count` / `approved_count`.
+  2. ✅ Extract `ChoreEngine.build_schedule_config()` (`engines/chore_engine.py`), now called by
+     `calculate_streak` instead of assembling the config inline. Behavioural no-op, pinned by
+     `tests/test_workflow_streak_schedule.py` (11 tests) staying green.
+  3. ✅ Add `missed_since_advance: bool` implementing the contract, via the new
+     `StatisticsManager._has_missed_occurrence_since_advance()`. Anchor is the badge's
+     `last_update_day` only; upper bound is the start of today; no window means no miss.
+  4. ✅ **Placement decided: eager, in the snapshot.** Rationale: the manager already holds
+     `coordinator.chores_data`, `RecurrenceEngine` is importable there (verified), and computing
+     once per snapshot avoids leaking schedule-building into the pure engine. Short-circuits on the
+     first missed chore. `last_update_day_iso` is a keyword argument with an empty default, so
+     achievements/challenges (which have no badge anchor) correctly get no window.
+  5. ✅ Fail safe on missing/unparseable anchor or unknown chore IDs — all yield "no miss".
+  6. ✅ New `BadgeScopedCompletionSnapshot` TypedDict in `type_defs.py`, now the declared type of
+     `today_completion` / `today_completion_due` **and** the return type of the snapshot method, so
+     mypy enforces the contract rather than trusting a `dict[str, Any]`.
+  7. ✅ Add `tests/test_badge_schedule_snapshot.py` — 19 tests covering the eligible scope, all five
+     contract traps, and the shared builder.
 - **Key issues**
   - **Purity/layering — verified, no blocker.** The boundary checker only forbids `homeassistant`
     imports in pure modules (`utils/`, `engines/`); managers are not pure, and
@@ -475,16 +472,16 @@ permanently neutral — never advancing and never breaking.
     `../engines/schedule_engine`. `statistics_manager` may therefore import `RecurrenceEngine`
     directly. `statistics_manager` already reads `self.coordinator.chores_data`, so the schedule
     inputs are in reach.
-   - **Loop cost**: only evaluate tracked chores, short-circuit on the first miss. The check cannot
-     be skipped on neutral days (see the contract's ordering note) — that restriction is a
-     correctness requirement, not a performance choice.
-  - `has_missed_occurrences` takes UTC datetimes; the snapshot is ISO-date based. Convert
-     explicitly with the `dt_*` helpers (`utils/dt_utils.py`) — never raw `datetime`.
-  - The shared schedule-config builder must not change `calculate_streak`'s behaviour; pin that
-     with the existing `test_workflow_streak_schedule.py` suite.
-
-### Phase 2 – Streak semantics in the engine (both evaluators)
-
+  - **Loop cost**: only tracked chores are evaluated, and the check short-circuits on the first miss.
+    The check cannot be skipped on neutral days (see the contract's ordering note) — that
+    restriction is a correctness requirement, not a performance choice.
+  - `has_missed_occurrences` takes UTC datetimes; the snapshot is ISO-date based. Bounds are built
+    with `datetime.combine(date, time.min, tzinfo=get_default_timezone())` then `as_utc(...)` —
+    no raw `datetime` timezone guessing.
+  - **Contract trap confirmed by test:** `_record_day`-style reasoning about a chore's own
+    `last_completed` would have used the wrong anchor. `test_todays_pending_occurrence_is_not_a_miss`
+    pins the start-of-today upper bound, which is the trap that would have re-created the #294
+    symptom mid-day.
 - **Goal**: Apply the eligibility rule to the streak evaluator, and the eligible denominator to
   **both** the streak and days evaluators (decision 8).
 - **Steps / detailed work items**

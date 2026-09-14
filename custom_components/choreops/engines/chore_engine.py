@@ -1428,6 +1428,54 @@ class ChoreEngine:
     # =========================================================================
 
     @staticmethod
+    def build_schedule_config(
+        chore_data: ChoreData | dict[str, Any],
+        *,
+        base_date_iso: str,
+    ) -> ScheduleConfig:
+        """Build a RecurrenceEngine schedule config from chore scheduling fields.
+
+        Single source of truth for how a chore's frequency, interval and
+        applicable days map onto a recurrence schedule. Shared so schedule
+        evaluation cannot drift between callers.
+
+        Args:
+            chore_data: Chore definition containing the scheduling fields.
+            base_date_iso: ISO timestamp anchoring the recurrence window.
+
+        Returns:
+            ScheduleConfig ready for RecurrenceEngine.
+        """
+        # Convert day names to integers if needed (RecurrenceEngine expects ints)
+        applicable_days_int: list[int] = []
+        for day in chore_data.get(const.DATA_CHORE_APPLICABLE_DAYS, []):
+            if isinstance(day, str):
+                day_int = const.WEEKDAY_NAME_TO_INT.get(day.lower())
+                if day_int is not None:
+                    applicable_days_int.append(day_int)
+            elif isinstance(day, int):
+                applicable_days_int.append(day)
+
+        interval_raw = chore_data.get(const.DATA_CHORE_CUSTOM_INTERVAL)
+        interval_unit_raw = chore_data.get(const.DATA_CHORE_CUSTOM_INTERVAL_UNIT)
+        daily_multi_raw = chore_data.get(const.DATA_CHORE_DAILY_MULTI_TIMES)
+
+        return {
+            "frequency": str(
+                chore_data.get(
+                    const.DATA_CHORE_RECURRING_FREQUENCY, const.FREQUENCY_NONE
+                )
+            ),
+            "interval": int(interval_raw) if interval_raw else 1,
+            "interval_unit": str(interval_unit_raw)
+            if interval_unit_raw
+            else const.TIME_UNIT_DAYS,
+            "base_date": base_date_iso,
+            "applicable_days": applicable_days_int,
+            "daily_multi_times": str(daily_multi_raw) if daily_multi_raw else "",
+        }
+
+    @staticmethod
     def calculate_streak(
         current_streak: int,
         previous_last_completed_iso: str | None,
@@ -1496,32 +1544,10 @@ class ChoreEngine:
             schedule_current_dt = as_utc(start_of_local_day(current_dt))
 
         # Build schedule config for RecurrenceEngine
-        applicable_days = chore_data.get(const.DATA_CHORE_APPLICABLE_DAYS, [])
-        # Convert day names to integers if needed (RecurrenceEngine expects ints)
-        applicable_days_int: list[int] = []
-        for d in applicable_days:
-            if isinstance(d, str):
-                day_int = const.WEEKDAY_NAME_TO_INT.get(d.lower())
-                if day_int is not None:
-                    applicable_days_int.append(day_int)
-            elif isinstance(d, int):
-                applicable_days_int.append(d)
-
-        # Build config dict - use explicit values to satisfy type checker
-        interval_raw = chore_data.get(const.DATA_CHORE_CUSTOM_INTERVAL)
-        interval_unit_raw = chore_data.get(const.DATA_CHORE_CUSTOM_INTERVAL_UNIT)
-        daily_multi_raw = chore_data.get(const.DATA_CHORE_DAILY_MULTI_TIMES)
-
-        schedule_config: ScheduleConfig = {
-            "frequency": str(frequency),
-            "interval": int(interval_raw) if interval_raw else 1,
-            "interval_unit": str(interval_unit_raw)
-            if interval_unit_raw
-            else const.TIME_UNIT_DAYS,
-            "base_date": schedule_prev_dt.isoformat(),
-            "applicable_days": applicable_days_int,
-            "daily_multi_times": str(daily_multi_raw) if daily_multi_raw else "",
-        }
+        schedule_config = ChoreEngine.build_schedule_config(
+            chore_data,
+            base_date_iso=schedule_prev_dt.isoformat(),
+        )
 
         try:
             engine = RecurrenceEngine(schedule_config)

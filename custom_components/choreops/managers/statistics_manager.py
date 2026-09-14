@@ -33,13 +33,23 @@ Cache Architecture:
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, time
 from typing import TYPE_CHECKING, Any, cast
 
 from homeassistant.core import callback
 
 from .. import const
-from ..utils.dt_utils import dt_add_interval, dt_local_date_iso, dt_now_local, dt_parse
+from ..engines.chore_engine import ChoreEngine
+from ..engines.schedule_engine import RecurrenceEngine
+from ..utils.dt_utils import (
+    as_utc,
+    dt_add_interval,
+    dt_local_date_iso,
+    dt_now_local,
+    dt_parse,
+    dt_parse_date,
+    get_default_timezone,
+)
 from ..utils.math_utils import calculate_average
 from .base_manager import BaseManager
 
@@ -50,7 +60,7 @@ if TYPE_CHECKING:
 
     from ..coordinator import ChoreOpsDataCoordinator
     from ..engines.statistics_engine import StatisticsEngine
-    from ..type_defs import ChoreData
+    from ..type_defs import BadgeScopedCompletionSnapshot, ChoreData
 
 
 __all__ = ["StatisticsManager"]
@@ -2539,7 +2549,8 @@ class StatisticsManager(BaseManager):
         today_iso: str,
         cycle_start_iso: str,
         only_due_today: bool,
-    ) -> dict[str, Any]:
+        last_update_day_iso: str = "",
+    ) -> BadgeScopedCompletionSnapshot:
         """Get badge-scoped completion snapshot for today.
 
         Tenant-owned period read helper for GamificationManager.
@@ -2551,19 +2562,30 @@ class StatisticsManager(BaseManager):
             cycle_start_iso: First local date of the badge cycle (YYYY-MM-DD).
                 Lets lateness anywhere in the cycle count, not just today.
             only_due_today: If True, include only chores due today.
+            last_update_day_iso: Day the badge streak last advanced. Bounds the
+                missed-occurrence window; empty means no window to evaluate.
 
         Returns:
-            Dict with keys: approved_count, total_count, has_overdue, cycle_failed.
+            Dict with keys: approved_count, total_count, due_count,
+                approved_due_today, has_overdue, cycle_failed,
+                missed_since_advance.
+                `due_count` and `approved_due_today` express the eligible scope,
+                where a chore only counts when it is actionable today.
                 `cycle_failed` is True when a tracked chore went overdue or was
                 missed on or after `cycle_start_iso`, even if since resolved.
+                `missed_since_advance` is True when an occurrence passed unmet
+                since the streak last advanced.
         """
         assignee_info = self._get_assignee(assignee_id)
         if not assignee_info:
             return {
                 "approved_count": 0,
                 "total_count": 0,
+                "due_count": 0,
+                "approved_due_today": 0,
                 "has_overdue": False,
                 "cycle_failed": False,
+                "missed_since_advance": False,
             }
 
         chore_data = cast(
@@ -2572,6 +2594,8 @@ class StatisticsManager(BaseManager):
 
         approved_count = 0
         total_count = 0
+        due_count = 0
+        approved_due_today = 0
         has_overdue = False
         cycle_failed = False
 
@@ -2579,9 +2603,10 @@ class StatisticsManager(BaseManager):
             chore_info = cast(
                 "dict[str, Any]", self.coordinator.chores_data.get(chore_id, {})
             )
-            if only_due_today and not self._is_chore_due_today_for_assignee(
+            due_today = self._is_chore_due_today_for_assignee(
                 chore_info, assignee_id, today_iso
-            ):
+            )
+            if only_due_today and not due_today:
                 continue
 
             chore_entry = cast("dict[str, Any]", chore_data.get(chore_id, {}))
@@ -2591,6 +2616,8 @@ class StatisticsManager(BaseManager):
             )
 
             total_count += 1
+            if due_today:
+                due_count += 1
 
             approved_today = int(
                 self._stats_engine.get_period_total(
@@ -2602,6 +2629,8 @@ class StatisticsManager(BaseManager):
             )
             if approved_today > 0:
                 approved_count += 1
+                if due_today:
+                    approved_due_today += 1
 
             if (
                 chore_entry.get(const.DATA_USER_CHORE_DATA_STATE)
@@ -2625,9 +2654,76 @@ class StatisticsManager(BaseManager):
         return {
             "approved_count": approved_count,
             "total_count": total_count,
+            "due_count": due_count,
+            "approved_due_today": approved_due_today,
             "has_overdue": has_overdue,
             "cycle_failed": cycle_failed,
+            "missed_since_advance": self._has_missed_occurrence_since_advance(
+                tracked_chores,
+                last_update_day_iso=last_update_day_iso,
+                today_iso=today_iso,
+            ),
         }
+
+    def _has_missed_occurrence_since_advance(
+        self,
+        tracked_chores: list[str],
+        *,
+        last_update_day_iso: str,
+        today_iso: str,
+    ) -> bool:
+        """Return True when a tracked chore missed a scheduled occurrence.
+
+        Backstop for windows that were never evaluated (HA down, catch-up gaps,
+        neutral stretches after a failed day). Days that were evaluated are
+        covered by the day-level rules, so the window is bounded by the streak's
+        own advance day rather than a chore's completion timestamp: occurrences
+        belonging to an already-evaluated day fall before the anchor and cannot
+        break the streak, which is what lets percentage variants tolerate a
+        deliberately skipped chore.
+
+        The upper bound is the start of today, never "now", so today's
+        still-pending occurrence is not treated as missed.
+
+        Args:
+            tracked_chores: Chore IDs in scope for the badge.
+            last_update_day_iso: Day the streak last advanced (may be empty).
+            today_iso: Today's local date key.
+
+        Returns:
+            True when at least one occurrence passed unmet since the anchor.
+            False when there is no window to evaluate or on unparseable input,
+            so a valid streak is never wrongly broken.
+        """
+        anchor_date = dt_parse_date(last_update_day_iso)
+        today_date = dt_parse_date(today_iso)
+        if anchor_date is None or today_date is None or anchor_date >= today_date:
+            return False
+
+        local_tz = get_default_timezone()
+        window_start = as_utc(datetime.combine(anchor_date, time.min, tzinfo=local_tz))
+        window_end = as_utc(datetime.combine(today_date, time.min, tzinfo=local_tz))
+
+        for chore_id in tracked_chores:
+            chore_info = cast(
+                "dict[str, Any]", self.coordinator.chores_data.get(chore_id, {})
+            )
+            if not chore_info:
+                continue
+
+            schedule_config = ChoreEngine.build_schedule_config(
+                chore_info,
+                base_date_iso=window_start.isoformat(),
+            )
+            try:
+                engine = RecurrenceEngine(schedule_config)
+            except (ValueError, KeyError, TypeError):
+                # Unusable schedule data must not be reported as a miss.
+                continue
+            if engine.has_missed_occurrences(window_start, window_end):
+                return True
+
+        return False
 
     def _is_chore_due_today_for_assignee(
         self,

@@ -875,6 +875,35 @@ class _EvaluationContextRequired(TypedDict):
     today_iso: str  # Today's date as ISO string
 
 
+class BadgeScopedCompletionSnapshot(TypedDict, total=False):
+    """Badge-scoped completion snapshot for a single day.
+
+    Built by StatisticsManager.get_badge_scoped_today_completion().
+
+    Scope:
+    - `total_count` / `approved_count` cover every tracked chore.
+    - `due_count` / `approved_due_today` cover only chores actionable today,
+      which is the eligible scope for badge evaluation. A chore that is not due
+      today cannot be completed today, so it must not count against a ratio.
+
+    Lateness:
+    - `has_overdue` is live chore state.
+    - `cycle_failed` is lateness history within the badge cycle, even if since
+      resolved.
+    - `missed_since_advance` is True when a tracked chore passed a scheduled
+      occurrence unmet since the badge streak last advanced. Bounded by the
+      streak's own advance day so already-evaluated days cannot break it.
+    """
+
+    approved_count: int
+    total_count: int
+    due_count: int
+    approved_due_today: int
+    has_overdue: bool
+    cycle_failed: bool
+    missed_since_advance: bool
+
+
 class EvaluationContext(_EvaluationContextRequired, total=False):
     """Minimal data needed to evaluate gamification criteria.
 
@@ -895,8 +924,10 @@ class EvaluationContext(_EvaluationContextRequired, total=False):
 
     # Optional: Pre-computed daily stats (set by Manager for daily evaluations)
     today_stats: dict[str, Any]  # Today's computed stats
-    today_completion: dict[str, Any]  # Today's completion state (all tracked)
-    today_completion_due: dict[str, Any]  # Today's completion (due today only)
+    today_completion: BadgeScopedCompletionSnapshot  # Today's completion (all tracked)
+    today_completion_due: (
+        BadgeScopedCompletionSnapshot  # Today's completion (due today only)
+    )
 
 
 class TargetProgressMutationState(TypedDict, total=False):

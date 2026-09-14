@@ -1464,6 +1464,11 @@ class GamificationManager(BaseManager):
                 today_iso=today_iso,
                 cycle_start_iso=cycle_start_iso,
                 only_due_today=False,
+                last_update_day_iso=str(
+                    current_badge_progress.get(
+                        const.DATA_USER_BADGE_PROGRESS_LAST_UPDATE_DAY, ""
+                    )
+                ),
             )
         )
         today_completion_due = (
@@ -1473,6 +1478,11 @@ class GamificationManager(BaseManager):
                 today_iso=today_iso,
                 cycle_start_iso=cycle_start_iso,
                 only_due_today=True,
+                last_update_day_iso=str(
+                    current_badge_progress.get(
+                        const.DATA_USER_BADGE_PROGRESS_LAST_UPDATE_DAY, ""
+                    )
+                ),
             )
         )
 
