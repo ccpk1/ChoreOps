@@ -1146,11 +1146,12 @@ class GamificationEngine:
         #    cannot be recovered from until the cycle resets, so it breaks
         #    immediately rather than waiting for the day to end.
         # 2. A scheduled occurrence went unmet since the streak last advanced, so
-        #    the streak is broken even if today is neutral or already satisfied.
-        #    Only checked while a streak exists: with no credited days there is
-        #    nothing to break, and blocking a restart on a past miss would make a
-        #    streak unrecoverable. The anchor only moves when the streak advances,
-        #    so it cannot pass an old miss on its own.
+        #    the previous streak is void even if today is satisfied. Today's own
+        #    effort still counts, so a satisfied day starts a new streak rather
+        #    than leaving the day uncredited. Only checked while a streak exists:
+        #    with no credited days there is nothing to void, and letting a past
+        #    miss block a restart would make a streak unrecoverable. The anchor
+        #    only moves when the streak advances, so it cannot pass an old miss.
         # 3. Nothing is owed today, so the day is neutral: it neither advances
         #    nor breaks the streak. A scheduled chore is not the same as no
         #    opportunity to miss one, which is why rule 2 precedes this.
@@ -1160,13 +1161,10 @@ class GamificationEngine:
         #    missed occurrence (rule 2), not from the calendar, so a streak
         #    survives neutral days between eligible ones.
         # 6. Otherwise the day is still in progress: hold.
-        if (
-            require_no_overdue
-            and (has_overdue or cycle_failed)
-            or cycle_count > 0
-            and missed_since_advance
-        ):
+        if require_no_overdue and (has_overdue or cycle_failed):
             current_value = 0
+        elif cycle_count > 0 and missed_since_advance:
+            current_value = 1 if today_met else 0
         elif eligible_total == 0:
             current_value = cycle_count
         elif today_met:

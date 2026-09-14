@@ -673,15 +673,33 @@ class TestEvaluateStreak:
         assert result["met"] is False
         assert result["current_value"] == 0  # Streak broken
 
-    def test_streak_breaks_on_a_miss_even_when_today_is_satisfied(self) -> None:
-        """Today being satisfied does not rescue a streak with a missed occurrence.
+    def test_a_miss_voids_the_streak_but_today_still_starts_a_new_one(self) -> None:
+        """A missed occurrence is not forgiven, and today's work still counts.
 
-        Precedence matters: the miss check runs before the advance branch, so a
-        missed occurrence is not silently forgiven by a strong day.
+        Precedence matters: the miss check runs before the advance branch, so the
+        old streak does not continue (5+1 would be 6). But a satisfied day is not
+        discarded either - the child did the work - so the count restarts at 1
+        rather than sitting at 0 until a later evaluation.
         """
         context = make_context(
             days_cycle_count=5,
             approved_count=10,
+            total_count=10,
+            missed_since_advance=True,
+        )
+        target = make_badge_target(threshold=7)
+
+        result = GamificationEngine._evaluate_streak(
+            context, target, percent_required=1.0, only_due_today=False
+        )
+
+        assert result["current_value"] == 1
+
+    def test_a_miss_with_nothing_done_today_breaks_to_zero(self) -> None:
+        """The counterpart: no work today means no new streak to start."""
+        context = make_context(
+            days_cycle_count=5,
+            approved_count=0,
             total_count=10,
             missed_since_advance=True,
         )

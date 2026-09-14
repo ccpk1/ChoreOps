@@ -2010,15 +2010,19 @@ class GamificationManager(BaseManager):
                 progress[const.DATA_USER_BADGE_PROGRESS_DAYS_CYCLE_COUNT] = days_count
                 changed = True
 
+            # The anchor advances only when the streak does. A held or neutral day
+            # must leave it alone, because it bounds the missed-occurrence window:
+            # moving it forward would skip over an occurrence that was missed.
             previous_update_day = str(
                 progress.get(const.DATA_USER_BADGE_PROGRESS_LAST_UPDATE_DAY, "")
             )
-            if days_count > 0 and (
-                days_count != previous_days or previous_update_day == today_iso
+            if (
+                days_count > 0
+                and days_count != previous_days
+                and previous_update_day != today_iso
             ):
-                if previous_update_day != today_iso:
-                    progress[const.DATA_USER_BADGE_PROGRESS_LAST_UPDATE_DAY] = today_iso
-                    changed = True
+                progress[const.DATA_USER_BADGE_PROGRESS_LAST_UPDATE_DAY] = today_iso
+                changed = True
 
         elif persist_bucket == "unknown":
             const.LOGGER.warning(

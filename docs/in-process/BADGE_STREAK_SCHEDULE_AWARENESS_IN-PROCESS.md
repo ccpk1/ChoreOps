@@ -7,7 +7,7 @@
   **together in one release** (decided 2026-09-14). From the user's perspective this is one bug
   ("streak badges don't work"); the analysis just found several distinct defects behind it.
 - **Owner / driver(s)**: ChoreOps maintainer + ChoreOps Builder (ChoreOps Test Builder for Phase 4)
-- **Status**: In progress — Phases 0, 1, 1B, 1C and 2 committed; **Phase 3 next**; Phases 3–6 not
+- **Status**: In progress — Phases 0, 1, 1B, 1C, 2 and 3 committed; **Phase 4 next**; Phases 4–6 not
   started. All decisions resolved (14 total, one deferred).
 - **Branch / delivery**: `ccpk1/issue294` carries both the #294 hotfix and this initiative, which
   ship as a single release. Keep the phases as **separate commits** regardless — reviewers follow
@@ -23,7 +23,7 @@
 | Phase 1B – Eligible scope must mean "counts toward today" (O1) | Legitimacy-aware scope so rotation/standby assignees are not charged | 100%       | ✅ Claim-mode deny-list; 18 new tests; closes conflict C1              |
 | Phase 1C – Single missed-occurrence authority (O2)       | One helper for "was an occurrence missed between X and Y"                      | 100%       | ✅ `has_missed_occurrence_between`; 27 new tests; closes O2          |
 | Phase 2 – Evaluator semantics (both families)           | Streaks: neutral days hold, break/resume by missed occurrence. Both: eligible-day scope | 100%       | ✅ Motivating case now works end to end; restart gate added (see below) |
-| Phase 3 – Persistence & status alignment                | Ensure neutral days write nothing and status transitions stay coherent         | 0%         | `gamification_manager.py` days_cycle bucket + status transition |
+| Phase 3 – Persistence & status alignment                | Ensure neutral days write nothing and status transitions stay coherent         | 100%       | ✅ Audit clean; 9 tests; fixed lost credit for a satisfied day after a break |
 | Phase 4 – Tests & validation                            | Extend the #294 regression suite; add schedule-matrix + days-family coverage    | 0%         | Reuses the day-replay harness built for #294                       |
 | Phase 5 – Docs, wiki & release notes                    | Document eligible-occurrence semantics, option equivalence, and the behaviour change | 0%    | Wiki + help text + Development Standards + release note            |
 | Phase 6 – Streak subsystem unification (O3/O4/O5)        | Achievements adopt the shared helper; retire dead calendar streak code; settle open-ended semantics | 0% | **After release** — decision 14, requires its own release note |
@@ -55,12 +55,12 @@
    5. ✅ Phase 1C complete — one missed-occurrence authority shared by chore and badge streaks.
    6. ✅ Phase 2 complete — eligible scope live in both evaluators; the motivating regression is
       fixed end to end.
-   7. **Next: Phase 3** — persistence and status alignment. Confirm a neutral day writes nothing,
-      and that the break path still leaves `last_update_day` un-advanced (now the miss anchor).
-      Note Phase 2 added a reason to double-check it: the miss check is gated on `cycle_count > 0`,
-      so a *stale-looking* anchor is only harmful while a streak exists.
-   8. Retire `streak_yesterday` deliberately in Phase 3 or Phase 6 — Phase 2 stopped consuming it,
-      so its computation in `statistics_manager.py` is now dead weight with no consumer.
+   7. ✅ Phase 3 complete — write path audited clean; neutral days write nothing; a satisfied day
+      after a break now starts a new streak instead of earning no credit.
+   8. **Next: Phase 4** — schedule matrix and days-family coverage on the #294 harness. Reach for
+      the "Overall scope" note below before writing new tests: the badge-level suite now exercises
+      the motivating regression end to end, so Phase 4 is mostly breadth.
+   9. Retire `streak_yesterday` deliberately in Phase 6 — it has no consumer since Phase 2.
 
 4. **Risks / blockers** –
    - **BLOCKER (C1) — the eligible scope is currently too coarse.** `_is_chore_due_today_for_assignee`
@@ -843,19 +843,56 @@ permanently neutral — never advancing and never breaking.
 ### Phase 3 – Persistence & status alignment
 
 - **Goal**: Keep the write path consistent with the new semantics.
+- **Status**: ✅ **Complete** (2026-09-14).
 - **Steps / detailed work items**
-  1. Audit the `days_cycle` branch of `_persist_periodic_badge_progress` (`managers/gamification_manager.py:1986-2004`) against the neutral-day and hold paths, and assert that a neutral day writes nothing (count unchanged, `last_update_day` untouched). Correct only if the audit finds a write.
-  2. Confirm the break path writes `0` **and** leaves `last_update_day` un-advanced. Under the new
-     semantics that staleness is no longer the break *mechanism* — it is the miss check's anchor.
-     Leaving it stale means the missed occurrence keeps being detected until the streak restarts
-     (which then stamps a fresh anchor and clears the condition). Verify both halves; if a future
-     change starts stamping `last_update_day` on a break, the miss check would go blind.
-  3. Review `_resolve_target_status_transition` (`:1237`) and `_is_periodic_award_recorded_for_current_cycle` (`:1285`) for neutral-day edge cases: confirm no re-award occurs on a neutral day and that `in_progress` / `active_cycle` transitions remain coherent.
-  4. Verify `_advance_non_cumulative_badge_cycle_if_needed` cannot reset `days_cycle_count` on a day that Phases 1–2 classified as neutral.
-  5. Add a persistence-level test asserting a neutral day produces zero writes (compare the progress dict before/after).
+  1. ✅ **Audited — no defect found.** The `days_cycle` branch already writes
+     `days_cycle_count` only when it changes, and the hold/neutral paths return the unchanged
+     count, so a neutral day produces zero writes. Confirmed empirically rather than by
+     inspection: a deep copy of the progress record is identical after re-evaluating a neutral
+     day.
+  2. ✅ Break path confirmed on both halves: it writes `0` and deliberately leaves
+     `last_update_day` stale. Verified the staleness is load-bearing (it is the miss anchor) and
+     that a restart then stamps a fresh anchor, so the stale value cannot block recovery.
+  3. ✅ `_resolve_target_status_transition` and `_is_periodic_award_recorded_for_current_cycle`
+     reviewed: a neutral day cannot flip `criteria_met` (the count is unchanged, so the derived
+     status is unchanged), and an earned badge is not re-awarded — pinned by test, since badges are
+     never removed and a stale high streak must not keep paying out.
+  4. ✅ `_advance_non_cumulative_badge_cycle_if_needed` returns early unless
+     `end_date_iso < today_iso`, so it only fires on a real cycle boundary. Pinned with a pair of
+     tests: an open cycle leaves a neutral day alone, and an ended cycle resets.
+  5. ✅ Added `tests/test_badge_progress_persistence.py` — 9 tests covering zero writes on a
+     neutral day, anchor stability, the break/restart/steady-state sequence, no re-award, and the
+     rollover distinction.
+  6. ✅ **Write-path simplification (behaviour-preserving).** The anchor rule in the `days_cycle`
+     branch contained a vacuous disjunct (`or previous_update_day == today_iso`), because the inner
+     guard made that path a no-op. Reduced to a single condition that states the rule the new
+     semantics depend on: *the anchor advances only when the streak advances*. Provably equivalent
+     (given `previous_update_day != today_iso`, the disjunct is always false), and pinned by the
+     persistence tests.
+- **⚠️ Engine defect found while auditing — a compliant day after a break earned no credit.**
+  Testing the restart path exposed an inconsistency: the same real-world situation produced
+  different results depending only on whether the break had already been persisted.
+
+  | Situation | Before | After |
+  | --- | --- | --- |
+  | Miss pending, streak still credited, today satisfied | **0** (day uncredited) | 1 (new streak) |
+  | Miss pending, streak already at 0, today satisfied | 1 | 1 |
+
+  The second was correct. In the first, the child's compliant day was discarded: they only received
+  credit on a later evaluation, so a full day of work earned nothing on the day it happened.
+
+  Fixed in `_evaluate_streak`: when a miss voids the streak **and** today is satisfied, the count
+  becomes `1` rather than `0` — the old streak is void, but today's work starts a new one. A miss
+  with nothing done today still breaks to `0`, and all existing break-detection cases are
+  unaffected. This is a Phase 2 semantics correction discovered by Phase 3 tests, not a write-path
+  change.
 - **Key issues**
-  - Badges are never removed; a stale high streak must not be re-awarded. Reuse the existing award guards rather than adding new ones.
-  - Cumulative badges must stay untouched by this initiative.
+  - The first evaluation of a badge legitimately writes, because the progress record is populated
+    lazily. The zero-write assertion therefore snapshots *after* one evaluation; comparing against
+    the pre-initialization state would fail for the wrong reason. Documented in the test.
+  - The now-inert `streak_yesterday` computation remains in `statistics_manager.py` with no
+    consumer; retire it in Phase 6 / O4 as planned, not here.
+  - Cumulative badges were not touched by this phase, and remain out of scope.
 
 ### Phase 4 – Tests & validation
 
@@ -1021,6 +1058,10 @@ permanently neutral — never advancing and never breaking.
   **Motivating regression confirmed fixed end to end:** 3 daily chores + 1 weekly not due today,
   all dailies done → the streak advances and reaches the threshold (was: capped at 1, then broke).
   Phases 3–6 must not regress these.
+- **Baseline for Phase 3 (2026-09-14):** `test_badge_progress_persistence.py` **9/9 pass**;
+  targeted set across the 16 badge, streak, gamification, rotation and shared-chore suites →
+  **310 passed / 4 skipped**; `quick_lint.sh` green with mypy 0 errors.
+  Phases 4–6 must not regress these.
 - **Outstanding tests:** none yet — Phase 4 defines the schedule matrix and days-family coverage.
 - **Links to failing logs:** n/a.
 
