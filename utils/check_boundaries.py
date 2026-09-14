@@ -57,7 +57,6 @@ BARE_EXCEPTION_ALLOWLIST = [
     "options_flow.py",
     # Background task and fallback logic files - bare exceptions prevent cascade failures
     "gamification_manager.py",  # Kid evaluation loop - one kid's error shouldn't stop others
-    "chore_engine.py",  # Streak calculation fallback - any failure safely resets streak
     "chore_manager.py",  # Midnight rollover handler - background timer task
     "ui_manager.py",  # Midnight rollover handler - background timer task
     "migration_pre_v50.py",  # Fallback cascade - bare exceptions prevent total migration failure
