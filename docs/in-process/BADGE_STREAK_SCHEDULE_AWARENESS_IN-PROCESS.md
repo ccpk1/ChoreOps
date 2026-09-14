@@ -3,13 +3,15 @@
 ## Initiative snapshot
 
 - **Name / Code**: Badge Streak Schedule Awareness — `BADGE_STREAK_SCHEDULE_AWARENESS`
-- **Target release / milestone**: v1.6.0 (behaviour change to badge streak semantics; not a patch)
+- **Target release / milestone**: next release after 1.5.3 — the #294 hotfix and this initiative ship
+  **together in one release** (decided 2026-09-14). From the user's perspective this is one bug
+  ("streak badges don't work"); the analysis just found several distinct defects behind it.
 - **Owner / driver(s)**: ChoreOps maintainer + ChoreOps Builder (ChoreOps Test Builder for Phase 4)
 - **Status**: In progress — Phase 0 committed; Phases 1–5 not started
-- **Branch / delivery**: `ccpk1/issue294` carries both the #294 hotfix and this initiative.
-  `73e97d5` is the isolated hotfix commit and `origin/main` is still its parent, so it can be
-  cherry-picked or split into its own PR if the hotfix is wanted ahead of this work. **Do not
-  squash the phases together** until that split decision is made.
+- **Branch / delivery**: `ccpk1/issue294` carries both the #294 hotfix and this initiative, which
+  ship as a single release. Keep the phases as **separate commits** regardless — reviewers follow
+  commit history, and the hotfix commit (`73e97d5`) doubles as a bisect point if the wider change
+  later needs backing out.
 
 ## Summary & immediate steps
 
@@ -28,17 +30,19 @@
    - **#294 root cause found and fixed** (`ccpk1/issue294`): `_evaluate_streak` treated every unmet day as a break, and the nightly midnight evaluation runs on a brand-new day with zero approvals, so `days_cycle_count` was reset to 0 every night. All streak target types with a threshold above 1 were unreachable. Fix: hold while the day is still in progress; break only once a full day passes unmet. Regression suite added at `tests/test_badge_streak_midnight_reset.py` (6 tests; 3 failed before the fix).
    - **This defect was previously masked by #294.** With every streak being zeroed nightly, a schedule-driven stall was invisible.
    - **Verified divergence across three streak systems**: chore-level streaks have been schedule-aware since `139fc40` (Jan 2026, via `RecurrenceEngine.has_missed_occurrences`); completion-streak achievements inherit that via `_get_tracked_current_streak` (`7ead4da` / #171); **badge streak target types never were**. This is a consistency defect, not a missing feature.
-   - **Impact verified by walking real schedules** (see "Background & root cause" evidence table): `streak_all_chores` cannot accumulate in any household that has a non-daily chore, **even at 100% compliance**.
+   - **Impact verified by walking real schedules** (see "Verified evidence"):
+     `Streak: Selected Chores Completed` (100%) cannot accumulate in any household that has a
+     non-daily chore, **even at 100% compliance**.
 
 3. **Next steps (short term)** –
-   1. Start Phase 1 (the hotfix is already committed on this branch; no merge gate remains).
-   2. Resolve decision 8 (scope of the denominator change: streaks only, or the Days family too).
-   3. Decide the commit split before opening any PR — hotfix alone, or hotfix + initiative.
+   1. Resolve decision 8 (which families the "chores that count today" fix covers) — it gates Phase 1.
+   2. Resolve decision 9 (picker duplicates) — it is smaller but affects Phase 5 docs.
+   3. Start Phase 1.
 
 4. **Risks / blockers** –
-   - **Sequencing (changed)**: the original plan required the #294 hotfix to land first. Both now
-     live on `ccpk1/issue294` with the hotfix isolated in `73e97d5`, which keeps it reviewable
-     and cherry-pickable as long as the phases stay separate commits.
+   - **Sequencing**: the original plan required the #294 hotfix to land first. Both now live on
+     `ccpk1/issue294` and ship in one release, with the hotfix isolated in `73e97d5` so reviewers
+     can follow it separately.
    - **`missed_since_advance` is easy to get wrong in three specific ways** (all now pinned in
      the Phase 1 contract below): the upper bound must be the **start of today**, or today's
      still-pending occurrence reads as a miss and breaks streaks mid-day; the lower bound must be
@@ -56,9 +60,9 @@
      removed), but in-progress streak counts may legitimately rise, and some Days badges may
      become markedly easier to earn. Expect support questions.
    - **Semantic risk**: switching the day denominator from "all tracked chores" to "eligible
-     today" makes `streak_*_chores` behave like `streak_*_due_chores` for mixed-schedule
-     households. Intended, but it collapses five streak options into three distinct behaviours
-     (see decision 9) and must be documented or it reads as a regression.
+     today" makes the scope of `Streak: Selected Chores …` and `Streak: Selected Due Chores …`
+     converge, so two of the five streak options become redundant (three distinct behaviours
+     remain — see decision 9). Intended, but it must be documented or it reads as a regression.
    - **Retention risk**: daily period buckets are pruned (`DEFAULT_RETENTION_DAILY = 14`). The
      design must therefore **not** walk daily period history to detect misses; it uses schedule
      math on completion timestamps (see Decisions).
@@ -83,8 +87,17 @@
 
 6. **Decisions & completion check**
    - **Decisions captured**:
-     1. **Streak unit = eligible occurrence, not calendar day.** A day on which no tracked chore is eligible is *neutral*: it neither advances nor breaks the streak. Consecutive occurrences extend the streak (Mon→Wed→Fri = 3). This matches the documented intent of the chore-level system (`has_missed_occurrences` docstring: *"Weekly Monday: last=Jan 6, current=Jan 13 → False (consecutive Mondays)"*), so all three streak systems converge on one definition.
-     2. **Eligible today = due today** (reusing the existing `_is_chore_due_today_for_assignee`, which already handles per-assignee due dates and dateless dailies). Chores that are overdue-but-not-due-today are **out of scope for non-strict variants** — lateness is surfaced through `has_overdue` / `cycle_failed`, which remain gated behind `require_no_overdue` (strict modes). Rationale: keep the existing strict/non-strict contract intact; the strict variants are the documented "survival check" modes.
+     1. **Streak unit = eligible occurrence, not calendar day.** A day on which no tracked chore is
+        eligible is *neutral*: it neither advances nor breaks the streak. Consecutive occurrences
+        extend the streak (Mon→Wed→Fri = 3). This matches the documented intent of the chore-level
+        system (`has_missed_occurrences` docstring: *"Weekly Monday: last=Jan 6, current=Jan 13 →
+        False (consecutive Mondays)"*), so all three streak systems converge on one definition.
+     2. **Eligible today = due today** (reusing the existing `_is_chore_due_today_for_assignee`,
+        which already handles per-assignee due dates and dateless dailies). Chores that are
+        overdue-but-not-due-today are **out of scope for non-strict variants** — lateness is
+        surfaced through `has_overdue` / `cycle_failed`, which remain gated behind
+        `require_no_overdue` (strict modes). Rationale: keep the existing strict/non-strict
+        contract intact; the strict variants are the documented "survival check" modes.
      3. **Miss detection uses schedule math on completion timestamps**, via the tested `RecurrenceEngine.has_missed_occurrences` primitive, **not** lateness flags and **not** daily period history. Rationale: works regardless of overdue-handling configuration (the `never_overdue` case), is retention-independent, and reuses a shipped, unit-tested implementation (`test_schedule_engine_streaks.py`).
      4. **Neutral days never advance the streak** — only days where at least one tracked chore is eligible can advance it. Prevents a long dormant stretch (e.g. a monthly chore) from inflating the count.
      5. **No storage schema bump expected.** The design reuses `days_cycle_count`, `last_update_day` and existing completion timestamps. `SCHEMA_VERSION_CURRENT` (150) stays unchanged. A bump becomes necessary only if the fallback design (Option B below) is chosen.
@@ -96,27 +109,72 @@
      7. **CONFIRMED — no migration of legacy in-progress counts.** `days_cycle_count` values
         accumulated under calendar-day semantics are left as-is; all changes are forward-only. The
         counter self-corrects from the next advance. No backfill, no schema bump, no repair pass.
-     8. **NEEDS OWNER DECISION — scope of the denominator change.** The non-due-chore defect
-        affects the **Days** family too (`_evaluate_daily_completion` shares `_resolve_daily_status`):
-        a "Days 80%" badge currently counts a day where 4 of 5 chores were done even though the 5th
-        was not due, and a "Days 100%" badge stalls on any day the weekly chore is not due.
-        - **(a) Streaks only** — narrower diff, `_evaluate_daily_completion` untouched, but the two
-          families stay inconsistent and a future maintainer will re-fix the same concept.
-        - **(b) Both families (recommended)** — one denominator concept, applied once in Phase 1 and
-          consumed by both evaluators. Cost: some Days badges become materially easier (e.g. "all
-          selected chores for 5 days" over 4 dailies + 1 weekly currently only advances on the
-          weekly's due day; after the change it advances whenever the dailies are done).
-        - Recommendation: **(b)**, because the two evaluators already share the status helper and
-          divergence is exactly how this defect class arose (see Notes: known drift precedent).
-     9. **NEEDS OWNER DECISION — the five streak options collapse to three.** With `eligible =
-        due today`, `streak_80pct_chores` becomes identical to `streak_80pct_due_chores`, and
-        `streak_all_chores_no_overdue` identical to `streak_all_due_chores_no_overdue`:
-        `(100%)`, `(80%)`, `(100% + no-overdue)` are what remain.
-        - Existing badges are safe either way: the stored `DATA_BADGE_TARGET_TYPE` value keeps
-          resolving, so hiding options is a UI-only change with **no migration**.
-        - Recommendation: do **not** consolidate in this initiative. Leave all five options working
-          and describe the equivalence in the translations; schedule a UI cleanup as a separate,
-          separately-reviewable change once the semantics have settled in the field.
+     8. **NEEDS DECISION — how far should the fix reach?**
+
+        Restated plainly: the defect described in the primer is not streak-specific. It affects the
+        non-*Due* options in **both** families. The question is whether the fix is applied to both
+        families (one rule everywhere) or only to streaks (the narrow reported bug).
+
+        - **(a) Streaks only.** Repair only `Streak: …` targets. The `Days: …` targets keep their
+          current behaviour: the 100% variants stall on any day a selected chore is not due, and
+          the 80% variants advance by coincidence. Smaller, more surgical diff; the "chores that
+          count today" rule then differs between two families that look identical in the picker.
+        - **(b) Both families (recommended).** One rule — *a chore counts today only if it is due
+          today* — applied once and consumed by both the streak and the days evaluators.
+
+        **What (b) changes for an existing user:**
+
+        - Badge scoped to chores that are **all daily** — **no change**, because everything is due
+          every day.
+        - Badge scoped to **mixed frequencies** — the badge becomes **easier**, because days the
+          weekly chore is absent can now qualify. Concrete: 10 mixed chores, only 3 due today, all
+          3 done. Today that scores 3/10 = 30%, so the day does not count; after (b) it scores
+          3/3 = 100%, so the day counts. That is the *intended* meaning ("of what was actually
+          available"), but badges configured under the old reading will visibly progress faster.
+        - The "Days Minimum 3/5/7 Chores" options also change scope: "3 chores" becomes "3 of the
+          chores due today" rather than "3 of any selected chores".
+
+        **Recommendation: (b).** The two families are the same feature reading the same label
+        pattern, and they already share the day-status helper. Fixing streaks alone leaves the
+        identical stall in place for `Days` badges. The cost is a one-time easing of mixed-scope
+        badges, which the release note should call out explicitly.
+
+     9. **NEEDS DECISION — keep the now-duplicate options in the picker?**
+
+        Restated plainly: once "selected chores" means "selected chores due today" (decision 8),
+        the word *Due* in the option names no longer distinguishes anything, so some options
+        measure exactly the same thing. The streak family has five options today:
+
+        | Today's option | What it measures today | After the fix |
+        | --- | --- | --- |
+        | Streak: Selected Chores Completed | 100% of all selected | 100% of due — **still distinct**, no duplicate exists |
+        | Streak: 80% of Selected Chores Completed | 80% of all selected | 80% of due — **duplicate** of the next one |
+        | Streak: 80% of Selected Due Chores Completed | 80% of due | unchanged |
+        | Streak: Selected Chores Completed (No Overdue) | 100% of all selected, no overdue | 100% of due, no overdue — **duplicate** of the next one |
+        | Streak: Selected Due Chores Completed (No Overdue) | 100% of due, no overdue | unchanged |
+
+        So **two** options become redundant, leaving **three** genuinely distinct behaviours: 100%,
+        80%, and 100% with no-overdue. Note there is deliberately no plain "100% of due chores"
+        option today — after the fix the first row becomes exactly that, which is a useful
+        behaviour that previously had no way to be expressed.
+
+        (If decision 8 is (b), the `Days` family collapses further: it has both a 100%-selected
+        *and* a 100%-due option today, so **three** pairs become redundant — six options down to
+        three. The "Days Minimum 3/5/7 Chores" options also shift scope to "of the chores due
+        today".)
+
+        There is **no migration risk either way**: each badge stores its chosen target type
+        internally, and both spellings keep resolving, so hiding options only changes what new
+        badges can pick.
+
+        - **(a) Leave all five options in place (recommended).** Describe the equivalence in the
+          option help text so users can pick either. Keeps the picker stable through an upgrade
+          that is already changing badge behaviour, and keeps the diff focused on semantics.
+        - **(b) Remove the redundant options now.** Cleaner picker immediately, but bundles a UI
+          change into a behavioural fix and makes the change harder to review and justify.
+
+        **Recommendation: (a)**, because there is no correctness cost to the duplicates once they
+        are documented, and consolidating is safe to do in any later release.
    - **Completion confirmation**: `[ ]` All follow-up items completed (architecture updates, cleanup, documentation, etc.) before requesting owner approval to mark initiative done.
 
 > **Important:** Keep the entire Summary section (table + bullets) current with every meaningful update.
@@ -169,14 +227,18 @@ Mon done → 1   Tue not due → hold 1   Wed done → 1  (NO advance)
 Thu not due → 0  (BREAK)   Fri done → 1
 ```
 
-**Default scope: 4 daily chores + 1 weekly due Monday, all dailies completed every day:**
+**Default scope: 4 daily chores + 1 weekly due Monday, all dailies completed every day**
+(threshold 10 on a badge scoped to all 5 chores):
 
 ```
-streak_all_chores (100%)   Mon:1  Tue:1  Wed:0  Thu:0  Fri:0  Sat:0  Sun:0
-streak_80pct_chores (80%)  Mon:1  Tue:2  Wed:3  Thu:4  Fri:5  Sat:6  Sun:7
+Streak: Selected Chores Completed (100%)  Mon:1  Tue:1  Wed:0  Thu:0  Fri:0  Sat:0  Sun:0
+Streak: 80% of Selected Chores (80%)      Mon:1  Tue:2  Wed:3  Thu:4  Fri:5  Sat:6  Sun:7
 ```
 
-`streak_all_chores` can never accumulate in any household containing a non-daily chore, even at 100% compliance. The 80% variant works only incidentally: 4/5 = 80% clears the threshold on calm days, so calendar continuity happens to hold.
+The 100% variant can never accumulate in any household containing a non-daily chore, even at 100%
+compliance — it advances on Monday, cannot advance on Tuesday (the weekly is not due), and breaks
+on Wednesday. The 80% variant works only incidentally: 4/5 = 80% clears the threshold on days the
+weekly is absent, so calendar continuity happens to hold.
 
 ### Target semantics (reference implementation for Phase 2)
 
@@ -258,6 +320,44 @@ indefinitely. This is exactly why rule 2 precedes rule 3. The only safe skip is 
 (no window). If profiling makes the eager rrule cost a problem, the fallback is to short-circuit
 per chore on the first miss, not to defer the whole check.
 
+### Badge target type primer (read this before the decisions)
+
+When you create a badge you pick a **target type** from a list. Three things about that list
+matter here:
+
+**1. "Days" vs "Streak" — accumulating versus consecutive.**
+
+- A **"Days …"** target counts *how many days* met the criteria during the badge's cycle. It
+  accumulates: a missed day does not reset it. "Days Selected Chores Completed" with a threshold
+  of 5 means *"complete all selected chores on 5 days"*, not necessarily in a row.
+- A **"Streak: …"** target counts *how many days in a row* met the criteria. It resets to 0 the
+  moment a day is missed. The same wording with a streak prefix means *"5 days in a row"*.
+
+That reset behaviour is the whole reason "Streak" badges were the reported bug: the counter can
+be destroyed by a single bad day, so it is far more sensitive to a mis-classified day than the
+"Days" family.
+
+**2. "Selected Chores" vs "Selected Due Chores" — the scope.**
+
+- **"Selected Chores"** (no *Due*) is meant to score every chore you selected for the badge.
+- **"Selected Due Chores"** scores only those that are due *today*.
+
+**3. The defect lives in the non-*Due* variants.** They score every selected chore, including
+chores that are **not due today**. A chore that is not due today cannot be completed today, so it
+sits in the day's score as a permanent failure. For a badge scoped to a mix of daily and weekly
+chores, that makes some days impossible to satisfy. Worked example with 4 daily chores and 1
+weekly chore due Saturday, badge scoped to all 5, on a Tuesday where the 4 dailies are done:
+
+| Target type | What the day scores | Outcome |
+| --- | --- | --- |
+| Days 100% (selected) | 4/5 = 80% | day cannot count; the badge only advances on Saturdays |
+| Days 80% (selected) | 4/5 = 80% | day counts — but only because the threshold was low enough to absorb the absent chore |
+| Streak 100% (selected) | 4/5 = 80% | day cannot count, **and the streak resets** — the reported bug |
+| any "Due" variant | 4/4 = 100% | correct today |
+
+The fix is to make "selected" mean "selected **and due today**" everywhere. That single change is
+what decisions 8 and 9 are about.
+
 ---
 
 ## Detailed phase tracking
@@ -269,11 +369,12 @@ per chore on the first miss, not to defer the whole check.
   1. ✅ Engine fix in `_evaluate_streak` — hold while the day is in progress, plus the mandatory strict-mode break branch (`engines/gamification_engine.py:1134-1159`).
   2. ✅ Repurpose `test_streak_breaks_when_today_fails` into `test_streak_holds_while_today_is_still_in_progress` + `test_streak_breaks_after_a_full_day_without_completion` (`tests/test_gamification_engine.py`).
   3. ✅ Add `tests/test_badge_streak_midnight_reset.py` (6 tests) including a partial-progress case.
-  4. ✅ Commit the hotfix in isolation — `73e97d5` on `ccpk1/issue294` (not pushed; `origin/main`
-     is still the parent). Keep it unsquashed so it can be split into its own PR.
+  4. ✅ Commit the hotfix in isolation — `73e97d5` on `ccpk1/issue294` (not pushed). It ships in
+     the same release as this initiative; the separate commit exists so the hotfix stays
+     reviewable on its own and can be bisected to.
 - **Key issues**
   - Phases 1–3 must not be folded into the hotfix commit; it is a 1-file behavioural correction
-    and must stay reviewable and cherry-pickable.
+    and must stay a distinct, reviewable change.
   - The PR description should note that the hotfix is expected to surface schedule-related streak
     reports, since it removes the masking defect (see Background).
 
@@ -375,10 +476,11 @@ per chore on the first miss, not to defer the whole check.
 - **Steps / detailed work items**
   1. Update the wiki to state that a streak counts consecutive **eligible occurrences**, that days
      where nothing is due are neutral, and that this applies to chore streaks, achievements and
-     badges alike:
+     badges alike. Use the target type labels users see in the picker ("Streak: Selected Chores
+     Completed"), not the internal constants:
      - `choreops-wiki/Configuration:-Chores.md`
      - `choreops-wiki/Advanced:-Chores.md` (already corrected for #294 — extend with the occurrence rule)
-     - `choreops-wiki/Configuration:-Badges-Periodic.md` (add a streak-semantics section next to the existing cycle-alignment section)
+     - `choreops-wiki/Configuration:-Badges-Periodic.md` (add a streak-semantics section next to the existing cycle-alignment section, plus the primer's worked example)
      - `choreops-wiki/Configuration:-Achievements.md`
   2. Document the two confirmed semantic decisions where users will look for them: that an
      unbounded stretch of neutral days keeps a streak alive (decision 6), and that legacy
@@ -433,10 +535,12 @@ per chore on the first miss, not to defer the whole check.
    approximation used by achievement streaks; `missed_since_advance` is the schedule-accurate
    version. Once it exists, achievement streaks could adopt it and gain the same correctness.
    Out of scope here — noted so the duplication is a conscious choice.
-3. **The equivalence of the five streak options is a documentation opportunity, not just a
-   risk.** Describing `streak_80pct_chores` and `streak_80pct_due_chores` as equivalent lets users
-   migrate to the better-named option at their leisure, which makes a later UI consolidation
-   safe rather than disruptive.
+3. **The equivalence of the streak options is a documentation opportunity, not just a risk.**
+   Describing `Streak: 80% of Selected Chores Completed` and `Streak: 80% of Selected Due Chores
+   Completed` as equivalent lets users migrate to the better-named option at their leisure, which
+   makes a later picker consolidation safe rather than disruptive. Related: after the fix,
+   `Streak: Selected Chores Completed` becomes "100% of the chores due today, overdue tolerated" —
+   a useful behaviour that has no option today, so the fix also *adds* a capability.
 4. **`days_cycle_count` is not exposed on the badge progress sensor** (verified: `sensor.py`
    surfaces `status`, `overall_progress`, `criteria_met`, `last_update_day`). Anyone diagnosing a
    streak currently cannot see the counter. Consider exposing it while streak semantics are in
