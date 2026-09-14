@@ -2735,18 +2735,15 @@ class StatisticsManager(BaseManager):
         """Return True when a chore forms part of the assignee's obligation today.
 
         Stricter than the schedule primitive below: a chore only counts when the
-        assignee still holds it and is the assignee who owes it. A rotation chore
-        owed by another assignee, or a single-completer chore someone else
-        finished, cannot be completed by this assignee — charging them for it
-        would make the day unsatisfiable.
+        assignee still holds it and it is genuinely theirs to do. A rotation chore
+        whose turn belongs to another assignee cannot be completed by this
+        assignee, so charging them for it would make the day unsatisfiable.
 
-        Uses the **claim mode** rather than the display state, because a
-        primary-standby chore reports `standby` both for a standby that may act
-        and for one that may not; only the claim mode separates them.
-
-        Deliberately a deny-list (see `CHORE_CLAIM_MODES_OWED_BY_ANOTHER`) so an
-        unanticipated mode counts by default. A chore this assignee already
-        completed must keep counting, or the obligation could never be met.
+        Uses the **claim mode** rather than the display state, because that is the
+        field encoding whether the chore belongs to this assignee. A
+        primary/standby chore reports `standby` both for a standby that may claim
+        and one that may not; only the claim mode separates them, and neither is
+        the standby's obligation — permission to help is not ownership.
 
         Args:
             chore_id: Chore internal ID.
@@ -2771,7 +2768,7 @@ class StatisticsManager(BaseManager):
             assignee_id, chore_id
         )
         claim_mode = str(status_context.get(const.CHORE_CTX_CLAIM_MODE) or "")
-        return claim_mode not in const.CHORE_CLAIM_MODES_OWED_BY_ANOTHER
+        return claim_mode in const.CHORE_CLAIM_MODES_COUNTING_TOWARD_DAY
 
     def _is_chore_scheduled_today_for_assignee(
         self,

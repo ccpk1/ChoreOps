@@ -224,11 +224,12 @@
           form. `ChoreManager.chore_counts_toward_due_today_summary` answers the *other* question
           ("should this appear in the to-do list") and therefore **cannot be reused**: it returns
           False for `completed`.
-        - **It excludes assignees who do not owe the chore today.** For `rotation_simple` /
-          `rotation_smart`, only the turn holder (or a `rotation_cycle_override`) owes it. For
-          `rotation_primary_standby`, the turn holder owes it, plus standbys whose claim window and
-          `standby_claim_mode` permit acting. Non-turn assignees see `not_my_turn` / `standby` and
-          must not be charged for the chore.
+        - **It excludes assignees who do not own the chore today.** Ownership is the rule, not
+          ability to act. For `rotation_simple` / `rotation_smart` / `rotation_primary_standby`,
+          only the **turn holder** owns the occurrence. A **standby never owns it**, even when
+          `standby_claim_mode` lets them claim at any time — that is permission to help, not
+          ownership. A would-be **stealer** on an overdue `allow_steal` chore does not own it
+          either: stealing is an opportunity to earn points by finishing someone else's late work.
         - **It requires the assignee to still be assigned.** Port the guard from
           `chore_counts_toward_due_today_summary` (added for issue #205) so a stale chore entry
           cannot inflate `due_count` with a chore the assignee can no longer be credited for.
@@ -651,15 +652,27 @@ permanently neutral — never advancing and never breaking.
 - **Why before Phase 2**: Phase 2 consumes `due_count` / `approved_due_today`. Shipping Phase 2
   first would introduce unfair breaks for rotation and standby chores — the exact failure mode this
   initiative exists to remove.
-- **⚠️ Implementation correction — keyed on claim mode, not display state.** The plan originally
-  said to derive "owes it" from the display state. A test disproved that: for
-  `rotation_primary_standby`, `resolve_assignee_chore_state` returns **`standby` in both cases** —
-  whether the standby may act or not — and only the *lock reason* / claim mode separates them. A
-  state-based deny-list therefore wrongly excluded a standby whose `standby_claim_mode` is
-  `anytime`, which is a legitimate obligation.
-  The implemented signal is the **claim mode** (`CHORE_CTX_CLAIM_MODE`), because it is the field
-  that actually encodes who may act. Recorded here because the plan text is now wrong on this
-  point, and a future reader would otherwise re-derive the broken approach.
+- **⚠️ Implementation correction — the rule is OWNERSHIP, and a claim-mode allow-list.** Two
+  successive wrong guesses were corrected during implementation, both caught by tests:
+  1. The plan said to derive "owes it" from the **display state**. A test disproved it: for
+     `rotation_primary_standby`, `resolve_assignee_chore_state` returns **`standby` in both
+     cases** — whether the standby may act or not — so the state alone cannot separate them.
+  2. Switching to a claim-mode *deny-list* was also wrong, and the product owner corrected the
+     model itself: **a primary/standby chore never belongs to a standby**, even when
+     `standby_claim_mode: anytime` grants permission to claim. Permission to help is not
+     ownership — only the turn holder owns it. Likewise, **`steal_available` must not count**:
+     stealing is an opportunity to earn points by finishing someone else's late chore, not a
+     responsibility they were assigned.
+
+  Implemented as an explicit **allow-list**, `CHORE_CLAIM_MODES_COUNTING_TOWARD_DAY`, so an
+  unclassified mode is not charged against anyone until reviewed deliberately. The complementary
+  `CHORE_CLAIM_MODES_NOT_COUNTING_TOWARD_DAY` is also explicit, and
+  `TestClaimModeClassification::test_modes_partition_the_enum` asserts the two partition
+  `CHORE_CLAIM_MODES` — a newly added claim mode therefore fails the test until it is classified.
+  Verified mechanics (`state` / `claim_mode`): turn holder = `pending`/`claimable`; standby with
+  `anytime` = `standby`/`standby_available`; standby with `on_overdue` or `manual_only` =
+  `standby`/`blocked_standby`; non-turn assignee on an overdue `allow_steal` chore =
+  `overdue`/`steal_available` while the turn holder stays `overdue`/`claimable`.
 - **Steps / detailed work items**
   1. ✅ Kept `_is_chore_due_today_for_assignee` as the schedule primitive, renamed to
      `_is_chore_scheduled_today_for_assignee` so the two concepts cannot be confused again.
@@ -670,10 +683,12 @@ permanently neutral — never advancing and never breaking.
      `ChoreManager.get_chore_status_context`, so rotation and standby semantics stay in one place.
   4. ✅ Rewired `get_badge_scoped_today_completion` so `due_count` / `approved_due_today` use the
      new scope. `total_count` / `approved_count` unchanged.
-  5. ✅ Added `CHORE_CLAIM_MODES_OWED_BY_ANOTHER` to `const.py` — a four-entry deny-list:
-     `blocked_completed_by_other`, `blocked_not_my_turn`, `blocked_standby`, `blocked_paused`.
-  6. ✅ 18 new tests in `tests/test_badge_schedule_snapshot.py` covering rotation, shared modes,
-     primary-standby claim modes, the stale-assignment guard, and non-rotation invariance.
+  5. ✅ Added `CHORE_CLAIM_MODES_COUNTING_TOWARD_DAY` (allow-list, 5 modes) and
+     `CHORE_CLAIM_MODES_NOT_COUNTING_TOWARD_DAY` (6 modes) to `const.py`, with reasons per mode and
+     a partition test.
+  6. ✅ 22 new tests in `tests/test_badge_schedule_snapshot.py` covering rotation, shared modes,
+     all three primary-standby claim modes, steal, the standby-completes case, the
+     stale-assignment guard, non-rotation invariance, and claim-mode classification.
 - **Key issues**
   - **The completed-chore trap is the highest-risk part of the whole initiative**, and it appears in
     two forms: the display state (`completed` / `approved`) and the claim mode
@@ -682,13 +697,19 @@ permanently neutral — never advancing and never breaking.
     `blocked_already_approved` so it cannot pass vacuously.
   - Non-rotation modes are pinned as unchanged by `test_non_rotation_modes_exclude_nothing`
     (`due_count == total_count` for `shared_all` / `shared_first` / `independent`).
-  - `CHORE_CLAIM_MODES_OWED_BY_ANOTHER` must stay a **minimal** deny-list. Adding
+  - **`CHORE_CLAIM_MODES_COUNTING_TOWARD_DAY` must stay minimal.** Adding
     `blocked_already_approved`, `blocked_waiting_window` or `blocked_missed_locked` would silently
-    make satisfied days unsatisfiable.
-  - **`steal_available` counts as owed.** Untested edge case: when a rotation chore with
-    `allow_steal` goes overdue, the stealer reads as obligated. Deliberate — a chore left undone
-    should be someone's failure — but it is the least certain entry in the list and should be
-    revisited if it generates a report.
+    make satisfied days unsatisfiable; adding `steal_available` or either standby mode would
+    charge an assignee for work that was never theirs.
+  - **Resolved: the stealer question.** Earlier guidance was to count `steal_available` on the
+    reasoning that a chore left undone must be someone's failure. The product owner corrected
+    this: the stealer picks up someone else's late chore for points, and the original owner keeps
+    the failure. Implemented as not-counting, with the turn holder still charged.
+  - **Standby-completes is handled by `blocked_completed_by_other`.** When a standby does the work,
+    the primary reads `completed_by_other` and is no longer charged, while the standby's own
+    approval counts toward the standby. Note the consequence: a primary-standby chore cannot fail
+    the primary's badge as long as somebody completes it - that is the intended meaning of "the
+    chore got done".
   - **Performance**: `get_chore_status_context` now runs per tracked chore per badge snapshot (two
     per badge). It is the same read path sensors use and evaluation is debounced, so no short-circuit
     was added. If profiling shows a problem, gate it on non-rotation and non-`shared_first` chores
@@ -897,11 +918,13 @@ permanently neutral — never advancing and never breaking.
   (including `test_workflow_streak_schedule.py`, which proves the extracted
   `build_schedule_config` did not change `calculate_streak`); `quick_lint.sh` green with mypy
   0 errors.
-- **Baseline for Phase 1B (2026-09-14):** `test_badge_schedule_snapshot.py` **37/37 pass**
-  (19 from Phase 1 + 18 new); targeted set across `test_badge_schedule_snapshot`,
-  `test_badge_streak_midnight_reset`, `test_gamification_engine`, `test_badge_target_types`,
-  `test_rotation_fsm_states`, `test_workflow_streak_schedule` → **135 passed**; `quick_lint.sh`
-  green with mypy 0 errors. Phases 1C–6 must not regress these.
+- **Baseline for Phase 1B (commit `f94916e`, corrected 2026-09-14):**
+  `test_badge_schedule_snapshot.py` **40/40 pass** (19 from Phase 1 + 21 Phase 1B cases); targeted
+  set across `test_badge_schedule_snapshot`, `test_badge_streak_midnight_reset`,
+  `test_gamification_engine`, `test_badge_target_types`, `test_rotation_fsm_states`,
+  `test_rotation_primary_standby`, `test_rotation_services`, `test_workflow_streak_schedule`,
+  `test_badge_no_overdue_cycles` → **168 passed**; `quick_lint.sh` green with mypy 0 errors.
+  Phases 1C–6 must not regress these.
 - **Testing discipline**: run targeted suites per phase. The full `pytest tests/ -v --tb=line`
   run is a release step, not a per-phase gate (see Notes: the suite is a release process).
 - **Outstanding tests:** none yet — Phase 4 defines the schedule matrix and days-family coverage.

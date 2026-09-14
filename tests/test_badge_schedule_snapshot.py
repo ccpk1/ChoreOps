@@ -19,7 +19,7 @@ and 2 dated chores due well in the future (not eligible today).
 
 from __future__ import annotations
 
-from datetime import timedelta
+from datetime import datetime, time, timedelta
 from typing import TYPE_CHECKING, Any
 
 import pytest
@@ -599,13 +599,13 @@ class TestObligationScopeShared:
 
 
 class TestObligationScopePrimaryStandby:
-    """Standby assignees are charged only when the mode lets them act."""
+    """A primary/standby chore belongs to the turn holder, never to a standby."""
 
     def test_primary_is_charged(
         self,
         standby_scenario: SetupResult,
     ) -> None:
-        """The primary always owes the chore."""
+        """The turn holder always owes the chore."""
         primary_id = turn_holder_id(standby_scenario, "Daily Chore (anytime)")
 
         assert (
@@ -618,26 +618,25 @@ class TestObligationScopePrimaryStandby:
         )
 
     @pytest.mark.parametrize(
-        ("chore_name", "standby_charged"),
+        "chore_name",
         [
-            pytest.param("Daily Chore (anytime)", True, id="anytime_can_act"),
-            pytest.param(
-                "Daily Chore (manual_only)", False, id="manual_only_cannot_act"
-            ),
-            pytest.param(
-                "Weekly Chore (on_overdue)",
-                False,
-                id="on_overdue_not_yet_due",
-            ),
+            pytest.param("Daily Chore (anytime)", id="anytime"),
+            pytest.param("Weekly Chore (on_overdue)", id="on_overdue"),
+            pytest.param("Daily Chore (manual_only)", id="manual_only"),
         ],
     )
-    def test_standby_charge_follows_claim_mode(
+    def test_standby_is_never_charged(
         self,
         standby_scenario: SetupResult,
         chore_name: str,
-        standby_charged: bool,
     ) -> None:
-        """A standby is charged only when its claim mode lets it act today."""
+        """Permission to help is not ownership, whatever the standby claim mode.
+
+        `standby_claim_mode: anytime` lets the standby claim immediately, but the
+        chore is still the turn holder's. Holding it against the standby would
+        charge them for something that was never their responsibility, and would
+        let a badge scoped to it fail them for work they were never owed.
+        """
         primary_id = turn_holder_id(standby_scenario, chore_name)
         standby_name = next(
             name
@@ -645,9 +644,34 @@ class TestObligationScopePrimaryStandby:
             if standby_scenario.assignee_ids[name] != primary_id
         )
 
-        assert (
-            counts_toward(standby_scenario, standby_name, chore_name) is standby_charged
+        assert counts_toward(standby_scenario, standby_name, chore_name) is False
+
+    async def test_standby_completing_credits_the_standby_not_the_primary(
+        self,
+        standby_scenario: SetupResult,
+    ) -> None:
+        """The helper keeps their own credit; the primary is not charged.
+
+        When a standby steps in, the primary reports `completed_by_other` (no
+        longer charged, since the work is done) and the standby's own approval
+        counts toward the standby's day.
+        """
+        coordinator = standby_scenario.coordinator
+        chore_name = "Daily Chore (anytime)"
+        chore_id = standby_scenario.chore_ids[chore_name]
+        primary_name = name_of(
+            standby_scenario, turn_holder_id(standby_scenario, chore_name)
         )
+        standby_name = next(name for name in STANDBY_ASSIGNEES if name != primary_name)
+        standby_id = standby_scenario.assignee_ids[standby_name]
+
+        await coordinator.chore_manager.claim_chore(standby_id, chore_id, standby_name)
+        await coordinator.chore_manager.approve_chore(
+            APPROVER_NAME, standby_id, chore_id
+        )
+
+        assert counts_toward(standby_scenario, primary_name, chore_name) is False
+        assert counts_toward(standby_scenario, standby_name, chore_name) is True
 
     def test_single_assignee_rotation_chore_is_charged(
         self,
@@ -655,3 +679,76 @@ class TestObligationScopePrimaryStandby:
     ) -> None:
         """A rotation chore with one assignee has no standby to exclude."""
         assert counts_toward(standby_scenario, "Zoë", "Solo Chore (single)") is True
+
+
+class TestObligationScopeSteal:
+    """Stealing is an opportunity to help, not an assigned responsibility."""
+
+    async def test_steal_opportunity_is_not_charged(
+        self,
+        shared_scenario: SetupResult,
+    ) -> None:
+        """A would-be stealer is not charged for another assignee's late chore.
+
+        Verified mechanics: with `allow_steal` and the chore overdue, the turn
+        holder keeps `claimable` while everyone else reads `steal_available`.
+        Taking the opportunity earns points; passing on it is not a failure.
+        """
+        coordinator = shared_scenario.coordinator
+        chore_id = shared_scenario.chore_ids["Dishes Rotation"]
+        chore_info = coordinator.chores_data[chore_id]
+
+        original_handling = chore_info[const.DATA_CHORE_OVERDUE_HANDLING_TYPE]
+        original_due = chore_info[const.DATA_CHORE_DUE_DATE]
+        per_assignee = chore_info.get(const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {})
+        original_per_assignee = dict(per_assignee)
+
+        # Today's local midnight: already overdue, yet still scheduled today, so
+        # only the obligation rule (not the schedule rule) is under test.
+        overdue_iso = datetime.combine(
+            dt_utils.dt_today_local(), time.min, tzinfo=dt_utils.get_default_timezone()
+        ).isoformat()
+
+        chore_info[const.DATA_CHORE_OVERDUE_HANDLING_TYPE] = (
+            const.OVERDUE_HANDLING_AT_DUE_DATE_ALLOW_STEAL
+        )
+        chore_info[const.DATA_CHORE_DUE_DATE] = overdue_iso
+        for assignee_id in per_assignee:
+            per_assignee[assignee_id] = overdue_iso
+
+        try:
+            holder_id = turn_holder_id(shared_scenario, "Dishes Rotation")
+            holder_name = name_of(shared_scenario, holder_id)
+
+            # The turn holder still owns their own late chore.
+            assert (
+                counts_toward(shared_scenario, holder_name, "Dishes Rotation") is True
+            )
+
+            for name in SHARED_ASSIGNEES:
+                if name == holder_name:
+                    continue
+                assert (
+                    counts_toward(shared_scenario, name, "Dishes Rotation") is False
+                ), f"{name} was charged for another assignee's steal opportunity"
+        finally:
+            chore_info[const.DATA_CHORE_OVERDUE_HANDLING_TYPE] = original_handling
+            chore_info[const.DATA_CHORE_DUE_DATE] = original_due
+            chore_info[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] = original_per_assignee
+
+
+class TestClaimModeClassification:
+    """Every claim mode is deliberately classified."""
+
+    def test_modes_partition_the_enum(self) -> None:
+        """Counting and non-counting sets partition every declared claim mode.
+
+        A newly added claim mode lands in neither set, so this fails and forces a
+        conscious decision rather than silently charging an assignee for
+        something that may not be theirs.
+        """
+        counted = const.CHORE_CLAIM_MODES_COUNTING_TOWARD_DAY
+        not_counted = const.CHORE_CLAIM_MODES_NOT_COUNTING_TOWARD_DAY
+
+        assert counted & not_counted == frozenset()
+        assert counted | not_counted == const.CHORE_CLAIM_MODES
