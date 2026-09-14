@@ -2768,7 +2768,21 @@ class StatisticsManager(BaseManager):
             assignee_id, chore_id
         )
         claim_mode = str(status_context.get(const.CHORE_CTX_CLAIM_MODE) or "")
-        return claim_mode in const.CHORE_CLAIM_MODES_COUNTING_TOWARD_DAY
+
+        if claim_mode in const.CHORE_CLAIM_MODES_COUNTING_TOWARD_DAY:
+            return True
+
+        if claim_mode == const.CHORE_CLAIM_MODE_BLOCKED_COMPLETED_BY_OTHER:
+            # Someone else did the work. That discharges the obligation only when
+            # one completion satisfies the chore for everyone (`shared_first`),
+            # where the non-completer was never on the hook personally. For a
+            # rotation-type chore it does not: the turn holder did not do their
+            # turn, so a standby covering for them is not their credit.
+            return ChoreEngine.is_rotation_mode(chore_info) and assignee_id == str(
+                chore_info.get(const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID)
+            )
+
+        return False
 
     def _is_chore_scheduled_today_for_assignee(
         self,

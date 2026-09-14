@@ -2070,9 +2070,10 @@ CHORE_CLAIM_MODES_COUNTING_TOWARD_DAY: Final[frozenset[str]] = frozenset(
 """Claim modes where the chore forms part of this assignee's obligation today.
 
 An explicit allow-list, so an unclassified mode is not charged against anyone
-until it is reviewed deliberately. A completeness test asserts this set and
-`CHORE_CLAIM_MODES_NOT_COUNTING_TOWARD_DAY` partition `CHORE_CLAIM_MODES`, so
-adding a new mode forces a decision.
+until it is reviewed deliberately. `CHORE_CLAIM_MODES_NOT_COUNTING_TOWARD_DAY`
+is the explicit complement, and `CHORE_CLAIM_MODE_BLOCKED_COMPLETED_BY_OTHER` is
+resolved in context. A completeness test asserts the three groups partition
+`CHORE_CLAIM_MODES`, so adding a new mode forces a decision.
 """
 
 CHORE_CLAIM_MODES_NOT_COUNTING_TOWARD_DAY: Final[frozenset[str]] = frozenset(
@@ -2081,8 +2082,6 @@ CHORE_CLAIM_MODES_NOT_COUNTING_TOWARD_DAY: Final[frozenset[str]] = frozenset(
         # assignee's responsibility - taking it is a bonus, skipping it is not a
         # failure.
         CHORE_CLAIM_MODE_STEAL_AVAILABLE,
-        # A single-completer chore another assignee already finished.
-        CHORE_CLAIM_MODE_BLOCKED_COMPLETED_BY_OTHER,
         # Another assignee holds the rotation turn.
         CHORE_CLAIM_MODE_BLOCKED_NOT_MY_TURN,
         # Standby whose claim mode does not let it act.
@@ -2095,7 +2094,13 @@ CHORE_CLAIM_MODES_NOT_COUNTING_TOWARD_DAY: Final[frozenset[str]] = frozenset(
         CHORE_CLAIM_MODE_BLOCKED_PAUSED,
     }
 )
-"""Claim modes where the chore's obligation belongs to someone else, not this assignee."""
+"""Claim modes that never count toward the day, whatever the chore's criteria.
+
+`CHORE_CLAIM_MODE_BLOCKED_COMPLETED_BY_OTHER` is deliberately absent: whether
+someone else completing the chore discharges this assignee's obligation depends on
+the completion criteria, so it is resolved in context by
+`StatisticsManager._chore_counts_toward_today` rather than classified here.
+"""
 
 # Chore status context keys (get_chore_status_context return contract)
 CHORE_CTX_STATE: Final = "state"

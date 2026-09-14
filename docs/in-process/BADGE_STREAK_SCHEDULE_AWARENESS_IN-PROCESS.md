@@ -664,15 +664,26 @@ permanently neutral — never advancing and never breaking.
      stealing is an opportunity to earn points by finishing someone else's late chore, not a
      responsibility they were assigned.
 
+  3. A third correction closed the last gap: **someone else completing the chore does not
+     discharge the obligation when it was this assignee's turn.** If the primary skips their
+     turn and a standby covers, the primary is still charged — they did not do it; being rescued
+     is not the same as doing the work. Conversely for `shared_first`, one completion satisfies
+     the chore for everyone, so the non-completers are relieved. Both cases read the **same**
+     `blocked_completed_by_other` claim mode, so it cannot be classified statically; it is
+     resolved in context by whether the assignee is the rotation turn holder.
+
   Implemented as an explicit **allow-list**, `CHORE_CLAIM_MODES_COUNTING_TOWARD_DAY`, so an
   unclassified mode is not charged against anyone until reviewed deliberately. The complementary
   `CHORE_CLAIM_MODES_NOT_COUNTING_TOWARD_DAY` is also explicit, and
-  `TestClaimModeClassification::test_modes_partition_the_enum` asserts the two partition
-  `CHORE_CLAIM_MODES` — a newly added claim mode therefore fails the test until it is classified.
+  `TestClaimModeClassification::test_modes_partition_the_enum` asserts the two sets plus the
+  context-dependent mode partition `CHORE_CLAIM_MODES` — a newly added claim mode therefore fails
+  the test until it is classified.
   Verified mechanics (`state` / `claim_mode`): turn holder = `pending`/`claimable`; standby with
   `anytime` = `standby`/`standby_available`; standby with `on_overdue` or `manual_only` =
   `standby`/`blocked_standby`; non-turn assignee on an overdue `allow_steal` chore =
-  `overdue`/`steal_available` while the turn holder stays `overdue`/`claimable`.
+  `overdue`/`steal_available` while the turn holder stays `overdue`/`claimable`; non-completer of a
+  `shared_first` chore = `completed_by_other`/`blocked_completed_by_other`; primary after a standby
+  covers = the same `completed_by_other`/`blocked_completed_by_other`.
 - **Steps / detailed work items**
   1. ✅ Kept `_is_chore_due_today_for_assignee` as the schedule primitive, renamed to
      `_is_chore_scheduled_today_for_assignee` so the two concepts cannot be confused again.
@@ -705,11 +716,16 @@ permanently neutral — never advancing and never breaking.
     reasoning that a chore left undone must be someone's failure. The product owner corrected
     this: the stealer picks up someone else's late chore for points, and the original owner keeps
     the failure. Implemented as not-counting, with the turn holder still charged.
-  - **Standby-completes is handled by `blocked_completed_by_other`.** When a standby does the work,
-    the primary reads `completed_by_other` and is no longer charged, while the standby's own
-    approval counts toward the standby. Note the consequence: a primary-standby chore cannot fail
-    the primary's badge as long as somebody completes it - that is the intended meaning of "the
-    chore got done".
+  - **Resolved: the standby-covers question.** A standby completing the primary's turn does **not**
+    excuse the primary. Earlier guidance was to count it as relieved (the primary reads
+    `completed_by_other`); the product owner corrected this — it was the primary's turn and they
+    did not do it. The standby earns their own credit. Note the pairing with `shared_first`,
+    where the same claim mode *does* relieve the others: the difference is whether the non-actor
+    was personally on the hook.
+  - **Standby-completes does not advance the rotation.** Verified: the turn stays with the primary
+    after a standby approves, so the primary remains the turn holder and stays charged. If a future
+    change advances the turn on standby completion, the primary would escape on the following day,
+    which would weaken this rule.
   - **Performance**: `get_chore_status_context` now runs per tracked chore per badge snapshot (two
     per badge). It is the same read path sensors use and evaluation is debounced, so no short-circuit
     was added. If profiling shows a problem, gate it on non-rotation and non-`shared_first` chores
@@ -923,8 +939,8 @@ permanently neutral — never advancing and never breaking.
   set across `test_badge_schedule_snapshot`, `test_badge_streak_midnight_reset`,
   `test_gamification_engine`, `test_badge_target_types`, `test_rotation_fsm_states`,
   `test_rotation_primary_standby`, `test_rotation_services`, `test_workflow_streak_schedule`,
-  `test_badge_no_overdue_cycles` → **168 passed**; `quick_lint.sh` green with mypy 0 errors.
-  Phases 1C–6 must not regress these.
+  `test_badge_no_overdue_cycles`, `test_shared_chore_features` → **193 passed**; `quick_lint.sh`
+  green with mypy 0 errors. Phases 1C–6 must not regress these.
 - **Testing discipline**: run targeted suites per phase. The full `pytest tests/ -v --tb=line`
   run is a release step, not a per-phase gate (see Notes: the suite is a release process).
 - **Outstanding tests:** none yet — Phase 4 defines the schedule matrix and days-family coverage.

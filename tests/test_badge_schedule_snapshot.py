@@ -485,7 +485,11 @@ class TestObligationScopeShared:
     ) -> None:
         """A single-completer chore finished by one assignee stops being owed by others.
 
-        This is also the completed-chore guard: the assignee who finished it must
+        The counterpart of `test_standby_covering_does_not_excuse_the_primary`:
+        both assignees read the same `blocked_completed_by_other` claim mode, but
+        the outcomes differ by completion criteria. Here one completion satisfies
+        the chore for everyone, so the non-completers were never personally on the
+        hook. Also the completed-chore guard - the assignee who finished it must
         keep being charged, or the obligation could never be satisfied.
         """
         coordinator = shared_scenario.coordinator
@@ -646,15 +650,15 @@ class TestObligationScopePrimaryStandby:
 
         assert counts_toward(standby_scenario, standby_name, chore_name) is False
 
-    async def test_standby_completing_credits_the_standby_not_the_primary(
+    async def test_standby_covering_does_not_excuse_the_primary(
         self,
         standby_scenario: SetupResult,
     ) -> None:
-        """The helper keeps their own credit; the primary is not charged.
+        """A standby doing the primary's turn does not earn the primary credit.
 
-        When a standby steps in, the primary reports `completed_by_other` (no
-        longer charged, since the work is done) and the standby's own approval
-        counts toward the standby's day.
+        The standby's own approval counts toward the standby, but the primary is
+        still charged: it was their turn and they did not do it. Being rescued is
+        not the same as doing the work.
         """
         coordinator = standby_scenario.coordinator
         chore_name = "Daily Chore (anytime)"
@@ -670,7 +674,9 @@ class TestObligationScopePrimaryStandby:
             APPROVER_NAME, standby_id, chore_id
         )
 
-        assert counts_toward(standby_scenario, primary_name, chore_name) is False
+        assert counts_toward(standby_scenario, primary_name, chore_name) is True, (
+            "the primary was excused for a turn they did not do"
+        )
         assert counts_toward(standby_scenario, standby_name, chore_name) is True
 
     def test_single_assignee_rotation_chore_is_charged(
@@ -741,14 +747,19 @@ class TestClaimModeClassification:
     """Every claim mode is deliberately classified."""
 
     def test_modes_partition_the_enum(self) -> None:
-        """Counting and non-counting sets partition every declared claim mode.
+        """Every declared claim mode is deliberately classified.
 
-        A newly added claim mode lands in neither set, so this fails and forces a
-        conscious decision rather than silently charging an assignee for
-        something that may not be theirs.
+        `blocked_completed_by_other` is context-dependent (see the resolver), so it
+        forms a third group rather than joining either list. A newly added claim
+        mode lands in none of the three, so this fails and forces a conscious
+        decision rather than silently charging an assignee for work that may not
+        be theirs.
         """
         counted = const.CHORE_CLAIM_MODES_COUNTING_TOWARD_DAY
         not_counted = const.CHORE_CLAIM_MODES_NOT_COUNTING_TOWARD_DAY
+        contextual = {const.CHORE_CLAIM_MODE_BLOCKED_COMPLETED_BY_OTHER}
 
         assert counted & not_counted == frozenset()
-        assert counted | not_counted == const.CHORE_CLAIM_MODES
+        assert counted & contextual == frozenset()
+        assert not_counted & contextual == frozenset()
+        assert counted | not_counted | contextual == const.CHORE_CLAIM_MODES
