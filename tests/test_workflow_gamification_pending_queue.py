@@ -215,14 +215,12 @@ class TestGamificationPendingQueueEvents:
             tracked_chores: list[str],
             *,
             today_iso: str,
-            current_badge_progress: dict[str, Any] | None,
         ) -> dict[str, Any]:
             captured_tracked.append(list(tracked_chores))
             return {
                 "today_points": 0,
                 "today_approved": 0,
                 "total_earned": 0,
-                "streak_yesterday": False,
             }
 
         def _capture_today_completion(

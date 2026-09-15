@@ -427,144 +427,6 @@ class TestRecordMaximum:
         assert data["y"]["2026"]["max_value"] == 12
 
 
-class TestUpdateStreak:
-    """Tests for update_streak method."""
-
-    def test_first_activity_sets_streak_to_one(self, stats: StatisticsEngine) -> None:
-        """First activity should set streak to 1."""
-        container: dict[str, Any] = {}
-
-        result = stats.update_streak(
-            container,
-            streak_key="current_streak",
-            last_date_key="last_completed",
-            reference_date=date(2026, 1, 19),
-        )
-
-        assert result == 1
-        assert container["current_streak"] == 1
-        assert container["last_completed"] == "2026-01-19"
-
-    def test_same_day_no_change(self, stats: StatisticsEngine) -> None:
-        """Activity on same day should not change streak."""
-        container = {
-            "current_streak": 5,
-            "last_completed": "2026-01-19",
-        }
-
-        result = stats.update_streak(
-            container,
-            streak_key="current_streak",
-            last_date_key="last_completed",
-            reference_date=date(2026, 1, 19),
-        )
-
-        assert result == 5
-        assert container["current_streak"] == 5
-
-    def test_consecutive_day_increments(self, stats: StatisticsEngine) -> None:
-        """Activity on consecutive day should increment streak."""
-        container = {
-            "current_streak": 5,
-            "last_completed": "2026-01-18",  # Yesterday
-        }
-
-        result = stats.update_streak(
-            container,
-            streak_key="current_streak",
-            last_date_key="last_completed",
-            reference_date=date(2026, 1, 19),
-        )
-
-        assert result == 6
-        assert container["current_streak"] == 6
-        assert container["last_completed"] == "2026-01-19"
-
-    def test_gap_resets_streak(self, stats: StatisticsEngine) -> None:
-        """Gap of 2+ days should reset streak to 1."""
-        container = {
-            "current_streak": 10,
-            "last_completed": "2026-01-15",  # 4 days ago
-        }
-
-        result = stats.update_streak(
-            container,
-            streak_key="current_streak",
-            last_date_key="last_completed",
-            reference_date=date(2026, 1, 19),
-        )
-
-        assert result == 1
-        assert container["current_streak"] == 1
-
-    def test_without_last_date_key(self, stats: StatisticsEngine) -> None:
-        """Should work without updating last_date_key."""
-        container: dict[str, Any] = {"streak": 3}
-
-        result = stats.update_streak(
-            container,
-            streak_key="streak",
-            last_date_key=None,
-            reference_date=date(2026, 1, 19),
-        )
-
-        # Without last_date_key, always resets (no comparison possible)
-        assert result == 1
-        assert "last_completed" not in container
-
-    def test_year_boundary(self, stats: StatisticsEngine) -> None:
-        """Streak should continue across year boundary."""
-        container = {
-            "current_streak": 5,
-            "last_completed": "2025-12-31",
-        }
-
-        result = stats.update_streak(
-            container,
-            streak_key="current_streak",
-            last_date_key="last_completed",
-            reference_date=date(2026, 1, 1),
-        )
-
-        assert result == 6
-
-    def test_accepts_datetime_reference(self, stats: StatisticsEngine) -> None:
-        """Should accept datetime and extract date."""
-        container = {
-            "current_streak": 3,
-            "last_completed": "2026-01-18",
-        }
-
-        result = stats.update_streak(
-            container,
-            streak_key="current_streak",
-            last_date_key="last_completed",
-            reference_date=datetime(2026, 1, 19, 14, 30, tzinfo=UTC),
-        )
-
-        assert result == 4
-
-
-class TestGetStreak:
-    """Tests for get_streak method."""
-
-    def test_returns_existing_streak(self, stats: StatisticsEngine) -> None:
-        """Should return existing streak value."""
-        container = {"my_streak": 7}
-
-        result = stats.get_streak(container, "my_streak")
-
-        assert result == 7
-
-    def test_returns_zero_for_missing(self, stats: StatisticsEngine) -> None:
-        """Should return 0 for missing streak key."""
-        container: dict[str, Any] = {}
-
-        result = stats.get_streak(container, "nonexistent")
-
-        assert result == 0
-
-
 class TestPruneHistory:
     """Tests for prune_history method."""
 
@@ -787,7 +649,7 @@ class TestEdgeCases:
     """Tests for edge cases and integration scenarios."""
 
     def test_full_workflow(self, stats: StatisticsEngine) -> None:
-        """Test complete workflow: record, update streak, prune."""
+        """Test complete workflow: record across days, then verify aggregates."""
         data: dict[str, Any] = {
             "daily": {},
             "weekly": {},
@@ -795,19 +657,12 @@ class TestEdgeCases:
             "yearly": {},
             "all_time": {},
         }
-        container: dict[str, Any] = {}
 
         # Day 1
         stats.record_transaction(
             data,
             increments={"approved": 1, "points": 10},
             include_all_time=True,
-            reference_date=date(2026, 1, 17),
-        )
-        stats.update_streak(
-            container,
-            "streak",
-            "last_date",
             reference_date=date(2026, 1, 17),
         )
 
@@ -818,12 +673,6 @@ class TestEdgeCases:
             include_all_time=True,
             reference_date=date(2026, 1, 18),
         )
-        stats.update_streak(
-            container,
-            "streak",
-            "last_date",
-            reference_date=date(2026, 1, 18),
-        )
 
         # Day 3 (consecutive)
         stats.record_transaction(
@@ -832,15 +681,8 @@ class TestEdgeCases:
             include_all_time=True,
             reference_date=date(2026, 1, 19),
         )
-        streak = stats.update_streak(
-            container,
-            "streak",
-            "last_date",
-            reference_date=date(2026, 1, 19),
-        )
 
         # Verify results
-        assert streak == 3
         # all_time uses nested structure: all_time.all_time.{metric}
         assert data["all_time"]["all_time"]["approved"] == 4
         assert data["all_time"]["all_time"]["points"] == 50
@@ -869,21 +711,3 @@ class TestEdgeCases:
         # all_time uses nested structure: all_time.all_time.{metric}
         assert sample_period_data["all_time"]["all_time"]["points"] == 70
         assert sample_period_data["daily"]["2026-01-19"]["points"] == 70
-
-    def test_dst_transition(self, stats: StatisticsEngine) -> None:
-        """Streak should work correctly across DST transitions."""
-        container = {
-            "current_streak": 5,
-            # March 8, 2026 is before DST (US), March 9 is DST transition
-            "last_completed": "2026-03-08",
-        }
-
-        result = stats.update_streak(
-            container,
-            streak_key="current_streak",
-            last_date_key="last_completed",
-            reference_date=date(2026, 3, 9),
-        )
-
-        # Should still be consecutive
-        assert result == 6

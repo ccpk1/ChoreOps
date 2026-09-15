@@ -1428,7 +1428,6 @@ class GamificationManager(BaseManager):
             assignee_id,
             tracked_chores,
             today_iso=today_iso,
-            current_badge_progress=current_badge_progress,
         )
         # One miss check serves both scope variants: the answer depends on the
         # badge's advance day, not on the chore scope.
@@ -2812,7 +2811,6 @@ class GamificationManager(BaseManager):
                 assignee_id,
                 tracked_chores,
                 today_iso=today_iso,
-                current_badge_progress=None,
             )
         )
         runtime_context["today_completion"] = (
