@@ -8,9 +8,11 @@
   ("streak badges don't work"); the analysis just found several distinct defects behind it.
 - **Owner / driver(s)**: ChoreOps maintainer + ChoreOps Builder (ChoreOps Test Builder for Phase 4)
 - **Status**: ✅ **Phases 0–5 shipped** — PR [#296](https://github.com/ccpk1/ChoreOps/pull/296) merged to
-  `main` on 2026-09-15 as `0c98fdc`. Phase 6 work is on `ccpk1/streak-subsystem-unification`. All
-  decisions resolved (17 total). **#122 was found during Phase 6 planning and is now in scope** — see
-  the Phase 6 section, which records why O3 alone cannot fix it.
+  `main` on 2026-09-15 as `0c98fdc`. Phase 6 work is on `ccpk1/streak-subsystem-unification`.
+  All decisions resolved (17 total). **Phase 6 is split into two tranches** (see the Phase 6 section):
+  Tranche A (O4/O5, code hygiene) can start now; Tranche B (O3/C3, achievement behaviour) waits for
+  the field confirmation the entry criteria require. **Issue #122 was investigated and closed — it is
+  out of scope**, see the record in the Phase 6 section.
 - **Branch / delivery**: `ccpk1/issue294` carries both the #294 hotfix and this initiative, which
   ship as a single release via PR #296 against `main`. The phases are **separate commits** so
   reviewers can follow the history, and the hotfix commit (`73e97d5`) doubles as a bisect point if
@@ -31,7 +33,8 @@
 | Phase 3 – Persistence & status alignment                | Ensure neutral days write nothing and status transitions stay coherent         | 100%       | ✅ Audit clean; 9 tests; fixed lost credit for a satisfied day after a break |
 | Phase 4 – Tests & validation                            | Extend the #294 regression suite; add schedule-matrix + days-family coverage    | 100%       | ✅ 24 new tests; step 7 exposed and closed a decision-11 implementation gap |
 | Phase 5 – Docs, wiki & release notes                    | Document eligible-occurrence semantics, option equivalence, and the behaviour change | 100%       | ✅ Wiki (4 pages), help text, Development Standards, Architecture, release-note draft |
-| Phase 6 – Streak subsystem unification (O3/O4/O5)        | Achievements adopt the shared helper; retire dead calendar streak code; settle open-ended semantics | 0% | **In scope: #122** — O3 alone cannot fix it, see the Phase 6 day-boundary finding |
+| Phase 6A – Code hygiene (O4/O5)                         | Retire `streak_yesterday`; delete the dead calendar streak API                 | 0% | ✅ Unblocked — mechanical, no product decision needed |
+| Phase 6B – Achievement alignment (O3/C3)                | Achievements adopt the shared helper; settle open-ended streak semantics        | 0% | ⛔ Blocked — needs decisions 18–20 **and** field confirmation of the badge fix |
 
 1. **Key objective** – Make badge streak target types count **consecutive satisfied eligible occurrences** instead of consecutive calendar days, so a streak respects each tracked chore's schedule. A badge must not break (or stall) on a day when the tracked chores are simply not due, and must never award from a gap where an occurrence genuinely passed unmet.
 
@@ -67,10 +70,14 @@
    9. ✅ **Phase 5 complete and PR #296 opened (draft)** — wiki (4 pages), option help text,
       Development Standards, Architecture, and a release-note draft now in the PR description.
    10. ✅ **Phases 0–5 shipped** — PR #296 merged to `main` (`0c98fdc`, 2026-09-15).
-   11. **Next: Phase 6 planning** on `ccpk1/streak-subsystem-unification`. Blocking question: the
-       streak **day-boundary model** must be chosen before O3, because it decides what replaces
-       `_streak_alive`. See the #122 finding in the Phase 6 section.
-   9. Retire `streak_yesterday` deliberately in Phase 6 — it has no consumer since Phase 2.
+   11. ✅ **Issue #122 investigated and closed** — a streak day-boundary is a convention with no
+       generally correct answer, and the day boundary is not even consulted by the miss check. Full
+       evidence kept in the Phase 6 section. **Out of scope.**
+   12. **Next: Phase 6A (O4 + O5)** — retire `streak_yesterday` and delete the dead
+       `StatisticsEngine.update_streak` / `get_streak` pair. Both are mechanical and need no product
+       decision.
+   13. **Then Phase 6B (O3 + C3), after decisions 18–20 are answered** — and only once the badge fix
+       has been confirmed in the field, per the entry criteria.
 
 4. **Risks / blockers** –
    - **BLOCKER (C1) — the eligible scope is currently too coarse.** `_is_chore_due_today_for_assignee`
@@ -78,11 +85,11 @@
      assignee while only the turn holder (or a window-permitted standby) can complete it. Phase 2
      must not ship before Phase 1B, or the fix introduces a new unfair-break vector. Detail under
      "Conflicts found during Phase 1 review".
-   - **DEFECT NOT COVERED (C2) — achievement streaks still break on non-daily schedules.**
+   - **KNOWN LIMITATION (C2) — achievement streaks still break on non-daily schedules.**
      `_streak_alive` gates on a literal today-or-yesterday calendar window and zeroes a valid
-     weekly-chore streak (verified: Monday completion ⇒ 0 on Wednesday). This initiative fixes
-     badges only; users will not distinguish the two systems when they report it. Scheduled as
-     Phase 6 / O3, so it needs a deliberate answer in the release note rather than silence.
+     weekly-chore streak (verified: Monday completion ⇒ 0 on Wednesday). Users cannot distinguish
+     the two systems, so this is stated as a known limitation in the achievements wiki page and in
+     the merged release note rather than left silent. Closed by **Phase 6B / O3**.
    - **Sequencing**: the original plan required the #294 hotfix to land first. Both now live on
      `ccpk1/issue294` and ship in one release, with the hotfix isolated in `73e97d5` so reviewers
      can follow it separately.
@@ -289,8 +296,13 @@
         - **O5** -- remove or fix the dead `StatisticsEngine.update_streak` / `get_streak` pair
           (conflict C4), which currently preserves the exact anti-pattern this initiative removes.
 
-        **Sequencing note:** Phase 6 must not begin until Phases 1B-5 have shipped and the badge
-        behaviour is confirmed in the field. Doing O3 in the same release as the badge change would
+        **Sequencing note:** Phase 6 is **split into two tranches** (revised 2026-09-15 after planning).
+        Tranche **6A** (O4, O5 — code hygiene) carries no behaviour risk and can start immediately.
+        Tranche **6B** (O3, C3 — achievement behaviour) must not begin until decisions 18–20 are
+        answered **and** the badge behaviour is confirmed in the field. Doing O3 in the same release
+        as the badge change would make it impossible to attribute any remaining streak report to the
+        right subsystem. Full detail, including the verified O3/C3 coupling, is in the Phase 6
+        section.
         make it impossible to attribute any remaining streak report to the right subsystem.
 
      15. **CONFIRMED 2026-09-15 — the Phase 4 harness mutates chore schedules in memory.**
@@ -343,6 +355,22 @@
         date-bounded scope that no other target type uses, so it was not taken.
 
 > **Important:** Keep the entire Summary section (table + bullets) current with every meaningful update.
+
+     18. **PENDING CONFIRMATION — can an open-ended chore break a streak? (closes C3, pairs with O3.)**
+        Recommended: the shared helper honours an explicit rule for `FREQUENCY_NONE` that matches
+        `calculate_streak`, so one authority answers the question and **no current behaviour
+        changes**. Needed before 6B, because O3 alone would make an open-ended achievement streak
+        immortal while the underlying chore streak still resets (verified; see the Phase 6 section).
+
+     19. **PENDING CONFIRMATION — the achievement path's error policy.**
+        Recommended: pass `unusable_schedule_counts_as_miss=False`, preserving today's fail-open
+        behaviour so unusable data never zeroes a streak the user earned, and matching the badge
+        policy.
+
+     20. **PENDING CONFIRMATION — the achievement miss window's upper bound.**
+        Recommended: the **start of today**, matching the badge path exactly, so today's
+        still-pending occurrence cannot break a streak mid-day. Accepted consequence: the same
+        documented one-day latch as badges.
 
 ## Tracking expectations
 
@@ -1049,95 +1077,202 @@ permanently neutral — never advancing and never breaking.
 > - Some Days and Streak badges may advance more readily than before. This is the intended fix.
 > - Achievement streak tracking is **unchanged** for now: it still uses calendar days, so it can differ from a badge streak on a non-daily chore. Bringing it in line is planned for a later release.
 
-### Phase 6 – Streak subsystem unification (O3, O4, O5) — DELIBERATELY LATER
+### Phase 6 – Streak subsystem unification — split into two tranches
 
 - **Goal**: Remove the remaining calendar-day streak logic and the anti-patterns that would
   reintroduce it. **Not part of the badge fix release** (decision 14).
-- **Entry criteria**: Phases 1B-5 shipped and the badge behaviour confirmed in the field, so any new
-  streak report can be attributed to the right subsystem.
+- **Why two tranches**: the original single phase bundled code hygiene with a behaviour change to
+  achievements. Only the behaviour change is risky, needs product decisions, and needs field
+  confirmation. Splitting lets the mechanical cleanup proceed immediately instead of waiting on the
+  contested part.
+
+| Tranche | Items | Risk | Gate |
+| --- | --- | --- | --- |
+| **6A** | O4, O5 | Low — dead code and a doc comment | None; can start now |
+| **6B** | O3, C3 | Medium — changes what users' achievements report | Decisions 18–20 **and** field confirmation |
+
+#### Phase 6A – Code hygiene (O4, O5) — UNBLOCKED
+
+- **Goal**: Remove the dead calendar-day streak code and the stale field, so the anti-pattern cannot
+  be reintroduced by reaching for either.
+- **Entry criteria**: none beyond Phase 6A being started deliberately. Verified premises: `O4`'s
+  `streak_yesterday` has no production consumer, and `O5`'s target pair has no production caller
+  (the only two hits are the class docstring and the method's own example).
 - **Steps / detailed work items**
-  1. **O3 — achievements adopt the shared helper.** Replace `_streak_alive` (today-or-yesterday
-     calendar gate) with the schedule-aware check, and retire `_streak_alive`. This is the highest
-     value item: it closes conflict C2 and removes the last calendar-day streak gate in the system.
-     Note the behavioural consequence — achievement streaks over weekly/monthly chores will start
-     accumulating where they previously capped at 1, so it is release-notable in its own right.
-  2. **O4 — document `last_update_day`'s three roles** (same-day idempotency gate, miss-check
-     anchor, `streak_yesterday` source) with a typed comment at the definition site. Decide
-     explicitly whether `streak_yesterday` should still be computed once Phase 2 stops consuming
-     it; if not, delete the field and its `dt_add_interval` computation
-     (`statistics_manager.py:2462`) as noted in the Phase 1 opportunities list.
-  3. **O5 — remove or fix the dead `StatisticsEngine.update_streak` / `get_streak` pair**
-     (`statistics_engine.py:333`, `:408`). Zero production callers, 13 tests pinning calendar
-     semantics green. Either delete them with their tests, or make them schedule-aware via the
-     shared helper. Deleting is preferred — dead generic API carrying the exact anti-pattern we
-     just removed is a trap for the next contributor.
-  4. **C3 — settle the open-ended-chore semantics.** Decide whether an open-ended chore
-     (`FREQUENCY_NONE`) can break a streak. Today `calculate_streak` says yes (calendar gap) and
-     `has_missed_occurrences` says no. Pick one and make both paths agree.
-  5. **C1 follow-up — evaluate unifying the two "today" notions** (`scheduled_today` and the
-     dashboard's `chore_counts_toward_due_today_summary`) behind one named authority, now that
-     Phase 1B has separated the concepts. Optional; only if Phase 1B shows the duplication is
-     genuinely burdening maintenance.
+  1. ✅ Premise verified — `streak_yesterday` is computed at `statistics_manager.py:2471` and returned
+     at `:2482`; no production caller reads it. Two test files pass the key inertly
+     (`test_badge_target_types.py:902`, `test_workflow_gamification_pending_queue.py:225`) and
+     **neither asserts on its value**, so removal is low-risk.
+  2. **O4 — document `last_update_day`'s two surviving roles** (same-day idempotency gate and
+     miss-check anchor) with a typed comment at the definition site, then **delete `streak_yesterday`**
+     and its `dt_add_interval` computation. Two roles remain, not three, once the field is gone.
+  3. **O5 — delete `StatisticsEngine.update_streak` / `get_streak`** (`statistics_engine.py:333`,
+     `:408`) and the 13 tests in `test_statistics_engine.py` that pin their calendar semantics.
+  4. **O5 — fix the class docstring at `statistics_engine.py:60`**, which currently shows
+     `stats.update_streak(...)` as usage. Deleting the method without this leaves the docstring
+     documenting a method that no longer exists — the exact kind of stale guidance that caused this
+     initiative.
+  5. Run `tests/test_statistics_engine.py`, the badge/gamification set, and the release gates.
 - **Key issues**
-  - O3 changes achievement behaviour, so it needs its own release note and its own validation pass.
-  - O5 touches `test_statistics_engine.py` (13 tests). Deleting a tested public method is a
-    deliberate act; state the rationale in the commit rather than quietly removing.
-  - This phase must not be started opportunistically mid-release. Its whole value is that the badge
-    change has already been proven independently.
+  - **Deleting a tested public method is a deliberate act.** State the rationale in the commit — dead
+    generic API whose docstring documents calendar-yesterday logic as correct is a trap for the next
+    contributor, which is why deletion beats fixing.
+  - Removing `streak_yesterday` is a *read-path only* change: nothing persisted it, so no schema bump
+    and no migration.
+  - O4 and O5 are independent of each other and can land as two commits.
 
-#### ⚠️ O3 is necessary but NOT sufficient — issue #122 is a separate defect (found 2026-09-15)
+#### Phase 6B – Achievement alignment (O3, C3) — BLOCKED
 
-**#122 ("Align streak cutoff time with due date") will not be fixed by O3 alone**, and this changes
-what Phase 6 has to deliver. Recorded here because the plan previously implied O3 would align
-achievements and close the gap.
+- **Goal**: Remove the last calendar-day streak gate in the system by pointing `COMPLETION_STREAK`
+  achievements at the shared missed-occurrence authority (closing conflict C2), and settle whether an
+  open-ended chore can break a streak (conflict C3).
+- **Entry criteria — BOTH must hold**:
+  1. **Decisions 18, 19 and 20 answered** (below). They are product decisions, not refactor details.
+  2. **The badge fix confirmed in the field.** Phases 0–5 merged 2026-09-15 but the latest tag is
+     `1.5.3-beta.1`, so the fix is **unreleased and no user has run it**. Starting 6B before that
+     makes it impossible to attribute a new streak report to the right subsystem — which is the whole
+     reason this criterion exists.
+- **Steps / detailed work items**
+  1. Replace `_streak_alive` (`gamification_manager.py:2893`) with the shared helper, per decision 19
+     (error policy) and decision 20 (upper bound), then retire `_streak_alive`.
+  2. Update `_get_tracked_current_streak` (`gamification_manager.py:2912`) and its stale docstring
+     ("last completed today or yesterday"), plus the comment at `gamification_manager.py:620-622`
+     which describes the zeroing behaviour being removed.
+  3. Re-express the **5 of 13** tests in `test_gamification_streak_reset.py` that pin the calendar
+     gate (`test_streak_alive_today_and_yesterday`, `test_streak_alive_two_days_ago_is_dead`,
+     `test_streak_alive_handles_datetime_strings`, `test_streak_alive_fails_open`, and the
+     B1 group around `:144`). They must keep asserting the same *intent* — a genuinely missed day
+     still breaks; bad data never zeroes a valid streak.
+  4. Settle C3 per decision 18 so open-ended chore data and the shared helper agree.
+  5. Add achievement-side coverage mirroring the badge matrix: a weekly chore's achievement streak
+     must accumulate instead of capping at 1.
+- **Key issues**
+  - **O3 alone would regress open-ended streaks — verified.** For a `FREQUENCY_NONE` chore whose
+    stored streak is 5 and was last completed 10 days ago: `_streak_alive` reports 0 (correct, it
+    broke), but `has_missed_occurrence_between` short-circuits to `False` for `FREQUENCY_NONE`, so
+    O3 alone would report **5 forever** while `calculate_streak` still resets the underlying streak
+    to 1 on the next completion. That is conflict C3, and it is why decision 18 must be answered with
+    O3 rather than after it.
+  - O3 changes achievement behaviour and needs its own release note and validation pass.
+  - The achievement streak is read through `max()` across tracked chores, so "the streak" is really
+    "the best single chore streak". Worth confirming that stays intended.
 
-**The report.** A daily chore whose due *time* is 04:00, so the user can finish it before bed and
-still be on time until 4 AM. They lose streak progress on achievement targets when completing after
-midnight.
+#### Decisions required for Phase 6B — background and recommendations
 
-**Verified root cause — the day boundary is always local midnight.** There is **no** day-cutoff or
-start-of-day concept anywhere (`grep` for `day_cutoff` / `start_of_day` / `reset_hour` in `const.py`
-returns nothing). Two independent paths therefore both break, and both were reproduced:
+**Decision 18 — can an open-ended chore ever break a streak?**
 
-| Path | Mechanism | Result for an on-time pair |
+*Background.* A chore with no schedule (`frequency = none`, no due date) is the "just do it whenever"
+case. Today two code paths disagree about whether it can break a streak: `calculate_streak` breaks it
+after **one** idle calendar day, while `has_missed_occurrence_between` says such a chore can **never**
+be missed. Neither is derived from anything a user chose; the 1-day rule is a convention inherited
+from the calendar-day model this initiative removed.
+
+*A user's expectation.* A chore they never scheduled has no rhythm to keep, so "you missed it" is not
+meaningful. But "done it every day for a month" is. So the streak should extend when they do it and
+not punish gaps — yet it must not be immortal either, or the number stops meaning anything.
+
+*Recommendation:* **the helper honours an explicit rule for `FREQUENCY_NONE` that matches
+`calculate_streak`** — i.e. keep the existing 1-day rule as the convention, stated once in the helper
+rather than implied in two places. Rationale: it changes **no** current behaviour, needs no migration,
+closes C3 by making one authority answer the question, and keeps 6B a pure refactor. The alternative
+(never breaks) would be a behaviour change to open-ended streaks and would need its own release note.
+
+**Decision 19 — what error policy should the achievement path use?**
+
+*Background.* When a chore's schedule cannot be evaluated, the two existing callers deliberately
+disagree: `calculate_streak` treats it as a **break** (conservative), while the badge path treats it
+as **no miss** (fails safe). `has_missed_occurrence_between` exposes this as
+`unusable_schedule_counts_as_miss`. Today's `_streak_alive` **fails open** — missing or unparseable
+data keeps the streak.
+
+*A user's expectation.* A data problem should never destroy progress the user earned. Punishing them
+for the integration's inability to read a schedule is the worst outcome.
+
+*Recommendation:* **pass `False`** (no miss on unusable data), preserving today's fail-open behaviour
+and matching the badge policy. Rationale: it is the safe direction, it keeps achievements and badges
+consistent, and an unusable schedule is a bug the user cannot act on. Passing `True` would newly zero
+streaks on malformed data — a regression dressed up as consistency.
+
+**Decision 20 — what is the upper bound of the achievement miss window?**
+
+*Background.* The badge path bounds its window at **the start of today**, not "now". Using "now"
+would mean today's still-pending occurrence counts as missed and breaks the streak mid-day. The
+lower bound is the previous completion.
+
+*A user's expectation.* A streak must not break while the day is still in progress and the chore has
+not yet been done. This is precisely the #294 complaint.
+
+*Recommendation:* **start of today**, matching the badge path exactly. Rationale: it is the fix for
+the original bug and the only bound that cannot produce a mid-day false break. Accepted consequence:
+the same one-day latch as badges — a missed occurrence breaks the streak on the **following** day,
+because on the missed day itself the occurrence has not yet passed. This is inherent, already
+documented for badges, and should be documented for achievements too.
+
+**Decision 15/16 note:** no change. Tranche 6B reuses the same harness and preconditions approach.
+
+#### Issue #122 — investigated, closed, OUT OF SCOPE (2026-09-15)
+
+**#122 ("Align streak cutoff time with due date") is not being fixed.** It was investigated while
+planning 6B and closed as a design question. The user's request was reasonable; there is simply no
+generally correct answer. Record kept here so the analysis is not repeated.
+
+**The request.** A daily chore due at 04:00 so it can be finished before bed; the reporter loses
+achievement streak progress when completing after midnight.
+
+**Why it cannot be fixed properly — the decisive finding: the miss check never reads the due time.**
+Tested the same window against a chore due at 00:00, 04:00, 12:00, 20:00 and 23:00 — all five return
+`missed = True`, and all five generate an identical occurrence series. `build_schedule_config` is
+called with `base_date_iso=window_start`, so occurrences are generated from the **caller's anchor**
+(the previous completion), never from the chore's due date or time. The due time reaches
+*eligibility* and *overdue* handling, but not the miss maths. "Cutoff = due time" is therefore not a
+parameter change; it requires re-anchoring occurrence generation on the due time, which is exactly
+what the current design avoids.
+
+Re-anchoring does not work cleanly either:
+
+- **Circular for completion-anchored schedules.** For `custom_from_complete` the due date/time is
+  *derived from* the completion, so "which day does this completion belong to?" would depend on a due
+  time that depends on the completion. The codebase already works around the time-drift half of this
+  — `custom_from_complete_date_only` exists for that reason.
+- **The ambiguity is irreducible.** A 00:30 completion is equally "late for the just-passed 04:00" and
+  "early for the next 04:00". Nothing in the data distinguishes the intent, so any rule is a
+  convention rather than a correctness result.
+- **A fixed cutoff only relocates the problem** — a user whose bedtime drifts past the chosen hour has
+  the identical complaint.
+
+**Why a day-boundary change would be intrusive.** Three competing notions of "today" already exist:
+
+| Notion | Source | Conflict if streaks diverge |
 | --- | --- | --- |
-| Achievement gate | `GamificationManager._streak_alive` (`gamification_manager.py:2896`) compares `last_completed.date()` against today-or-yesterday | Completing Monday at 23:30 then Tuesday at 00:30 gives dates `Mon`→`Wed` = 2 days ⇒ **zeroed** |
-| Chore + badge streaks | `ChoreEngine.has_missed_occurrence_between` normalises day-based schedules to `start_of_local_day` (`chore_engine.py:1534-1535`) | The occurrence is attributed to **Tue 00:00** instead of Tue 04:00, so it reads as unmet ⇒ **`missed = True`** |
+| Local midnight | `start_of_local_day`, period buckets, dashboards | Streak says Tuesday, charts say Monday |
+| Chore reset boundary | `approval_reset_type` — per chore, and **absent for `upon_completion`** | No boundary to reuse in that case |
+| Occurrence point-in-time | `has_missed_occurrence_between` | Completing before the due moment is not representable as "satisfied" |
 
-Reproduced concretely: a daily 04:00 chore completed Mon 23:30 then Wed 00:30 — both **on time**
-within their 4 AM grace — returns `missed = True` from the shared helper and `_streak_alive = False`.
-The control pair (Mon 23:30 → Tue 23:30) returns `missed = False`. So the break depends purely on
-which calendar date the bedtime happened to fall on, which is exactly the reported symptom.
+A chore can already be `at_midnight_once` while due at 04:00, so the system holds two contradictory
+turnover points for one chore. A streak cutoff would add a fourth.
 
-**Two consequences for Phase 6:**
+Secondary hazards: **DST** (a 04:00 boundary on a transition night either does not exist or occurs
+twice, and this code is deliberately DST-safe at these call sites), **retroactive re-attribution**
+(changing a cutoff would silently shift existing streaks), and **partial benefit** (date-only chores
+have no due time, so their cutoff is 00:00 either way).
 
-1. **O3 alone is insufficient.** Pointing achievements at the shared helper would make them agree
-   with badges, but both would still be wrong for a due-time cutoff. O3 must therefore be paired
-   with a day-boundary decision, or #122 comes straight back.
-2. **The workaround previously offered on #122 does not work either.** The comment on the issue
-   suggested tracking a streak with a periodic badge instead of an achievement. Per the table above,
-   the badge path uses the same normalised occurrence math, so it breaks identically. This needs
-   correcting on the issue rather than repeating the suggestion.
+**Conclusion.** #122 is a convention request, not a defect with a right answer. The only shape that
+"always works" makes the boundary an explicit user-chosen convention applied to streak evaluation and
+documented as intentionally disagreeing with the statistics buckets — a larger, more intrusive change
+than 6B, trading one predictable limitation for a documented inconsistency. **Excluded from 6B.**
 
-**Open question for Phase 6 planning — what defines a streak day?** Three candidate models, and the
-choice is a product decision, not a refactor detail:
+**Two side notes from the investigation, both resolved:**
 
-- **A — per-chore cutoff from the due time.** The chore-day runs due-time → due-time. Fixes #122
-  exactly, but requires the occurrence maths to stop collapsing to `start_of_local_day` for
-  day-based schedules, and every "was it missed" comparison to use the chore's own boundary.
-- **B — a global configurable day cutoff** (one start-of-day hour for the whole integration). Simpler
-  and matches how other integrations model it, but ignores per-chore due times, so it only helps if
-  the user's bedtime drift is smaller than the configured cutoff.
-- **C — leave the boundary at midnight and document the limitation.** Cheapest, but #122 stays open
-  and the "complete before bed" pattern is unsupported by design.
+1. **The workaround previously offered on #122 did not work.** The comment suggested tracking the
+   streak with a periodic badge instead of an achievement, but the badge path uses the same normalised
+   occurrence maths and breaks identically. The issue was closed with a corrected explanation.
+2. **#122 was arguably mislabelled `enh: feature`** while describing lost credit for on-time work. It
+   was closed as a design question, so this no longer needs resolving.
 
-**Recommendation:** treat #122 as in-scope for Phase 6 and settle the day-boundary model **before**
-doing O3, because the boundary decision determines what O3's replacement for `_streak_alive` must
-actually compare. Doing O3 first would produce a second, smaller migration over the same code.
-
-**Also worth noting:** the Phase 5 wiki text and the merged release note both state that achievement
-streaks are unchanged and "planned for a later release". If #122 is folded in, that later release is
-this one, and both statements need updating when the boundary work lands.
+**What users can rely on instead,** and what the closing note states: consistency of timing matters
+far more than the clock, so a steady bedtime keeps a streak intact (verified: 23:30 → 00:30 continues;
+23:30 → 23:30 continues). **Days** and count-based targets are the forgiving alternatives, since they
+accumulate rather than reset.
 
 ---
 
