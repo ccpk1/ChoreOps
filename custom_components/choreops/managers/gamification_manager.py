@@ -1983,10 +1983,14 @@ class GamificationManager(BaseManager):
         )
 
         return {
-            const.DATA_USER_INTERNAL_ID: assignee_id,
-            const.DATA_USER_NAME: assignee_info.get(const.DATA_USER_NAME, assignee_id),
+            # Distinct literal keys, not DATA_* constants: DATA_USER_NAME and
+            # DATA_BADGE_NAME are both "name", so using them here would make the
+            # badge name silently overwrite the assignee name. get_ledger's
+            # top-level response uses literals for the same reason.
+            "assignee_id": assignee_id,
+            "assignee_name": assignee_info.get(const.DATA_USER_NAME, assignee_id),
             "badge_id": badge_id,
-            const.DATA_BADGE_NAME: badge_name,
+            "badge_name": badge_name,
             "restored_count": restored_count,
             "source": source,
             "history": dict(sorted(history.items())),

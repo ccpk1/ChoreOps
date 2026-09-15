@@ -298,23 +298,38 @@ The existing codebase follows this already — `SERVICE_FIELD_BADGE_NAME`, and
 ## Phase 3 – Tests
 
 - **Goal**: pin the history and the service contract, including the response.
+- **Status**: ✅ **Complete** (2026-09-15) — 30 tests, all passing.
 - **Steps**
-  1. New `tests/test_repair_badge_streak.py`:
-     - history records the day's count, keyed by local date
-     - history prunes to 5 entries, dropping the oldest
-     - the **pre-break value is retained** after a break (the core reason for this design)
-     - repair with no `count` restores the highest retained value
-     - repair with an explicit `count` uses it verbatim (including a value above the retained max,
+  1. ✅ New `tests/test_repair_badge_streak.py`:
+     - ✅ history records the day's count, keyed by local date
+     - ✅ history prunes to 5 entries, dropping the oldest
+     - ✅ the **pre-break value is retained** after a break (the core reason for this design)
+     - ✅ repair with no `count` restores the highest retained value
+     - ✅ repair with an explicit `count` uses it verbatim (including a value above the retained max,
        proving no cap)
-     - repair sets `last_update_day` to yesterday, and today's evaluation then **advances**
-     - empty history returns the "nothing to restore" error
-     - unknown badge / unknown user refused
-     - unauthorized caller refused
-     - response contains `history` with date and value pairs
-     - corrupt history (string, list, mixed types) degrades to empty and does not raise
-  2. Confirm no regression in `test_badge_progress_persistence.py`,
-     `test_badge_streak_schedule_awareness.py`, `test_gamification_engine.py`,
-     `test_badge_target_types.py`.
+     - ✅ repair sets `last_update_day` to yesterday, and today's evaluation then **advances**
+     - ✅ empty history returns the "nothing to restore" error
+     - ✅ unknown badge / unknown user refused
+     - ✅ unauthorized caller refused
+     - ✅ response contains `history` with date and value pairs
+     - ✅ corrupt history (string, list, mixed types) degrades to empty and does not raise
+  2. ✅ Confirmed — 375 targeted tests pass across the new suite plus
+     `test_badge_progress_persistence`, `test_badge_streak_schedule_awareness`,
+     `test_gamification_engine`, `test_badge_target_types`, `test_gamification_streak_reset`,
+     `test_missed_occurrence_authority`, `test_chore_services` and `test_translations_custom`.
+- **Defect found and fixed by the tests — response key collision.** `DATA_USER_NAME` and
+  `DATA_BADGE_NAME` are **both `"name"`**, so keying the response on those constants made the badge
+  name silently overwrite the assignee name. The event payload had the identical flaw. Two names in
+  one payload with a shared key is invisible in the dict and only surfaces on read, which is why the
+  file-level test caught it and a review would not have.
+  - **Fix:** distinct literal keys for the response (`assignee_id` / `assignee_name` / `badge_id` /
+    `badge_name`), matching `get_ledger`'s top-level convention. The event uses distinct
+    `SERVICE_FIELD_*` keys for the same reason.
+  - **The plan's guidance was wrong here.** It said to reuse `DATA_*` constants "as `get_ledger` does
+    with `DATA_USER_INTERNAL_ID` / `DATA_USER_NAME`". `get_ledger` uses those for *inner entry*
+    fields; its top-level response uses literals precisely to avoid this collision.
+  - Non-vacuity proven: reverting to the `DATA_*` keys fails both the identity test and a dedicated
+    collision test.
 - **Key issues**
   - Timezone: pin the default timezone with a `try/finally` restore (the established convention in
     `test_badge_period_end_cycles.py`), since history keys are local dates.

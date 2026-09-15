@@ -2389,6 +2389,12 @@ class AssigneeBadgeProgressSensor(ChoreOpsCoordinatorEntity, SensorEntity):
             const.DATA_USER_BADGE_PROGRESS_LAST_UPDATE_DAY: badge_progress.get(
                 const.DATA_USER_BADGE_PROGRESS_LAST_UPDATE_DAY
             ),
+            # Retained per-day streak counts, so the pre-break value stays readable
+            # after a reset to zero. Unlike the progress state above, which caps at
+            # 1.0, this is not saturated.
+            const.DATA_USER_BADGE_PROGRESS_STREAK_HISTORY: badge_progress.get(
+                const.DATA_USER_BADGE_PROGRESS_STREAK_HISTORY, {}
+            ),
             # Group 3: Target definition
             const.DATA_BADGE_TARGET_TYPE: target.get(const.DATA_BADGE_TARGET_TYPE),
             const.DATA_BADGE_TARGET_THRESHOLD_VALUE: target.get(

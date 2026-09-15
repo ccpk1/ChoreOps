@@ -3391,10 +3391,12 @@ def async_setup_services(hass: HomeAssistant):
         hass.bus.async_fire(
             const.EVENT_BADGE_STREAK_REPAIRED,
             {
-                const.DATA_USER_INTERNAL_ID: assignee_id,
-                const.DATA_USER_NAME: assignee_name,
+                # Distinct keys throughout: DATA_USER_NAME and DATA_BADGE_NAME are
+                # both "name", so mixing them here would drop one of the two.
+                const.SERVICE_FIELD_USER_ID: assignee_id,
+                const.SERVICE_FIELD_USER_NAME: assignee_name,
                 "badge_id": badge_id,
-                const.DATA_BADGE_NAME: badge_name,
+                const.SERVICE_FIELD_BADGE_NAME: badge_name,
                 "restored_count": result["restored_count"],
                 "source": result["source"],
                 const.SERVICE_FIELD_REASON: reason,
