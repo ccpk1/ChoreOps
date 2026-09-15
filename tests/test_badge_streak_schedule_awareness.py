@@ -151,14 +151,19 @@ class MatrixReplay:
         self._replay = replay
         self._frequency = frequency
         self._applicable_days = applicable_days
+        self._anchor_iso = ""
 
     @contextmanager
     def running(self, *, first_owed_day_iso: str) -> Iterator[MatrixReplay]:
         """Apply the recurrence for the duration of the block.
 
-        ``first_owed_day_iso`` supplies the initial due date; cases move it with
-        each owed day.
+        ``first_owed_day_iso`` supplies the initial due date and also anchors the
+        occurrence probe. It is the recurrence's own start, so deriving the expected
+        pattern from it is deterministic - unlike probing from the day under test,
+        which would ask whether a day is an occurrence when anchored on itself and
+        answer yes by construction.
         """
+        self._anchor_iso = first_owed_day_iso
         with self._replay.chore_schedule(
             frequency=self._frequency,
             due_date_day_iso=first_owed_day_iso,
@@ -176,45 +181,33 @@ class MatrixReplay:
 
     def assert_occurrence(self, day_iso: str, *, expected: bool) -> None:
         """Assert the recurrence agrees with the day's intent."""
-        found = self._replay.scheduled_occurrence_on(day_iso)
+        found = self._replay.scheduled_occurrence_on(
+            day_iso, anchor_iso=self._anchor_iso
+        )
         assert found is expected, (
             f"expected {'an occurrence' if expected else 'no occurrence'} on "
             f"{day_iso}, but the recurrence reported {found}"
         )
 
-    async def satisfy(self, day_iso: str, *, verify_recurrence: bool = True) -> None:
-        """Complete an occurrence day, which must advance the streak.
-
-        ``verify_recurrence`` is disabled for interval-based frequencies, where
-        the recurrence rebases on the window start and a widened probe therefore
-        reports a different phase than production evaluates (see the class
-        docstring on ``TestBiweeklySchedule``).
-        """
+    async def satisfy(self, day_iso: str) -> None:
+        """Complete an occurrence day, which must advance the streak."""
         self._replay.schedule_due_date(day_iso)
         self.assert_owed(day_iso, expected=True)
-        if verify_recurrence:
-            self.assert_occurrence(day_iso, expected=True)
+        self.assert_occurrence(day_iso, expected=True)
         await self._replay.complete_day(day_iso)
 
-    async def hold(self, day_iso: str, *, verify_recurrence: bool = True) -> None:
-        """Pass a neutral day: nothing owed, no occurrence, streak untouched.
-
-        ``verify_recurrence`` is disabled for interval-based frequencies for the
-        same reason as ``satisfy``: the occurrence probe rebases on the window
-        start and reports the wrong phase, so it cannot be an oracle there.
-        """
+    async def hold(self, day_iso: str) -> None:
+        """Pass a neutral day: nothing owed, no occurrence, streak untouched."""
         self._replay.schedule_due_date(day_key(offset_from(day_iso) + 7))
         self.assert_owed(day_iso, expected=False)
-        if verify_recurrence:
-            self.assert_occurrence(day_iso, expected=False)
+        self.assert_occurrence(day_iso, expected=False)
         await self._replay.start_day(day_iso)
 
-    async def miss(self, day_iso: str, *, verify_recurrence: bool = True) -> None:
+    async def miss(self, day_iso: str) -> None:
         """Leave an occurrence day unmet, without evaluating it as satisfied."""
         self._replay.schedule_due_date(day_iso)
         self.assert_owed(day_iso, expected=True)
-        if verify_recurrence:
-            self.assert_occurrence(day_iso, expected=True)
+        self.assert_occurrence(day_iso, expected=True)
         await self._replay.start_day(day_iso)
 
     async def evaluate(self, day_iso: str) -> None:
@@ -395,21 +388,21 @@ class TestWeeklySchedule:
 
 
 class TestBiweeklySchedule:
-    """A biweekly chore: every second week, so the week between is neutral.
-
-    The occurrence probe is disabled here. This frequency rebases on the window
-    start, and its two-week interval means the base week's parity decides which
-    Mondays are occurrences, so a window widened by a day to probe a single date
-    lands on the opposite phase. Only the streak outcome is asserted - which is
-    the behaviour that matters - rather than a probe that cannot be a valid oracle.
-    """
+    """A biweekly chore: every second week, so the week between is neutral."""
 
     async def test_fortnight_gap_holds_and_advances(
         self,
         hass: HomeAssistant,
         matrix_scenario: SetupResult,
     ) -> None:
-        """The intervening week holds, and the next occurrence advances."""
+        """The intervening week holds, and the next occurrence advances.
+
+        The occurrence assertions matter here more than anywhere else: the interval
+        is what makes the middle week neutral, so a schedule that had drifted to
+        weekly would still let the streak hold on the gap day but would break it on
+        the following occurrence, and a probe that could not see the phase would
+        never notice.
+        """
         first, second = offsets_every(14, step=14, count=2)
 
         replay, matrix = await _matrix(
@@ -419,15 +412,15 @@ class TestBiweeklySchedule:
             applicable_days=[weekday_code(day_key(first))],
         )
         with matrix.running(first_owed_day_iso=day_key(first)):
-            await matrix.satisfy(day_key(first), verify_recurrence=False)
+            await matrix.satisfy(day_key(first))
             assert replay.days_cycle_count == 1
 
-            await matrix.hold(day_key(first + 7), verify_recurrence=False)
+            await matrix.hold(day_key(first + 7))
             assert replay.days_cycle_count == 1, (
                 "the week between two biweekly occurrences broke the streak"
             )
 
-            await matrix.satisfy(day_key(second), verify_recurrence=False)
+            await matrix.satisfy(day_key(second))
             assert replay.days_cycle_count == 2, (
                 "the next biweekly occurrence did not advance the streak"
             )
@@ -450,7 +443,7 @@ class TestMonthlySchedule:
             frequency=const.FREQUENCY_MONTHLY,
         )
         with matrix.running(first_owed_day_iso=day_key(first)):
-            await matrix.satisfy(day_key(first), verify_recurrence=False)
+            await matrix.satisfy(day_key(first))
             assert replay.days_cycle_count == 1
 
             await matrix.hold(day_key((first + second) // 2))
@@ -459,7 +452,7 @@ class TestMonthlySchedule:
                 "badge inflate its count"
             )
 
-            await matrix.satisfy(day_key(second), verify_recurrence=False)
+            await matrix.satisfy(day_key(second))
             assert replay.days_cycle_count == 2, (
                 "consecutive monthly occurrences did not accumulate"
             )
