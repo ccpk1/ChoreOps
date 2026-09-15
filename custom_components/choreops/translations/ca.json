@@ -832,7 +832,7 @@
           "badge_description": "Proporcioneu una descripció de la finalitat o els criteris de la insígnia (opcional).",
           "badge_labels": "Afegeix etiquetes per categoritzar o etiquetar la insígnia (opcional).",
           "icon": "Especifiqueu una icona per a la insígnia utilitzant icones de disseny de materials (per exemple, mdi:star).",
-          "target_type": "Seleccioneu el tipus d'objectiu diari per a aquesta insígnia (per exemple, punts, recompte de tasques o dies).",
+          "target_type": "Select the type of daily target for this badge: points, chore count, or days.\n\nDays targets count only those selected chores that are due today, so a chore that is not due cannot count against the day. A day on which nothing is due does not count.\n\nThe 'Selected Chores' and 'Selected Due Chores' options therefore behave the same way.\n\nThe 'Days Minimum 3/5/7 Chores' options are the exception: they count completed chores regardless of due date, so they are unchanged.\n\nA selected chore with no schedule (one-time, no due date) counts on every day.",
           "threshold_value": "Defineix els punts diaris, el recompte de tasques o el nombre de dies necessaris per obtenir aquesta insígnia. Per als tipus d'objectiu \"Dies\", introdueix 1, ja que la insígnia s'avalua diàriament (per exemple, 1 per completar totes les tasques seleccionades en un dia).",
           "selected_chores": "Seleccioneu les tasques que contribueixen a obtenir punts per a aquesta insígnia. Deixeu-ho en blanc si voleu fer un seguiment de totes les tasques assignades (opcional).",
           "assigned_user_ids": "Assigneu aquesta insígnia a persones assignades específiques per al seguiment.",
@@ -870,7 +870,7 @@
           "badge_description": "Proporcioneu una descripció de la finalitat o els criteris de la insígnia (opcional).",
           "badge_labels": "Afegeix etiquetes per categoritzar o etiquetar la insígnia (opcional).",
           "icon": "Especifiqueu una icona per a la insígnia utilitzant icones de disseny de materials (per exemple, mdi:star).",
-          "target_type": "Seleccioneu el tipus d'objectiu per a aquesta insígnia (per exemple, punts, recompte de tasques, dies o ratxa).",
+          "target_type": "Select the type of target for this badge: points, chore count, days, or streak.\n\nStreak and Days targets count only those selected chores that are due today, so a chore that is not due cannot count against the day. A day on which nothing is due is neutral: it neither advances a streak nor breaks it.\n\nThe 'Selected Chores' and 'Selected Due Chores' options therefore behave the same way.\n\nThe 'Days Minimum 3/5/7 Chores' options are the exception: they count completed chores regardless of due date, so they are unchanged.\n\nA selected chore with no schedule (one-time, no due date) counts on every day.",
           "threshold_value": "Defineix el total de punts, el recompte de tasques o el nombre de dies (com ara per a ratxes de finalització de diverses tasques) necessaris per obtenir aquesta insígnia dins del període definit.",
           "maintenance_rules": "Especifiqueu els punts mínims necessaris durant el cicle de reinici per conservar la insígnia i el seu multiplicador actiu (opcional).",
           "occasion_type": "Trieu el tipus d'ocasió per a aquesta insígnia (per exemple, vacances, aniversari).",
@@ -1312,7 +1312,7 @@
           "badge_description": "Proporcioneu una descripció de la finalitat o els criteris de la insígnia (opcional).",
           "badge_labels": "Afegeix etiquetes per categoritzar o etiquetar la insígnia (opcional).",
           "icon": "Especifiqueu una icona per a la insígnia utilitzant icones de disseny de materials (per exemple, mdi:star).",
-          "target_type": "Seleccioneu el tipus d'objectiu diari per a aquesta insígnia (per exemple, punts, recompte de tasques o dies).",
+          "target_type": "Select the type of daily target for this badge: points, chore count, or days.\n\nDays targets count only those selected chores that are due today, so a chore that is not due cannot count against the day. A day on which nothing is due does not count.\n\nThe 'Selected Chores' and 'Selected Due Chores' options therefore behave the same way.\n\nThe 'Days Minimum 3/5/7 Chores' options are the exception: they count completed chores regardless of due date, so they are unchanged.\n\nA selected chore with no schedule (one-time, no due date) counts on every day.",
           "threshold_value": "Defineix els punts diaris, el recompte de tasques o el nombre de dies necessaris per obtenir aquesta insígnia. Per als tipus d'objectiu \"Dies\", introdueix 1, ja que la insígnia s'avalua diàriament (per exemple, 1 per completar totes les tasques seleccionades en un dia).",
           "selected_chores": "Seleccioneu les tasques que contribueixen a obtenir punts per a aquesta insígnia. Deixeu-ho en blanc si voleu fer un seguiment de totes les tasques assignades (opcional).",
           "assigned_user_ids": "Assigneu aquesta insígnia a persones assignades específiques per al seguiment.",
@@ -1350,7 +1350,7 @@
           "badge_description": "Proporcioneu una descripció de la finalitat o els criteris de la insígnia (opcional).",
           "badge_labels": "Afegeix etiquetes per categoritzar o etiquetar la insígnia (opcional).",
           "icon": "Especifiqueu una icona per a la insígnia utilitzant icones de disseny de materials (per exemple, mdi:star).",
-          "target_type": "Seleccioneu el tipus d'objectiu per a aquesta insígnia (per exemple, punts, recompte de tasques, dies o ratxa).",
+          "target_type": "Select the type of target for this badge: points, chore count, days, or streak.\n\nStreak and Days targets count only those selected chores that are due today, so a chore that is not due cannot count against the day. A day on which nothing is due is neutral: it neither advances a streak nor breaks it.\n\nThe 'Selected Chores' and 'Selected Due Chores' options therefore behave the same way.\n\nThe 'Days Minimum 3/5/7 Chores' options are the exception: they count completed chores regardless of due date, so they are unchanged.\n\nA selected chore with no schedule (one-time, no due date) counts on every day.",
           "threshold_value": "Defineix el total de punts, el recompte de tasques o el nombre de dies (com ara per a ratxes de finalització de diverses tasques) necessaris per obtenir aquesta insígnia dins del període definit.",
           "maintenance_rules": "Especifiqueu els punts mínims necessaris durant el cicle de reinici per conservar la insígnia i el seu multiplicador actiu (opcional).",
           "occasion_type": "Trieu el tipus d'ocasió per a aquesta insígnia (per exemple, vacances, aniversari).",
@@ -2761,6 +2761,51 @@
         "standby_claim_mode": {
           "name": "Mode de reclamació en espera",
           "description": "Controla quan els servidors en espera poden reclamar aquesta tasca (en qualsevol moment, en cas de venciment, només manual). Només s'aplica als criteris de finalització principals i de servidor en espera."
+        },
+        "custom_interval": {
+          "name": "Custom Interval",
+          "description": "Number of time units between repetitions when frequency is custom or custom_from_complete.",
+          "example": "6"
+        },
+        "custom_interval_unit": {
+          "name": "Custom Interval Unit",
+          "description": "Time unit used with custom_interval when frequency is custom or custom_from_complete.",
+          "example": "mesos"
+        },
+        "notify_on_claim": {
+          "name": "Notificar sobre la reclamació",
+          "description": "Send a notification when this chore is claimed. Omit to use the default (enabled).",
+          "example": "cert"
+        },
+        "notify_on_approval": {
+          "name": "Notificar en cas d'aprovació",
+          "description": "Send a notification when this chore is approved. Omit to use the default (enabled).",
+          "example": "cert"
+        },
+        "notify_on_disapproval": {
+          "name": "Notificar en cas de desaprovació",
+          "description": "Send a notification when this chore is disapproved. Omit to use the default (enabled).",
+          "example": "cert"
+        },
+        "notify_on_overdue": {
+          "name": "Notify on Overdue",
+          "description": "Send a notification when this chore becomes overdue. Omit to use the default (enabled).",
+          "example": "cert"
+        },
+        "notify_on_due_window": {
+          "name": "Notifica quan comenci el període de venciment",
+          "description": "Send a notification when this chore enters its due window. Omit to use the default (disabled).",
+          "example": "fals"
+        },
+        "notify_due_reminder": {
+          "name": "Notificar a l'hora deguda del recordatori",
+          "description": "Send a notification at the configured due reminder offset. Omit to use the default (enabled).",
+          "example": "cert"
+        },
+        "show_on_calendar": {
+          "name": "Mostrar al calendari",
+          "description": "Show this chore on the ChoreOps calendar. Omit to use the default (enabled).",
+          "example": "cert"
         }
       }
     },
@@ -2871,6 +2916,51 @@
         "standby_claim_mode": {
           "name": "Mode de reclamació en espera",
           "description": "Controla quan els servidors en espera poden reclamar aquesta tasca (en qualsevol moment, en cas de venciment, només manual). Només s'aplica als criteris de finalització principals i de servidor en espera."
+        },
+        "custom_interval": {
+          "name": "Custom Interval",
+          "description": "New number of time units between repetitions when frequency is custom or custom_from_complete.",
+          "example": "6"
+        },
+        "custom_interval_unit": {
+          "name": "Custom Interval Unit",
+          "description": "New time unit used with custom_interval when frequency is custom or custom_from_complete.",
+          "example": "mesos"
+        },
+        "notify_on_claim": {
+          "name": "Notificar sobre la reclamació",
+          "description": "Set whether to notify when this chore is claimed. Omit to leave the current setting unchanged.",
+          "example": "cert"
+        },
+        "notify_on_approval": {
+          "name": "Notificar en cas d'aprovació",
+          "description": "Set whether to notify when this chore is approved. Omit to leave the current setting unchanged.",
+          "example": "cert"
+        },
+        "notify_on_disapproval": {
+          "name": "Notificar en cas de desaprovació",
+          "description": "Set whether to notify when this chore is disapproved. Omit to leave the current setting unchanged.",
+          "example": "cert"
+        },
+        "notify_on_overdue": {
+          "name": "Notify on Overdue",
+          "description": "Set whether to notify when this chore becomes overdue. Omit to leave the current setting unchanged.",
+          "example": "cert"
+        },
+        "notify_on_due_window": {
+          "name": "Notifica quan comenci el període de venciment",
+          "description": "Set whether to notify when this chore enters its due window. Omit to leave the current setting unchanged.",
+          "example": "fals"
+        },
+        "notify_due_reminder": {
+          "name": "Notificar a l'hora deguda del recordatori",
+          "description": "Set whether to notify at the configured due reminder offset. Omit to leave the current setting unchanged.",
+          "example": "cert"
+        },
+        "show_on_calendar": {
+          "name": "Mostrar al calendari",
+          "description": "Set whether this chore appears on the ChoreOps calendar. Omit to leave the current setting unchanged.",
+          "example": "cert"
         }
       }
     },
@@ -3337,6 +3427,47 @@
           "name": "Nom de la insígnia",
           "description": "El nom de la insígnia que s'ha de retirar.",
           "example": "Mestre de tasques"
+        }
+      }
+    },
+    "repair_badge_streak": {
+      "name": "Repair Badge Streak",
+      "description": "Restore a broken badge streak. Intended for undoing a genuinely missed day - illness, travel, a family event - without editing storage by hand. Pass badge_streak_count to set a specific value, or omit it to restore the highest value retained in the last few days of history. The badge must currently track a streak, and restores beyond the retained history are not possible. No cap is applied: an admin may set any value, including onto a live streak. Restoring above the badge's threshold re-awards it on the next evaluation. Fires a choreops_badge_streak_repaired event. This service is response-first and returns JSON when called with return_response: true, including the retained history.",
+      "fields": {
+        "config_entry_id": {
+          "name": "ID d'entrada de configuració (opcional)",
+          "description": "Feu servir això si teniu més d'una configuració de ChoreOps. Està dirigit a una configuració específica.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Nom de l'entrada de configuració (opcional)",
+          "description": "Feu servir això si teniu més d'una configuració ChoreOps i cadascuna té noms únics. Si els noms es repeteixen, feu servir l'ID d'entrada de configuració.",
+          "example": "Tasques familiars"
+        },
+        "user_name": {
+          "name": "Nom d'usuari",
+          "description": "The user whose badge streak should be repaired.",
+          "example": "Bob"
+        },
+        "badge_name": {
+          "name": "Nom de la insígnia",
+          "description": "The name of the badge whose streak should be repaired.",
+          "example": "Wildfire Bronze"
+        },
+        "badge_streak_count": {
+          "name": "Streak Count (Optional)",
+          "description": "The streak value to restore. Omit to use the highest value retained in history.",
+          "example": "42"
+        },
+        "reason": {
+          "name": "Reason",
+          "description": "Why the streak is being repaired. Recorded in the log and the event.",
+          "example": "Home sick Monday"
+        },
+        "approver_name": {
+          "name": "Approver Name (Optional)",
+          "description": "Who authorised the repair. Recorded in the log and the event.",
+          "example": "John"
         }
       }
     }
@@ -5578,6 +5709,15 @@
     },
     "chore_paused": {
       "message": "El processament de tasques està actualment en pausa per a aquest usuari."
+    },
+    "badge_not_streak": {
+      "message": "Badge {name} does not track a consecutive streak, so there is no streak to repair. Days-type badges instead add up the days that qualify, so a missed day reduces nothing and there is no streak to restore."
+    },
+    "badge_streak_nothing_to_restore": {
+      "message": "Badge {name} has no retained streak history to restore from. Its recent streak values may predate this feature, or have already aged out."
+    },
+    "badge_streak_no_overdue": {
+      "message": "Badge {name} is a no-overdue badge, which resets its whole cycle on any slip by design. A repaired value would be reset again on the next evaluation. Use a streak target without the 'No Overdue' option if you want a streak that can be repaired."
     }
   }
 }

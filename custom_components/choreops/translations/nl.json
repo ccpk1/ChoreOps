@@ -832,7 +832,7 @@
           "badge_description": "Geef een beschrijving van het doel of de criteria van de badge (optioneel).",
           "badge_labels": "Voeg labels toe om de badge te categoriseren of te taggen (optioneel).",
           "icon": "Geef een pictogram op voor de badge met behulp van Material Design Icons (bijvoorbeeld mdi:star).",
-          "target_type": "Selecteer het type dagelijkse doelstelling voor deze badge (bijv. punten, aantal klusjes of dagen).",
+          "target_type": "Select the type of daily target for this badge: points, chore count, or days.\n\nDays targets count only those selected chores that are due today, so a chore that is not due cannot count against the day. A day on which nothing is due does not count.\n\nThe 'Selected Chores' and 'Selected Due Chores' options therefore behave the same way.\n\nThe 'Days Minimum 3/5/7 Chores' options are the exception: they count completed chores regardless of due date, so they are unchanged.\n\nA selected chore with no schedule (one-time, no due date) counts on every day.",
           "threshold_value": "Stel het aantal dagelijkse punten, het aantal klusjes of het aantal dagen in dat nodig is om deze badge te verdienen. Voor doelen van het type 'Dagen' voert u 1 in, aangezien de badge dagelijks wordt beoordeeld (bijvoorbeeld 1 voor het voltooien van alle geselecteerde klusjes in één dag).",
           "selected_chores": "Selecteer de klusjes die punten opleveren voor deze badge. Laat dit veld leeg als je alle toegewezen klusjes wilt bijhouden (optioneel).",
           "assigned_user_ids": "Wijs deze badge toe aan specifieke personen voor registratiedoeleinden.",
@@ -870,7 +870,7 @@
           "badge_description": "Geef een beschrijving van het doel of de criteria van de badge (optioneel).",
           "badge_labels": "Voeg labels toe om de badge te categoriseren of te taggen (optioneel).",
           "icon": "Geef een pictogram op voor de badge met behulp van Material Design Icons (bijvoorbeeld mdi:star).",
-          "target_type": "Selecteer het type doel voor deze badge (bijv. punten, aantal klusjes, dagen of reeks).",
+          "target_type": "Select the type of target for this badge: points, chore count, days, or streak.\n\nStreak and Days targets count only those selected chores that are due today, so a chore that is not due cannot count against the day. A day on which nothing is due is neutral: it neither advances a streak nor breaks it.\n\nThe 'Selected Chores' and 'Selected Due Chores' options therefore behave the same way.\n\nThe 'Days Minimum 3/5/7 Chores' options are the exception: they count completed chores regardless of due date, so they are unchanged.\n\nA selected chore with no schedule (one-time, no due date) counts on every day.",
           "threshold_value": "Stel het totale aantal punten, het aantal voltooide taken of het aantal dagen (bijvoorbeeld voor een reeks van meerdere voltooide taken) in dat nodig is om deze badge binnen de aangegeven periode te verdienen.",
           "maintenance_rules": "Geef het minimum aantal punten op dat nodig is tijdens de resetcyclus om de badge en de bijbehorende actieve vermenigvuldiger te behouden (optioneel).",
           "occasion_type": "Kies het type gelegenheid voor deze badge (bijv. feestdag, verjaardag).",
@@ -1312,7 +1312,7 @@
           "badge_description": "Geef een beschrijving van het doel of de criteria van de badge (optioneel).",
           "badge_labels": "Voeg labels toe om de badge te categoriseren of te taggen (optioneel).",
           "icon": "Geef een pictogram op voor de badge met behulp van Material Design Icons (bijvoorbeeld mdi:star).",
-          "target_type": "Selecteer het type dagelijkse doelstelling voor deze badge (bijv. punten, aantal klusjes of dagen).",
+          "target_type": "Select the type of daily target for this badge: points, chore count, or days.\n\nDays targets count only those selected chores that are due today, so a chore that is not due cannot count against the day. A day on which nothing is due does not count.\n\nThe 'Selected Chores' and 'Selected Due Chores' options therefore behave the same way.\n\nThe 'Days Minimum 3/5/7 Chores' options are the exception: they count completed chores regardless of due date, so they are unchanged.\n\nA selected chore with no schedule (one-time, no due date) counts on every day.",
           "threshold_value": "Stel het aantal dagelijkse punten, het aantal klusjes of het aantal dagen in dat nodig is om deze badge te verdienen. Voor doelen van het type 'Dagen' voert u 1 in, aangezien de badge dagelijks wordt beoordeeld (bijvoorbeeld 1 voor het voltooien van alle geselecteerde klusjes in één dag).",
           "selected_chores": "Selecteer de klusjes die punten opleveren voor deze badge. Laat dit veld leeg als je alle toegewezen klusjes wilt bijhouden (optioneel).",
           "assigned_user_ids": "Wijs deze badge toe aan specifieke personen voor registratiedoeleinden.",
@@ -1350,7 +1350,7 @@
           "badge_description": "Geef een beschrijving van het doel of de criteria van de badge (optioneel).",
           "badge_labels": "Voeg labels toe om de badge te categoriseren of te taggen (optioneel).",
           "icon": "Geef een pictogram op voor de badge met behulp van Material Design Icons (bijvoorbeeld mdi:star).",
-          "target_type": "Selecteer het type doel voor deze badge (bijv. punten, aantal klusjes, dagen of reeks).",
+          "target_type": "Select the type of target for this badge: points, chore count, days, or streak.\n\nStreak and Days targets count only those selected chores that are due today, so a chore that is not due cannot count against the day. A day on which nothing is due is neutral: it neither advances a streak nor breaks it.\n\nThe 'Selected Chores' and 'Selected Due Chores' options therefore behave the same way.\n\nThe 'Days Minimum 3/5/7 Chores' options are the exception: they count completed chores regardless of due date, so they are unchanged.\n\nA selected chore with no schedule (one-time, no due date) counts on every day.",
           "threshold_value": "Stel het totale aantal punten, het aantal voltooide taken of het aantal dagen (bijvoorbeeld voor een reeks van meerdere voltooide taken) in dat nodig is om deze badge binnen de aangegeven periode te verdienen.",
           "maintenance_rules": "Geef het minimum aantal punten op dat nodig is tijdens de resetcyclus om de badge en de bijbehorende actieve vermenigvuldiger te behouden (optioneel).",
           "occasion_type": "Kies het type gelegenheid voor deze badge (bijv. feestdag, verjaardag).",
@@ -2761,6 +2761,51 @@
         "standby_claim_mode": {
           "name": "Standby-claimmodus",
           "description": "Hiermee wordt bepaald wanneer standbys deze taak kunnen overnemen (altijd, bij achterstallige status, alleen handmatig). Dit geldt alleen voor de voltooiingscriteria van de primaire en standby-systemen."
+        },
+        "custom_interval": {
+          "name": "Custom Interval",
+          "description": "Number of time units between repetitions when frequency is custom or custom_from_complete.",
+          "example": "6"
+        },
+        "custom_interval_unit": {
+          "name": "Custom Interval Unit",
+          "description": "Time unit used with custom_interval when frequency is custom or custom_from_complete.",
+          "example": "maanden"
+        },
+        "notify_on_claim": {
+          "name": "Melden bij claim",
+          "description": "Send a notification when this chore is claimed. Omit to use the default (enabled).",
+          "example": "WAAR"
+        },
+        "notify_on_approval": {
+          "name": "Melden bij goedkeuring",
+          "description": "Send a notification when this chore is approved. Omit to use the default (enabled).",
+          "example": "WAAR"
+        },
+        "notify_on_disapproval": {
+          "name": "Melden bij afwijzing",
+          "description": "Send a notification when this chore is disapproved. Omit to use the default (enabled).",
+          "example": "WAAR"
+        },
+        "notify_on_overdue": {
+          "name": "Notify on Overdue",
+          "description": "Send a notification when this chore becomes overdue. Omit to use the default (enabled).",
+          "example": "WAAR"
+        },
+        "notify_on_due_window": {
+          "name": "Informeer wanneer de deadlineperiode ingaat",
+          "description": "Send a notification when this chore enters its due window. Omit to use the default (disabled).",
+          "example": "onjuist"
+        },
+        "notify_due_reminder": {
+          "name": "Melden op het moment van de vervaldatum",
+          "description": "Send a notification at the configured due reminder offset. Omit to use the default (enabled).",
+          "example": "WAAR"
+        },
+        "show_on_calendar": {
+          "name": "Weergeven op de kalender",
+          "description": "Show this chore on the ChoreOps calendar. Omit to use the default (enabled).",
+          "example": "WAAR"
         }
       }
     },
@@ -2871,6 +2916,51 @@
         "standby_claim_mode": {
           "name": "Standby-claimmodus",
           "description": "Hiermee wordt bepaald wanneer standbys deze taak kunnen overnemen (altijd, bij achterstallige status, alleen handmatig). Dit geldt alleen voor de voltooiingscriteria van de primaire en standby-systemen."
+        },
+        "custom_interval": {
+          "name": "Custom Interval",
+          "description": "New number of time units between repetitions when frequency is custom or custom_from_complete.",
+          "example": "6"
+        },
+        "custom_interval_unit": {
+          "name": "Custom Interval Unit",
+          "description": "New time unit used with custom_interval when frequency is custom or custom_from_complete.",
+          "example": "maanden"
+        },
+        "notify_on_claim": {
+          "name": "Melden bij claim",
+          "description": "Set whether to notify when this chore is claimed. Omit to leave the current setting unchanged.",
+          "example": "WAAR"
+        },
+        "notify_on_approval": {
+          "name": "Melden bij goedkeuring",
+          "description": "Set whether to notify when this chore is approved. Omit to leave the current setting unchanged.",
+          "example": "WAAR"
+        },
+        "notify_on_disapproval": {
+          "name": "Melden bij afwijzing",
+          "description": "Set whether to notify when this chore is disapproved. Omit to leave the current setting unchanged.",
+          "example": "WAAR"
+        },
+        "notify_on_overdue": {
+          "name": "Notify on Overdue",
+          "description": "Set whether to notify when this chore becomes overdue. Omit to leave the current setting unchanged.",
+          "example": "WAAR"
+        },
+        "notify_on_due_window": {
+          "name": "Informeer wanneer de deadlineperiode ingaat",
+          "description": "Set whether to notify when this chore enters its due window. Omit to leave the current setting unchanged.",
+          "example": "onjuist"
+        },
+        "notify_due_reminder": {
+          "name": "Melden op het moment van de vervaldatum",
+          "description": "Set whether to notify at the configured due reminder offset. Omit to leave the current setting unchanged.",
+          "example": "WAAR"
+        },
+        "show_on_calendar": {
+          "name": "Weergeven op de kalender",
+          "description": "Set whether this chore appears on the ChoreOps calendar. Omit to leave the current setting unchanged.",
+          "example": "WAAR"
         }
       }
     },
@@ -3337,6 +3427,47 @@
           "name": "Badgenaam",
           "description": "De naam van het te verwijderen insigne.",
           "example": "Knoflookmeester"
+        }
+      }
+    },
+    "repair_badge_streak": {
+      "name": "Repair Badge Streak",
+      "description": "Restore a broken badge streak. Intended for undoing a genuinely missed day - illness, travel, a family event - without editing storage by hand. Pass badge_streak_count to set a specific value, or omit it to restore the highest value retained in the last few days of history. The badge must currently track a streak, and restores beyond the retained history are not possible. No cap is applied: an admin may set any value, including onto a live streak. Restoring above the badge's threshold re-awards it on the next evaluation. Fires a choreops_badge_streak_repaired event. This service is response-first and returns JSON when called with return_response: true, including the retained history.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Configuratie-item-ID (optioneel)",
+          "description": "Gebruik dit als u meer dan één ChoreOps-configuratie hebt. Het is gericht op één specifieke configuratie.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Configuratie-itemnaam (optioneel)",
+          "description": "Gebruik dit als u meer dan één ChoreOps-configuratie hebt en deze elk een unieke naam hebben. Als de namen zich herhalen, gebruik dan de configuratie-item-ID.",
+          "example": "Huishoudelijke klusjes"
+        },
+        "user_name": {
+          "name": "Gebruikersnaam",
+          "description": "The user whose badge streak should be repaired.",
+          "example": "Bob"
+        },
+        "badge_name": {
+          "name": "Badgenaam",
+          "description": "The name of the badge whose streak should be repaired.",
+          "example": "Wildfire Bronze"
+        },
+        "badge_streak_count": {
+          "name": "Streak Count (Optional)",
+          "description": "The streak value to restore. Omit to use the highest value retained in history.",
+          "example": "42"
+        },
+        "reason": {
+          "name": "Reason",
+          "description": "Why the streak is being repaired. Recorded in the log and the event.",
+          "example": "Home sick Monday"
+        },
+        "approver_name": {
+          "name": "Approver Name (Optional)",
+          "description": "Who authorised the repair. Recorded in the log and the event.",
+          "example": "John"
         }
       }
     }
@@ -5578,6 +5709,15 @@
     },
     "chore_paused": {
       "message": "De taakverwerking is momenteel gepauzeerd voor deze gebruiker."
+    },
+    "badge_not_streak": {
+      "message": "Badge {name} does not track a consecutive streak, so there is no streak to repair. Days-type badges instead add up the days that qualify, so a missed day reduces nothing and there is no streak to restore."
+    },
+    "badge_streak_nothing_to_restore": {
+      "message": "Badge {name} has no retained streak history to restore from. Its recent streak values may predate this feature, or have already aged out."
+    },
+    "badge_streak_no_overdue": {
+      "message": "Badge {name} is a no-overdue badge, which resets its whole cycle on any slip by design. A repaired value would be reset again on the next evaluation. Use a streak target without the 'No Overdue' option if you want a streak that can be repaired."
     }
   }
 }
