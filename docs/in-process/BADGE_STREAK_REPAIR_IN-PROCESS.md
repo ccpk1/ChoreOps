@@ -40,9 +40,13 @@
      **Accepted consequence, recorded deliberately:** with no guard the service can also raise a
      *live* streak, so it is a bounded setter in addition to a repair. This is intentional, not an
      oversight.
-   - **No configurable window.** Retention is the window: the buffer holds the last 5 days, and a
-     break older than that simply has nothing to restore from. This removes the general-options
-     setting, its validation, and the config plumbing entirely.
+   - **No configurable window.** The buffer's own depth is the window: it holds the last 5 days, and a
+     break older than that has nothing to restore from. This removes the general-options setting, its
+     validation, and the config plumbing entirely.
+     ⚠️ **Do not confuse this with the existing `retention_daily` setting.** `CONF_RETENTION_DAILY`
+     (`const.py:820`, default 14, **max 90**) governs daily *period buckets* — the history behind
+     stats and charts. It is unrelated to this buffer and must not be wired to it: at 90 days the
+     repair lookback would be far longer than intended, and the two serve different purposes.
 
 ## Phase 1 – Data layer
 
@@ -53,8 +57,10 @@
 - **Steps**
   1. Add `DATA_USER_BADGE_PROGRESS_STREAK_HISTORY: Final = "streak_history"` to `const.py`, with a
      comment stating the shape: `dict[str, int]` of **local** date key → streak count for that day.
-  2. Add `STREAK_HISTORY_RETENTION_DAYS: Final = 5` with a note that this is the effective repair
-     lookback, and that there is deliberately no user-facing setting for it.
+  2. Add `STREAK_HISTORY_LOOKBACK_DAYS: Final = 5` — named for its **purpose** (how far back a repair
+     can see), deliberately not `..._RETENTION_DAYS`, so it cannot be mistaken for the unrelated
+     `CONF_RETENTION_DAILY` setting. Add a comment recording both the purpose and that there is no
+     user-facing setting for it.
   3. **Record the day's value** in the `days_cycle` evaluation path in
      `engines/gamification_engine.py` — the value must be recorded on **every** evaluation,
      including the break (where it writes the count that existed *before* zeroing), because
@@ -74,8 +80,9 @@
      `coordinator._persist_and_update()` from `GamificationManager` (see existing calls at
      `managers/gamification_manager.py:487`, `:1125`).
 - **Key issues**
-  - **Retention is the only thing bounding the lookback.** Reducing retention later silently shortens
-    the repair window, so it is a behaviour-affecting constant and should be treated as such.
+  - **Buffer depth is the only thing bounding the lookback.** It is a hardcoded constant, independent
+    of `CONF_RETENTION_DAILY`, and changing it later silently changes the repair window — so it is a
+    behaviour-affecting constant and should be treated as such.
   - Forward-only: the buffer accrues from install. A break that happens before the feature ships has
     nothing to restore from, which the service must report clearly rather than failing obscurely.
 
@@ -156,7 +163,7 @@
     `test_badge_period_end_cycles.py`), since buffer keys are local dates.
   - Any test asserting "2 days ago" must derive its keys from `dt_today_iso()` rather than hardcoding
     dates, or it will be weekday/clock dependent.
-  - Verify non-vacuity for the retention assertion: a buffer that never prunes must fail it.
+  - Verify non-vacuity for the pruning assertion: a buffer that never prunes must fail it.
 
 ## Phase 4 – Docs
 
@@ -167,7 +174,7 @@
      set any value (no cap), that it needs an admin, and that restoring above the threshold re-awards
      the badge.
   2. Note the two accepted limitations: it is **badges only**, so achievements and chore streaks over
-     the same chore are not affected; and a break older than the retention window has nothing to
+     the same chore are not affected; and a break older than the buffer's 5-day depth has nothing to
      restore from.
   3. Refresh that page's `Last Updated` footer.
   4. Release note: one entry.
