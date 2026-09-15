@@ -1884,6 +1884,215 @@ class GamificationManager(BaseManager):
             canonical_target=canonical_target,
         )
 
+    def repair_badge_streak(
+        self,
+        assignee_id: str,
+        badge_id: str,
+        *,
+        count: int | None = None,
+    ) -> dict[str, Any]:
+        """Restore a badge streak, from retained history or an explicit count.
+
+        Moves `last_update_day` back to **yesterday**. Yesterday rather than today
+        because the evaluator treats `last_update_day == today_iso` as already
+        counted, so today would hold at the restored value instead of advancing it.
+        Yesterday also leaves an empty missed-occurrence window, which retroactively
+        clears the break that prompted the repair.
+
+        No caps and no guards are applied: an admin may restore any value, including
+        onto a live streak. That is deliberate, so the service is a bounded setter as
+        well as a repair.
+
+        Args:
+            assignee_id: Assignee internal ID.
+            badge_id: Badge internal ID.
+            count: Streak value to restore. When None, the highest retained value is
+                used and `source` reports `"history"`.
+
+        Returns:
+            Response payload with the restored count, its source, and the retained
+            history.
+
+        Raises:
+            HomeAssistantError: The badge has no progress, does not track a streak,
+                or has no retained history to restore from.
+        """
+        today_iso = dt_today_iso()
+
+        assignee_info = cast(
+            "dict[str, Any]", self.coordinator.assignees_data.get(assignee_id, {})
+        )
+        badge_progress = cast(
+            "dict[str, Any]", assignee_info.get(const.DATA_USER_BADGE_PROGRESS, {})
+        )
+        badge_data = cast(
+            "dict[str, Any]", self.coordinator.badges_data.get(badge_id, {})
+        )
+        progress = badge_progress.get(badge_id)
+        badge_name = str(badge_data.get(const.DATA_BADGE_NAME, badge_id))
+
+        if not isinstance(progress, dict) or not progress:
+            raise HomeAssistantError(
+                translation_domain=const.DOMAIN,
+                translation_key=const.TRANS_KEY_ERROR_NOT_FOUND,
+                translation_placeholders={
+                    "entity_type": const.LABEL_BADGE,
+                    "name": badge_name,
+                },
+            )
+
+        # Check the target type, not the presence of a counter. `days_cycle_count`
+        # is shared with the Days family, which counts accumulated days rather than
+        # a streak, and a badge edited away from a Streak target keeps the field
+        # behind. Only the current target type answers the question.
+        badge_target_type = str(badge_data.get(const.DATA_BADGE_TARGET_TYPE, ""))
+        if badge_target_type not in const.BADGE_TARGET_TYPES_STREAK:
+            raise HomeAssistantError(
+                translation_domain=const.DOMAIN,
+                translation_key=const.TRANS_KEY_ERROR_BADGE_NOT_STREAK,
+                translation_placeholders={"name": badge_name},
+            )
+
+        # Strict "survival check" variants are refused separately, because the
+        # refusal has a different cause: they *are* streaks, but they zero from
+        # chore-level lateness (`has_overdue` / a `last_overdue` or `last_missed`
+        # timestamp since cycle start). Repair writes badge progress only, so the
+        # restored count is re-zeroed on the next evaluation. Reporting success
+        # there would be worse than refusing.
+        if badge_target_type in const.BADGE_TARGET_TYPES_NO_OVERDUE:
+            raise HomeAssistantError(
+                translation_domain=const.DOMAIN,
+                translation_key=const.TRANS_KEY_ERROR_BADGE_STREAK_NO_OVERDUE,
+                translation_placeholders={"name": badge_name},
+            )
+
+        history = self.get_badge_streak_history(progress)
+
+        if count is None:
+            # A maximum of 0 means every retained day was already broken, so there is
+            # nothing meaningful to restore — refusing beats reporting a no-op as a
+            # successful repair.
+            if not history or max(history.values()) == 0:
+                raise HomeAssistantError(
+                    translation_domain=const.DOMAIN,
+                    translation_key=const.TRANS_KEY_ERROR_BADGE_STREAK_NOTHING_TO_RESTORE,
+                    translation_placeholders={"name": badge_name},
+                )
+            restored_count = max(history.values())
+            source = "history"
+        else:
+            restored_count = count
+            source = "manual"
+
+        progress[const.DATA_USER_BADGE_PROGRESS_DAYS_CYCLE_COUNT] = restored_count
+        progress[const.DATA_USER_BADGE_PROGRESS_LAST_UPDATE_DAY] = dt_add_interval(
+            today_iso,
+            interval_unit=const.TIME_UNIT_DAYS,
+            delta=-1,
+            return_type=const.HELPER_RETURN_ISO_DATE,
+        )
+
+        self.coordinator._persist_and_update()
+
+        const.LOGGER.info(
+            "Repaired badge streak for badge '%s': count=%s source=%s history=%s",
+            badge_name,
+            restored_count,
+            source,
+            history,
+        )
+
+        return {
+            # Distinct literal keys, not DATA_* constants: DATA_USER_NAME and
+            # DATA_BADGE_NAME are both "name", so using them here would make the
+            # badge name silently overwrite the assignee name. get_ledger's
+            # top-level response uses literals for the same reason.
+            "assignee_id": assignee_id,
+            "assignee_name": assignee_info.get(const.DATA_USER_NAME, assignee_id),
+            "badge_id": badge_id,
+            "badge_name": badge_name,
+            "restored_count": restored_count,
+            "source": source,
+            "history": dict(sorted(history.items())),
+            "retention_days": const.DEFAULT_BADGE_STREAK_HISTORY_DAYS,
+        }
+
+    @staticmethod
+    def get_badge_streak_history(progress: dict[str, Any]) -> dict[str, int]:
+        """Return the retained per-day streak counts from badge progress.
+
+        The history maps LOCAL date keys ("YYYY-MM-DD") to the streak count for
+        that day, most recent days only. It exists so a broken streak's previous
+        value survives the reset to zero.
+
+        Reads defensively: a missing, wrongly typed, or partially malformed value
+        degrades to an empty history rather than raising, so corrupt data cannot
+        break badge evaluation. Non-integer counts are skipped for the same reason.
+        """
+        raw = progress.get(const.DATA_USER_BADGE_PROGRESS_STREAK_HISTORY)
+        if not isinstance(raw, dict):
+            return {}
+
+        history: dict[str, int] = {}
+        for day_iso, count in raw.items():
+            if not isinstance(day_iso, str):
+                continue
+            if isinstance(count, bool) or not isinstance(count, int):
+                continue
+            history[day_iso] = count
+        return history
+
+    @staticmethod
+    def record_badge_streak_history(
+        progress: dict[str, Any],
+        count: int,
+        today_iso: str,
+    ) -> bool:
+        """Record today's streak count, retaining the most recent days.
+
+        Written on every evaluation, including the day a streak breaks — there
+        `count` is 0. The pre-break value is not re-recorded under today's key; it
+        survives in the earlier day's entry and ages out on its own, which is what
+        bounds the repair lookback. Recording only on advance would leave nothing
+        to restore from.
+
+        A day is recorded when its key is absent or its value differs, deliberately
+        not behind the caller's "did the count change" check: a neutral day leaves
+        the count unchanged yet still needs its own key, and skipping it would leave
+        gaps that make "how many days ago" misleading.
+
+        Returns:
+            True when the history was modified, so the caller can flag persistence.
+        """
+        history = GamificationManager.get_badge_streak_history(progress)
+        if history.get(today_iso) == count:
+            return False
+
+        history[today_iso] = count
+        progress[const.DATA_USER_BADGE_PROGRESS_STREAK_HISTORY] = (
+            GamificationManager.prune_badge_streak_history(
+                history, const.DEFAULT_BADGE_STREAK_HISTORY_DAYS
+            )
+        )
+        return True
+
+    @staticmethod
+    def prune_badge_streak_history(
+        history: dict[str, int],
+        max_days: int,
+    ) -> dict[str, int]:
+        """Keep only the most recent `max_days` entries.
+
+        Keys are ISO dates, which sort correctly as strings, so the newest are
+        simply the last ones sorted. `max_days` is a parameter rather than being
+        baked in, so changing the retained depth never requires touching this code.
+        """
+        if max_days <= 0:
+            return {}
+        if len(history) <= max_days:
+            return dict(history)
+        return {day_iso: history[day_iso] for day_iso in sorted(history)[-max_days:]}
+
     def _persist_periodic_badge_progress(
         self,
         assignee_id: str,
@@ -2010,6 +2219,22 @@ class GamificationManager(BaseManager):
             days_count = int(criterion_current_value)
             if previous_days != days_count:
                 progress[const.DATA_USER_BADGE_PROGRESS_DAYS_CYCLE_COUNT] = days_count
+                changed = True
+
+            # Retain today's count, including the 0 written on a break, so the
+            # pre-break value survives in an earlier entry and can be restored.
+            # Recorded outside the change check above: a neutral day leaves the
+            # count unchanged but still needs its own key.
+            #
+            # Only for Streak targets. This bucket is shared with the Days family,
+            # whose counter is an accumulated day count rather than a streak, so
+            # recording it in `streak_history` would store a misleading value and
+            # bloat progress for badges that can never use it.
+            if target_type in const.BADGE_TARGET_TYPES_STREAK and (
+                GamificationManager.record_badge_streak_history(
+                    progress, days_count, today_iso
+                )
+            ):
                 changed = True
 
             # The anchor advances only when the streak does. A held or neutral day

@@ -352,7 +352,8 @@ SCHEMA_VERSION_BETA4: Final = 44  # Post-migration schema checkpoint.
 SCHEMA_VERSION_BETA5: Final = 45  # Legacy schema45 checkpoint.
 SCHEMA_VERSION_1_0_0: Final = 100  # First GA schema checkpoint.
 SCHEMA_VERSION_1_5_0: Final = 150  # Release 1.5.0 schema checkpoint.
-SCHEMA_VERSION_CURRENT: Final = SCHEMA_VERSION_1_5_0
+SCHEMA_VERSION_1_5_3: Final = 153  # Release 1.5.3: badge streak_history added.
+SCHEMA_VERSION_CURRENT: Final = SCHEMA_VERSION_1_5_3
 
 # Float precision for stored numeric values (points, chore stats, etc.)
 # Prevents Python float arithmetic drift (e.g., 27.499999999999996 → 27.5)
@@ -951,6 +952,11 @@ CUSTOM_INTERVAL_UNIT_OPTIONS: Final = [
 # Notifications
 NOTIFICATION_EVENT: Final = "mobile_app_notification_action"
 
+# Events fired on the Home Assistant bus for user automations.
+# Format: <domain>_<event_name>. Distinct from SIGNAL_SUFFIX_* dispatcher signals,
+# which are internal component-to-component wiring.
+EVENT_BADGE_STREAK_REPAIRED: Final = "choreops_badge_streak_repaired"
+
 # Extra entity settings
 CONF_SHOW_LEGACY_ENTITIES: Final = "show_legacy_entities"
 CONF_KIOSK_MODE: Final = "kiosk_mode"
@@ -1065,6 +1071,10 @@ DATA_USER_BADGE_PROGRESS_OVERALL_PROGRESS: Final = "overall_progress"
 DATA_USER_BADGE_PROGRESS_POINTS_CYCLE_COUNT: Final = "points_cycle_count"
 DATA_USER_BADGE_PROGRESS_RECURRING_FREQUENCY: Final = "recurring_frequency"
 DATA_USER_BADGE_PROGRESS_START_DATE: Final = "start_date"
+# Recent per-day streak counts, as {"YYYY-MM-DD": count} keyed by LOCAL date.
+# Retains the pre-break value so a broken streak can be repaired, and self-describes
+# when the break happened. Depth is DEFAULT_BADGE_STREAK_HISTORY_DAYS.
+DATA_USER_BADGE_PROGRESS_STREAK_HISTORY: Final = "streak_history"
 DATA_USER_BADGE_PROGRESS_STATUS: Final = "status"
 
 # Note: Shared fields already defined above in Common Badge Progress Fields section
@@ -1847,6 +1857,12 @@ DEFAULT_RETENTION_DAILY: Final = 14
 DEFAULT_RETENTION_WEEKLY: Final = 5
 DEFAULT_RETENTION_MONTHLY: Final = 3
 DEFAULT_RETENTION_YEARLY: Final = 3
+# How many days of badge streak history to retain. This is simultaneously the
+# storage window and the repair lookback: a break older than this has nothing to
+# restore from. Deliberately NOT named ..._RETENTION_DAYS, which is the unrelated
+# period-bucket setting (CONF_RETENTION_DAILY, max 90). May become user
+# configurable; promoting it means adding a CONF_ key and one options read.
+DEFAULT_BADGE_STREAK_HISTORY_DAYS: Final = 5
 DEFAULT_CHALLENGE_TARGET: Final = 1
 DEFAULT_CHORES_UNIT: Final = "Chores"
 DEFAULT_DAILY_RESET_TIME = {"hour": 0, "minute": 0, "second": 0}
@@ -1925,6 +1941,41 @@ BADGE_TARGET_THRESHOLD_TYPE_STREAK_80PCT_DUE_CHORES = "streak_80pct_due_chores"
 BADGE_TARGET_THRESHOLD_TYPE_STREAK_SELECTED_DUE_CHORES_NO_OVERDUE = (
     "streak_all_due_chores_no_overdue"
 )
+
+BADGE_TARGET_TYPES_STREAK: Final[frozenset[str]] = frozenset(
+    {
+        BADGE_TARGET_THRESHOLD_TYPE_STREAK_SELECTED_CHORES,
+        BADGE_TARGET_THRESHOLD_TYPE_STREAK_80PCT_CHORES,
+        BADGE_TARGET_THRESHOLD_TYPE_STREAK_SELECTED_CHORES_NO_OVERDUE,
+        BADGE_TARGET_THRESHOLD_TYPE_STREAK_80PCT_DUE_CHORES,
+        BADGE_TARGET_THRESHOLD_TYPE_STREAK_SELECTED_DUE_CHORES_NO_OVERDUE,
+    }
+)
+"""Target types that track a consecutive-run streak.
+
+Needed because `days_cycle_count` is **shared** with the Days family, which counts
+accumulated days rather than a streak. The counter's presence therefore says nothing
+about whether a badge tracks a streak — only the target type does. Used to decide
+whether streak history is worth recording.
+"""
+
+BADGE_TARGET_TYPES_NO_OVERDUE: Final[frozenset[str]] = frozenset(
+    {
+        BADGE_TARGET_THRESHOLD_TYPE_DAYS_SELECTED_CHORES_NO_OVERDUE,
+        BADGE_TARGET_THRESHOLD_TYPE_DAYS_SELECTED_DUE_CHORES_NO_OVERDUE,
+        BADGE_TARGET_THRESHOLD_TYPE_STREAK_SELECTED_CHORES_NO_OVERDUE,
+        BADGE_TARGET_THRESHOLD_TYPE_STREAK_SELECTED_DUE_CHORES_NO_OVERDUE,
+    }
+)
+"""Target types that are strict "survival checks".
+
+These zero their progress on any lateness in the cycle, and they read that lateness
+from the *chore* data (`has_overdue`, or a `last_overdue` / `last_missed` timestamp
+on or after the cycle start) — not from badge progress. Nothing written to badge
+progress can suppress it, so a repaired count is re-zeroed on the next evaluation.
+That is why a streak repair refuses these; clearing the chore lateness instead would
+falsify chore history and convert the badge into the lenient variant on demand.
+"""
 
 # Legacy
 BADGE_THRESHOLD_TYPE_CHORE_COUNT: Final = "chore_count"
@@ -2986,6 +3037,7 @@ SERVICE_DISAPPROVE_REWARD: Final = "disapprove_reward"
 
 SERVICE_REDEEM_REWARD: Final = "redeem_reward"
 SERVICE_REMOVE_AWARDED_BADGES: Final = "remove_awarded_badges"
+SERVICE_REPAIR_BADGE_STREAK: Final = "repair_badge_streak"
 SERVICE_RESET_CHORES_TO_PENDING_STATE: Final = (
     "reset_chores_to_pending_state"  # Renamed from reset_all_chores
 )
@@ -3184,6 +3236,8 @@ SERVICE_FIELD_BONUS_NAME: Final = "bonus_name"
 
 # Badge service fields
 SERVICE_FIELD_BADGE_NAME: Final = "badge_name"
+# Target streak count to restore. See the repair_badge_streak service.
+SERVICE_FIELD_BADGE_STREAK_COUNT: Final = "badge_streak_count"
 
 # Shared workflow fields
 SERVICE_FIELD_CHORE_DUE_DATE: Final = "due_date"
@@ -3392,6 +3446,11 @@ ENTITY_REGISTRY: Final[dict[str, EntityRequirement]] = {
 # These 12 templates replace 41 hardcoded f-strings in coordinator.py using placeholders
 # Format: TRANS_KEY_ERROR_{CATEGORY} with translation_placeholders for dynamic values
 TRANS_KEY_ERROR_NOT_FOUND: Final = "not_found"  # {entity_type} '{name}' not found
+TRANS_KEY_ERROR_BADGE_NOT_STREAK: Final = "badge_not_streak"
+TRANS_KEY_ERROR_BADGE_STREAK_NO_OVERDUE: Final = "badge_streak_no_overdue"
+TRANS_KEY_ERROR_BADGE_STREAK_NOTHING_TO_RESTORE: Final = (
+    "badge_streak_nothing_to_restore"
+)
 TRANS_KEY_ERROR_NOT_ASSIGNED: Final = (
     "not_assigned"  # {entity} not assigned to {assignee}
 )
@@ -3499,6 +3558,7 @@ ERROR_ACTION_APPLY_PENALTIES: Final = "apply_penalties"
 ERROR_ACTION_APPLY_BONUSES: Final = "apply_bonuses"
 ERROR_ACTION_ADJUST_POINTS: Final = "adjust_points"
 ERROR_ACTION_REMOVE_BADGES: Final = "remove_badges"
+ERROR_ACTION_REPAIR_BADGE_STREAK: Final = "repair_badge_streak"
 
 TRANS_KEY_ERROR_MSG_NO_ENTRY_FOUND: Final = "error_msg_no_entry_found"
 TRANS_KEY_ERROR_SERVICE_TARGET_AMBIGUOUS: Final = "service_target_ambiguous"

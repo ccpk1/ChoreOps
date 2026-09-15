@@ -26,7 +26,7 @@ from .helpers.auth_helpers import (
     AUTH_ACTION_PARTICIPATION,
     is_user_authorized_for_action,
 )
-from .helpers.entity_helpers import get_item_id_or_raise
+from .helpers.entity_helpers import get_item_id_by_name, get_item_id_or_raise
 from .utils.dt_utils import dt_parse
 from .utils.math_utils import parse_points_value
 
@@ -142,13 +142,31 @@ def _validate_manual_adjust_points_payload(value: dict[str, Any]) -> dict[str, A
     return value
 
 
-def _resolve_manual_adjust_assignee_id(
+def _validate_repair_badge_streak_payload(value: dict[str, Any]) -> dict[str, Any]:
+    """Validate badge streak repair payload constraints.
+
+    Requires at least one assignee identifier (`user_id` or `user_name`). The target
+    count is optional: omitted means "restore the highest retained value".
+    """
+    has_user_id = bool(value.get(const.SERVICE_FIELD_USER_ID))
+    has_user_name = bool(value.get(const.SERVICE_FIELD_USER_NAME))
+
+    if not has_user_id and not has_user_name:
+        raise vol.Invalid(
+            "One of user_id or user_name must be provided for repair_badge_streak"
+        )
+
+    return value
+
+
+def _resolve_assignee_id(
     coordinator: "ChoreOpsDataCoordinator",
     call_data: dict[str, Any],
 ) -> str:
-    """Resolve assignee ID for manual points adjustment.
+    """Resolve an assignee ID from the payload's user_id / user_name.
 
     Prefers explicit `user_id` when provided. Falls back to `user_name` lookup.
+    Raises when the resolved assignee does not exist.
     """
     provided_user_id = call_data.get(const.SERVICE_FIELD_USER_ID)
     provided_user_name = call_data.get(const.SERVICE_FIELD_USER_NAME)
@@ -478,6 +496,28 @@ MANUAL_ADJUST_POINTS_SCHEMA = vol.All(
         )
     ),
     _validate_manual_adjust_points_payload,
+)
+
+REPAIR_BADGE_STREAK_SCHEMA = vol.All(
+    vol.Schema(
+        _with_service_target_fields(
+            {
+                vol.Optional(const.SERVICE_FIELD_APPROVER_NAME): cv.string,
+                vol.Optional(const.SERVICE_FIELD_USER_ID): cv.string,
+                vol.Optional(const.SERVICE_FIELD_USER_NAME): cv.string,
+                vol.Required(const.SERVICE_FIELD_BADGE_NAME): vol.All(
+                    cv.string,
+                    vol.Length(min=1),
+                ),
+                vol.Optional(const.SERVICE_FIELD_BADGE_STREAK_COUNT): vol.All(
+                    cv.positive_int,
+                    vol.Range(min=1),
+                ),
+                vol.Optional(const.SERVICE_FIELD_REASON): cv.string,
+            }
+        )
+    ),
+    _validate_repair_badge_streak_payload,
 )
 
 # Optional filter base patterns for reset operations
@@ -3170,7 +3210,7 @@ def async_setup_services(hass: HomeAssistant):
 
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
 
-        assignee_id = _resolve_manual_adjust_assignee_id(coordinator, dict(call.data))
+        assignee_id = _resolve_assignee_id(coordinator, dict(call.data))
         assignee_name = coordinator.assignees_data[assignee_id].get(
             const.DATA_USER_NAME, assignee_id
         )
@@ -3288,6 +3328,102 @@ def async_setup_services(hass: HomeAssistant):
         const.SERVICE_REMOVE_AWARDED_BADGES,
         handle_remove_awarded_badges,
         schema=REMOVE_AWARDED_BADGES_SCHEMA,
+    )
+
+    async def handle_repair_badge_streak(call: ServiceCall) -> dict[str, Any]:
+        """Handle restoring a badge streak from retained history or a given count."""
+        entry_id = _resolve_target_entry_id(hass, dict(call.data))
+        if not entry_id:
+            const.LOGGER.warning(
+                "Repair Badge Streak: %s",
+                const.TRANS_KEY_ERROR_MSG_NO_ENTRY_FOUND,
+            )
+            return {}
+
+        coordinator = _get_coordinator_by_entry_id(hass, entry_id)
+
+        assignee_id = _resolve_assignee_id(coordinator, dict(call.data))
+        assignee_name = str(
+            coordinator.assignees_data[assignee_id].get(
+                const.DATA_USER_NAME, assignee_id
+            )
+        )
+        badge_name = str(call.data[const.SERVICE_FIELD_BADGE_NAME])
+        badge_id = get_item_id_by_name(coordinator, const.ITEM_TYPE_BADGE, badge_name)
+        if not badge_id:
+            raise HomeAssistantError(
+                translation_domain=const.DOMAIN,
+                translation_key=const.TRANS_KEY_ERROR_NOT_FOUND,
+                translation_placeholders={
+                    "entity_type": const.LABEL_BADGE,
+                    "name": badge_name,
+                },
+            )
+
+        requested_count = call.data.get(const.SERVICE_FIELD_BADGE_STREAK_COUNT)
+        reason = str(call.data.get(const.SERVICE_FIELD_REASON, ""))
+        approver_name = cast(
+            "str | None", call.data.get(const.SERVICE_FIELD_APPROVER_NAME)
+        )
+        actor_name = approver_name or "System"
+
+        user_id = call.context.user_id
+        if user_id and not await is_user_authorized_for_action(
+            hass,
+            user_id,
+            AUTH_ACTION_MANAGEMENT,
+        ):
+            const.LOGGER.warning("Repair Badge Streak: User not authorized")
+            raise HomeAssistantError(
+                translation_domain=const.DOMAIN,
+                translation_key=const.TRANS_KEY_ERROR_NOT_AUTHORIZED_ACTION,
+                translation_placeholders={
+                    "action": const.ERROR_ACTION_REPAIR_BADGE_STREAK
+                },
+            )
+
+        result = coordinator.gamification_manager.repair_badge_streak(
+            assignee_id,
+            badge_id,
+            count=int(requested_count) if requested_count is not None else None,
+        )
+
+        hass.bus.async_fire(
+            const.EVENT_BADGE_STREAK_REPAIRED,
+            {
+                # Distinct keys throughout: DATA_USER_NAME and DATA_BADGE_NAME are
+                # both "name", so mixing them here would drop one of the two.
+                const.SERVICE_FIELD_USER_ID: assignee_id,
+                const.SERVICE_FIELD_USER_NAME: assignee_name,
+                "badge_id": badge_id,
+                const.SERVICE_FIELD_BADGE_NAME: badge_name,
+                "restored_count": result["restored_count"],
+                "source": result["source"],
+                const.SERVICE_FIELD_REASON: reason,
+                const.SERVICE_FIELD_APPROVER_NAME: actor_name,
+            },
+        )
+
+        const.LOGGER.info(
+            "Badge streak repaired for assignee '%s' by '%s': badge='%s' "
+            "count=%s source=%s reason=%s",
+            assignee_name,
+            actor_name,
+            badge_name,
+            result["restored_count"],
+            result["source"],
+            reason,
+        )
+        await coordinator.async_request_refresh()
+
+        return result
+
+    hass.services.async_register(
+        const.DOMAIN,
+        const.SERVICE_REPAIR_BADGE_STREAK,
+        handle_repair_badge_streak,
+        schema=REPAIR_BADGE_STREAK_SCHEMA,
+        supports_response=SupportsResponse.OPTIONAL,
     )
 
     # ==========================================================================

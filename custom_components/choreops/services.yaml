@@ -1016,6 +1016,71 @@ remove_awarded_badges:
       selector:
         text:
 
+repair_badge_streak:
+  name: "Repair Badge Streak"
+  description: >
+    Restore a broken badge streak. Intended for undoing a genuinely missed day —
+    illness, travel, a family event — without editing storage by hand. Pass
+    badge_streak_count to set a specific value, or omit it to restore the highest
+    value retained in the last few days of history. The badge must currently track
+    a streak, and restores beyond the retained history are not possible. No cap is
+    applied: an admin may set any value, including onto a live streak. Restoring
+    above the badge's threshold re-awards it on the next evaluation. Fires a
+    choreops_badge_streak_repaired event. This service is response-first and returns
+    JSON when called with return_response: true, including the retained history.
+  fields:
+    config_entry_id:
+      name: "Config Entry ID (Optional)"
+      description: "Use this if you have more than one ChoreOps setup. It targets one specific setup."
+      required: false
+      example: "abc123def456"
+      selector:
+        text:
+    config_entry_title:
+      name: "Config Entry Name (Optional)"
+      description: "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID."
+      required: false
+      example: "Family Chores"
+      selector:
+        text:
+    user_name:
+      name: "User Name"
+      description: "The user whose badge streak should be repaired."
+      example: "Bob"
+      required: false
+      selector:
+        text:
+    badge_name:
+      name: "Badge Name"
+      description: "The name of the badge whose streak should be repaired."
+      example: "Wildfire Bronze"
+      required: true
+      selector:
+        text:
+    badge_streak_count:
+      name: "Streak Count (Optional)"
+      description: "The streak value to restore. Omit to use the highest value retained in history."
+      example: 42
+      required: false
+      selector:
+        number:
+          min: 1
+          mode: box
+    reason:
+      name: "Reason"
+      description: "Why the streak is being repaired. Recorded in the log and the event."
+      example: "Home sick Monday"
+      required: false
+      selector:
+        text:
+    approver_name:
+      name: "Approver Name (Optional)"
+      description: "Who authorised the repair. Recorded in the log and the event."
+      example: "John"
+      required: false
+      selector:
+        text:
+
 create_reward:
   name: "Create Reward"
   description: "Create a new reward that assignees can redeem using their points. Returns the reward_id of the created reward."

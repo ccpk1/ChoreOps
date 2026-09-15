@@ -508,6 +508,12 @@ class AssigneeBadgeProgress(TypedDict, total=False):
     criteria_met: NotRequired[bool]
     last_update_day: NotRequired[str]  # ISO date
 
+    # Recent per-day streak counts, keyed by LOCAL date ("YYYY-MM-DD").
+    # Retains the pre-break value so a broken streak can be repaired, and
+    # self-describes when the break happened. Bounded by
+    # DEFAULT_BADGE_STREAK_HISTORY_DAYS.
+    streak_history: NotRequired[dict[str, int]]
+
 
 class AssigneeCumulativeBadgeProgress(TypedDict, total=False):
     """Cumulative badge progress tracking for a assignee.
