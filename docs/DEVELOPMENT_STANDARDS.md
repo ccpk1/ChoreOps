@@ -678,6 +678,26 @@ rrule_str = engine.to_rrule_string()  # For iCal export
 - Calendar optimizations must preserve non-daily behavior: only DAILY and DAILY_MULTI use the 1/3 horizon cap.
 - Tests asserting period buckets must use `StatisticsEngine.get_period_keys()` (local-period source of truth), not ad hoc UTC date strings.
 
+#### Streak and Days target semantics (do not reintroduce calendar-day counting)
+
+A streak or days badge counts consecutive **eligible occurrences**, not calendar days. Getting this wrong is the entire bug class behind #294 and the follow-on schedule work, so the rules are stated here rather than only in code.
+
+- **Eligible = owed today by this assignee.** Not merely "scheduled today". Ownership decides: a rotation turn holder owes the occurrence, a standby never does (permission to help is not ownership), and a stealer does not (`steal_available` is an opportunity, not a responsibility). Use `StatisticsManager._chore_counts_toward_today`; `_is_chore_scheduled_today_for_assignee` is the date-only primitive and must not be used for badge scope. An undated one-timer (`frequency = none`, no due date) counts every day, because the calendar has no answer for it.
+- **A neutral day holds, it does not advance.** A day on which nothing is owed leaves the count untouched. This is what stops a dormant monthly badge from inflating its count, and it is deliberately unbounded — there is no maximum neutral gap.
+- **Break detection is the miss check's job, never the calendar.** A scheduled occurrence that passed unmet breaks the streak on the **following** day; on the missed day itself the occurrence has not passed yet. Because a neutral day cannot break a streak, the miss check must be evaluated on every day, including neutral ones — it is the only thing that can end a streak after a missed occurrence followed by a nothing-due day.
+
+`ChoreEngine.has_missed_occurrence_between` is the single authority for "was an occurrence missed between X and Y"; `ChoreEngine.build_schedule_config` is the single source of how a chore maps onto a recurrence. Callers supply the anchor, because the correct one differs by caller (badge streaks anchor on the badge's advance day, chore streaks on the previous completion). Both callers must state their own error policy: a chore streak treats an unusable schedule as a break, a badge streak as no miss.
+
+**The `missed_since_advance` contract has three traps** — each one was a real defect during implementation, so change them only deliberately:
+
+1. **The upper bound is the start of today, not "now."** Otherwise today's still-pending occurrence reads as missed and breaks the streak mid-day, which re-creates the #294 symptom in a new form.
+2. **The lower bound is clamped so it cannot exceed the upper bound.** An already-completed chore would otherwise yield an inverted interval.
+3. **The anchor is the badge's `last_update_day`, never the chore's `last_completed`.** Anchoring on a completion timestamp loses genuine misses, reports spurious ones for a chore added to the scope mid-streak, and breaks the percentage tolerance for deliberately skipped chores.
+
+Order is load-bearing: the miss check must run **before** the advance branch. If it runs after, a day that meets its criteria advances even though an earlier occurrence was missed.
+
+**Occurrences fall at local midnight**, and `has_missed_occurrence_between` treats both bounds as exclusive, so a window of `[day, day + 1)` contains no occurrence on the day itself. Anything probing whether a given day carries an occurrence must widen the window. Note also that the recurrence **rebases on the anchor**, so a widened probe is not a valid oracle for interval frequencies such as `biweekly`.
+
 ---
 
 ### 5. Code Quality & Performance Standards

@@ -1414,6 +1414,11 @@ class GamificationManager(BaseManager):
         current_badge_progress = cast(
             "dict[str, Any]", badge_progress.get(badge_id, {})
         )
+        last_update_day_iso = str(
+            current_badge_progress.get(
+                const.DATA_USER_BADGE_PROGRESS_LAST_UPDATE_DAY, ""
+            )
+        )
 
         tracked_chores = canonical_target.get(
             "tracked_chore_ids"
@@ -1424,6 +1429,15 @@ class GamificationManager(BaseManager):
             tracked_chores,
             today_iso=today_iso,
             current_badge_progress=current_badge_progress,
+        )
+        # One miss check serves both scope variants: the answer depends on the
+        # badge's advance day, not on the chore scope.
+        missed_since_advance = (
+            self.coordinator.statistics_manager.has_missed_occurrence_since_advance(
+                tracked_chores,
+                last_update_day_iso=last_update_day_iso,
+                today_iso=today_iso,
+            )
         )
         reset_schedule = cast(
             "dict[str, Any]",
@@ -1464,6 +1478,8 @@ class GamificationManager(BaseManager):
                 today_iso=today_iso,
                 cycle_start_iso=cycle_start_iso,
                 only_due_today=False,
+                last_update_day_iso=last_update_day_iso,
+                missed_since_advance=missed_since_advance,
             )
         )
         today_completion_due = (
@@ -1473,6 +1489,8 @@ class GamificationManager(BaseManager):
                 today_iso=today_iso,
                 cycle_start_iso=cycle_start_iso,
                 only_due_today=True,
+                last_update_day_iso=last_update_day_iso,
+                missed_since_advance=missed_since_advance,
             )
         )
 
@@ -1992,15 +2010,19 @@ class GamificationManager(BaseManager):
                 progress[const.DATA_USER_BADGE_PROGRESS_DAYS_CYCLE_COUNT] = days_count
                 changed = True
 
+            # The anchor advances only when the streak does. A held or neutral day
+            # must leave it alone, because it bounds the missed-occurrence window:
+            # moving it forward would skip over an occurrence that was missed.
             previous_update_day = str(
                 progress.get(const.DATA_USER_BADGE_PROGRESS_LAST_UPDATE_DAY, "")
             )
-            if days_count > 0 and (
-                days_count != previous_days or previous_update_day == today_iso
+            if (
+                days_count > 0
+                and days_count != previous_days
+                and previous_update_day != today_iso
             ):
-                if previous_update_day != today_iso:
-                    progress[const.DATA_USER_BADGE_PROGRESS_LAST_UPDATE_DAY] = today_iso
-                    changed = True
+                progress[const.DATA_USER_BADGE_PROGRESS_LAST_UPDATE_DAY] = today_iso
+                changed = True
 
         elif persist_bucket == "unknown":
             const.LOGGER.warning(

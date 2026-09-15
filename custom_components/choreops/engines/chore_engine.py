@@ -1428,6 +1428,124 @@ class ChoreEngine:
     # =========================================================================
 
     @staticmethod
+    def build_schedule_config(
+        chore_data: ChoreData | dict[str, Any],
+        *,
+        base_date_iso: str,
+    ) -> ScheduleConfig:
+        """Build a RecurrenceEngine schedule config from chore scheduling fields.
+
+        Single source of truth for how a chore's frequency, interval and
+        applicable days map onto a recurrence schedule. Shared so schedule
+        evaluation cannot drift between callers.
+
+        Args:
+            chore_data: Chore definition containing the scheduling fields.
+            base_date_iso: ISO timestamp anchoring the recurrence window.
+
+        Returns:
+            ScheduleConfig ready for RecurrenceEngine.
+        """
+        # Convert day names to integers if needed (RecurrenceEngine expects ints)
+        applicable_days_int: list[int] = []
+        for day in chore_data.get(const.DATA_CHORE_APPLICABLE_DAYS, []):
+            if isinstance(day, str):
+                day_int = const.WEEKDAY_NAME_TO_INT.get(day.lower())
+                if day_int is not None:
+                    applicable_days_int.append(day_int)
+            elif isinstance(day, int):
+                applicable_days_int.append(day)
+
+        interval_raw = chore_data.get(const.DATA_CHORE_CUSTOM_INTERVAL)
+        interval_unit_raw = chore_data.get(const.DATA_CHORE_CUSTOM_INTERVAL_UNIT)
+        daily_multi_raw = chore_data.get(const.DATA_CHORE_DAILY_MULTI_TIMES)
+
+        return {
+            "frequency": str(
+                chore_data.get(
+                    const.DATA_CHORE_RECURRING_FREQUENCY, const.FREQUENCY_NONE
+                )
+            ),
+            "interval": int(interval_raw) if interval_raw else 1,
+            "interval_unit": str(interval_unit_raw)
+            if interval_unit_raw
+            else const.TIME_UNIT_DAYS,
+            "base_date": base_date_iso,
+            "applicable_days": applicable_days_int,
+            "daily_multi_times": str(daily_multi_raw) if daily_multi_raw else "",
+        }
+
+    @staticmethod
+    def has_missed_occurrence_between(
+        chore_data: ChoreData | dict[str, Any],
+        *,
+        window_start_utc: datetime,
+        window_end_utc: datetime,
+        unusable_schedule_counts_as_miss: bool = False,
+    ) -> bool:
+        """Check whether a scheduled occurrence went unmet inside a window.
+
+        Single authority for missed-occurrence detection. Callers own the anchor,
+        because the correct one genuinely differs: chore-level streaks anchor on
+        the previous completion, while badge streaks anchor on the day the badge
+        streak last advanced. This method owns *how* a miss is detected, not
+        *when* to look.
+
+        Day-based schedules are normalised to local day boundaries so a DST shift
+        between two consecutive dates does not look like a skipped occurrence.
+        Sub-day schedules (hour/minute intervals, `daily_multi`) are exempt, since
+        their occurrences are not day-aligned.
+
+        Args:
+            chore_data: Chore definition containing the scheduling fields.
+            window_start_utc: Exclusive lower bound (UTC).
+            window_end_utc: Exclusive upper bound (UTC).
+            unusable_schedule_counts_as_miss: What to report when the schedule
+                cannot be evaluated. The two callers deliberately differ: a chore
+                streak treats it as a break (conservative), a badge streak as no
+                miss (never break a valid streak over unusable data).
+
+        Returns:
+            True when at least one scheduled occurrence fell inside the window.
+        """
+        from .schedule_engine import RecurrenceEngine
+
+        if window_start_utc >= window_end_utc:
+            return False
+
+        frequency = chore_data.get(
+            const.DATA_CHORE_RECURRING_FREQUENCY, const.FREQUENCY_NONE
+        )
+        # An open-ended chore has no occurrences to miss. Its streak decay is a
+        # separate calendar rule, deliberately not unified here.
+        if frequency == const.FREQUENCY_NONE:
+            return False
+
+        interval_unit = chore_data.get(
+            const.DATA_CHORE_CUSTOM_INTERVAL_UNIT, const.TIME_UNIT_DAYS
+        )
+
+        window_start = window_start_utc
+        window_end = window_end_utc
+        if frequency != const.FREQUENCY_DAILY_MULTI and interval_unit not in (
+            const.TIME_UNIT_HOURS,
+            const.TIME_UNIT_MINUTES,
+        ):
+            window_start = as_utc(start_of_local_day(window_start))
+            window_end = as_utc(start_of_local_day(window_end))
+
+        schedule_config = ChoreEngine.build_schedule_config(
+            chore_data,
+            base_date_iso=window_start.isoformat(),
+        )
+        try:
+            engine = RecurrenceEngine(schedule_config)
+        except (ValueError, KeyError, TypeError):
+            return unusable_schedule_counts_as_miss
+
+        return engine.has_missed_occurrences(window_start, window_end)
+
+    @staticmethod
     def calculate_streak(
         current_streak: int,
         previous_last_completed_iso: str | None,
@@ -1449,7 +1567,6 @@ class ChoreEngine:
             New streak value: 1 if first completion or streak broken,
                              current_streak + 1 if on-time
         """
-        from .schedule_engine import RecurrenceEngine
 
         # First completion ever = streak of 1
         if not previous_last_completed_iso:
@@ -1458,9 +1575,6 @@ class ChoreEngine:
         # Get schedule configuration from chore
         frequency = chore_data.get(
             const.DATA_CHORE_RECURRING_FREQUENCY, const.FREQUENCY_NONE
-        )
-        interval_unit = chore_data.get(
-            const.DATA_CHORE_CUSTOM_INTERVAL_UNIT, const.TIME_UNIT_DAYS
         )
 
         # No schedule (manual/one-time chore) = simple daily logic
@@ -1482,59 +1596,15 @@ class ChoreEngine:
         if not prev_dt or not current_dt:
             return 1  # Can't calculate, reset streak
 
-        schedule_prev_dt = prev_dt
-        schedule_current_dt = current_dt
-
-        # Streak continuity is based on work dates, not exact wall-clock deltas.
-        # Normalize day-based schedules to local day boundaries so DST shifts do
-        # not create phantom missed occurrences between consecutive dates.
-        if frequency != const.FREQUENCY_DAILY_MULTI and interval_unit not in (
-            const.TIME_UNIT_HOURS,
-            const.TIME_UNIT_MINUTES,
+        if ChoreEngine.has_missed_occurrence_between(
+            chore_data,
+            window_start_utc=prev_dt,
+            window_end_utc=current_dt,
+            unusable_schedule_counts_as_miss=True,
         ):
-            schedule_prev_dt = as_utc(start_of_local_day(prev_dt))
-            schedule_current_dt = as_utc(start_of_local_day(current_dt))
+            return 1  # Missed a scheduled occurrence, streak broke
 
-        # Build schedule config for RecurrenceEngine
-        applicable_days = chore_data.get(const.DATA_CHORE_APPLICABLE_DAYS, [])
-        # Convert day names to integers if needed (RecurrenceEngine expects ints)
-        applicable_days_int: list[int] = []
-        for d in applicable_days:
-            if isinstance(d, str):
-                day_int = const.WEEKDAY_NAME_TO_INT.get(d.lower())
-                if day_int is not None:
-                    applicable_days_int.append(day_int)
-            elif isinstance(d, int):
-                applicable_days_int.append(d)
-
-        # Build config dict - use explicit values to satisfy type checker
-        interval_raw = chore_data.get(const.DATA_CHORE_CUSTOM_INTERVAL)
-        interval_unit_raw = chore_data.get(const.DATA_CHORE_CUSTOM_INTERVAL_UNIT)
-        daily_multi_raw = chore_data.get(const.DATA_CHORE_DAILY_MULTI_TIMES)
-
-        schedule_config: ScheduleConfig = {
-            "frequency": str(frequency),
-            "interval": int(interval_raw) if interval_raw else 1,
-            "interval_unit": str(interval_unit_raw)
-            if interval_unit_raw
-            else const.TIME_UNIT_DAYS,
-            "base_date": schedule_prev_dt.isoformat(),
-            "applicable_days": applicable_days_int,
-            "daily_multi_times": str(daily_multi_raw) if daily_multi_raw else "",
-        }
-
-        try:
-            engine = RecurrenceEngine(schedule_config)
-
-            # Check if any scheduled occurrences were missed
-            if engine.has_missed_occurrences(schedule_prev_dt, schedule_current_dt):
-                return 1  # Broke streak
-
-            return current_streak + 1  # On-time, continue streak
-
-        except Exception:
-            # If schedule calculation fails, fallback to simple daily logic
-            return 1
+        return current_streak + 1  # On-time, continue streak
 
     # =========================================================================
     # TIMER BOUNDARY DECISION METHODS

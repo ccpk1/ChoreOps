@@ -682,7 +682,7 @@ The `engines/schedule.py` module provides a unified scheduling system for chores
 
 ### RecurrenceEngine Class
 
-**Location**: `custom_components/choreops/engines/schedule.py`
+**Location**: `custom_components/choreops/engines/schedule_engine.py`
 
 **Key Methods**:
 
@@ -698,6 +698,15 @@ The `engines/schedule.py` module provides a unified scheduling system for chores
 - `FREQUENCY_CUSTOM_FROM_COMPLETE_DATE_ONLY` — Reschedule from completion date but preserve original due time. Prevents time drift when chores are completed late — the due date advances from completion, but the time stays at the originally scheduled time.
 
 **Data Flow**: coordinator → RecurrenceEngine.get_occurrences() → calendar events (with RRULE) → entity_helpers adapters → chore/badge logic
+
+**Shared schedule-config builder and miss authority**:
+
+Chore scheduling fields are mapped onto a recurrence in exactly one place, `ChoreEngine.build_schedule_config` (`engines/chore_engine.py`), so schedule evaluation cannot drift between callers. `ChoreEngine.has_missed_occurrence_between` is the single authority for "was an occurrence missed between X and Y", and it wraps that builder plus the day-boundary normalisation that DST-safety requires:
+
+- Day-based schedules are normalised to local day boundaries, so a DST shift between consecutive dates does not look like a skipped occurrence.
+- Sub-day schedules (`daily_multi`, and hour/minute interval units) are exempt, since their occurrences are not day-aligned.
+
+Callers own the anchor, because the correct one genuinely differs: badge streaks anchor on the badge's advance day, chore streaks on the previous completion. Callers also own the error policy, for the same reason — a chore streak treats an unusable schedule as a break, while a badge streak treats it as no miss so bad data cannot break a valid streak. See [DEVELOPMENT_STANDARDS.md](DEVELOPMENT_STANDARDS.md) for the full streak and days target semantics.
 
 ### iCal Compatibility
 

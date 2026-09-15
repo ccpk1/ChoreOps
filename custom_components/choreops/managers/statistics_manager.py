@@ -33,13 +33,22 @@ Cache Architecture:
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, time
 from typing import TYPE_CHECKING, Any, cast
 
 from homeassistant.core import callback
 
 from .. import const
-from ..utils.dt_utils import dt_add_interval, dt_local_date_iso, dt_now_local, dt_parse
+from ..engines.chore_engine import ChoreEngine
+from ..utils.dt_utils import (
+    as_utc,
+    dt_add_interval,
+    dt_local_date_iso,
+    dt_now_local,
+    dt_parse,
+    dt_parse_date,
+    get_default_timezone,
+)
 from ..utils.math_utils import calculate_average
 from .base_manager import BaseManager
 
@@ -50,7 +59,7 @@ if TYPE_CHECKING:
 
     from ..coordinator import ChoreOpsDataCoordinator
     from ..engines.statistics_engine import StatisticsEngine
-    from ..type_defs import ChoreData
+    from ..type_defs import BadgeScopedCompletionSnapshot, ChoreData
 
 
 __all__ = ["StatisticsManager"]
@@ -2539,7 +2548,9 @@ class StatisticsManager(BaseManager):
         today_iso: str,
         cycle_start_iso: str,
         only_due_today: bool,
-    ) -> dict[str, Any]:
+        last_update_day_iso: str = "",
+        missed_since_advance: bool | None = None,
+    ) -> BadgeScopedCompletionSnapshot:
         """Get badge-scoped completion snapshot for today.
 
         Tenant-owned period read helper for GamificationManager.
@@ -2551,19 +2562,33 @@ class StatisticsManager(BaseManager):
             cycle_start_iso: First local date of the badge cycle (YYYY-MM-DD).
                 Lets lateness anywhere in the cycle count, not just today.
             only_due_today: If True, include only chores due today.
+            last_update_day_iso: Day the badge streak last advanced. Bounds the
+                missed-occurrence window; empty means no window to evaluate.
+            missed_since_advance: Precomputed miss result. Callers that build both
+                scope variants of the same badge pass it so the check runs once;
+                `None` computes it.
 
         Returns:
-            Dict with keys: approved_count, total_count, has_overdue, cycle_failed.
+            Dict with keys: approved_count, total_count, due_count,
+                approved_due_today, has_overdue, cycle_failed,
+                missed_since_advance.
+                `due_count` and `approved_due_today` express the eligible scope,
+                where a chore only counts when it is actionable today.
                 `cycle_failed` is True when a tracked chore went overdue or was
                 missed on or after `cycle_start_iso`, even if since resolved.
+                `missed_since_advance` is True when an occurrence passed unmet
+                since the streak last advanced.
         """
         assignee_info = self._get_assignee(assignee_id)
         if not assignee_info:
             return {
                 "approved_count": 0,
                 "total_count": 0,
+                "due_count": 0,
+                "approved_due_today": 0,
                 "has_overdue": False,
                 "cycle_failed": False,
+                "missed_since_advance": False,
             }
 
         chore_data = cast(
@@ -2572,6 +2597,8 @@ class StatisticsManager(BaseManager):
 
         approved_count = 0
         total_count = 0
+        due_count = 0
+        approved_due_today = 0
         has_overdue = False
         cycle_failed = False
 
@@ -2579,9 +2606,10 @@ class StatisticsManager(BaseManager):
             chore_info = cast(
                 "dict[str, Any]", self.coordinator.chores_data.get(chore_id, {})
             )
-            if only_due_today and not self._is_chore_due_today_for_assignee(
-                chore_info, assignee_id, today_iso
-            ):
+            due_today = self._chore_counts_toward_today(
+                chore_id, chore_info, assignee_id, today_iso
+            )
+            if only_due_today and not due_today:
                 continue
 
             chore_entry = cast("dict[str, Any]", chore_data.get(chore_id, {}))
@@ -2591,6 +2619,8 @@ class StatisticsManager(BaseManager):
             )
 
             total_count += 1
+            if due_today:
+                due_count += 1
 
             approved_today = int(
                 self._stats_engine.get_period_total(
@@ -2602,6 +2632,8 @@ class StatisticsManager(BaseManager):
             )
             if approved_today > 0:
                 approved_count += 1
+                if due_today:
+                    approved_due_today += 1
 
             if (
                 chore_entry.get(const.DATA_USER_CHORE_DATA_STATE)
@@ -2625,17 +2657,151 @@ class StatisticsManager(BaseManager):
         return {
             "approved_count": approved_count,
             "total_count": total_count,
+            "due_count": due_count,
+            "approved_due_today": approved_due_today,
             "has_overdue": has_overdue,
             "cycle_failed": cycle_failed,
+            "missed_since_advance": (
+                self.has_missed_occurrence_since_advance(
+                    tracked_chores,
+                    last_update_day_iso=last_update_day_iso,
+                    today_iso=today_iso,
+                )
+                if missed_since_advance is None
+                else missed_since_advance
+            ),
         }
 
-    def _is_chore_due_today_for_assignee(
+    def has_missed_occurrence_since_advance(
+        self,
+        tracked_chores: list[str],
+        *,
+        last_update_day_iso: str,
+        today_iso: str,
+    ) -> bool:
+        """Return True when a tracked chore missed a scheduled occurrence.
+
+        Backstop for windows that were never evaluated (HA down, catch-up gaps,
+        neutral stretches after a failed day). Days that were evaluated are
+        covered by the day-level rules, so the window is bounded by the streak's
+        own advance day rather than a chore's completion timestamp: occurrences
+        belonging to an already-evaluated day fall before the anchor and cannot
+        break the streak, which is what lets percentage variants tolerate a
+        deliberately skipped chore.
+
+        The upper bound is the start of today, never "now", so today's
+        still-pending occurrence is not treated as missed.
+
+        Args:
+            tracked_chores: Chore IDs in scope for the badge.
+            last_update_day_iso: Day the streak last advanced (may be empty).
+            today_iso: Today's local date key.
+
+        Returns:
+            True when at least one occurrence passed unmet since the anchor.
+            False when there is no window to evaluate or on unparseable input,
+            so a valid streak is never wrongly broken.
+        """
+        anchor_date = dt_parse_date(last_update_day_iso)
+        today_date = dt_parse_date(today_iso)
+        if anchor_date is None or today_date is None or anchor_date >= today_date:
+            return False
+
+        local_tz = get_default_timezone()
+        window_start = as_utc(datetime.combine(anchor_date, time.min, tzinfo=local_tz))
+        window_end = as_utc(datetime.combine(today_date, time.min, tzinfo=local_tz))
+
+        for chore_id in tracked_chores:
+            chore_info = cast(
+                "dict[str, Any]", self.coordinator.chores_data.get(chore_id, {})
+            )
+            if not chore_info:
+                continue
+
+            if ChoreEngine.has_missed_occurrence_between(
+                chore_info,
+                window_start_utc=window_start,
+                window_end_utc=window_end,
+            ):
+                return True
+
+        return False
+
+    def _chore_counts_toward_today(
+        self,
+        chore_id: str,
+        chore_info: dict[str, Any],
+        assignee_id: str,
+        today_iso: str,
+    ) -> bool:
+        """Return True when a chore forms part of the assignee's obligation today.
+
+        Stricter than the schedule primitive below: a chore only counts when the
+        assignee still holds it and it is genuinely theirs to do. A rotation chore
+        whose turn belongs to another assignee cannot be completed by this
+        assignee, so charging them for it would make the day unsatisfiable.
+
+        Uses the **claim mode** rather than the display state, because that is the
+        field encoding whether the chore belongs to this assignee. A
+        primary/standby chore reports `standby` both for a standby that may claim
+        and one that may not; only the claim mode separates them, and neither is
+        the standby's obligation — permission to help is not ownership.
+
+        Args:
+            chore_id: Chore internal ID.
+            chore_info: Chore definition.
+            assignee_id: Assignee internal ID.
+            today_iso: Today's local date key.
+
+        Returns:
+            True when the chore counts toward the assignee's day.
+        """
+        # Stale per-assignee entries can survive an assignment change, which
+        # used to inflate the dashboard's due-today count (issue #205).
+        if assignee_id not in chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, []):
+            return False
+
+        if not (
+            self._is_chore_scheduled_today_for_assignee(
+                chore_info, assignee_id, today_iso
+            )
+            or self._is_undated_one_timer(chore_info, assignee_id)
+        ):
+            return False
+
+        status_context = self.coordinator.chore_manager.get_chore_status_context(
+            assignee_id, chore_id
+        )
+        claim_mode = str(status_context.get(const.CHORE_CTX_CLAIM_MODE) or "")
+
+        if claim_mode in const.CHORE_CLAIM_MODES_COUNTING_TOWARD_DAY:
+            return True
+
+        if claim_mode == const.CHORE_CLAIM_MODE_BLOCKED_COMPLETED_BY_OTHER:
+            # Someone else did the work. That discharges the obligation only when
+            # one completion satisfies the chore for everyone (`shared_first`),
+            # where the non-completer was never on the hook personally. For a
+            # rotation-type chore it does not: the turn holder did not do their
+            # turn, so a standby covering for them is not their credit.
+            return ChoreEngine.is_rotation_mode(chore_info) and assignee_id == str(
+                chore_info.get(const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID)
+            )
+
+        return False
+
+    def _is_chore_scheduled_today_for_assignee(
         self,
         chore_info: dict[str, Any],
         assignee_id: str,
         today_iso: str,
     ) -> bool:
-        """Return True if this chore is assignee-actionable today."""
+        """Return True when a chore's schedule puts it on today for the assignee.
+
+        Schedule primitive only: it answers whether the calendar says the chore
+        falls on today. It says nothing about whether this assignee is the one
+        who owes it (turn order, standby) or can still act on it. Badge
+        eligibility must use `_chore_counts_toward_today` instead.
+        """
         # Pause guard: Paused users have no actionable chores
         user_data = self.coordinator._data.get(const.DATA_USERS, {}).get(
             assignee_id, {}
@@ -2657,6 +2823,32 @@ class StatisticsManager(BaseManager):
             chore_info,
             assignee_id,
         )
+
+    @staticmethod
+    def _is_undated_one_timer(
+        chore_info: dict[str, Any],
+        assignee_id: str,
+    ) -> bool:
+        """Return True for an open one-timer with no date at all.
+
+        Such a chore has no schedule to say when it is due, so the schedule
+        primitive reports it as never on today. It is nonetheless owed: excluding
+        it would silently drop a chore the user explicitly selected, and a badge
+        scoped only to these chores would have an eligible count of zero every day
+        and neither advance nor break. It therefore counts every day, and keeps
+        counting once approved, like any other chore in scope.
+        """
+        if chore_info.get(const.DATA_CHORE_RECURRING_FREQUENCY) != const.FREQUENCY_NONE:
+            return False
+
+        per_assignee_due_dates = cast(
+            "dict[str, str | None]",
+            chore_info.get(const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {}),
+        )
+        due_date = per_assignee_due_dates.get(assignee_id) or chore_info.get(
+            const.DATA_CHORE_DUE_DATE
+        )
+        return due_date is None
 
     # =========================================================================
     # Presentation Cache Methods

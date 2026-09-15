@@ -2053,6 +2053,55 @@ CHORE_CLAIM_MODES: Final[frozenset[str]] = frozenset(
     }
 )
 
+CHORE_CLAIM_MODES_COUNTING_TOWARD_DAY: Final[frozenset[str]] = frozenset(
+    {
+        # This assignee's own chore (or their rotation turn), open to them.
+        CHORE_CLAIM_MODE_CLAIMABLE,
+        # This assignee already completed it.
+        CHORE_CLAIM_MODE_BLOCKED_ALREADY_APPROVED,
+        # This assignee claimed it and it awaits approval.
+        CHORE_CLAIM_MODE_BLOCKED_PENDING_CLAIM,
+        # This assignee's chore, claim window not open yet.
+        CHORE_CLAIM_MODE_BLOCKED_WAITING_WINDOW,
+        # This assignee's chore, locked after being missed.
+        CHORE_CLAIM_MODE_BLOCKED_MISSED_LOCKED,
+    }
+)
+"""Claim modes where the chore forms part of this assignee's obligation today.
+
+An explicit allow-list, so an unclassified mode is not charged against anyone
+until it is reviewed deliberately. `CHORE_CLAIM_MODES_NOT_COUNTING_TOWARD_DAY`
+is the explicit complement, and `CHORE_CLAIM_MODE_BLOCKED_COMPLETED_BY_OTHER` is
+resolved in context. A completeness test asserts the three groups partition
+`CHORE_CLAIM_MODES`, so adding a new mode forces a decision.
+"""
+
+CHORE_CLAIM_MODES_NOT_COUNTING_TOWARD_DAY: Final[frozenset[str]] = frozenset(
+    {
+        # An opportunity to help with someone else's late chore, not this
+        # assignee's responsibility - taking it is a bonus, skipping it is not a
+        # failure.
+        CHORE_CLAIM_MODE_STEAL_AVAILABLE,
+        # Another assignee holds the rotation turn.
+        CHORE_CLAIM_MODE_BLOCKED_NOT_MY_TURN,
+        # Standby whose claim mode does not let it act.
+        CHORE_CLAIM_MODE_BLOCKED_STANDBY,
+        # A primary/standby chore never belongs to a standby, even when its
+        # standby_claim_mode permits claiming at any time - that is permission to
+        # help, not ownership. Only the turn holder owns it.
+        CHORE_CLAIM_MODE_STANDBY_AVAILABLE,
+        # Chore processing is suspended for this assignee.
+        CHORE_CLAIM_MODE_BLOCKED_PAUSED,
+    }
+)
+"""Claim modes that never count toward the day, whatever the chore's criteria.
+
+`CHORE_CLAIM_MODE_BLOCKED_COMPLETED_BY_OTHER` is deliberately absent: whether
+someone else completing the chore discharges this assignee's obligation depends on
+the completion criteria, so it is resolved in context by
+`StatisticsManager._chore_counts_toward_today` rather than classified here.
+"""
+
 # Chore status context keys (get_chore_status_context return contract)
 CHORE_CTX_STATE: Final = "state"
 CHORE_CTX_STORED_STATE: Final = "stored_state"
