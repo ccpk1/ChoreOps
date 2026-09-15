@@ -2761,8 +2761,11 @@ class StatisticsManager(BaseManager):
         if assignee_id not in chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, []):
             return False
 
-        if not self._is_chore_scheduled_today_for_assignee(
-            chore_info, assignee_id, today_iso
+        if not (
+            self._is_chore_scheduled_today_for_assignee(
+                chore_info, assignee_id, today_iso
+            )
+            or self._is_undated_one_timer(chore_info, assignee_id)
         ):
             return False
 
@@ -2820,6 +2823,32 @@ class StatisticsManager(BaseManager):
             chore_info,
             assignee_id,
         )
+
+    @staticmethod
+    def _is_undated_one_timer(
+        chore_info: dict[str, Any],
+        assignee_id: str,
+    ) -> bool:
+        """Return True for an open one-timer with no date at all.
+
+        Such a chore has no schedule to say when it is due, so the schedule
+        primitive reports it as never on today. It is nonetheless owed: excluding
+        it would silently drop a chore the user explicitly selected, and a badge
+        scoped only to these chores would have an eligible count of zero every day
+        and neither advance nor break. It therefore counts every day, and keeps
+        counting once approved, like any other chore in scope.
+        """
+        if chore_info.get(const.DATA_CHORE_RECURRING_FREQUENCY) != const.FREQUENCY_NONE:
+            return False
+
+        per_assignee_due_dates = cast(
+            "dict[str, str | None]",
+            chore_info.get(const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {}),
+        )
+        due_date = per_assignee_due_dates.get(assignee_id) or chore_info.get(
+            const.DATA_CHORE_DUE_DATE
+        )
+        return due_date is None
 
     # =========================================================================
     # Presentation Cache Methods

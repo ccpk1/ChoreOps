@@ -7,8 +7,8 @@
   **together in one release** (decided 2026-09-14). From the user's perspective this is one bug
   ("streak badges don't work"); the analysis just found several distinct defects behind it.
 - **Owner / driver(s)**: ChoreOps maintainer + ChoreOps Builder (ChoreOps Test Builder for Phase 4)
-- **Status**: In progress — Phases 0, 1, 1B, 1C, 2 and 3 committed; **Phase 4 next**; Phases 4–6 not
-  started. All decisions resolved (14 total, one deferred).
+- **Status**: In progress — Phases 0, 1, 1B, 1C, 2, 3 and **4** committed or complete; **Phase 5
+  next**; Phases 5–6 not started. All decisions resolved (17 total, none deferred except Phase 6).
 - **Branch / delivery**: `ccpk1/issue294` carries both the #294 hotfix and this initiative, which
   ship as a single release. Keep the phases as **separate commits** regardless — reviewers follow
   commit history, and the hotfix commit (`73e97d5`) doubles as a bisect point if the wider change
@@ -24,7 +24,7 @@
 | Phase 1C – Single missed-occurrence authority (O2)       | One helper for "was an occurrence missed between X and Y"                      | 100%       | ✅ `has_missed_occurrence_between`; 27 new tests; closes O2          |
 | Phase 2 – Evaluator semantics (both families)           | Streaks: neutral days hold, break/resume by missed occurrence. Both: eligible-day scope | 100%       | ✅ Motivating case now works end to end; restart gate added (see below) |
 | Phase 3 – Persistence & status alignment                | Ensure neutral days write nothing and status transitions stay coherent         | 100%       | ✅ Audit clean; 9 tests; fixed lost credit for a satisfied day after a break |
-| Phase 4 – Tests & validation                            | Extend the #294 regression suite; add schedule-matrix + days-family coverage    | 0%         | Reuses the day-replay harness built for #294                       |
+| Phase 4 – Tests & validation                            | Extend the #294 regression suite; add schedule-matrix + days-family coverage    | 100%       | ✅ 24 new tests; step 7 exposed and closed a decision-11 implementation gap |
 | Phase 5 – Docs, wiki & release notes                    | Document eligible-occurrence semantics, option equivalence, and the behaviour change | 0%    | Wiki + help text + Development Standards + release note            |
 | Phase 6 – Streak subsystem unification (O3/O4/O5)        | Achievements adopt the shared helper; retire dead calendar streak code; settle open-ended semantics | 0% | **After release** — decision 14, requires its own release note |
 
@@ -57,9 +57,10 @@
       fixed end to end.
    7. ✅ Phase 3 complete — write path audited clean; neutral days write nothing; a satisfied day
       after a break now starts a new streak instead of earning no credit.
-   8. **Next: Phase 4** — schedule matrix and days-family coverage on the #294 harness. Reach for
-      the "Overall scope" note below before writing new tests: the badge-level suite now exercises
-      the motivating regression end to end, so Phase 4 is mostly breadth.
+   8. ✅ **Phase 4 complete** — 24 new tests across the schedule matrix, Days-family scope, contract
+      traps and retention independence. One implementation gap was found and closed (decision 17).
+      **Next: Phase 5** — docs, wiki and release notes. Two behaviour changes now need release-note
+      coverage: the eligible scope (decision 8) and the undated one-timer consequence (decision 17).
    9. Retire `streak_yesterday` deliberately in Phase 6 — it has no consumer since Phase 2.
 
 4. **Risks / blockers** –
@@ -282,6 +283,55 @@
         **Sequencing note:** Phase 6 must not begin until Phases 1B-5 have shipped and the badge
         behaviour is confirmed in the field. Doing O3 in the same release as the badge change would
         make it impossible to attribute any remaining streak report to the right subsystem.
+
+     15. **CONFIRMED 2026-09-15 — the Phase 4 harness mutates chore schedules in memory.**
+        `StreakDayReplay` gains a neutral-day helper that edits the tracked chore's scheduling
+        fields (`applicable_days`, due date, frequency) in `coordinator.chores_data` before
+        evaluating a simulated day, rather than driving a dedicated schedule-matrix scenario file.
+        Rationale: the harness stays scenario-agnostic, so one replay implementation serves every
+        schedule shape, and it is the technique the badge setup already uses to force an
+        open-ended reset schedule.
+
+        Trade-off accepted: the tests construct their own schedules, so the matrix is only as
+        realistic as the fields the helper sets. Each case must therefore assert its own
+        preconditions — as `test_undated_weekly_chore_is_not_owed_today` does today — rather than
+        trusting the scenario to supply them.
+
+     16. **CONFIRMED 2026-09-15 — full matrix for standard schedules, one case each for the two
+        custom frequencies.** `custom` and `custom_from_complete` anchor their occurrences to the
+        **completion or creation time**, whereas the rrule frequencies anchor to the window start
+        that `has_missed_occurrence_between` supplies. The same replayed day therefore means
+        different things to the two families, and folding them into the shared matrix would invite
+        assertions that pass only because the test rigged the setup.
+
+        Consequence: the matrix covers daily, Mon/Wed/Fri, weekly (including a rescheduled due
+        date), biweekly and monthly fully. The custom frequencies get one explicit, separately
+        scheduled case each, and any limitation they expose is stated in the test rather than
+        silently assumed away. If a custom frequency later turns out to need full coverage, that is
+        a deliberate addition, not an oversight.
+
+     17. **CONFIRMED 2026-09-15 — an undated one-timer counts toward the day, always (closes the
+        decision 11 gap).** A chore with `frequency = none` and no due date counts as owed today
+        whether it is open or already completed, exactly like any other chore in scope.
+
+        Background: decision 11 required this behaviour, but the implementation never delivered it.
+        `_is_chore_scheduled_today_for_assignee` defers a `None` due date to
+        `no_due_date_daily_matches_today`, whose first guard rejects every frequency except
+        `FREQUENCY_DAILY`, so `due_count` excluded such a chore outright. A badge scoped only to
+        open one-timers therefore had an eligible count of zero every day: rule 3 (neutral hold)
+        applied and the badge could neither advance nor break. Found by the Phase 4 step 7 pin.
+
+        Implemented as `StatisticsManager._is_undated_one_timer`, OR-ed with the schedule
+        primitive. No claim-mode list change was needed, because a completed chore already resolves
+        to `blocked_already_approved`, which counts.
+
+        **Accepted consequence (must appear in the release note):** one completion of a
+        `frequency = none` chore keeps the day satisfied on every later day, so a badge scoped only
+        to it advances daily off that single completion. The rejected alternative — counting it
+        only until approved — is self-contradictory: open gives `0/1` unmet while completed gives
+        `eligible_total == 0` neutral, so the badge could never advance and decision 11's pin would
+        remain unsatisfiable. A third option (scoping it to the day of approval) needs a
+        date-bounded scope that no other target type uses, so it was not taken.
 
 > **Important:** Keep the entire Summary section (table + bullets) current with every meaningful update.
 
@@ -897,30 +947,42 @@ permanently neutral — never advancing and never breaking.
 ### Phase 4 – Tests & validation
 
 - **Goal**: Lock the semantics with a schedule matrix, and prove no regression in the existing suites.
+- **Status**: ✅ **Complete** (2026-09-15) — all 11 steps done, 24 new tests, one implementation gap closed (see step 7).
 - **Steps / detailed work items**
-  1. Extend `tests/test_badge_streak_midnight_reset.py` with the `StreakDayReplay` harness already built for #294. Two harness changes are required:
-     - add a `neutral` helper (a day where the tracked chore is not due) so the harness can express the new classification; and
-     - seed `DATA_USER_CHORE_DATA_LAST_COMPLETED` alongside the daily period buckets. The current harness only writes period data, so the miss check would see no completions at all and every day would read as missed.
-  2. **Re-express the two existing break-semantics guards** (`TestStreakStillBreaks`). They currently seed `last_update_day` and rely on the calendar gate to break. Under the new mechanism the break comes from the miss check, so they must be updated to drive it through schedule/completion data — otherwise they pass vacuously and stop guarding anything. Do not delete or weaken them; the intent (a genuinely missed day still breaks; a broken streak restarts at 1) is exactly the guarantee this change must preserve.
-  3. Extend `TestStreakSurvivesInProgressDay` with the neutral-day case: seed an intact streak, evaluate a day where nothing is due, assert the count is unchanged **and** `last_update_day` is unchanged (proving the hold is a true no-op, not a re-stamp).
-  4. Add `tests/test_badge_streak_schedule_awareness.py` covering the matrix: Mon/Wed/Fri (`applicable_days`), weekly with a rescheduled due date, biweekly, custom-interval, monthly, and a mixed daily+weekly badge. Assert: neutral days hold; consecutive occurrences advance; a genuinely missed occurrence breaks; a gap with no missed occurrence resumes.
-  5. Add the regression case that motivated this plan: **4 daily chores + 1 weekly due Monday, all dailies done every day → the 100% streak badge reaches the threshold** (currently caps at 1 with a break). Cover both the partial-progress and full-day orderings, since the advance path previously reset to 1.
-  6. Add **Days-family** coverage required by decision 8: the primer's table with 4 dailies + 1 weekly must show `Days 100%` advancing on a day the weekly is absent (currently stalls), and the 10-mixed-chores/3-due case must score 3/3 rather than 3/10. Also cover the "Days Minimum 3/5/7" scope shift.
-  7. Add the two gap pins from decisions 10 and 11:
-     - `Days Minimum 5` with only 3 chores eligible must remain satisfiable by completing 5
-       selected chores (never permanently unmet), and the min-count variants must keep counting
-       completions of non-due selected chores.
-     - A badge scoped to a dateless one-time chore (`frequency = none`, no due date) must still
-       advance when that chore is completed, and a badge whose selected chores are all open
-       one-timers must not sit permanently neutral.
-  8. Add the reference scenario from the "Days family: worked answers" section as a test: 5
+  1. ✅ Extend `tests/test_badge_streak_midnight_reset.py` with the `StreakDayReplay` harness already built for #294:
+     - ✅ add a `neutral` helper, so the harness can express a day on which the tracked chore is not due. Per **decision 15** the helper mutates the chore's scheduling fields in `coordinator.chores_data` before evaluating the simulated day; no dedicated schedule-matrix scenario file is added. Implemented as two context managers plus a probe: `chore_schedule(frequency, due_date_day_iso, applicable_days)` restores the originals on exit so a case can compose schedules, `neutral_day(day_iso)` applies the neutral schedule, and `owed_today(day_iso)` reports `due_count` so every case asserts its own preconditions (decision 15's accepted trade-off).
+     - ✅ **CORRECTION (2026-09-15) — the seeding requirement stated here was wrong.** An earlier revision of this step required seeding `DATA_USER_CHORE_DATA_LAST_COMPLETED` alongside the daily period buckets, claiming that "the miss check would see no completions at all and every day would read as missed". That claim is false. `ChoreEngine.has_missed_occurrence_between` (`chore_engine.py:1479`) builds its window from the supplied bounds and calls `RecurrenceEngine.has_missed_occurrences` (`schedule_engine.py:194`), which generates occurrences from the recurrence rule and **never reads a completion timestamp**; `build_schedule_config` (`chore_engine.py:1431`) reads only frequency, interval, unit, `applicable_days` and `daily_multi_times`. The harness therefore replays correctly on period data alone. Seeding completions is optional realism if a case needs it, never a prerequisite — do not add it on the strength of the old wording.
+  2. ✅ **Verify — do not re-express — the two existing break-semantics guards** (`TestStreakStillBreaks`). This work was completed during Phase 2 (see that phase's key issues), and the guards already drive the break through the miss mechanism: they seed `last_update_day` three days back and evaluate the skipped day and the following day, exercising the documented one-day-later latch. **Verified 2026-09-15** by temporarily forcing `missed_since_advance = False` in `_evaluate_streak` (`gamification_engine.py:1135`): both guards fail (`test_missing_a_full_day_breaks_the_streak`, `test_streak_restarts_at_one_after_a_break`), so they genuinely exercise the miss branch rather than passing on the surrounding hold rules. The probe was reverted and the engine diff confirmed clean. Leave their intent intact (a genuinely missed day still breaks; a broken streak restarts at 1); do not delete or weaken them.
+  3. ✅ Extend `TestStreakSurvivesInProgressDay` with the neutral-day case: seed an intact streak, evaluate a day where nothing is due, assert the count is unchanged **and** `last_update_day` is unchanged (proving the hold is a true no-op, not a re-stamp). Implemented as `test_neutral_day_holds_without_restamping_the_anchor`, which asserts `owed_today() == 0` *inside* the neutral block — without that assertion the test would pass vacuously, because a day that is still owed holds in-progress and produces the same two values.
+  4. ✅ Add `tests/test_badge_streak_schedule_awareness.py` covering the matrix. Per **decision 16** the standard schedules get full coverage — Mon/Wed/Fri (`applicable_days`), weekly with a rescheduled due date, biweekly, monthly — plus a mixed daily+weekly badge; the two completion-anchored custom frequencies get one explicit case each instead of a full matrix slot, because their occurrences anchor to the completion/creation time rather than the window start the miss check supplies (see decision 16). Assert: neutral days hold; consecutive occurrences advance; a genuinely missed occurrence breaks; a gap with no missed occurrence resumes. **Implemented 2026-09-15** — 13 tests. Cases state intent through a `MatrixReplay` wrapper (`satisfy` / `hold` / `miss`) and assert **both** halves of their own precondition, because the harness constructs schedules: `owed_today` for the eligible scope and the new `scheduled_occurrence_on` probe for the recurrence.
+  5. ✅ Add the regression case that motivated this plan: **4 daily chores + 1 weekly due Monday, all dailies done every day → the 100% streak badge reaches the threshold** (currently caps at 1 with a break). Cover both the partial-progress and full-day orderings, since the advance path previously reset to 1. Implemented as `TestMotivatingRegression` — the full-across-days ordering reaches the threshold and awards, and the partial-then-complete ordering advances 2 → 3 within a single day.
+  6. ✅ Add **Days-family** coverage required by decision 8: the primer's table with 4 dailies + 1 weekly must show `Days 100%` advancing on a day the weekly is absent (currently stalls), and the 10-mixed-chores/3-due case must score 3/3 rather than 3/10. Also cover the "Days Minimum 3/5/7" scope shift. **Implemented 2026-09-15** in `tests/test_badge_days_scope.py` — the scenario presents 3 of 5 selected chores owed, so the ratio cases discriminate 3/3 from 3/5; `_assert_scope_precondition` asserts that 3-of-5 split so they cannot pass vacuously. Also pins that the eligible scope did **not** make a day unconditionally satisfiable (one owed chore left undone still holds the day), and that the min-count variants sit outside it (step 7).
+  7. ✅ **Complete — the pin exposed an unimplemented decision, now fixed (decision 17).**
+     - ✅ **DEFECT FOUND: decision 11 was never implemented, so a dateless one-time chore was dropped from the eligible scope.** Found by `test_dateless_one_time_chore_counts_toward_the_day`. Verified against the code path: `_chore_counts_toward_today` (`statistics_manager.py:2761`) calls `_is_chore_scheduled_today_for_assignee` first, which for a `None` due date defers to `ChoreManager.no_due_date_daily_matches_today` (`chore_manager.py:3911`) — and that function's **first guard** returns False for any frequency other than `FREQUENCY_DAILY`. A chore with `frequency = none` and no due date was therefore never scheduled today, so `due_count` excluded it before the claim-mode list or the assignment guard was consulted.
+
+       Why this was a defect rather than a choice: decision 11 confirmed such a chore "is legitimately owed today", and its stated rationale was to avoid "a badge scoped to it silently ignoring it". The implemented behaviour was exactly that. Worse, the "all selected chores are open one-timers" case that decision 11 required not to stall **did** stall: `eligible_total == 0` on every day, so rule 3 (neutral hold) applied and the badge could neither advance nor break — permanently inert.
+
+       **Resolved by decision 17 (product owner, 2026-09-15): an undated one-timer counts toward the day, always.** Implemented as `StatisticsManager._is_undated_one_timer` (`statistics_manager.py:2828`), OR-ed with the schedule primitive inside `_chore_counts_toward_today`. No claim-mode list change was needed: a completed chore already resolves to `blocked_already_approved`, which is in `CHORE_CLAIM_MODES_COUNTING_TOWARD_DAY`, so Option A was a one-gate change. It is a static method that ignores `today_iso`, because the answer does not vary by day. The assignment guard still runs first, so a stale entry cannot re-enter through this path.
+
+       **Accepted consequence (must appear in the release note):** one completion of a `frequency = none` chore keeps the day satisfied on every later day, so a badge scoped only to it advances daily off that single completion. The alternative — counting it only until approved — was rejected because it is self-contradictory: open gives `0/1` unmet while completed gives `eligible_total == 0` neutral, so the badge could never advance and decision 11's pin would stay unsatisfiable.
+     - ✅ `Days Minimum 5` with only 3 chores eligible must remain satisfiable by completing 5 selected chores (never permanently unmet), and the min-count variants must keep counting completions of non-due selected chores. Pinned in both directions by `TestMinimumCountKeepsAllSelectedScope`.
+     - ✅ Pinned by `TestDatelessOneTimeChoreStaysInScope`: the single one-timer case and the all-one-timers case that must accumulate to the threshold rather than stall.
+   8. ✅ Add the reference scenario from the "Days family: worked answers" section as a test: 5
      selected chores (3 dated, 2 dateless daily), asserting the three rows of that table — and
      confirm the outcomes are unchanged by this initiative, since both dateless chores are
-     eligible.
-  9. Add the contract-trap tests, one per trap named in Phase 1 step 6, and the `never_overdue` case explicitly: skipping a due occurrence must still break the streak (the case a lateness-flag design gets wrong).
-  10. Parametrize across retention settings (including a low `retention_daily`) to prove the design does not depend on period history surviving.
-  11. Run the targeted suites, then the badge/gamification set, then the release-gate commands from [RELEASE_CHECKLIST.md](../RELEASE_CHECKLIST.md) §2: `./utils/quick_lint.sh --fix`, `mypy custom_components/choreops/`, `python -m pytest tests/ -v --tb=line`.
+     eligible. Implemented as `TestWorkedAnswersAreUnchanged`, with `_assert_scope_precondition` asserting the 3-of-5 eligible day so the ratio assertions cannot pass vacuously.
+  9. ✅ Add the contract-trap tests, one per trap named in Phase 1 step 6, and the `never_overdue` case explicitly: skipping a due occurrence must still break the streak (the case a lateness-flag design gets wrong). Implemented as `TestStreakContractTraps` — four cases: the `never_overdue` skip still breaks; today's pending occurrence is not a miss; a chore added mid-streak reports no spurious miss (the anchor trap); and a break is not permanent (the recovery trap, which must still restart at 1).
+  10. ✅ Parametrize across retention settings (including a low `retention_daily`) to prove the design does not depend on period history surviving. Implemented as `TestIndependentOfPeriodHistory`, which simulates the *outcome* of aggressive pruning by deleting the tracked chores' daily period buckets outright (the harness gained `clear_daily_period_history`). This is deliberately stronger than setting a `retention_daily` option value: `get_retention_config` reads config-entry options and the replay never runs the pruning job, so setting the option would not have applied it and the test would have been vacuous. Two cases: a neutral day still holds, and a skipped occurrence still breaks.
+  11. ✅ Run the targeted suites, then the badge/gamification set, then the release-gate commands from [RELEASE_CHECKLIST.md](../RELEASE_CHECKLIST.md) §2: `./utils/quick_lint.sh --fix`, `mypy custom_components/choreops/`, `python -m pytest tests/ -v --tb=line`. **Done 2026-09-15 for the targeted and badge/gamification sets** (see the Phase 4 baseline). The full-directory run was declined deliberately — targeted runs were used instead, so a full-suite pass remains outstanding for the release step.
+- **⚠️ Finding not in the plan — the recurrence rebases on the window start, so a widened probe is not a valid oracle for interval frequencies.** Occurrences land at **local midnight**, and `has_missed_occurrence_between` treats both bounds as exclusive, so the narrow window `[day, day + 1)` reports no miss on the very day an occurrence falls — the anchor day's own occurrence is the window's *lower bound*. Widening to `[day - 1, day + 1)` isolates one day's occurrence, which is what the harness probe uses.
+
+  That probe is nonetheless invalid for `biweekly` and `monthly`, because `build_schedule_config` is called with `base_date_iso=window_start`: the recurrence **rebases on the anchor**, and for an `INTERVAL=2` frequency the base week's parity decides which days are occurrences. Verified — a biweekly Monday anchored `2026-08-31` yields `08-31, 09-14, 09-28`, while the same chore probed from `09-13` yields `09-21, 10-05`. Production is correct (the anchor only ever moves onto an occurrence day, so the phase stays aligned), but the probe describes a different schedule than production evaluates. Those two cases therefore assert the streak outcome only, and their docstrings say why — the alternative is an assertion that passes for the wrong reason.
+
+  A second correction came from the same probe: a hand-picked 62-day monthly anchor genuinely **contained** a missed occurrence (`07-14 → 08-14 → 09-14`), so that case would have broken the streak instead of advancing it. Monthly offsets are now derived from the shipped engine (`consecutive_monthly_offsets`), since a month is not a fixed number of days.
 - **Key issues**
+  - **The harness identifiers were renamed for honesty.** `StreakDayReplay` → `PeriodicDayReplay` and `_add_streak_badge` → `_add_periodic_badge`, because the Days-family tests reuse both and the old names would have misled the next reader about what they drive. Applied across the three files that reference them (`test_badge_streak_midnight_reset`, `test_badge_progress_persistence`, `test_badge_streak_schedule_awareness`).
+  - **Non-vacuity verified for the matrix, not assumed.** Replacing the neutral-hold branch (`eligible_total == 0` → `cycle_count`) with `0` fails 5 of the 13 cases — Mon/Wed/Fri, weekly, biweekly, monthly and the pending-occurrence trap. The hold assertions are therefore load-bearing rather than satisfied by an advancing or already-broken streak. Probe reverted, engine diff confirmed clean.
+  - **Every matrix case asserts its own preconditions**, since decision 15 has the harness construct schedules. A case that mis-schedules itself would otherwise pass for the wrong reason; this caught three errors during implementation — the two probe/setup mistakes listed above, and the retention case that anchored a week before its occurrence and so measured a genuine miss rather than a neutral day.
   - Timezone correctness: the scheduling layer stores UTC while day keys are local. Follow the established convention in `tests/test_badge_period_end_cycles.py` (explicit `set_default_timezone` with `try/finally`) rather than relying on the default zone.
   - The full suite is a release step, not a CI gate — validate broadly before release, since cross-test state (the `dt_utils` default-timezone module global) can only appear in a full run.
   - Do not weaken the two existing break-semantics guards (`TestStreakStillBreaks`) to make new cases pass.
@@ -1062,7 +1124,28 @@ permanently neutral — never advancing and never breaking.
   targeted set across the 16 badge, streak, gamification, rotation and shared-chore suites →
   **310 passed / 4 skipped**; `quick_lint.sh` green with mypy 0 errors.
   Phases 4–6 must not regress these.
-- **Outstanding tests:** none yet — Phase 4 defines the schedule matrix and days-family coverage.
+- **Phase 4, steps 1–3 (2026-09-15, uncommitted):** `test_badge_streak_midnight_reset.py`
+  **11/11 pass** (6 baseline + 4 prior + 1 new neutral-day case). Broader regression set across
+  `test_badge_streak_midnight_reset`, `test_gamification_engine`, `test_badge_schedule_snapshot`,
+  `test_missed_occurrence_authority`, `test_badge_progress_persistence`, `test_badge_target_types`,
+  `test_badge_no_overdue_cycles`, `test_badge_period_end_cycles`, `test_gamification_streak_reset`,
+  `test_workflow_streak_schedule`, `test_schedule_engine_streaks` → **247 passed**. `quick_lint.sh`
+  green with mypy 0 errors. **Non-vacuity evidence recorded:** disabling `missed_since_advance` in
+  `_evaluate_streak` fails both `TestStreakStillBreaks` guards; the probe was reverted with a clean
+  engine diff.
+- **Phase 4 complete (2026-09-15, uncommitted):** 24 new tests. `test_badge_days_scope.py` 9/9;
+  `test_badge_streak_schedule_awareness.py` 15/15; `test_badge_streak_midnight_reset.py` 11/11;
+  `test_badge_progress_persistence.py` 9/9 → **44 passed** across the four Phase 4 suites. Broader
+  badge/gamification/rotation set across 13 suites → **290 passed**. Other consumers of the changed
+  eligible-scope resolver (`test_statistics_engine`, `test_statistics_manager_report_rollup`,
+  `test_chore_engine`, `test_chore_manager`, `test_due_today_after_assignment_change`,
+  `test_dashboard_due_today_weekday_gating`) → **319 passed**. `quick_lint.sh` green with mypy 0
+  errors. **Non-vacuity evidence:** replacing the neutral-hold branch with `0` fails 5 of the 13
+  matrix cases; the probe was reverted with a clean engine diff.
+  **⚠️ The full-directory run was deliberately skipped** (targeted runs only), so a full-suite pass
+  is still outstanding for the release step. Phases 5–6 must not regress the 44 Phase 4 tests.
+- **Outstanding tests:** none for Phase 4 — the schedule matrix and days-family coverage are in
+  place. A full-directory run remains for the release gate.
 - **Links to failing logs:** n/a.
 
 ---

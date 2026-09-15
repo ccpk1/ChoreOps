@@ -19,13 +19,17 @@ Uses scenario_minimal.yaml.
 
 from __future__ import annotations
 
-from datetime import timedelta
-from typing import TYPE_CHECKING, Any
+from contextlib import contextmanager
+from copy import deepcopy
+from datetime import date, datetime, time, timedelta
+from typing import TYPE_CHECKING, Any, cast
 
 import pytest
 
 from custom_components.choreops import const
+from custom_components.choreops.engines.chore_engine import ChoreEngine
 from custom_components.choreops.utils import dt_utils
+from custom_components.choreops.utils.dt_utils import as_utc, get_default_timezone
 from tests.helpers import (
     BADGE_TYPE_PERIODIC,
     CFOF_BADGES_INPUT_ASSIGNED_USER_IDS,
@@ -49,7 +53,7 @@ from tests.helpers import (
 from tests.helpers.setup import SetupResult, setup_from_yaml
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Iterator, Sequence
 
     from homeassistant.core import HomeAssistant
 
@@ -99,7 +103,7 @@ def day_key(offset: int) -> str:
     return (dt_utils.dt_today_local() + timedelta(days=offset)).isoformat()
 
 
-async def _add_streak_badge(
+async def _add_periodic_badge(
     hass: HomeAssistant,
     setup: SetupResult,
     *,
@@ -164,7 +168,7 @@ async def _add_streak_badge(
     raise AssertionError(f"Badge not created: {BADGE_NAME}")
 
 
-class StreakDayReplay:
+class PeriodicDayReplay:
     """Replay consecutive days through the real streak badge pipeline.
 
     Each simulated day mirrors production ordering: the day starts with an
@@ -222,6 +226,10 @@ class StreakDayReplay:
         return self._coordinator.assignees_data[self._assignee_id][
             DATA_USER_BADGE_PROGRESS
         ][self._badge_id]
+
+    def _chore_info(self, chore_id: str) -> dict[str, Any]:
+        """Mutable chore definition for the given chore."""
+        return cast("dict[str, Any]", self._coordinator.chores_data[chore_id])
 
     def _record_day(self, day_iso: str, *, approved_count: int) -> None:
         """Write daily period records for the simulated day.
@@ -282,6 +290,141 @@ class StreakDayReplay:
         progress[const.DATA_USER_BADGE_PROGRESS_DAYS_CYCLE_COUNT] = days
         progress[const.DATA_USER_BADGE_PROGRESS_LAST_UPDATE_DAY] = last_update_day
 
+    def schedule_due_date(self, day_iso: str) -> None:
+        """Point the tracked chores' due date at ``day_iso`` for this assignee.
+
+        The eligible scope reads the due date, so this is how a case makes a chore
+        owed on one simulated day and not on another. The recurrence the miss check
+        reads is deliberately untouched: the two halves of a schedule are
+        independent, and a case has to drive both.
+        """
+        for chore_id in self._chore_ids:
+            chore_info = self._chore_info(chore_id)
+            chore_info[const.DATA_CHORE_DUE_DATE] = day_iso
+            chore_info[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] = {
+                self._assignee_id: day_iso
+            }
+
+    def clear_daily_period_history(self) -> None:
+        """Delete every tracked chore's daily period buckets.
+
+        Simulates the outcome of aggressive retention pruning. The streak design
+        reads schedule maths on the chore definition rather than period history, so
+        losing this data must not change any outcome.
+        """
+        for chore_id in self._chore_ids:
+            chore_entry = self._coordinator.chore_manager._get_assignee_chore_data(
+                self._assignee_id,
+                chore_id,
+            )
+            periods = chore_entry.get(DATA_USER_CHORE_DATA_PERIODS, {})
+            periods.pop(DATA_USER_CHORE_DATA_PERIODS_DAILY, None)
+
+    def scheduled_occurrence_on(self, day_iso: str) -> bool:
+        """Whether the recurrence places an occurrence on the given local day.
+
+        Probes the day widened by a day on each side. Occurrences land at local
+        midnight and the engine treats both bounds as exclusive, so the narrow
+        window ``[day, day + 1)`` would report False on the very day an occurrence
+        falls; widening it isolates that one occurrence and excludes the
+        neighbouring days'.
+        """
+        day = date.fromisoformat(day_iso)
+        local_tz = get_default_timezone()
+        window_start = as_utc(
+            datetime.combine(day - timedelta(days=1), time.min, tzinfo=local_tz)
+        )
+        window_end = as_utc(
+            datetime.combine(day + timedelta(days=1), time.min, tzinfo=local_tz)
+        )
+
+        return any(
+            ChoreEngine.has_missed_occurrence_between(
+                self._chore_info(chore_id),
+                window_start_utc=window_start,
+                window_end_utc=window_end,
+            )
+            for chore_id in self._chore_ids
+        )
+
+    @contextmanager
+    def chore_schedule(
+        self,
+        *,
+        frequency: str,
+        due_date_day_iso: str | None,
+        applicable_days: Sequence[str] = (),
+    ) -> Iterator[None]:
+        """Apply a schedule to the tracked chores for the duration of the block.
+
+        The harness mutates schedules instead of loading a scenario per shape, so
+        one replay implementation serves every frequency. The originals are
+        restored on exit, which lets a case compose several schedules in sequence.
+
+        Args:
+            frequency: Recurring frequency to apply to the tracked chores.
+            due_date_day_iso: The assignee's due date, or None for a dateless
+                chore that recurs on ``applicable_days``.
+            applicable_days: Day codes the chore recurs on; empty means any day.
+        """
+        originals = {
+            chore_id: deepcopy(self._chore_info(chore_id))
+            for chore_id in self._chore_ids
+        }
+
+        for chore_id in self._chore_ids:
+            chore_info = self._chore_info(chore_id)
+            chore_info[const.DATA_CHORE_RECURRING_FREQUENCY] = frequency
+            chore_info[const.DATA_CHORE_DUE_DATE] = due_date_day_iso
+            chore_info[const.DATA_CHORE_APPLICABLE_DAYS] = list(applicable_days)
+            # A per-assignee due date takes precedence over the chore-level one,
+            # so it has to be overridden too or the chore stays owed.
+            chore_info[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] = {
+                self._assignee_id: due_date_day_iso
+            }
+
+        try:
+            yield
+        finally:
+            for chore_id, original in originals.items():
+                chore_info = self._chore_info(chore_id)
+                chore_info.clear()
+                chore_info.update(original)
+
+    @contextmanager
+    def neutral_day(self, day_iso: str) -> Iterator[None]:
+        """Make the tracked chores neither owed nor missed on ``day_iso``.
+
+        Both halves are required. A due date on another day keeps the chore out of
+        the eligible scope, and a weekly frequency has no occurrence inside a
+        window shorter than a week, so the miss check stays quiet. Defeating only
+        the eligibility check would leave the miss check free to break the streak,
+        which is the opposite of a neutral day.
+        """
+        due_date_day_iso = (date.fromisoformat(day_iso) + timedelta(days=7)).isoformat()
+        with self.chore_schedule(
+            frequency=const.FREQUENCY_WEEKLY,
+            due_date_day_iso=due_date_day_iso,
+        ):
+            yield
+
+    def owed_today(self, day_iso: str) -> int:
+        """Number of tracked chores this assignee is owed on the given day.
+
+        Cases assert this rather than trusting the scenario, because the harness
+        constructs its own schedules (decision 15).
+        """
+        snapshot = (
+            self._coordinator.statistics_manager.get_badge_scoped_today_completion(
+                self._assignee_id,
+                self._chore_ids,
+                today_iso=day_iso,
+                cycle_start_iso=day_iso,
+                only_due_today=False,
+            )
+        )
+        return int(snapshot["due_count"])
+
 
 # ============================================================================
 # TESTS: the streak must survive a day that is still in progress
@@ -301,8 +444,8 @@ class TestStreakSurvivesInProgressDay:
         This is the issue #294 defect: yesterday's streak is intact and today
         has simply not started, yet the count is reset to 0.
         """
-        badge_id = await _add_streak_badge(hass, streak_scenario)
-        replay = StreakDayReplay(streak_scenario, badge_id)
+        badge_id = await _add_periodic_badge(hass, streak_scenario)
+        replay = PeriodicDayReplay(streak_scenario, badge_id)
         replay.seed_streak(days=2, last_update_day=day_key(-1))
 
         await replay.start_day(day_key(0))
@@ -318,8 +461,8 @@ class TestStreakSurvivesInProgressDay:
         streak_scenario: SetupResult,
     ) -> None:
         """Two consecutive completed days must produce a streak of 2."""
-        badge_id = await _add_streak_badge(hass, streak_scenario)
-        replay = StreakDayReplay(streak_scenario, badge_id)
+        badge_id = await _add_periodic_badge(hass, streak_scenario)
+        replay = PeriodicDayReplay(streak_scenario, badge_id)
 
         await replay.start_day(day_key(-2))
         await replay.complete_day(day_key(-2))
@@ -330,6 +473,37 @@ class TestStreakSurvivesInProgressDay:
         assert replay.days_cycle_count == 2, (
             "Consecutive completed days did not accumulate; "
             "the streak is restarting instead of continuing"
+        )
+
+    async def test_neutral_day_holds_without_restamping_the_anchor(
+        self,
+        hass: HomeAssistant,
+        streak_scenario: SetupResult,
+    ) -> None:
+        """A day where nothing is owed is a true no-op, not a re-stamp.
+
+        The count and the anchor both have to stand still: moving the anchor on a
+        neutral day would silently erase the window the miss check depends on.
+        """
+        badge_id = await _add_periodic_badge(hass, streak_scenario)
+        replay = PeriodicDayReplay(streak_scenario, badge_id)
+        replay.seed_streak(days=2, last_update_day=day_key(-1))
+
+        with replay.neutral_day(day_key(0)):
+            # Without this the test could pass for the wrong reason: a day that is
+            # still owed holds in-progress too, and produces the same two values.
+            assert replay.owed_today(day_key(0)) == 0, (
+                "the simulated neutral day is still owed, so the hold below would "
+                "not be measuring a neutral day"
+            )
+            await replay.start_day(day_key(0))
+
+        assert replay.days_cycle_count == 2, (
+            f"a day where nothing was owed changed the streak count "
+            f"(count={replay.days_cycle_count})"
+        )
+        assert replay.last_update_day == day_key(-1), (
+            "a neutral day moved the streak anchor; the hold must not re-stamp it"
         )
 
 
@@ -351,12 +525,12 @@ class TestStreakSurvivesPartialProgress:
         streak_scenario: SetupResult,
     ) -> None:
         """Half the tracked chores done holds the streak; the rest advances it."""
-        badge_id = await _add_streak_badge(
+        badge_id = await _add_periodic_badge(
             hass,
             streak_scenario,
             tracked_chore_names=TRACKED_CHORE_NAMES,
         )
-        replay = StreakDayReplay(
+        replay = PeriodicDayReplay(
             streak_scenario,
             badge_id,
             tracked_chore_names=TRACKED_CHORE_NAMES,
@@ -393,8 +567,8 @@ class TestStreakBadgeAward:
         streak_scenario: SetupResult,
     ) -> None:
         """A threshold of 3 must be reachable across 3 completed days."""
-        badge_id = await _add_streak_badge(hass, streak_scenario)
-        replay = StreakDayReplay(streak_scenario, badge_id)
+        badge_id = await _add_periodic_badge(hass, streak_scenario)
+        replay = PeriodicDayReplay(streak_scenario, badge_id)
 
         for offset in (-3, -2, -1):
             await replay.start_day(day_key(offset))
@@ -426,8 +600,8 @@ class TestStreakStillBreaks:
         streak_scenario: SetupResult,
     ) -> None:
         """The streak is 0 once a completed day is followed by an empty day."""
-        badge_id = await _add_streak_badge(hass, streak_scenario)
-        replay = StreakDayReplay(streak_scenario, badge_id)
+        badge_id = await _add_periodic_badge(hass, streak_scenario)
+        replay = PeriodicDayReplay(streak_scenario, badge_id)
         replay.seed_streak(days=2, last_update_day=day_key(-3))
 
         # A full day with no completions at all.
@@ -445,8 +619,8 @@ class TestStreakStillBreaks:
         streak_scenario: SetupResult,
     ) -> None:
         """Completing a day after a break starts a new streak at 1."""
-        badge_id = await _add_streak_badge(hass, streak_scenario)
-        replay = StreakDayReplay(streak_scenario, badge_id)
+        badge_id = await _add_periodic_badge(hass, streak_scenario)
+        replay = PeriodicDayReplay(streak_scenario, badge_id)
         replay.seed_streak(days=2, last_update_day=day_key(-3))
 
         # Day -2 is skipped entirely.
@@ -478,8 +652,8 @@ class TestMissCheckIsComputedOnce:
         building both the all-tracked and due-only snapshots must not repeat the
         schedule evaluation.
         """
-        badge_id = await _add_streak_badge(hass, streak_scenario)
-        replay = StreakDayReplay(streak_scenario, badge_id)
+        badge_id = await _add_periodic_badge(hass, streak_scenario)
+        replay = PeriodicDayReplay(streak_scenario, badge_id)
 
         statistics_manager = streak_scenario.coordinator.statistics_manager
         original = statistics_manager.has_missed_occurrence_since_advance
@@ -526,12 +700,12 @@ class TestNonDueChoreDoesNotBlockTheDay:
         Before the eligible scope this scored 3/4, so the day could never be met
         and the streak could not accumulate even at full compliance.
         """
-        badge_id = await _add_streak_badge(
+        badge_id = await _add_periodic_badge(
             hass,
             streak_scenario,
             tracked_chore_names=MIXED_SCOPE_CHORES,
         )
-        replay = StreakDayReplay(
+        replay = PeriodicDayReplay(
             streak_scenario,
             badge_id,
             tracked_chore_names=MIXED_SCOPE_CHORES,
@@ -551,12 +725,12 @@ class TestNonDueChoreDoesNotBlockTheDay:
         streak_scenario: SetupResult,
     ) -> None:
         """The streak keeps climbing instead of breaking on the undated chore."""
-        badge_id = await _add_streak_badge(
+        badge_id = await _add_periodic_badge(
             hass,
             streak_scenario,
             tracked_chore_names=MIXED_SCOPE_CHORES,
         )
-        replay = StreakDayReplay(
+        replay = PeriodicDayReplay(
             streak_scenario,
             badge_id,
             tracked_chore_names=MIXED_SCOPE_CHORES,

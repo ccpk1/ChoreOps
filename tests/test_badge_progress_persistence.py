@@ -27,8 +27,8 @@ from custom_components.choreops import const
 from custom_components.choreops.utils import dt_utils
 from tests.helpers.setup import SetupResult, setup_from_yaml
 from tests.test_badge_streak_midnight_reset import (
-    StreakDayReplay,
-    _add_streak_badge,
+    PeriodicDayReplay,
+    _add_periodic_badge,
     day_key,
 )
 
@@ -60,14 +60,14 @@ async def persistence_scenario(
 async def _neutral_replay(
     hass: HomeAssistant,
     setup: SetupResult,
-) -> tuple[StreakDayReplay, str]:
+) -> tuple[PeriodicDayReplay, str]:
     """Build a replay whose badge owes nothing today."""
-    badge_id = await _add_streak_badge(
+    badge_id = await _add_periodic_badge(
         hass,
         setup,
         tracked_chore_names=(CHORE_WITH_A_SCHEDULE,),
     )
-    replay = StreakDayReplay(
+    replay = PeriodicDayReplay(
         setup,
         badge_id,
         tracked_chore_names=(CHORE_WITH_A_SCHEDULE,),
@@ -163,8 +163,8 @@ class TestBreakAndRestartPersistence:
         The staleness is load-bearing: it is the miss check's anchor, so the
         missed occurrence keeps being detected until the streak restarts.
         """
-        badge_id = await _add_streak_badge(hass, persistence_scenario)
-        replay = StreakDayReplay(persistence_scenario, badge_id)
+        badge_id = await _add_periodic_badge(hass, persistence_scenario)
+        replay = PeriodicDayReplay(persistence_scenario, badge_id)
 
         stale_anchor = day_key(-3)
         replay.seed_streak(days=3, last_update_day=stale_anchor)
@@ -191,8 +191,8 @@ class TestBreakAndRestartPersistence:
         evaluation - and the persisted-break and not-yet-persisted-break paths
         produced different answers for the identical situation.
         """
-        badge_id = await _add_streak_badge(hass, persistence_scenario)
-        replay = StreakDayReplay(persistence_scenario, badge_id)
+        badge_id = await _add_periodic_badge(hass, persistence_scenario)
+        replay = PeriodicDayReplay(persistence_scenario, badge_id)
         replay.seed_streak(days=3, last_update_day=day_key(-3))
 
         await replay.complete_day(day_key(0))
@@ -210,8 +210,8 @@ class TestBreakAndRestartPersistence:
         The counterpart of the test above: credit follows from today being
         satisfied, not from the miss alone.
         """
-        badge_id = await _add_streak_badge(hass, persistence_scenario)
-        replay = StreakDayReplay(persistence_scenario, badge_id)
+        badge_id = await _add_periodic_badge(hass, persistence_scenario)
+        replay = PeriodicDayReplay(persistence_scenario, badge_id)
         replay.seed_streak(days=3, last_update_day=day_key(-3))
 
         await replay.start_day(day_key(0))
@@ -224,8 +224,8 @@ class TestBreakAndRestartPersistence:
         persistence_scenario: SetupResult,
     ) -> None:
         """Re-evaluating after a restart holds, because the anchor moved."""
-        badge_id = await _add_streak_badge(hass, persistence_scenario)
-        replay = StreakDayReplay(persistence_scenario, badge_id)
+        badge_id = await _add_periodic_badge(hass, persistence_scenario)
+        replay = PeriodicDayReplay(persistence_scenario, badge_id)
         replay.seed_streak(days=3, last_update_day=day_key(-3))
 
         await replay.complete_day(day_key(0))
