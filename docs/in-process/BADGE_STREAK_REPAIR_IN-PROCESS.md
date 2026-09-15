@@ -57,10 +57,17 @@
 - **Steps**
   1. Add `DATA_USER_BADGE_PROGRESS_STREAK_HISTORY: Final = "streak_history"` to `const.py`, with a
      comment stating the shape: `dict[str, int]` of **local** date key → streak count for that day.
+     ✅ **Name validated** — matches the existing `DATA_USER_BADGE_PROGRESS_<NAME>` family with a
+     `snake_case` value, and `DATA_*` is documented as singular storage keys (`const.py:1057-1068`).
+     Place it in the existing alphabetical run, after `START_DATE` and before `STATUS`.
   2. Add `STREAK_HISTORY_LOOKBACK_DAYS: Final = 5` — named for its **purpose** (how far back a repair
      can see), deliberately not `..._RETENTION_DAYS`, so it cannot be mistaken for the unrelated
      `CONF_RETENTION_DAILY` setting. Add a comment recording both the purpose and that there is no
      user-facing setting for it.
+     ✅ **Name validated** — the bare-noun prefix is precedented for hardcoded behaviour constants
+     (`MAX_DATE_CALCULATION_ITERATIONS`, `MONTHS_PER_QUARTER`, `END_OF_DAY_HOUR`). It is *not* a
+     `DEFAULT_*`, which the standards reserve for default configuration values that a user can
+     override — this is fixed behaviour, and there is deliberately no setting.
   3. **Record the day's value** in the `days_cycle` evaluation path in
      `engines/gamification_engine.py` — the value must be recorded on **every** evaluation,
      including the break (where it writes the count that existed *before* zeroing), because
@@ -71,11 +78,24 @@
      strings).
   5. **Read defensively.** A missing, non-dict, or partially malformed buffer must degrade to an
      empty buffer rather than raising, so a corrupt value cannot break badge evaluation.
-  6. **Schema bump**: add `SCHEMA_VERSION_1_5_3: Final = 153` and point `SCHEMA_VERSION_CURRENT` at
-     it. The convention is `major*100 + minor*10 + patch` (`const.py:353-355`: 1.0.0 → 100,
-     1.5.0 → 150), and the shipping release is 1.5.3. Migration is **non-destructive**: existing
-     badge progress entries simply have no buffer, and the defensive read treats that as empty. No
-     backfill — a history cannot be invented for days that were never recorded.
+  6. **Schema bump — CORRECTED 2026-09-15 after standards review.** Add
+     `SCHEMA_VERSION_1_5_3: Final = 153` and point `SCHEMA_VERSION_CURRENT` at it. The convention
+     is `major*100 + minor*10 + patch` (`const.py:353-355`: 1.0.0 → 100, 1.5.0 → 150), and the
+     shipping release is 1.5.3.
+     ⚠️ **An explicit migration step IS required — the earlier "non-destructive, no step needed"
+     wording was wrong.** `DEVELOPMENT_STANDARDS.md` §3 states that a change introducing a new
+     durable storage contract with a schema bump belongs in `migrations/`, and
+     `migrations/modern.py` says outright: *"The first post-1.0.0 schema bump should add explicit
+     ordered steps here."* This **is** that first bump.
+     - Add an **idempotent, re-runnable** step to `run_modern_schema_migrations`
+       (`migrations/modern.py:16`) that initialises `streak_history` to `{}` on every badge
+       progress entry lacking it. Idempotency is a stated requirement of that function, so
+       re-running must be safe.
+     - It is dispatched from `SystemManager` (`managers/system_manager.py:262`) and gated on
+       `schema_version < SCHEMA_VERSION_CURRENT` (`coordinator.py:364`).
+     - The `integrity/` lane does **not** apply: that lane is for impossible runtime states on an
+       already-current schema, not for introducing a new key.
+     - No backfill of values — a history cannot be invented for days that were never recorded.
   7. Confirm the write path: badge progress is persisted via
      `coordinator._persist_and_update()` from `GamificationManager` (see existing calls at
      `managers/gamification_manager.py:487`, `:1125`).
@@ -91,13 +111,31 @@
 - **Goal**: an admin-callable `choreops.repair_streak` that restores a badge streak, auto-filling
   from the retained history, and returns that history for reference.
 - **Steps**
-  1. **Constants**: `SERVICE_REPAIR_STREAK`, `SERVICE_FIELD_REPAIR_COUNT`, and `TRANS_KEY_*` for the
-     service name, field labels, and errors.
+  1. **Constants** — VALIDATED against `DEVELOPMENT_STANDARDS.md` §3 and existing patterns
+     (2026-09-15). Most of the fields this service needs **already exist**, so the new-constant
+     surface is far smaller than first assumed:
+     - ✅ **Already exist, reuse — do not create:** `SERVICE_FIELD_USER_ID` / `SERVICE_FIELD_USER_NAME`
+       (`const.py:3064-3065`), `SERVICE_FIELD_BADGE_NAME` (`:3186`), `SERVICE_FIELD_REASON`,
+       `SERVICE_FIELD_APPROVER_NAME`. These match the documented `SERVICE_FIELD_*`"Service input
+       field names" pattern, and `manual_adjust_points` uses the same set.
+     - **Create:** `SERVICE_REPAIR_STREAK` (matches the documented `SERVICE_*` "Service action
+       names" pattern).
+     - **Create:** `SERVICE_FIELD_STREAK_COUNT: Final = "streak_count"` — **corrected** from the
+       earlier `SERVICE_FIELD_REPAIR_COUNT`, which used the action rather than the domain. The
+       established pattern is `SERVICE_FIELD_<DOMAIN>_<SEMANTIC>` (`SERVICE_FIELD_POINTS_AMOUNT`,
+       `SERVICE_FIELD_CHORE_NAME`), so the domain here is the streak.
+     - `TRANS_KEY_*` for the service name, field labels and errors.
   2. **Payload validator** in `services.py`, mirroring `_validate_manual_adjust_points_payload`
      (`services.py:129`): require exactly one of `user_id` / `user_name`; require `badge_name`.
      `count` is optional.
   3. **Manager method** on `GamificationManager` (only managers write). It owns the write and returns
      a plain dict for the response:
+     - **Naming note:** the method takes `assignee_id`, matching its neighbours in that manager
+       (`get_badge_scoped_today_stats`, `_get_tracked_current_streak`) and the mutation pattern in
+       `economy_manager.deposit(assignee_id=...)`. `DEVELOPMENT_STANDARDS.md` reserves `user` naming
+       for *lifecycle records*; badge progress is per-user data like points, and the service
+       boundary already uses `user_name` / `user_id`. Flagged because the standard and the
+       surrounding code differ, and following the neighbours is the consistent choice.
      - resolve the badge by name for the assignee; return a clear error if unknown or if the badge
        has no streak-carrying progress
      - `count` supplied → use it verbatim (no cap, per the scope decision)
@@ -109,7 +147,11 @@
        counted, so today would *hold* instead of advancing. Yesterday also retroactively clears the
        miss, because the miss check anchors on this field.
      - persist via `coordinator._persist_and_update()`
-     - return `{user, badge, restored_count, source ("manual"|"history"), history: [{date, count}]}`
+     - return a dict following the `get_ledger` response convention (`services.py:3712-3728`):
+       `assignee_id` / `assignee_name` naming, plus `restored_count`, `source`
+       (`"manual"|"history"`) and `history` — a list of date/value pairs. Reuse existing `DATA_*`
+       constants for keys (as `get_ledger` does with `DATA_USER_INTERNAL_ID` / `DATA_USER_NAME`)
+       rather than inventing bare string keys.
   4. **Handler** in `services.py`, registered with `supports_response=SupportsResponse.OPTIONAL`
      (pattern already used at `services.py:1542`, `:3733`):
      - resolve entry id and assignee
@@ -120,8 +162,18 @@
        not exist in this codebase.
      - call the manager, log at info with `reason` and actor, fire the event, request a refresh
      - return the dict
-  5. **Event**: `choreops_streak_repaired`, carrying user, badge, count, source and reason, so
-     households can build rules on top (the issue's "earn back your streak" automation).
+  5. **Event** — ⚠️ **this would be the integration's first HA event.** Verified: `async_fire` has
+     **zero** call sites anywhere in `custom_components/choreops/`, and there is no `EVENT_*`
+     constant namespace (only `NOTIFICATION_EVENT`, unrelated). So this is a new public surface
+     rather than an addition to an existing one.
+     - Add `EVENT_STREAK_REPAIRED: Final = "choreops_streak_repaired"` if the event is kept. The
+       `EVENT_*` prefix matches the documented `ATTR_*` / `SERVICE_*` family.
+     - Carries user, badge, count, source and reason, so households can build the "earn back your
+       streak" automation the issue describes.
+     - **Decision needed:** firing the first event in the codebase is a larger commitment than it
+       looks — it is a documented, user-depended-on contract that is hard to change later, and it
+       needs its own naming convention rather than inheriting one. Worth confirming it belongs in
+       this PR versus a follow-up.
   6. **Log line** with reason and actor, as the audit surface in place of a ledger entry.
   7. **`services.yaml`**: document the service with field descriptions and selectors, and state that
      it returns JSON when called with `return_response: true` — copy the wording style from
