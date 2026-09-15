@@ -7,13 +7,16 @@
   **together in one release** (decided 2026-09-14). From the user's perspective this is one bug
   ("streak badges don't work"); the analysis just found several distinct defects behind it.
 - **Owner / driver(s)**: ChoreOps maintainer + ChoreOps Builder (ChoreOps Test Builder for Phase 4)
-- **Status**: In progress — Phases 0, 1, 1B, 1C, 2, 3, 4 and 5 done; **Phase 6 remains
-  deliberately deferred** (decision 14). All decisions resolved (17 total). Outstanding before
-  release: the full-suite run and the release PR itself.
+- **Status**: In progress — Phases 0–5 complete and pushed; **PR [#296](https://github.com/ccpk1/ChoreOps/pull/296)
+  open as a draft**, labelled `bug`. Phase 6 remains deliberately deferred (decision 14). All
+  decisions resolved (17 total). Outstanding before merge: the full-suite run.
 - **Branch / delivery**: `ccpk1/issue294` carries both the #294 hotfix and this initiative, which
-  ship as a single release. Keep the phases as **separate commits** regardless — reviewers follow
-  commit history, and the hotfix commit (`73e97d5`) doubles as a bisect point if the wider change
-  later needs backing out.
+  ship as a single release via PR #296 against `main`. The phases are **separate commits** so
+  reviewers can follow the history, and the hotfix commit (`73e97d5`) doubles as a bisect point if
+  the wider change later needs backing out. The PR is a **draft** because the full-directory test
+  run has not been executed yet — note that CI runs only `lint-validation` and HACS validation, so
+  pytest is a manual pre-merge gate. Wiki docs were pushed directly to `choreops-wiki` `master`
+  (that repo has no PR flow).
 
 ## Summary & immediate steps
 
@@ -60,8 +63,10 @@
       after a break now starts a new streak instead of earning no credit.
    8. ✅ **Phase 4 complete** — 24 new tests across the schedule matrix, Days-family scope, contract
       traps and retention independence. One implementation gap was found and closed (decision 17).
-      **Next: Phase 5** — docs, wiki and release notes. Two behaviour changes now need release-note
-      coverage: the eligible scope (decision 8) and the undated one-timer consequence (decision 17).
+   9. ✅ **Phase 5 complete and PR #296 opened (draft)** — wiki (4 pages), option help text,
+      Development Standards, Architecture, and a release-note draft now in the PR description.
+   10. **Next: the full-suite run**, then mark PR #296 ready for review. Phase 6 stays deferred until
+      the badge behaviour is confirmed in the field (decision 14).
    9. Retire `streak_yesterday` deliberately in Phase 6 — it has no consumer since Phase 2.
 
 4. **Risks / blockers** –
