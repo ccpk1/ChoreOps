@@ -8,7 +8,7 @@
   "Scope decisions" below for what was deliberately excluded and why.
 - **Target release / milestone**: next release, alongside the streak work from PRs #296 and #297.
 - **Owner / driver(s)**: ChoreOps maintainer + ChoreOps Builder
-- **Status**: Planned — not started
+- **Status**: ✅ **Ready to implement** — all decisions settled (2026-09-15), no open questions.
 - **Branch / delivery**: `ccpk1/badge-streak-repair`, off `main` after #297 merged (`7520470`,
   2026-09-15). Single PR; the change is self-contained.
 
@@ -16,16 +16,17 @@
 
 | Phase | Description | % | Quick notes |
 | --- | --- | --- | --- |
-| 1 – Data layer | Per-day streak buffer on badge progress, pruned to 5 days; schema bump | 0% | First collection-valued field on badge progress |
-| 2 – Service | `repair_badge_streak` service + manager method, response-first | 0% | Mirrors `get_ledger` response pattern |
-| 3 – Tests | New suite covering buffer, pruning, repair, response, auth | 0% | 7–9 tests |
+| 1 – Data layer | Per-day streak history on badge progress, pruned to 5 days; schema bump + migration | 0% | First collection-valued field on badge progress |
+| 2 – Service | `repair_badge_streak` service + manager method, response-first, fires an event | 0% | Mirrors `get_ledger` response pattern |
+| 3 – Tests | New suite covering history, pruning, repair, response, auth | 0% | ~11 tests |
 | 4 – Docs | `services.yaml`, wiki, release note | 0% | `en.json` is the translation master |
+| 5 – Sensor | Expose the retained history as an attribute | 0% | Reuses an existing constant |
 
 1. **Objective** – give an admin a supported way to undo a broken badge streak, using a short
    retained history of the streak's own values rather than manual `.storage` editing.
 
 2. **Why this shape.** The streak count is destroyed on a break, and badges keep no high-water mark.
-   A small per-day buffer of recent counts both **retains the pre-break value** and **self-describes
+   A small per-day history of recent counts both **retains the pre-break value** and **self-describes
    when the break happened**, so the service can auto-fill the correct value and the lookback needs no
    companion date field. This replaced an earlier single-scalar design that could not answer
    "how many days ago was that".
@@ -41,13 +42,21 @@
      **Accepted consequence, recorded deliberately:** with no guard the service can also raise a
      *live* streak, so it is a bounded setter in addition to a repair. This is intentional, not an
      oversight.
-   - **No configurable window.** The buffer's own depth is the window: it holds the last 5 days, and a
+   - **No configurable window.** The history's own depth is the window: it holds the last 5 days, and a
      break older than that has nothing to restore from. This removes the general-options setting, its
      validation, and the config plumbing entirely.
      ⚠️ **Do not confuse this with the existing `retention_daily` setting.** `CONF_RETENTION_DAILY`
      (`const.py:820`, default 14, **max 90**) governs daily *period buckets* — the history behind
-     stats and charts. It is unrelated to this buffer and must not be wired to it: at 90 days the
+     stats and charts. It is unrelated to this history and must not be wired to it: at 90 days the
      repair lookback would be far longer than intended, and the two serve different purposes.
+   - **History is NOT cleared on cycle rollover (confirmed 2026-09-15).** The retained entries simply
+     age out on their own. The service reports the retained values, and the caller decides whether
+     they are still meaningful for the current cycle — the same "let admins decide" principle applied
+     to the missing guards. **Accepted consequence:** a repair *can* restore a pre-rollover value into
+     a fresh cycle. That is the caller's call, not something the code second-guesses.
+   - **No derived restore-value attribute (confirmed 2026-09-15).** The sensor exposes the retained
+     history and nothing more; a caller wanting the maximum reads it themselves. Avoids inventing a
+     derived field whose meaning could drift from the storage it summarises.
 
 ## Naming principle for this initiative
 
@@ -123,8 +132,8 @@ The existing codebase follows this already — `SERVICE_FIELD_BADGE_NAME`, and
        `datetime`** — same convention as the period buckets.
   4. **Prune** to the most recent 5 date keys on write, sorted by key (ISO dates sort correctly as
      strings).
-  5. **Read defensively.** A missing, non-dict, or partially malformed buffer must degrade to an
-     empty buffer rather than raising, so a corrupt value cannot break badge evaluation.
+  5. **Read defensively.** A missing, non-dict, or partially malformed history must degrade to an
+     empty history rather than raising, so a corrupt value cannot break badge evaluation.
   6. **Schema bump — CORRECTED 2026-09-15 after standards review.** Add
      `SCHEMA_VERSION_1_5_3: Final = 153` and point `SCHEMA_VERSION_CURRENT` at it. The convention
      is `major*100 + minor*10 + patch` (`const.py:353-355`: 1.0.0 → 100, 1.5.0 → 150), and the
@@ -150,7 +159,7 @@ The existing codebase follows this already — `SERVICE_FIELD_BADGE_NAME`, and
   - **Buffer depth is the only thing bounding the lookback.** It is a hardcoded constant, independent
     of `CONF_RETENTION_DAILY`, and changing it later silently changes the repair window — so it is a
     behaviour-affecting constant and should be treated as such.
-  - Forward-only: the buffer accrues from install. A break that happens before the feature ships has
+  - Forward-only: the history accrues from install. A break that happens before the feature ships has
     nothing to restore from, which the service must report clearly rather than failing obscurely.
 
 ## Phase 2 – Service
@@ -193,7 +202,7 @@ The existing codebase follows this already — `SERVICE_FIELD_BADGE_NAME`, and
      - resolve the badge by name for the assignee; return a clear error if unknown or if the badge
        has no streak-carrying progress
      - `count` supplied → use it verbatim (no cap, per the scope decision)
-     - `count` omitted → use the **highest value** in the retained buffer; if the buffer is empty,
+     - `count` omitted → use the **highest value** in the retained history; if the history is empty,
        return an error explaining there is nothing to restore from
      - write `DATA_USER_BADGE_PROGRESS_DAYS_CYCLE_COUNT = count`
      - **write `last_update_day = yesterday`** — ✅ **mechanism verified from code.**
@@ -255,30 +264,30 @@ The existing codebase follows this already — `SERVICE_FIELD_BADGE_NAME`, and
 
 ## Phase 3 – Tests
 
-- **Goal**: pin the buffer and the service contract, including the response.
+- **Goal**: pin the history and the service contract, including the response.
 - **Steps**
   1. New `tests/test_repair_badge_streak.py`:
-     - buffer records the day's count, keyed by local date
-     - buffer prunes to 5 entries, dropping the oldest
+     - history records the day's count, keyed by local date
+     - history prunes to 5 entries, dropping the oldest
      - the **pre-break value is retained** after a break (the core reason for this design)
      - repair with no `count` restores the highest retained value
      - repair with an explicit `count` uses it verbatim (including a value above the retained max,
        proving no cap)
      - repair sets `last_update_day` to yesterday, and today's evaluation then **advances**
-     - empty buffer returns the "nothing to restore" error
+     - empty history returns the "nothing to restore" error
      - unknown badge / unknown user refused
      - unauthorized caller refused
      - response contains `history` with date and value pairs
-     - corrupt buffer (string, list, mixed types) degrades to empty and does not raise
+     - corrupt history (string, list, mixed types) degrades to empty and does not raise
   2. Confirm no regression in `test_badge_progress_persistence.py`,
      `test_badge_streak_schedule_awareness.py`, `test_gamification_engine.py`,
      `test_badge_target_types.py`.
 - **Key issues**
   - Timezone: pin the default timezone with a `try/finally` restore (the established convention in
-    `test_badge_period_end_cycles.py`), since buffer keys are local dates.
+    `test_badge_period_end_cycles.py`), since history keys are local dates.
   - Any test asserting "2 days ago" must derive its keys from `dt_today_iso()` rather than hardcoding
     dates, or it will be weekday/clock dependent.
-  - Verify non-vacuity for the pruning assertion: a buffer that never prunes must fail it.
+  - Verify non-vacuity for the pruning assertion: a history that never prunes must fail it.
 
 ## Phase 4 – Docs
 
@@ -289,7 +298,7 @@ The existing codebase follows this already — `SERVICE_FIELD_BADGE_NAME`, and
      set any value (no cap), that it needs an admin, and that restoring above the threshold re-awards
      the badge.
   2. Note the two accepted limitations: it is **badges only**, so achievements and chore streaks over
-     the same chore are not affected; and a break older than the buffer's 5-day depth has nothing to
+     the same chore are not affected; and a break older than the history's 5-day depth has nothing to
      restore from.
   2b. Document the `choreops_badge_streak_repaired` event and its payload, so the "earn back your
      streak" automation pattern is reproducible, and mention the `streak_history` sensor attribute
@@ -300,74 +309,54 @@ The existing codebase follows this already — `SERVICE_FIELD_BADGE_NAME`, and
      scalar-plus-date alternative was rejected (it needs two fields and an invariant to answer
      "how long ago").
 
-## Open questions before implementation
+## Settled decisions
 
-Grouped by whether they block starting. Answers go here so the plan carries its own decisions.
+All decisions are closed as of 2026-09-15. Nothing blocks implementation.
 
-### Blocking
+### Scope
 
-1. **Is the event in scope for this PR?** ✅ **RESOLVED — include it.** It is a standard HA feature,
-   not a new pattern (see Phase 2 step 5). The "earn back your streak" automation in the issue needs
-   it, and the service is hard to drive from automations without it.
+| Decision | Settled as | Rationale |
+| --- | --- | --- |
+| Coverage | **Badges only** | Achievements derive from the chore streak; repairing a chore streak means falsifying `last_completed`, which five call sites read |
+| Caps / guards / budget | **None** | Admins decide how to use it. The service can therefore also raise a live streak — intentional, documented |
+| Lookback window | **5 days**, `DEFAULT_BADGE_STREAK_HISTORY_DAYS` | Buffer depth *is* the window; named `DEFAULT_` so promoting it to user-configurable is a pure addition |
+| Ledger entry | **No** | The points ledger is economy-shaped and would not fit; log + event are the audit surface |
+| Event | **Yes**, `EVENT_BADGE_STREAK_REPAIRED` | Standard HA feature, not a new pattern; the "earn back your streak" automation needs it |
+| Cycle rollover | **Leave history alone** | Entries age out on their own; the service reports them and the caller decides. A repair *can* restore a pre-rollover value — accepted as the caller's call |
+| Sensor attribute | **`DATA_USER_BADGE_PROGRESS_STREAK_HISTORY`**, existing constant | This sensor already exposes stored fields under their `DATA_*` keys; no new constant needed |
+| Derived restore value | **Not added** | Sensor reports stored data; a caller wanting the max reads it, keeping the two from drifting |
+| Cycle-rollover clearing | **None** | See above |
 
-2. **5 days — or a different default?** ✅ **RESOLVED — keep 5.**
+### Implementation choices
 
-3. **Should the retained value be exposed on the badge sensor?** ✅ **RESOLVED — yes, on
-   `AssigneeBadgeProgressSensor` (`sensor.py:2205`).**
-   - **Attribute name: use the existing data constant directly —
-     `DATA_USER_BADGE_PROGRESS_STREAK_HISTORY`, whose value is `"streak_history"`.** No new constant
-     is needed.
-   - **Why not an `ATTR_*` constant:** this sensor already exposes stored fields under their `DATA_*`
-     keys — `DATA_USER_BADGE_PROGRESS_OVERALL_PROGRESS`, `..._CRITERIA_MET`, `..._LAST_UPDATE_DAY`,
-     `..._STATUS`, `DATA_BADGE_TYPE`. It reserves `ATTR_*` for presentation-only values
-     (`ATTR_PURPOSE`, `ATTR_USER_NAME`, `ATTR_BADGE_NAME`). `streak_history` is a stored field, so it
-     follows the data-key precedent and adds nothing to the constant surface.
-     (Had an `ATTR_*` been the right call, the pattern would have been
-     `ATTR_BADGE_STREAK_HISTORY`, mirroring `ATTR_BADGE_CUMULATIVE_CYCLE_POINTS`.)
-   - **Payoff:** retained state is *current* state, so the pre-break value is readable on the entity
-     after a break — unlike the `overall_progress` state, which saturates at 100% and so is
-     uninformative for exactly the long streaks this feature targets.
-   - **Optional extra:** a derived `streak_restore_value` attribute carrying the max would save the
-     user writing a `max()` template to answer "what should I pass to the service". Worth adding if
-     the service is meant to be driven by non-technical admins; skip it if they will read the history.
+| Question | Settled as |
+| --- | --- |
+| Manager method owner | `GamificationManager`, named `repair_badge_streak(...)` — it owns badge progress, so it owns the write. Service stays a thin delegate |
+| Response includes retention depth? | **Yes** — cheap, and it keeps consumers off the constant |
+| Non-streak badge | **Refuse** with a clear behavioural error ("this badge does not track a streak"), not a target-type constant |
+| `criteria_met` on restore above threshold | **No special-casing** — the badge re-awards on the next evaluation. Documented in the wiki so it is not reported as a bug |
+| `changed` semantics for the history write | Set only when `today_iso` is absent from the history or its value differs — **not** inherited from the `previous_days != days_count` check, which would skip neutral days (Phase 1 step 3) |
 
-### Non-blocking (decide during implementation)
+### Verified, not assumed
 
-4. **Which `changed` semantics for the new write?** Recording history mutates progress on every
-   evaluation, so it will set `changed = True` more often. Confirm this does not cause excess
-   persistence — badge progress goes through `_persist_and_update()`, which triggers a coordinator
-   refresh. If it proves chatty, flag `changed` only when the key is new or the value differs.
-   (The recording subtlety that a neutral day must still get its own key is in Phase 1 step 3.)
+- **`last_update_day = yesterday` advances today** — `already_counted_today = (last_update_day == today_iso)` (`gamification_engine.py:1309`); a satisfied day then takes `cycle_count + 1` (`:1171`). Today would *hold* instead.
+- **The pre-break value is in scope at break time** — the `days_cycle` persist branch reads `previous_days` before overwriting (`gamification_manager.py:2006-2029`).
+- **Naming and migration** — see the naming principle and Phase 1 step 6.
+- **Auth pattern** — `is_user_authorized_for_action(..., AUTH_ACTION_MANAGEMENT)`. `async_register_admin_service` does **not** exist in this repo despite `AGENTS.md` referencing it.
 
-5. **Where exactly does the manager method live?** `GamificationManager` owns badge progress, so it
-   owns the write, per CRUD ownership. Confirm the service stays a thin delegate.
+## Implementation sequence
 
-6. **Should the response include the retention depth?** Returning it lets a caller see the effective
-   window without hardcoding it.
-   *Recommendation:* include it — cheap, and it keeps consumers off the constant.
+Ordered so each commit is independently reviewable and revertable. Phase 1 must land before Phase 2, since the service reads the history.
 
-7. **What if the badge is not a streak target type?** It has no `days_cycle_count`.
-   *Decision:* refuse with a clear error, named by behaviour ("this badge does not track a streak")
-   rather than by target-type constant.
+| Commit | Scope | Files |
+| --- | --- | --- |
+| 1 | Data layer — constants, record/prune/read helpers, wiring into the persist branch | `const.py`, `gamification_manager.py`, `migrations/modern.py` |
+| 2 | Service — constants, validator, manager method, handler, event, `services.yaml`, translations | `const.py`, `services.py`, `gamification_manager.py`, `services.yaml`, `translations/en.json` |
+| 3 | Sensor attribute | `sensor.py` |
+| 4 | Tests — new suite plus the regression set | `tests/test_repair_badge_streak.py` |
+| 5 | Docs — wiki, release note | `choreops-wiki` (direct push) |
 
-8. **Interaction with cycle rollover.** If the cycle rolled, the counter was legitimately reset and
-   the retained history belongs to the previous cycle.
-   *Decision needed:* clear the history on rollover, or leave it. Leaving it means a repair could
-   restore a pre-rollover value into a fresh cycle.
-   *Recommendation:* clear it on rollover, and record why.
-
-9. **Does `criteria_met` need handling?** Restoring above the threshold re-awards the badge on the
-   next evaluation. Likely intended — document it in the wiki rather than special-casing.
-
-### Already settled (no action needed)
-
-- **Naming** — badge domain leads; see the naming principle section.
-- **Migration** — an idempotent step is required in `run_modern_schema_migrations`.
-- **Storage location** — `DATA_USER_BADGE_PROGRESS_STREAK_HISTORY`, inside the existing namespace.
-- **Auth** — `is_user_authorized_for_action`, not `async_register_admin_service`.
-- **No ledger entry** — the points ledger is economy-shaped; log + event are the audit surface.
-- **Both repair mechanisms** — confirmed from code (`gamification_engine.py:1309`, `:1171`, and the
-  `days_cycle` persist branch).
+**Definition of done**: `quick_lint.sh --fix` green (ruff + mypy 0 errors + boundary checks), new suite passing, prior badge/gamification suites unregressed, and the **full suite** run before the PR — the schema bump and a new write on the evaluation path justify it.
 
 ## Testing & validation
 
