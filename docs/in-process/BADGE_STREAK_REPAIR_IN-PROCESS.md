@@ -18,8 +18,8 @@
 | Phase | Description | % | Quick notes |
 | --- | --- | --- | --- |
 | 1 – Data layer | Per-day streak history on badge progress, pruned to 5 days; schema bump + migration | 100% | ✅ Constants, helpers, write wiring, migration; mypy required a TypedDict key too |
-| 2 – Service | `repair_badge_streak` service + manager method, response-first, fires an event | 100% | ✅ Found and fixed a response key collision |
-| 3 – Tests | New suite covering history, pruning, repair, response, refusals | 100% | ✅ 30 tests |
+| 2 – Service | `repair_badge_streak` service + manager method, response-first, fires an event | 100% | ✅ Fixed a response key collision and the refusal gate |
+| 3 – Tests | New suite covering history, pruning, repair, response, refusals | 100% | ✅ 35 tests |
 | 4 – Docs | `services.yaml`, wiki, release note | 100% | ✅ Wiki committed; note + rationale drafted |
 | 5 – Sensor | Expose the retained history as an attribute | 100% | ✅ Reuses an existing constant, no new one |
 
@@ -407,6 +407,62 @@ All decisions are closed as of 2026-09-15. Nothing blocks implementation.
 | Non-streak badge | **Refuse** with a clear behavioural error ("this badge does not track a streak"), not a target-type constant |
 | `criteria_met` on restore above threshold | **No special-casing** — the badge re-awards on the next evaluation. Documented in the wiki so it is not reported as a bug |
 | `changed` semantics for the history write | Set only when `today_iso` is absent from the history or its value differs — **not** inherited from the `previous_days != days_count` check, which would skip neutral days (Phase 1 step 3) |
+
+### Lifecycle audit (2026-09-15, post-implementation)
+
+Traced the field through normal operations and edge cases after Phases 1–4 were committed.
+**Two defects were found in the implementation**, plus one misleading-success case. All three are fixed.
+
+| Situation | Behaviour | Verdict |
+| --- | --- | --- |
+| Badge deleted | Progress entry deleted wholesale, taking the history with it | ✅ No orphan |
+| Assignee unassigned from badge | Same — entry deleted | ✅ No orphan |
+| Cycle rollover | `days_cycle_count` → 0 and `last_update_day` → `""`; history deliberately left (`_reset_non_cumulative_badge_progress_runtime_fields`) | ⚠️ Intended, but see below |
+| Badge created after the migration | No `streak_history` until first evaluation | ✅ Defensive read, then first write creates it |
+| Backup / restore | Field lives in the store; an older backup has a lower schema version so the migration seeds `{}` | ✅ |
+| Same-day re-evaluation | One key per day, latest value wins; a break's `0` overwrites the day's earlier value while the previous day's entry keeps the pre-break value | ✅ |
+| Badge target type changed | Counters are **not** cleared, so `days_cycle_count` and the history persist | ❌ **Defect** |
+| Days-family badges | Share the `days_cycle` bucket, so the history was being recorded for them too | ❌ **Defect** |
+| History of only zeros | Max is 0, so an auto-fill "repair" wrote 0 and reported success | ❌ **Misleading success** |
+
+**Defect 1 — the refusal gate tested the wrong thing.** It refused when `days_cycle_count` was
+absent, but **14 target types share that counter** — 9 Days family + 5 Streak family
+(verified by mapping every handler's `persist_bucket`). The Days counter is an *accumulated day
+count*, not a streak. So a "streak repair" was permitted on:
+- **Days badges**, which have no streak at all, writing a streak value into an accumulating counter;
+- a badge **edited from Streak to Points/Count**, because editing does not clear counters —
+  `sync_badge_progress_for_assignee` only syncs the name and reset schedule.
+
+  **Fix:** check the badge's **current target type** against the new
+  `BADGE_TARGET_TYPES_STREAK` frozenset. The plan had rejected a target-type check in favour of a
+  "behavioural" one, but the behavioural proxy was simply unreliable — only the target type answers
+  the question. The original reasoning is superseded.
+
+**Defect 2 — history was recorded for Days badges.** The recording site sits in the shared
+`days_cycle` branch, so `streak_history` was populated for all 9 Days target types: a field named
+"streak" holding an accumulated day count. Wasted storage, a misleading value, and the sensor
+attribute would have advertised it on badges that can never use it.
+**Fix:** gate the recording on `target_type in BADGE_TARGET_TYPES_STREAK`.
+
+**Defect 3 — all-zero history reported success.** A history whose every entry is `0` (a badge that
+only ever broke) produced `max = 0`, so an auto-fill repair wrote `0` and returned a success
+payload. That is a no-op presented as a repair — exactly the misleading outcome the refusal
+messages exist to prevent.
+**Fix:** treat `max == 0` as nothing to restore; an explicit `count` still works.
+
+**Non-vacuity proven for both gate fixes:** reverting the target-type check to field presence fails
+**5 tests**, covering the Days family, the minimum-count variant, Points, Chore Count, and the
+edited-away-from-Streak case.
+
+**Remaining note — auto-fill is most likely to be stale immediately after a cycle rollover.** The
+rollover resets the counter legitimately, but the history keeps the previous cycle's values, so an
+auto-fill in that window restores the *previous* cycle's peak. Accepted by decision (leave the
+history alone, caller decides), and the response includes the dates so a caller can see it — but the
+wiki should call it out.
+
+**Minor asymmetry — `_ensure_assignee_periodic_badge_structures` does not seed `streak_history`**,
+while the migration does. Harmless because reads are defensive and the first write creates it;
+adding it would only be for symmetry.
 
 ### Verified, not assumed
 

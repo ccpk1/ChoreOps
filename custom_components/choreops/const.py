@@ -1942,6 +1942,23 @@ BADGE_TARGET_THRESHOLD_TYPE_STREAK_SELECTED_DUE_CHORES_NO_OVERDUE = (
     "streak_all_due_chores_no_overdue"
 )
 
+BADGE_TARGET_TYPES_STREAK: Final[frozenset[str]] = frozenset(
+    {
+        BADGE_TARGET_THRESHOLD_TYPE_STREAK_SELECTED_CHORES,
+        BADGE_TARGET_THRESHOLD_TYPE_STREAK_80PCT_CHORES,
+        BADGE_TARGET_THRESHOLD_TYPE_STREAK_SELECTED_CHORES_NO_OVERDUE,
+        BADGE_TARGET_THRESHOLD_TYPE_STREAK_80PCT_DUE_CHORES,
+        BADGE_TARGET_THRESHOLD_TYPE_STREAK_SELECTED_DUE_CHORES_NO_OVERDUE,
+    }
+)
+"""Target types that track a consecutive-run streak.
+
+Needed because `days_cycle_count` is **shared** with the Days family, which counts
+accumulated days rather than a streak. The counter's presence therefore says nothing
+about whether a badge tracks a streak — only the target type does. Used to decide
+whether streak history is worth recording and whether a streak repair is meaningful.
+"""
+
 # Legacy
 BADGE_THRESHOLD_TYPE_CHORE_COUNT: Final = "chore_count"
 

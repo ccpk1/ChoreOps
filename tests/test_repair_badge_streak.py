@@ -68,11 +68,13 @@ def _seed_badge(
     manager: GamificationManager,
     *,
     progress: dict[str, Any] | None = None,
+    target_type: str = const.BADGE_TARGET_THRESHOLD_TYPE_STREAK_SELECTED_CHORES,
 ) -> dict[str, Any]:
     """Seed one badge and its progress, returning the progress dict.
 
     The progress dict is the live object held by the coordinator, so a test can
-    assert against it directly after a repair.
+    assert against it directly after a repair. `target_type` defaults to a Streak
+    variant because that is what the repair applies to.
     """
     seeded: dict[str, Any] = {
         const.DATA_USER_BADGE_PROGRESS_NAME: BADGE_NAME,
@@ -86,6 +88,7 @@ def _seed_badge(
     }
     manager.coordinator.badges_data[BADGE_ID] = {
         const.DATA_BADGE_NAME: BADGE_NAME,
+        const.DATA_BADGE_TARGET_TYPE: target_type,
     }
     return seeded
 
@@ -449,15 +452,93 @@ class TestRepairRefusals:
             "name": BADGE_NAME,
         }
 
-    def test_non_streak_badge_is_refused(self, manager: GamificationManager) -> None:
-        """A badge with no streak counter is refused by behaviour, not target type."""
-        progress = _seed_badge(manager)
-        progress.pop(const.DATA_USER_BADGE_PROGRESS_DAYS_CYCLE_COUNT)
+    @pytest.mark.parametrize(
+        ("target_type", "case"),
+        [
+            pytest.param(
+                const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_SELECTED_CHORES,
+                "days-family",
+                id="days-family",
+            ),
+            pytest.param(
+                const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_MIN_5_CHORES,
+                "days-minimum",
+                id="days-minimum",
+            ),
+            pytest.param(
+                const.BADGE_TARGET_THRESHOLD_TYPE_POINTS,
+                "points",
+                id="points",
+            ),
+            pytest.param(
+                const.BADGE_TARGET_THRESHOLD_TYPE_CHORE_COUNT,
+                "chore-count",
+                id="chore-count",
+            ),
+        ],
+    )
+    def test_non_streak_badge_is_refused(
+        self, manager: GamificationManager, target_type: str, case: str
+    ) -> None:
+        """Only the current target type decides, not the presence of a counter.
+
+        `days_cycle_count` is shared with the Days family, which counts accumulated
+        days rather than a streak, so the Days cases below have the counter present
+        and must still be refused. A badge edited away from a Streak target keeps a
+        stale counter for the same reason.
+        """
+        _seed_badge(manager, target_type=target_type)
 
         with pytest.raises(HomeAssistantError) as err:
             manager.repair_badge_streak(ASSIGNEE_ID, BADGE_ID, count=1)
 
+        assert err.value.translation_key == const.TRANS_KEY_ERROR_BADGE_NOT_STREAK, case
+
+    def test_badge_edited_away_from_streak_is_refused(
+        self, manager: GamificationManager
+    ) -> None:
+        """A stale counter left behind by a target-type change must not enable repair.
+
+        Editing a badge's target type does not clear progress counters, so a badge
+        switched from Streak to Points keeps `days_cycle_count` and its history. The
+        gate must not be fooled by that leftover state.
+        """
+        _seed_badge(
+            manager,
+            target_type=const.BADGE_TARGET_THRESHOLD_TYPE_POINTS,
+            progress={const.DATA_USER_BADGE_PROGRESS_STREAK_HISTORY: {_day_key(0): 12}},
+        )
+
+        with pytest.raises(HomeAssistantError) as err:
+            manager.repair_badge_streak(ASSIGNEE_ID, BADGE_ID)
+
         assert err.value.translation_key == const.TRANS_KEY_ERROR_BADGE_NOT_STREAK
+
+    def test_all_zero_history_without_a_count_is_refused(
+        self, manager: GamificationManager
+    ) -> None:
+        """History of only zeros has nothing to restore, so it is refused.
+
+        A maximum of 0 means every retained day was already broken. Restoring 0 would
+        be a no-op reported as a successful repair.
+        """
+        _seed_badge(
+            manager,
+            progress={
+                const.DATA_USER_BADGE_PROGRESS_STREAK_HISTORY: {
+                    _day_key(1): 0,
+                    _day_key(0): 0,
+                }
+            },
+        )
+
+        with pytest.raises(HomeAssistantError) as err:
+            manager.repair_badge_streak(ASSIGNEE_ID, BADGE_ID)
+
+        assert (
+            err.value.translation_key
+            == const.TRANS_KEY_ERROR_BADGE_STREAK_NOTHING_TO_RESTORE
+        )
 
     def test_empty_history_without_a_count_is_refused(
         self, manager: GamificationManager

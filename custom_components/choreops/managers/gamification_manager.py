@@ -1925,12 +1925,11 @@ class GamificationManager(BaseManager):
         badge_progress = cast(
             "dict[str, Any]", assignee_info.get(const.DATA_USER_BADGE_PROGRESS, {})
         )
-        progress = badge_progress.get(badge_id)
-        badge_name = str(
-            cast("dict[str, Any]", self.coordinator.badges_data.get(badge_id, {})).get(
-                const.DATA_BADGE_NAME, badge_id
-            )
+        badge_data = cast(
+            "dict[str, Any]", self.coordinator.badges_data.get(badge_id, {})
         )
+        progress = badge_progress.get(badge_id)
+        badge_name = str(badge_data.get(const.DATA_BADGE_NAME, badge_id))
 
         if not isinstance(progress, dict) or not progress:
             raise HomeAssistantError(
@@ -1942,7 +1941,14 @@ class GamificationManager(BaseManager):
                 },
             )
 
-        if const.DATA_USER_BADGE_PROGRESS_DAYS_CYCLE_COUNT not in progress:
+        # Check the target type, not the presence of a counter. `days_cycle_count`
+        # is shared with the Days family, which counts accumulated days rather than
+        # a streak, and a badge edited away from a Streak target keeps the field
+        # behind. Only the current target type answers the question.
+        if (
+            badge_data.get(const.DATA_BADGE_TARGET_TYPE)
+            not in const.BADGE_TARGET_TYPES_STREAK
+        ):
             raise HomeAssistantError(
                 translation_domain=const.DOMAIN,
                 translation_key=const.TRANS_KEY_ERROR_BADGE_NOT_STREAK,
@@ -1952,7 +1958,10 @@ class GamificationManager(BaseManager):
         history = self.get_badge_streak_history(progress)
 
         if count is None:
-            if not history:
+            # A maximum of 0 means every retained day was already broken, so there is
+            # nothing meaningful to restore — refusing beats reporting a no-op as a
+            # successful repair.
+            if not history or max(history.values()) == 0:
                 raise HomeAssistantError(
                     translation_domain=const.DOMAIN,
                     translation_key=const.TRANS_KEY_ERROR_BADGE_STREAK_NOTHING_TO_RESTORE,
@@ -2205,8 +2214,15 @@ class GamificationManager(BaseManager):
             # pre-break value survives in an earlier entry and can be restored.
             # Recorded outside the change check above: a neutral day leaves the
             # count unchanged but still needs its own key.
-            if GamificationManager.record_badge_streak_history(
-                progress, days_count, today_iso
+            #
+            # Only for Streak targets. This bucket is shared with the Days family,
+            # whose counter is an accumulated day count rather than a streak, so
+            # recording it in `streak_history` would store a misleading value and
+            # bloat progress for badges that can never use it.
+            if target_type in const.BADGE_TARGET_TYPES_STREAK and (
+                GamificationManager.record_badge_streak_history(
+                    progress, days_count, today_iso
+                )
             ):
                 changed = True
 
