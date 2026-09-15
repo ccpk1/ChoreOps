@@ -10,8 +10,8 @@
 > | --- | --- |
 > | **Phases** | 1 data layer · 2 service · 3 tests · 4 docs · 5 sensor attribute — all complete |
 > | **Commits** | `fd28a8e` · `3ea04e3` · `853f606` · `227e643` · `8ff58d4` · `2112528` |
-> | **Validation** | 40 tests in the new suite; `quick_lint.sh` green, mypy **0 errors** |
-> | **Full suite** | ⬜ Outstanding — deliberately deferred to the release step |
+> | **Validation** | **Full suite 2307 passed / 4 skipped / 18 deselected / 0 failed**; `quick_lint.sh` green, mypy **0 errors** |
+> | **Full suite** | ✅ Passed 2026-09-15 — see the baseline below |
 > | **Schema** | 153 (`SCHEMA_VERSION_1_5_3`) with an idempotent seed migration |
 > | **Ships in** | `1.5.3-beta.2` — set in `manifest.json`, **untagged** |
 > | **Wiki** | Committed and pushed to `choreops-wiki` (`b528d70`, `02ed887`, `8e29574`) |
@@ -35,8 +35,7 @@
   **untagged**, so it accumulates this work rather than needing a new beta number.
 - **Owner / driver(s)**: ChoreOps maintainer + ChoreOps Builder
 - **Status**: ✅ **COMPLETED 2026-09-15** — all five phases done. `quick_lint.sh` green with mypy
-  0 errors; 40 tests in the new suite and 324 targeted tests across the affected suites. The full
-  suite is outstanding, deliberately deferred to the release step.
+  0 errors. **Full suite passes: 2307 passed / 4 skipped / 18 deselected / 0 failed.**
 - **Branch / delivery**: `ccpk1/badge-streak-repair`, off `main` after #297 merged (`7520470`,
   2026-09-15). Single PR; the change is self-contained.
 
@@ -556,7 +555,21 @@ Ordered so each commit is independently reviewable and revertable. Phase 1 must 
 - **Targeted**: `python -m pytest tests/test_repair_badge_streak.py tests/test_badge_progress_persistence.py tests/test_badge_streak_schedule_awareness.py tests/test_gamification_engine.py tests/test_badge_target_types.py -q --tb=line`
 - **Release gates**: `./utils/quick_lint.sh --fix`, `mypy custom_components/choreops/`, then the full
   suite — the schema bump and a new write on the evaluation path justify a full run.
-- **Outstanding tests**: none yet; Phase 3 defines them.
+- **Outstanding tests**: ✅ none. The full suite passes; see the baseline above.
+
+- **Baseline — FULL SUITE (2026-09-15, commit `bfe854e`):**
+  `./utils/run_tests.sh tests/ -q --tb=line` → **2307 passed, 4 skipped, 18 deselected, 0 failed**
+  in 8m34s.
+  - **The delta is exactly the new suite.** The comparable run on `main` (after #297, before this
+    branch) was **2267 passed**; this branch is **2307**. `2307 − 2267 = 40`, and
+    `test_repair_badge_streak.py` collects **exactly 40 tests**. So the change is purely additive:
+    no existing test changed outcome, and skipping/deselection are identical at 4 and 18.
+  - That is the strongest available signal that the work did not perturb existing behaviour — and
+    notable given it touches a shared evaluation path and bumps the schema. Contrast with Phase 6B,
+    which changed achievement behaviour and therefore required rewriting tests rather than adding
+    them.
+  - The **18 deselected** are `performance` / `stress` markers excluded by default in `pytest.ini`.
+    The **4 skipped** matches every prior full run.
 
 ## Notes & follow-up
 
