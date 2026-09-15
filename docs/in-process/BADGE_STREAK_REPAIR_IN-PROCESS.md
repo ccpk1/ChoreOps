@@ -3,20 +3,21 @@
 ## Initiative snapshot
 
 - **Name / Code**: Badge Streak Repair — `BADGE_STREAK_REPAIR`
-- **Origin**: issue #290 (`repair_streak` service). Scoped down from the original request — see
+- **Origin**: issue #290 (which proposes a `repair_streak` service). Scoped down from the original
+  request — see
   "Scope decisions" below for what was deliberately excluded and why.
 - **Target release / milestone**: next release, alongside the streak work from PRs #296 and #297.
 - **Owner / driver(s)**: ChoreOps maintainer + ChoreOps Builder
 - **Status**: Planned — not started
-- **Branch / delivery**: `ccpk1/streak-repair`, off `main` after #297 merged (`7520470`, 2026-09-15).
-  Single PR; the change is self-contained.
+- **Branch / delivery**: `ccpk1/badge-streak-repair`, off `main` after #297 merged (`7520470`,
+  2026-09-15). Single PR; the change is self-contained.
 
 ## Summary & immediate steps
 
 | Phase | Description | % | Quick notes |
 | --- | --- | --- | --- |
 | 1 – Data layer | Per-day streak buffer on badge progress, pruned to 5 days; schema bump | 0% | First collection-valued field on badge progress |
-| 2 – Service | `repair_streak` service + manager method, response-first | 0% | Mirrors `get_ledger` response pattern |
+| 2 – Service | `repair_badge_streak` service + manager method, response-first | 0% | Mirrors `get_ledger` response pattern |
 | 3 – Tests | New suite covering buffer, pruning, repair, response, auth | 0% | 7–9 tests |
 | 4 – Docs | `services.yaml`, wiki, release note | 0% | `en.json` is the translation master |
 
@@ -48,6 +49,29 @@
      stats and charts. It is unrelated to this buffer and must not be wired to it: at 90 days the
      repair lookback would be far longer than intended, and the two serve different purposes.
 
+## Naming principle for this initiative
+
+**The domain is badges. Every name is anchored on it, with the streak as the qualifier.**
+
+This was corrected twice during review, from `SERVICE_FIELD_REPAIR_COUNT` (named the *action*) to
+`SERVICE_FIELD_STREAK_COUNT` (named the *feature*), before landing on
+`SERVICE_FIELD_BADGE_STREAK_COUNT` (names the *domain*). Both wrong versions were plausible, which is
+exactly why the rule is written down: reach for the domain first, and treat the mechanism as the
+qualifier.
+
+| Surface | Name | Domain anchor |
+| --- | --- | --- |
+| Service action | `SERVICE_REPAIR_BADGE_STREAK` | badge |
+| Service field | `SERVICE_FIELD_BADGE_STREAK_COUNT` | badge |
+| Storage field | `DATA_USER_BADGE_PROGRESS_STREAK_HISTORY` | badge (existing namespace) |
+| Lookback constant | `BADGE_STREAK_LOOKBACK_DAYS` | badge |
+| Event | `EVENT_BADGE_STREAK_REPAIRED` | badge |
+| Manager method | `repair_badge_streak()` | badge |
+| Initiative / file / branch | `BADGE_STREAK_REPAIR` | badge |
+
+The existing codebase follows this already — `SERVICE_FIELD_BADGE_NAME`, and
+`SERVICE_REMOVE_AWARDED_BADGES` where the object names the domain.
+
 ## Phase 1 – Data layer
 
 - **Goal**: retain the last 5 days of each badge's streak count, and bump the schema.
@@ -60,10 +84,10 @@
      ✅ **Name validated** — matches the existing `DATA_USER_BADGE_PROGRESS_<NAME>` family with a
      `snake_case` value, and `DATA_*` is documented as singular storage keys (`const.py:1057-1068`).
      Place it in the existing alphabetical run, after `START_DATE` and before `STATUS`.
-  2. Add `STREAK_HISTORY_LOOKBACK_DAYS: Final = 5` — named for its **purpose** (how far back a repair
-     can see), deliberately not `..._RETENTION_DAYS`, so it cannot be mistaken for the unrelated
-     `CONF_RETENTION_DAILY` setting. Add a comment recording both the purpose and that there is no
-     user-facing setting for it.
+  2. Add `BADGE_STREAK_LOOKBACK_DAYS: Final = 5` — named for its **purpose** (how far back a repair
+     can see) and anchored on the **badge** domain. Deliberately not `..._RETENTION_DAYS`, so it
+     cannot be mistaken for the unrelated `CONF_RETENTION_DAILY` setting. Add a comment recording
+     both the purpose and that there is no user-facing setting for it.
      ✅ **Name validated** — the bare-noun prefix is precedented for hardcoded behaviour constants
      (`MAX_DATE_CALCULATION_ITERATIONS`, `MONTHS_PER_QUARTER`, `END_OF_DAY_HOUR`). It is *not* a
      `DEFAULT_*`, which the standards reserve for default configuration values that a user can
@@ -108,7 +132,8 @@
 
 ## Phase 2 – Service
 
-- **Goal**: an admin-callable `choreops.repair_streak` that restores a badge streak, auto-filling
+- **Goal**: an admin-callable `choreops.repair_badge_streak` that restores a badge streak,
+  auto-filling
   from the retained history, and returns that history for reference.
 - **Steps**
   1. **Constants** — VALIDATED against `DEVELOPMENT_STANDARDS.md` §3 and existing patterns
@@ -118,18 +143,24 @@
        (`const.py:3064-3065`), `SERVICE_FIELD_BADGE_NAME` (`:3186`), `SERVICE_FIELD_REASON`,
        `SERVICE_FIELD_APPROVER_NAME`. These match the documented `SERVICE_FIELD_*`"Service input
        field names" pattern, and `manual_adjust_points` uses the same set.
-     - **Create:** `SERVICE_REPAIR_STREAK` (matches the documented `SERVICE_*` "Service action
-       names" pattern).
-     - **Create:** `SERVICE_FIELD_STREAK_COUNT: Final = "streak_count"` — **corrected** from the
-       earlier `SERVICE_FIELD_REPAIR_COUNT`, which used the action rather than the domain. The
-       established pattern is `SERVICE_FIELD_<DOMAIN>_<SEMANTIC>` (`SERVICE_FIELD_POINTS_AMOUNT`,
-       `SERVICE_FIELD_CHORE_NAME`), so the domain here is the streak.
+     - **Create:** `SERVICE_REPAIR_BADGE_STREAK: Final = "repair_badge_streak"` — the established
+       service pattern is `<VERB>_<OBJECT>`, with the object naming the **domain**
+       (`SERVICE_REMOVE_AWARDED_BADGES = "remove_awarded_badges"`). The domain here is badges, and the
+       streak is the qualifier, so `repair_streak` would name the feature instead of the domain.
+     - **Create:** `SERVICE_FIELD_BADGE_STREAK_COUNT: Final = "badge_streak_count"` — the pattern is
+       `SERVICE_FIELD_<DOMAIN>_<SEMANTIC>` (`SERVICE_FIELD_BADGE_NAME = "badge_name"`,
+       `SERVICE_FIELD_POINTS_AMOUNT`, `SERVICE_FIELD_CHORE_NAME`), so the domain leads and `_COUNT`
+       disambiguates that it is a number rather than the streak itself.
+       **Corrected twice:** first from `SERVICE_FIELD_REPAIR_COUNT` (named the action) and then from
+       `SERVICE_FIELD_STREAK_COUNT` (named the feature). Both mistakes came from reaching for the
+       mechanism instead of the domain.
      - `TRANS_KEY_*` for the service name, field labels and errors.
   2. **Payload validator** in `services.py`, mirroring `_validate_manual_adjust_points_payload`
      (`services.py:129`): require exactly one of `user_id` / `user_name`; require `badge_name`.
      `count` is optional.
-  3. **Manager method** on `GamificationManager` (only managers write). It owns the write and returns
-     a plain dict for the response:
+  3. **Manager method** on `GamificationManager` (only managers write), named
+     `repair_badge_streak(...)` to stay anchored on the badge domain like the rest of the surface. It
+     owns the write and returns a plain dict for the response:
      - **Naming note:** the method takes `assignee_id`, matching its neighbours in that manager
        (`get_badge_scoped_today_stats`, `_get_tracked_current_streak`) and the mutation pattern in
        `economy_manager.deposit(assignee_id=...)`. `DEVELOPMENT_STANDARDS.md` reserves `user` naming
@@ -166,8 +197,9 @@
      **zero** call sites anywhere in `custom_components/choreops/`, and there is no `EVENT_*`
      constant namespace (only `NOTIFICATION_EVENT`, unrelated). So this is a new public surface
      rather than an addition to an existing one.
-     - Add `EVENT_STREAK_REPAIRED: Final = "choreops_streak_repaired"` if the event is kept. The
-       `EVENT_*` prefix matches the documented `ATTR_*` / `SERVICE_*` family.
+     - Add `EVENT_BADGE_STREAK_REPAIRED: Final = "choreops_badge_streak_repaired"` if the event is
+       kept, anchored on the badge domain like the rest. The `EVENT_*` prefix matches the documented
+       `ATTR_*` / `SERVICE_*` family.
      - Carries user, badge, count, source and reason, so households can build the "earn back your
        streak" automation the issue describes.
      - **Decision needed:** firing the first event in the codebase is a larger commitment than it
@@ -194,7 +226,7 @@
 
 - **Goal**: pin the buffer and the service contract, including the response.
 - **Steps**
-  1. New `tests/test_repair_streak.py`:
+  1. New `tests/test_repair_badge_streak.py`:
      - buffer records the day's count, keyed by local date
      - buffer prunes to 5 entries, dropping the oldest
      - the **pre-break value is retained** after a break (the core reason for this design)
@@ -236,7 +268,7 @@
 
 ## Testing & validation
 
-- **Targeted**: `python -m pytest tests/test_repair_streak.py tests/test_badge_progress_persistence.py tests/test_badge_streak_schedule_awareness.py tests/test_gamification_engine.py tests/test_badge_target_types.py -q --tb=line`
+- **Targeted**: `python -m pytest tests/test_repair_badge_streak.py tests/test_badge_progress_persistence.py tests/test_badge_streak_schedule_awareness.py tests/test_gamification_engine.py tests/test_badge_target_types.py -q --tb=line`
 - **Release gates**: `./utils/quick_lint.sh --fix`, `mypy custom_components/choreops/`, then the full
   suite — the schema bump and a new write on the evaluation path justify a full run.
 - **Outstanding tests**: none yet; Phase 3 defines them.
