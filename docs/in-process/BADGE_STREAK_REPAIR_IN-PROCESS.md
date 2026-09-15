@@ -64,7 +64,7 @@ qualifier.
 | Service action | `SERVICE_REPAIR_BADGE_STREAK` | badge |
 | Service field | `SERVICE_FIELD_BADGE_STREAK_COUNT` | badge |
 | Storage field | `DATA_USER_BADGE_PROGRESS_STREAK_HISTORY` | badge (existing namespace) |
-| Lookback constant | `BADGE_STREAK_LOOKBACK_DAYS` | badge |
+| Lookback constant | `DEFAULT_BADGE_STREAK_HISTORY_DAYS` | badge |
 | Event | `EVENT_BADGE_STREAK_REPAIRED` | badge |
 | Manager method | `repair_badge_streak()` | badge |
 | Initiative / file / branch | `BADGE_STREAK_REPAIR` | badge |
@@ -84,18 +84,41 @@ The existing codebase follows this already — `SERVICE_FIELD_BADGE_NAME`, and
      ✅ **Name validated** — matches the existing `DATA_USER_BADGE_PROGRESS_<NAME>` family with a
      `snake_case` value, and `DATA_*` is documented as singular storage keys (`const.py:1057-1068`).
      Place it in the existing alphabetical run, after `START_DATE` and before `STATUS`.
-  2. Add `BADGE_STREAK_LOOKBACK_DAYS: Final = 5` — named for its **purpose** (how far back a repair
-     can see) and anchored on the **badge** domain. Deliberately not `..._RETENTION_DAYS`, so it
-     cannot be mistaken for the unrelated `CONF_RETENTION_DAILY` setting. Add a comment recording
-     both the purpose and that there is no user-facing setting for it.
+  2. Add `DEFAULT_BADGE_STREAK_HISTORY_DAYS: Final = 5`, following the `CONF_*` +
+     `DEFAULT_*` pairing the codebase already uses for exactly this purpose
+     (`CONF_RETENTION_DAILY` + `DEFAULT_RETENTION_DAILY`, `const.py:820` / `:1846`).
+     - Use **`DEFAULT_*`, not a bare noun**, precisely because this value may become user-configurable
+       later. The standards describe `DEFAULT_*` as "Default configuration values", which is exactly
+       the intent here and signals the value is overridable rather than fixed behaviour.
+     - When it does become configurable, the change is adding `CONF_BADGE_STREAK_HISTORY_DAYS` and a
+       read of `options.get(CONF_..., DEFAULT_...)` at the one read site. **A pure addition — no
+       rename.**
+     - Deliberately not `..._RETENTION_DAYS`, so it cannot be confused with the unrelated
+       `CONF_RETENTION_DAILY` (different subsystem, max 90).
+     - Add a comment recording that it is simultaneously the storage window and the repair lookback.
+  2b. **Keep the number out of identifier names.** The value governs how much history is kept, but it
+     must not be embedded in logic or function names — otherwise changing 5 to 7 becomes a rename
+     cascade. Required names:
+     - `record_badge_streak_history(progress, count, today_iso)`
+     - `prune_badge_streak_history(progress, max_days)`
+     - `get_badge_streak_history(progress)`
+     - ❌ Avoid `prune_five_day_history`, `lookback_5`, `MAX_5_DAYS`, or anything else encoding the
+       current value.
      ✅ **Name validated** — the bare-noun prefix is precedented for hardcoded behaviour constants
      (`MAX_DATE_CALCULATION_ITERATIONS`, `MONTHS_PER_QUARTER`, `END_OF_DAY_HOUR`). It is *not* a
      `DEFAULT_*`, which the standards reserve for default configuration values that a user can
      override — this is fixed behaviour, and there is deliberately no setting.
-  3. **Record the day's value** in the `days_cycle` evaluation path in
-     `engines/gamification_engine.py` — the value must be recorded on **every** evaluation,
-     including the break (where it writes the count that existed *before* zeroing), because
-     recording only on advance would leave nothing to restore from.
+  3. **Record the day's value** in the `days_cycle` branch of the badge persistence path
+     (`managers/gamification_manager.py:2006-2029`) — recorded on **every** evaluation, including the
+     break, because recording only on advance would leave nothing to restore from.
+     - ✅ **Mechanism verified from code.** The pre-break value is recoverable at break time: the
+       branch reads `previous_days` before overwriting, then sees `days_count = 0` differ, so the
+       count that existed *before* zeroing is in scope exactly when the break is written.
+     - ⚠️ **Trap: do not gate recording on the existing change check.** That branch writes only when
+       `previous_days != days_count`. A **neutral day** leaves the count unchanged, so the guard
+       would skip it — but the day still needs its own date key, or the history has gaps and the
+       "days ago" arithmetic silently misleads. Compare against **the stored value for `today_iso`**
+       (absent, or different) rather than against `previous_days`.
      - Reference `dt_today_iso()` (`utils/dt_utils.py:149`) for the key. **Local date, never raw
        `datetime`** — same convention as the period buckets.
   4. **Prune** to the most recent 5 date keys on write, sorted by key (ISO dates sort correctly as
@@ -173,10 +196,14 @@ The existing codebase follows this already — `SERVICE_FIELD_BADGE_NAME`, and
      - `count` omitted → use the **highest value** in the retained buffer; if the buffer is empty,
        return an error explaining there is nothing to restore from
      - write `DATA_USER_BADGE_PROGRESS_DAYS_CYCLE_COUNT = count`
-     - **write `last_update_day = yesterday`** — this is the load-bearing detail. Yesterday, never
-       today: the streak's own idempotency gate treats `last_update_day == today` as already
-       counted, so today would *hold* instead of advancing. Yesterday also retroactively clears the
-       miss, because the miss check anchors on this field.
+     - **write `last_update_day = yesterday`** — ✅ **mechanism verified from code.**
+       `already_counted_today = (last_update_day == today_iso)` (`gamification_engine.py:1309`), and
+       when it is False the satisfied day takes `cycle_count + 1` (`:1171`). So yesterday makes today
+       **advance**; today would make it **hold** at the restored value, which is the bug this avoids.
+       Yesterday also retroactively clears the miss, because `has_missed_occurrence_since_advance`
+       anchors on this field, leaving an empty `[yesterday, today)` window.
+       - The persist path then re-stamps `last_update_day = today_iso` on the advance
+         (`gamification_manager.py:2023-2027`), so the anchor moves forward normally afterwards.
      - persist via `coordinator._persist_and_update()`
      - return a dict following the `get_ledger` response convention (`services.py:3712-3728`):
        `assignee_id` / `assignee_name` naming, plus `restored_count`, `source`
@@ -265,6 +292,69 @@ The existing codebase follows this already — `SERVICE_FIELD_BADGE_NAME`, and
   5. PR description: record why the ledger was not used, why there are no guards, and why the
      scalar-plus-date alternative was rejected (it needs two fields and an invariant to answer
      "how long ago").
+
+## Open questions before implementation
+
+Grouped by whether they block starting. Answers go here so the plan carries its own decisions.
+
+### Blocking
+
+1. **Is the event in scope for this PR?** It would be the integration's **first** HA event — `async_fire`
+   has zero call sites and there is no `EVENT_*` namespace, so it needs its own convention and its
+   payload becomes a contract users build automations on.
+   *Options:* include it | defer to a follow-up PR | drop it.
+   *Recommendation:* include it — the issue's "earn back your streak" automation needs it, and the
+   service is hard to use from automations without it. But it should be called out in review as a new
+   public surface.
+
+2. **5 days — or a different default?** Now clearly separate from `CONF_RETENTION_DAILY`.
+   *Consideration:* the window is the only thing bounding lookback, and with no guards (per the agreed
+   scope) a longer window means a longer repair window.
+   *Recommendation:* keep 5.
+
+3. **Should the retained value be exposed on the badge sensor?** It is *current* state, so it is
+   readable on the entity without recorder history — unlike `overall_progress`, which saturates at
+   100% and is therefore uninformative for the long streaks this feature targets.
+   *Recommendation:* yes, one line in the existing attributes dict (`sensor.py:2205`,
+   `AssigneeBadgeProgressSensor`). Cheap, and it makes the feature discoverable.
+
+### Non-blocking (decide during implementation)
+
+4. **Which `changed` semantics for the new write?** Recording history mutates progress on every
+   evaluation, so it will set `changed = True` more often. Confirm this does not cause excess
+   persistence — badge progress goes through `_persist_and_update()`, which triggers a coordinator
+   refresh. If it proves chatty, flag `changed` only when the key is new or the value differs.
+   (The recording subtlety that a neutral day must still get its own key is in Phase 1 step 3.)
+
+5. **Where exactly does the manager method live?** `GamificationManager` owns badge progress, so it
+   owns the write, per CRUD ownership. Confirm the service stays a thin delegate.
+
+6. **Should the response include the retention depth?** Returning it lets a caller see the effective
+   window without hardcoding it.
+   *Recommendation:* include it — cheap, and it keeps consumers off the constant.
+
+7. **What if the badge is not a streak target type?** It has no `days_cycle_count`.
+   *Decision:* refuse with a clear error, named by behaviour ("this badge does not track a streak")
+   rather than by target-type constant.
+
+8. **Interaction with cycle rollover.** If the cycle rolled, the counter was legitimately reset and
+   the retained history belongs to the previous cycle.
+   *Decision needed:* clear the history on rollover, or leave it. Leaving it means a repair could
+   restore a pre-rollover value into a fresh cycle.
+   *Recommendation:* clear it on rollover, and record why.
+
+9. **Does `criteria_met` need handling?** Restoring above the threshold re-awards the badge on the
+   next evaluation. Likely intended — document it in the wiki rather than special-casing.
+
+### Already settled (no action needed)
+
+- **Naming** — badge domain leads; see the naming principle section.
+- **Migration** — an idempotent step is required in `run_modern_schema_migrations`.
+- **Storage location** — `DATA_USER_BADGE_PROGRESS_STREAK_HISTORY`, inside the existing namespace.
+- **Auth** — `is_user_authorized_for_action`, not `async_register_admin_service`.
+- **No ledger entry** — the points ledger is economy-shaped; log + event are the audit surface.
+- **Both repair mechanisms** — confirmed from code (`gamification_engine.py:1309`, `:1171`, and the
+  `days_cycle` persist branch).
 
 ## Testing & validation
 
