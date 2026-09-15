@@ -514,6 +514,82 @@ class TestRepairRefusals:
 
         assert err.value.translation_key == const.TRANS_KEY_ERROR_BADGE_NOT_STREAK
 
+    @pytest.mark.parametrize(
+        ("target_type", "case"),
+        [
+            pytest.param(
+                const.BADGE_TARGET_THRESHOLD_TYPE_STREAK_SELECTED_CHORES_NO_OVERDUE,
+                "streak-selected-no-overdue",
+                id="streak-selected-no-overdue",
+            ),
+            pytest.param(
+                const.BADGE_TARGET_THRESHOLD_TYPE_STREAK_SELECTED_DUE_CHORES_NO_OVERDUE,
+                "streak-due-no-overdue",
+                id="streak-due-no-overdue",
+            ),
+        ],
+    )
+    def test_no_overdue_streak_is_refused_with_its_own_reason(
+        self, manager: GamificationManager, target_type: str, case: str
+    ) -> None:
+        """A no-overdue streak is refused, but for a different reason than a Days badge.
+
+        These *are* streaks, so they get a distinct message. They clear their progress
+        from chore-level lateness, which repair never writes, so a restored count would
+        be re-zeroed on the very next evaluation. Refusing beats reporting success.
+        """
+        _seed_badge(
+            manager,
+            target_type=target_type,
+            progress={const.DATA_USER_BADGE_PROGRESS_STREAK_HISTORY: {_day_key(0): 0}},
+        )
+
+        with pytest.raises(HomeAssistantError) as err:
+            manager.repair_badge_streak(ASSIGNEE_ID, BADGE_ID)
+
+        assert (
+            err.value.translation_key == const.TRANS_KEY_ERROR_BADGE_STREAK_NO_OVERDUE
+        ), case
+
+    @pytest.mark.parametrize(
+        ("target_type", "case"),
+        [
+            pytest.param(
+                const.BADGE_TARGET_THRESHOLD_TYPE_STREAK_SELECTED_CHORES,
+                "streak-selected",
+                id="streak-selected",
+            ),
+            pytest.param(
+                const.BADGE_TARGET_THRESHOLD_TYPE_STREAK_80PCT_CHORES,
+                "streak-80pct",
+                id="streak-80pct",
+            ),
+            pytest.param(
+                const.BADGE_TARGET_THRESHOLD_TYPE_STREAK_80PCT_DUE_CHORES,
+                "streak-due-80pct",
+                id="streak-due-80pct",
+            ),
+        ],
+    )
+    def test_non_strict_streak_targets_are_repairable(
+        self, manager: GamificationManager, target_type: str, case: str
+    ) -> None:
+        """The three non-strict Streak targets are the supported repair set.
+
+        Parameterised per type so narrowing or widening the set is a deliberate,
+        visible change rather than a silent one.
+        """
+        _seed_badge(
+            manager,
+            target_type=target_type,
+            progress={const.DATA_USER_BADGE_PROGRESS_STREAK_HISTORY: {_day_key(0): 0}},
+        )
+
+        result = manager.repair_badge_streak(ASSIGNEE_ID, BADGE_ID, count=6)
+
+        assert result["restored_count"] == 6, case
+        assert result["source"] == "manual"
+
     def test_all_zero_history_without_a_count_is_refused(
         self, manager: GamificationManager
     ) -> None:

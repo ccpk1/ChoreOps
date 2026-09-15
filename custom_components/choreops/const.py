@@ -1956,7 +1956,25 @@ BADGE_TARGET_TYPES_STREAK: Final[frozenset[str]] = frozenset(
 Needed because `days_cycle_count` is **shared** with the Days family, which counts
 accumulated days rather than a streak. The counter's presence therefore says nothing
 about whether a badge tracks a streak — only the target type does. Used to decide
-whether streak history is worth recording and whether a streak repair is meaningful.
+whether streak history is worth recording.
+"""
+
+BADGE_TARGET_TYPES_NO_OVERDUE: Final[frozenset[str]] = frozenset(
+    {
+        BADGE_TARGET_THRESHOLD_TYPE_DAYS_SELECTED_CHORES_NO_OVERDUE,
+        BADGE_TARGET_THRESHOLD_TYPE_DAYS_SELECTED_DUE_CHORES_NO_OVERDUE,
+        BADGE_TARGET_THRESHOLD_TYPE_STREAK_SELECTED_CHORES_NO_OVERDUE,
+        BADGE_TARGET_THRESHOLD_TYPE_STREAK_SELECTED_DUE_CHORES_NO_OVERDUE,
+    }
+)
+"""Target types that are strict "survival checks".
+
+These zero their progress on any lateness in the cycle, and they read that lateness
+from the *chore* data (`has_overdue`, or a `last_overdue` / `last_missed` timestamp
+on or after the cycle start) — not from badge progress. Nothing written to badge
+progress can suppress it, so a repaired count is re-zeroed on the next evaluation.
+That is why a streak repair refuses these; clearing the chore lateness instead would
+falsify chore history and convert the badge into the lenient variant on demand.
 """
 
 # Legacy
@@ -3429,6 +3447,7 @@ ENTITY_REGISTRY: Final[dict[str, EntityRequirement]] = {
 # Format: TRANS_KEY_ERROR_{CATEGORY} with translation_placeholders for dynamic values
 TRANS_KEY_ERROR_NOT_FOUND: Final = "not_found"  # {entity_type} '{name}' not found
 TRANS_KEY_ERROR_BADGE_NOT_STREAK: Final = "badge_not_streak"
+TRANS_KEY_ERROR_BADGE_STREAK_NO_OVERDUE: Final = "badge_streak_no_overdue"
 TRANS_KEY_ERROR_BADGE_STREAK_NOTHING_TO_RESTORE: Final = (
     "badge_streak_nothing_to_restore"
 )

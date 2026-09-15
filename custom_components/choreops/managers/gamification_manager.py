@@ -1945,13 +1945,24 @@ class GamificationManager(BaseManager):
         # is shared with the Days family, which counts accumulated days rather than
         # a streak, and a badge edited away from a Streak target keeps the field
         # behind. Only the current target type answers the question.
-        if (
-            badge_data.get(const.DATA_BADGE_TARGET_TYPE)
-            not in const.BADGE_TARGET_TYPES_STREAK
-        ):
+        badge_target_type = str(badge_data.get(const.DATA_BADGE_TARGET_TYPE, ""))
+        if badge_target_type not in const.BADGE_TARGET_TYPES_STREAK:
             raise HomeAssistantError(
                 translation_domain=const.DOMAIN,
                 translation_key=const.TRANS_KEY_ERROR_BADGE_NOT_STREAK,
+                translation_placeholders={"name": badge_name},
+            )
+
+        # Strict "survival check" variants are refused separately, because the
+        # refusal has a different cause: they *are* streaks, but they zero from
+        # chore-level lateness (`has_overdue` / a `last_overdue` or `last_missed`
+        # timestamp since cycle start). Repair writes badge progress only, so the
+        # restored count is re-zeroed on the next evaluation. Reporting success
+        # there would be worse than refusing.
+        if badge_target_type in const.BADGE_TARGET_TYPES_NO_OVERDUE:
+            raise HomeAssistantError(
+                translation_domain=const.DOMAIN,
+                translation_key=const.TRANS_KEY_ERROR_BADGE_STREAK_NO_OVERDUE,
                 translation_placeholders={"name": badge_name},
             )
 

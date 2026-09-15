@@ -18,8 +18,8 @@
 | Phase | Description | % | Quick notes |
 | --- | --- | --- | --- |
 | 1 – Data layer | Per-day streak history on badge progress, pruned to 5 days; schema bump + migration | 100% | ✅ Constants, helpers, write wiring, migration; mypy required a TypedDict key too |
-| 2 – Service | `repair_badge_streak` service + manager method, response-first, fires an event | 100% | ✅ Fixed a response key collision and the refusal gate |
-| 3 – Tests | New suite covering history, pruning, repair, response, refusals | 100% | ✅ 35 tests |
+| 2 – Service | `repair_badge_streak` service + manager method, response-first, fires an event | 100% | ✅ Fixed a response key collision, the gate, and its strict-variant no-op |
+| 3 – Tests | New suite covering history, pruning, repair, response, refusals | 100% | ✅ 40 tests |
 | 4 – Docs | `services.yaml`, wiki, release note | 100% | ✅ Wiki committed; note + rationale drafted |
 | 5 – Sensor | Expose the retained history as an attribute | 100% | ✅ Reuses an existing constant, no new one |
 
@@ -424,6 +424,45 @@ Traced the field through normal operations and edge cases after Phases 1–4 wer
 | Badge target type changed | Counters are **not** cleared, so `days_cycle_count` and the history persist | ❌ **Defect** |
 | Days-family badges | Share the `days_cycle` bucket, so the history was being recorded for them too | ❌ **Defect** |
 | History of only zeros | Max is 0, so an auto-fill "repair" wrote 0 and reported success | ❌ **Misleading success** |
+
+**Defect 1a — the strict variants made repair a silent no-op (found 2026-09-15).** Narrowing the
+gate to the Streak family still admitted the 2 `*_NO_OVERDUE` Streak types, and repair cannot work
+for them. Verified with the real evaluator, after a repair writes `count = 8`:
+
+| Case | Next evaluation |
+| --- | --- |
+| Non-strict, chore overdue | **count preserved** |
+| Non-strict, cycle lateness recorded | **count preserved** |
+| **Strict, chore merely overdue now** | **RE-ZEROED** |
+| **Strict, cycle lateness recorded** | **RE-ZEROED** |
+
+The cause is that repair and the zeroing read **different data**. Repair writes two badge fields
+(`days_cycle_count`, `last_update_day`); strict variants zero from **chore-level lateness** —
+`has_overdue`, or a `last_overdue` / `last_missed` timestamp on or after the cycle start
+(`statistics_manager.py:2624-2635`). Nothing written to badge progress can suppress it, and for
+strict **Streak** *either* condition is sufficient, so re-zeroing is near-certain the morning after a
+sick day, from two independent sources.
+
+**Fix:** refuse strict variants with their **own** message, because the refusal cause differs from a
+Days badge's. Supported repair set is the **3 non-strict Streak types**. New
+`BADGE_TARGET_TYPES_NO_OVERDUE` frozenset makes the grouping explicit, and
+`TRANS_KEY_ERROR_BADGE_STREAK_NO_OVERDUE` names the actual reason (survival check, use the non-strict
+variant if you want repairability) instead of a proxy.
+
+**Rejected alternative — clearing the chore lateness.** It would work mechanically but: falsifies
+`last_missed` / `last_overdue`, which are chore facts other features read; silently converts the
+badge into its lenient variant on demand, undermining the one thing a no-overdue badge exists to do;
+and would have to deny every slip in the cycle, not one day, since `cycle_failed` stays true until
+rollover.
+
+**Non-vacuity proven:** disabling the strict refusal gate fails both new strict-refusal tests.
+
+**Full 14-type picture** (`days_cycle_count` is shared by 9 Days + 5 Streak):
+
+| Family | Non-strict | Strict (`*_NO_OVERDUE`) |
+| --- | --- | --- |
+| **Streak** (5) | ✅ **Repairable** — 3 types | ❌ Refused — re-zeroes |
+| **Days** (9) | ❌ Refused — accumulates, so a missed day reduces nothing | ❌ Refused — re-zeroes |
 
 **Defect 1 — the refusal gate tested the wrong thing.** It refused when `days_cycle_count` was
 absent, but **14 target types share that counter** — 9 Days family + 5 Streak family

@@ -5711,10 +5711,13 @@
       "message": "Chore processing is currently paused for this user."
     },
     "badge_not_streak": {
-      "message": "Badge {name} does not track a streak, so there is no streak to repair."
+      "message": "Badge {name} does not track a consecutive streak, so there is no streak to repair. Days-type badges instead add up the days that qualify, so a missed day reduces nothing and there is no streak to restore."
     },
     "badge_streak_nothing_to_restore": {
       "message": "Badge {name} has no retained streak history to restore from. Its recent streak values may predate this feature, or have already aged out."
+    },
+    "badge_streak_no_overdue": {
+      "message": "Badge {name} is a no-overdue badge, which resets its whole cycle on any slip by design. A repaired value would be reset again on the next evaluation. Use a streak target without the 'No Overdue' option if you want a streak that can be repaired."
     }
   }
 }
