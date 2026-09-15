@@ -7,9 +7,10 @@
   **together in one release** (decided 2026-09-14). From the user's perspective this is one bug
   ("streak badges don't work"); the analysis just found several distinct defects behind it.
 - **Owner / driver(s)**: ChoreOps maintainer + ChoreOps Builder (ChoreOps Test Builder for Phase 4)
-- **Status**: In progress — Phases 0–5 complete and pushed; **PR [#296](https://github.com/ccpk1/ChoreOps/pull/296)
-  open as a draft**, labelled `bug`. Phase 6 remains deliberately deferred (decision 14). All
-  decisions resolved (17 total). Outstanding before merge: the full-suite run.
+- **Status**: ✅ **Phases 0–5 shipped** — PR [#296](https://github.com/ccpk1/ChoreOps/pull/296) merged to
+  `main` on 2026-09-15 as `0c98fdc`. Phase 6 work is on `ccpk1/streak-subsystem-unification`. All
+  decisions resolved (17 total). **#122 was found during Phase 6 planning and is now in scope** — see
+  the Phase 6 section, which records why O3 alone cannot fix it.
 - **Branch / delivery**: `ccpk1/issue294` carries both the #294 hotfix and this initiative, which
   ship as a single release via PR #296 against `main`. The phases are **separate commits** so
   reviewers can follow the history, and the hotfix commit (`73e97d5`) doubles as a bisect point if
@@ -30,7 +31,7 @@
 | Phase 3 – Persistence & status alignment                | Ensure neutral days write nothing and status transitions stay coherent         | 100%       | ✅ Audit clean; 9 tests; fixed lost credit for a satisfied day after a break |
 | Phase 4 – Tests & validation                            | Extend the #294 regression suite; add schedule-matrix + days-family coverage    | 100%       | ✅ 24 new tests; step 7 exposed and closed a decision-11 implementation gap |
 | Phase 5 – Docs, wiki & release notes                    | Document eligible-occurrence semantics, option equivalence, and the behaviour change | 100%       | ✅ Wiki (4 pages), help text, Development Standards, Architecture, release-note draft |
-| Phase 6 – Streak subsystem unification (O3/O4/O5)        | Achievements adopt the shared helper; retire dead calendar streak code; settle open-ended semantics | 0% | **After release** — decision 14, requires its own release note |
+| Phase 6 – Streak subsystem unification (O3/O4/O5)        | Achievements adopt the shared helper; retire dead calendar streak code; settle open-ended semantics | 0% | **In scope: #122** — O3 alone cannot fix it, see the Phase 6 day-boundary finding |
 
 1. **Key objective** – Make badge streak target types count **consecutive satisfied eligible occurrences** instead of consecutive calendar days, so a streak respects each tracked chore's schedule. A badge must not break (or stall) on a day when the tracked chores are simply not due, and must never award from a gap where an occurrence genuinely passed unmet.
 
@@ -65,8 +66,10 @@
       traps and retention independence. One implementation gap was found and closed (decision 17).
    9. ✅ **Phase 5 complete and PR #296 opened (draft)** — wiki (4 pages), option help text,
       Development Standards, Architecture, and a release-note draft now in the PR description.
-   10. **Next: the full-suite run**, then mark PR #296 ready for review. Phase 6 stays deferred until
-      the badge behaviour is confirmed in the field (decision 14).
+   10. ✅ **Phases 0–5 shipped** — PR #296 merged to `main` (`0c98fdc`, 2026-09-15).
+   11. **Next: Phase 6 planning** on `ccpk1/streak-subsystem-unification`. Blocking question: the
+       streak **day-boundary model** must be chosen before O3, because it decides what replaces
+       `_streak_alive`. See the #122 finding in the Phase 6 section.
    9. Retire `streak_yesterday` deliberately in Phase 6 — it has no consumer since Phase 2.
 
 4. **Risks / blockers** –
@@ -1081,6 +1084,60 @@ permanently neutral — never advancing and never breaking.
     deliberate act; state the rationale in the commit rather than quietly removing.
   - This phase must not be started opportunistically mid-release. Its whole value is that the badge
     change has already been proven independently.
+
+#### ⚠️ O3 is necessary but NOT sufficient — issue #122 is a separate defect (found 2026-09-15)
+
+**#122 ("Align streak cutoff time with due date") will not be fixed by O3 alone**, and this changes
+what Phase 6 has to deliver. Recorded here because the plan previously implied O3 would align
+achievements and close the gap.
+
+**The report.** A daily chore whose due *time* is 04:00, so the user can finish it before bed and
+still be on time until 4 AM. They lose streak progress on achievement targets when completing after
+midnight.
+
+**Verified root cause — the day boundary is always local midnight.** There is **no** day-cutoff or
+start-of-day concept anywhere (`grep` for `day_cutoff` / `start_of_day` / `reset_hour` in `const.py`
+returns nothing). Two independent paths therefore both break, and both were reproduced:
+
+| Path | Mechanism | Result for an on-time pair |
+| --- | --- | --- |
+| Achievement gate | `GamificationManager._streak_alive` (`gamification_manager.py:2896`) compares `last_completed.date()` against today-or-yesterday | Completing Monday at 23:30 then Tuesday at 00:30 gives dates `Mon`→`Wed` = 2 days ⇒ **zeroed** |
+| Chore + badge streaks | `ChoreEngine.has_missed_occurrence_between` normalises day-based schedules to `start_of_local_day` (`chore_engine.py:1534-1535`) | The occurrence is attributed to **Tue 00:00** instead of Tue 04:00, so it reads as unmet ⇒ **`missed = True`** |
+
+Reproduced concretely: a daily 04:00 chore completed Mon 23:30 then Wed 00:30 — both **on time**
+within their 4 AM grace — returns `missed = True` from the shared helper and `_streak_alive = False`.
+The control pair (Mon 23:30 → Tue 23:30) returns `missed = False`. So the break depends purely on
+which calendar date the bedtime happened to fall on, which is exactly the reported symptom.
+
+**Two consequences for Phase 6:**
+
+1. **O3 alone is insufficient.** Pointing achievements at the shared helper would make them agree
+   with badges, but both would still be wrong for a due-time cutoff. O3 must therefore be paired
+   with a day-boundary decision, or #122 comes straight back.
+2. **The workaround previously offered on #122 does not work either.** The comment on the issue
+   suggested tracking a streak with a periodic badge instead of an achievement. Per the table above,
+   the badge path uses the same normalised occurrence math, so it breaks identically. This needs
+   correcting on the issue rather than repeating the suggestion.
+
+**Open question for Phase 6 planning — what defines a streak day?** Three candidate models, and the
+choice is a product decision, not a refactor detail:
+
+- **A — per-chore cutoff from the due time.** The chore-day runs due-time → due-time. Fixes #122
+  exactly, but requires the occurrence maths to stop collapsing to `start_of_local_day` for
+  day-based schedules, and every "was it missed" comparison to use the chore's own boundary.
+- **B — a global configurable day cutoff** (one start-of-day hour for the whole integration). Simpler
+  and matches how other integrations model it, but ignores per-chore due times, so it only helps if
+  the user's bedtime drift is smaller than the configured cutoff.
+- **C — leave the boundary at midnight and document the limitation.** Cheapest, but #122 stays open
+  and the "complete before bed" pattern is unsupported by design.
+
+**Recommendation:** treat #122 as in-scope for Phase 6 and settle the day-boundary model **before**
+doing O3, because the boundary decision determines what O3's replacement for `_streak_alive` must
+actually compare. Doing O3 first would produce a second, smaller migration over the same code.
+
+**Also worth noting:** the Phase 5 wiki text and the merged release note both state that achievement
+streaks are unchanged and "planned for a later release". If #122 is folded in, that later release is
+this one, and both statements need updating when the boundary work lands.
 
 ---
 
