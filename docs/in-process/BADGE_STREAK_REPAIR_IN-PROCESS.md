@@ -220,19 +220,18 @@ The existing codebase follows this already — `SERVICE_FIELD_BADGE_NAME`, and
        not exist in this codebase.
      - call the manager, log at info with `reason` and actor, fire the event, request a refresh
      - return the dict
-  5. **Event** — ⚠️ **this would be the integration's first HA event.** Verified: `async_fire` has
-     **zero** call sites anywhere in `custom_components/choreops/`, and there is no `EVENT_*`
-     constant namespace (only `NOTIFICATION_EVENT`, unrelated). So this is a new public surface
-     rather than an addition to an existing one.
-     - Add `EVENT_BADGE_STREAK_REPAIRED: Final = "choreops_badge_streak_repaired"` if the event is
-       kept, anchored on the badge domain like the rest. The `EVENT_*` prefix matches the documented
-       `ATTR_*` / `SERVICE_*` family.
-     - Carries user, badge, count, source and reason, so households can build the "earn back your
-       streak" automation the issue describes.
-     - **Decision needed:** firing the first event in the codebase is a larger commitment than it
-       looks — it is a documented, user-depended-on contract that is hard to change later, and it
-       needs its own naming convention rather than inheriting one. Worth confirming it belongs in
-       this PR versus a follow-up.
+  5. **Event** — `hass.bus.async_fire(const.EVENT_BADGE_STREAK_REPAIRED, {...})`.
+     - **Not a new pattern.** An earlier revision called this "the integration's first HA event needing
+       its own convention", which overstated it. Firing a bus event is entirely standard Home
+       Assistant; this integration simply has not needed one yet. Verified the split:
+       `async_dispatcher_send` is used 4 times with 68 `SIGNAL_SUFFIX_*` constants for **internal**
+       component communication, while `async_fire` is used 0 times. No project standard documents
+       events either, so there is no convention to invent — HA's own `<domain>_<event_name>` applies,
+       giving `EVENT_BADGE_STREAK_REPAIRED = "choreops_badge_streak_repaired"`.
+     - The only genuine consideration is the usual one for any public API: once households build
+       automations on it, the name and payload become a contract. That is a reason to get the payload
+       right, not a reason to avoid it.
+     - Carries user, badge, count, source and reason, so the "earn back your streak" automation works.
   6. **Log line** with reason and actor, as the audit surface in place of a ledger entry.
   7. **`services.yaml`**: document the service with field descriptions and selectors, and state that
      it returns JSON when called with `return_response: true` — copy the wording style from
@@ -240,6 +239,11 @@ The existing codebase follows this already — `SERVICE_FIELD_BADGE_NAME`, and
   8. **Translations**: add service and field labels to
      `custom_components/choreops/translations/en.json`. **There is no `strings.json` in this repo**,
      so `en.json` is the master and no regeneration step applies.
+  9. **Expose the retained history on the badge progress sensor** — add
+     `DATA_USER_BADGE_PROGRESS_STREAK_HISTORY` to the attributes dict in
+     `AssigneeBadgeProgressSensor.extra_state_attributes` (`sensor.py:2369`). No new constant: this
+     sensor already exposes stored fields under their `DATA_*` keys (see decision 3 in the open
+     questions).
 - **Key issues**
   - **`criteria_met` side effect.** Restoring above the threshold re-awards the badge on the next
     evaluation. Expected, but note it in the wiki so it is not reported as a bug.
@@ -287,6 +291,9 @@ The existing codebase follows this already — `SERVICE_FIELD_BADGE_NAME`, and
   2. Note the two accepted limitations: it is **badges only**, so achievements and chore streaks over
      the same chore are not affected; and a break older than the buffer's 5-day depth has nothing to
      restore from.
+  2b. Document the `choreops_badge_streak_repaired` event and its payload, so the "earn back your
+     streak" automation pattern is reproducible, and mention the `streak_history` sensor attribute
+     as where to read the retained values.
   3. Refresh that page's `Last Updated` footer.
   4. Release note: one entry.
   5. PR description: record why the ledger was not used, why there are no guards, and why the
@@ -299,24 +306,30 @@ Grouped by whether they block starting. Answers go here so the plan carries its 
 
 ### Blocking
 
-1. **Is the event in scope for this PR?** It would be the integration's **first** HA event — `async_fire`
-   has zero call sites and there is no `EVENT_*` namespace, so it needs its own convention and its
-   payload becomes a contract users build automations on.
-   *Options:* include it | defer to a follow-up PR | drop it.
-   *Recommendation:* include it — the issue's "earn back your streak" automation needs it, and the
-   service is hard to use from automations without it. But it should be called out in review as a new
-   public surface.
+1. **Is the event in scope for this PR?** ✅ **RESOLVED — include it.** It is a standard HA feature,
+   not a new pattern (see Phase 2 step 5). The "earn back your streak" automation in the issue needs
+   it, and the service is hard to drive from automations without it.
 
-2. **5 days — or a different default?** Now clearly separate from `CONF_RETENTION_DAILY`.
-   *Consideration:* the window is the only thing bounding lookback, and with no guards (per the agreed
-   scope) a longer window means a longer repair window.
-   *Recommendation:* keep 5.
+2. **5 days — or a different default?** ✅ **RESOLVED — keep 5.**
 
-3. **Should the retained value be exposed on the badge sensor?** It is *current* state, so it is
-   readable on the entity without recorder history — unlike `overall_progress`, which saturates at
-   100% and is therefore uninformative for the long streaks this feature targets.
-   *Recommendation:* yes, one line in the existing attributes dict (`sensor.py:2205`,
-   `AssigneeBadgeProgressSensor`). Cheap, and it makes the feature discoverable.
+3. **Should the retained value be exposed on the badge sensor?** ✅ **RESOLVED — yes, on
+   `AssigneeBadgeProgressSensor` (`sensor.py:2205`).**
+   - **Attribute name: use the existing data constant directly —
+     `DATA_USER_BADGE_PROGRESS_STREAK_HISTORY`, whose value is `"streak_history"`.** No new constant
+     is needed.
+   - **Why not an `ATTR_*` constant:** this sensor already exposes stored fields under their `DATA_*`
+     keys — `DATA_USER_BADGE_PROGRESS_OVERALL_PROGRESS`, `..._CRITERIA_MET`, `..._LAST_UPDATE_DAY`,
+     `..._STATUS`, `DATA_BADGE_TYPE`. It reserves `ATTR_*` for presentation-only values
+     (`ATTR_PURPOSE`, `ATTR_USER_NAME`, `ATTR_BADGE_NAME`). `streak_history` is a stored field, so it
+     follows the data-key precedent and adds nothing to the constant surface.
+     (Had an `ATTR_*` been the right call, the pattern would have been
+     `ATTR_BADGE_STREAK_HISTORY`, mirroring `ATTR_BADGE_CUMULATIVE_CYCLE_POINTS`.)
+   - **Payoff:** retained state is *current* state, so the pre-break value is readable on the entity
+     after a break — unlike the `overall_progress` state, which saturates at 100% and so is
+     uninformative for exactly the long streaks this feature targets.
+   - **Optional extra:** a derived `streak_restore_value` attribute carrying the max would save the
+     user writing a `max()` template to answer "what should I pass to the service". Worth adding if
+     the service is meant to be driven by non-technical admins; skip it if they will read the history.
 
 ### Non-blocking (decide during implementation)
 
