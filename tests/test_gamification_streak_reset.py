@@ -84,13 +84,49 @@ def _datetime_str(days_ago: int) -> str:
 def manager() -> GamificationManager:
     """A GamificationManager with mock hass/coordinator and empty chore data.
 
-    Only ``coordinator.assignees_data`` is exercised by the helpers under test;
-    no async_setup is run, so no listeners or startup hooks are registered.
+    Only ``coordinator.assignees_data`` and ``coordinator.chores_data`` are
+    exercised by the helpers under test; no async_setup is run, so no listeners or
+    startup hooks are registered.
     """
     hass = MagicMock()
     coordinator = MagicMock()
     coordinator.assignees_data = {}
+    coordinator.chores_data = {}
     return GamificationManager(hass, coordinator)
+
+
+DAILY_CHORE: dict[str, Any] = {
+    const.DATA_CHORE_RECURRING_FREQUENCY: const.FREQUENCY_DAILY,
+    const.DATA_CHORE_APPLICABLE_DAYS: [],
+}
+
+WEEKLY_CHORE_TEMPLATE: dict[str, Any] = {
+    const.DATA_CHORE_RECURRING_FREQUENCY: const.FREQUENCY_WEEKLY,
+    const.DATA_CHORE_APPLICABLE_DAYS: [],
+}
+"""Weekly chore whose applicable day is filled in per test, see below."""
+
+
+def _weekly_chore_due_today() -> dict[str, Any]:
+    """A weekly chore recurrring on today's weekday only.
+
+    Its occurrences are therefore exactly seven days apart, so a window shorter
+    than a week cannot contain one. That makes the assertions below independent of
+    which weekday the suite happens to run on - unlike a hardcoded "mon", which
+    would pass or fail depending on the calendar.
+    """
+    return {
+        const.DATA_CHORE_RECURRING_FREQUENCY: const.FREQUENCY_WEEKLY,
+        const.DATA_CHORE_APPLICABLE_DAYS: [dt_today_local().strftime("%a").lower()],
+    }
+
+
+def _set_chore_definitions(
+    manager: GamificationManager,
+    definitions: dict[str, dict[str, Any]],
+) -> None:
+    """Install chore definitions on the mock coordinator."""
+    manager.coordinator.chores_data.update(definitions)
 
 
 def _set_chores(
@@ -146,38 +182,142 @@ def test_engine_streak_progress_and_met() -> None:
 
 
 @pytest.mark.parametrize(
-    ("value", "expected"),
+    ("value", "case"),
     [
-        (None, True),  # missing -> fail open
-        ("", True),  # empty -> fail open
-        ("not-a-date", True),  # unparseable -> fail open
+        pytest.param(None, "missing", id="missing"),
+        pytest.param("", "empty", id="empty"),
+        pytest.param("not-a-date", "unparseable", id="unparseable"),
     ],
 )
-def test_streak_alive_fails_open(
-    manager: GamificationManager, value: Any, expected: bool
+def test_streak_alive_breaks_on_unreadable_data(
+    manager: GamificationManager, value: Any, case: str
 ) -> None:
-    """Missing or unparseable values fail open so a valid streak is never zeroed."""
-    assert manager._streak_alive(value) is expected
+    """Unreadable data breaks the streak rather than preserving it (decision 19).
+
+    A positive streak implies a completion timestamp exists, so its absence is a
+    defect. Silently continuing would mask it, so the streak breaks and the user
+    can report the bug.
+    """
+    _set_chore_definitions(manager, {"chore-a": DAILY_CHORE})
+
+    assert manager._streak_alive("chore-a", value) is False, case
 
 
-def test_streak_alive_today_and_yesterday(manager: GamificationManager) -> None:
-    """Today and yesterday are both inside the inclusive window (alive)."""
-    assert manager._streak_alive(_date_str(0)) is True
-    assert manager._streak_alive(_date_str(1)) is True
-
-
-def test_streak_alive_two_days_ago_is_dead(manager: GamificationManager) -> None:
-    """A gap of a full missed day (last completion 2 days ago) breaks the streak."""
-    assert manager._streak_alive(_date_str(2)) is False
-
-
-def test_streak_alive_handles_datetime_strings(
+def test_streak_alive_breaks_when_chore_is_unknown(
     manager: GamificationManager,
 ) -> None:
+    """An unknown chore cannot be evaluated, so it breaks for the same reason."""
+    assert manager._streak_alive("missing-chore", _date_str(0)) is False
+
+
+@pytest.mark.parametrize(
+    ("days_ago", "expected", "case"),
+    [
+        pytest.param(0, True, "today", id="today"),
+        pytest.param(1, True, "yesterday", id="yesterday"),
+        pytest.param(2, False, "two-days-ago", id="two-days-ago"),
+    ],
+)
+def test_streak_alive_daily_chore_window(
+    manager: GamificationManager, days_ago: int, expected: bool, case: str
+) -> None:
+    """A daily chore keeps its streak while no day passed unmet.
+
+    Mirrors the previous today-or-yesterday rule for daily chores, now derived
+    from the schedule instead of the calendar.
+    """
+    _set_chore_definitions(manager, {"chore-a": DAILY_CHORE})
+
+    assert manager._streak_alive("chore-a", _date_str(days_ago)) is expected, case
+
+
+def test_streak_alive_weekly_chore_survives_its_off_days(
+    manager: GamificationManager,
+) -> None:
+    """A weekly chore's streak survives the days it is not owed.
+
+    This is conflict C2, the defect this tranche exists to fix: the old calendar
+    gate zeroed a valid weekly streak as soon as the last completion was more than
+    a day old. Three days is still more than a day, so the old rule would call this
+    dead.
+    """
+    _set_chore_definitions(manager, {"chore-a": _weekly_chore_due_today()})
+
+    assert manager._streak_alive("chore-a", _date_str(3)) is True
+
+
+def test_streak_alive_weekly_chore_breaks_after_a_skipped_occurrence(
+    manager: GamificationManager,
+) -> None:
+    """The weekly exemption must not make a streak immortal.
+
+    A gap longer than the recurrence interval contains an occurrence, so the
+    streak breaks. Without this, the fix for C2 would trade a false break for a
+    false hold.
+    """
+    _set_chore_definitions(manager, {"chore-a": _weekly_chore_due_today()})
+
+    assert manager._streak_alive("chore-a", _date_str(8)) is False
+
+
+@pytest.mark.parametrize(
+    ("days_ago", "expected", "case"),
+    [
+        pytest.param(0, True, "today", id="today"),
+        pytest.param(1, True, "yesterday", id="yesterday"),
+        pytest.param(2, False, "two-days-ago", id="two-days-ago"),
+    ],
+)
+def test_streak_alive_handles_datetime_strings(
+    manager: GamificationManager, days_ago: int, expected: bool, case: str
+) -> None:
     """ISO datetime strings (with ``T`` and tz) are parsed and localized correctly."""
-    assert manager._streak_alive(_datetime_str(0)) is True
-    assert manager._streak_alive(_datetime_str(1)) is True
-    assert manager._streak_alive(_datetime_str(2)) is False
+    _set_chore_definitions(manager, {"chore-a": DAILY_CHORE})
+
+    assert manager._streak_alive("chore-a", _datetime_str(days_ago)) is expected, case
+
+
+def test_streak_alive_todays_pending_occurrence_does_not_break(
+    manager: GamificationManager,
+) -> None:
+    """A chore completed yesterday stays alive while today is still in progress.
+
+    The window ends at the **start of today**, not "now", so today's not-yet-done
+    occurrence is not read as missed. Ending it at "now" would break a valid streak
+    mid-day, which is the #294 symptom in the achievement path.
+    """
+    _set_chore_definitions(manager, {"chore-a": DAILY_CHORE})
+
+    assert manager._streak_alive("chore-a", _date_str(1)) is True
+
+
+@pytest.mark.parametrize(
+    ("days_ago", "expected", "case"),
+    [
+        pytest.param(1, True, "consecutive-day-continues", id="consecutive-day"),
+        pytest.param(2, False, "skipped-day-breaks", id="skipped-day"),
+    ],
+)
+def test_streak_alive_unscheduled_chore_follows_daily_rules(
+    manager: GamificationManager, days_ago: int, expected: bool, case: str
+) -> None:
+    """A chore with no schedule is inferred as daily (decision 18).
+
+    Previously such a chore could never report a miss, so an achievement streak
+    over it froze at whatever value it reached. It now behaves as a daily streak:
+    consecutive days build it, a skipped day breaks it.
+    """
+    _set_chore_definitions(
+        manager,
+        {
+            "chore-a": {
+                const.DATA_CHORE_RECURRING_FREQUENCY: const.FREQUENCY_NONE,
+                const.DATA_CHORE_APPLICABLE_DAYS: [],
+            }
+        },
+    )
+
+    assert manager._streak_alive("chore-a", _date_str(days_ago)) is expected, case
 
 
 # =============================================================================
@@ -187,6 +327,7 @@ def test_streak_alive_handles_datetime_strings(
 
 def test_tracked_streak_fresh_chore_counts(manager: GamificationManager) -> None:
     """A chore completed today contributes its full streak."""
+    _set_chore_definitions(manager, {"chore-a": DAILY_CHORE})
     _set_chores(
         manager,
         "kid",
@@ -203,7 +344,8 @@ def test_tracked_streak_fresh_chore_counts(manager: GamificationManager) -> None
 def test_tracked_streak_stale_chore_resets_to_zero(
     manager: GamificationManager,
 ) -> None:
-    """A high streak with a last completion older than yesterday counts as 0."""
+    """A high streak with a missed occurrence behind it counts as 0."""
+    _set_chore_definitions(manager, {"chore-a": DAILY_CHORE})
     _set_chores(
         manager,
         "kid",
@@ -221,6 +363,10 @@ def test_tracked_streak_fresh_beats_stale_high(
     manager: GamificationManager,
 ) -> None:
     """max() returns the best *alive* streak; a stale high streak does not win."""
+    _set_chore_definitions(
+        manager,
+        {"stale-high": DAILY_CHORE, "fresh-low": DAILY_CHORE},
+    )
     _set_chores(
         manager,
         "kid",
@@ -259,6 +405,10 @@ def test_tracked_streak_fallback_branch_scans_all_chores(
     manager: GamificationManager,
 ) -> None:
     """With no tracked_chores list, all chores are scanned (alive ones only)."""
+    _set_chore_definitions(
+        manager,
+        {"stale-high": DAILY_CHORE, "fresh-low": DAILY_CHORE},
+    )
     _set_chores(
         manager,
         "kid",
@@ -276,15 +426,16 @@ def test_tracked_streak_fallback_branch_scans_all_chores(
     assert manager._get_tracked_current_streak("kid", []) == 4
 
 
-def test_tracked_streak_missing_timestamp_fails_open(
+def test_tracked_streak_missing_timestamp_breaks_the_streak(
     manager: GamificationManager,
 ) -> None:
-    """Documents the accepted caveat: a positive streak with no last_completed.
+    """A positive streak with no last_completed is a data defect, so it breaks.
 
-    _streak_alive fails open on missing data, so such a chore keeps its streak.
-    This should be unreachable in practice (completions always write both fields)
-    but is asserted here so the trade-off is a deliberate, visible decision.
+    Decision 19: an unreadable value must surface the problem rather than
+    continuing the streak and masking it. Should be unreachable in practice
+    (completions always write both fields), hence asserted explicitly.
     """
+    _set_chore_definitions(manager, {"chore-a": DAILY_CHORE})
     _set_chores(
         manager,
         "kid",
@@ -295,4 +446,4 @@ def test_tracked_streak_missing_timestamp_fails_open(
             }
         },
     )
-    assert manager._get_tracked_current_streak("kid", ["chore-a"]) == 5
+    assert manager._get_tracked_current_streak("kid", ["chore-a"]) == 0

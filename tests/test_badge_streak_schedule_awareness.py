@@ -196,11 +196,17 @@ class MatrixReplay:
             self.assert_occurrence(day_iso, expected=True)
         await self._replay.complete_day(day_iso)
 
-    async def hold(self, day_iso: str) -> None:
-        """Pass a neutral day: nothing owed, no occurrence, streak untouched."""
+    async def hold(self, day_iso: str, *, verify_recurrence: bool = True) -> None:
+        """Pass a neutral day: nothing owed, no occurrence, streak untouched.
+
+        ``verify_recurrence`` is disabled for interval-based frequencies for the
+        same reason as ``satisfy``: the occurrence probe rebases on the window
+        start and reports the wrong phase, so it cannot be an oracle there.
+        """
         self._replay.schedule_due_date(day_key(offset_from(day_iso) + 7))
         self.assert_owed(day_iso, expected=False)
-        self.assert_occurrence(day_iso, expected=False)
+        if verify_recurrence:
+            self.assert_occurrence(day_iso, expected=False)
         await self._replay.start_day(day_iso)
 
     async def miss(self, day_iso: str, *, verify_recurrence: bool = True) -> None:
@@ -416,7 +422,7 @@ class TestBiweeklySchedule:
             await matrix.satisfy(day_key(first), verify_recurrence=False)
             assert replay.days_cycle_count == 1
 
-            await matrix.hold(day_key(first + 7))
+            await matrix.hold(day_key(first + 7), verify_recurrence=False)
             assert replay.days_cycle_count == 1, (
                 "the week between two biweekly occurrences broke the streak"
             )

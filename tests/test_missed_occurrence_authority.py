@@ -57,15 +57,12 @@ def missed(
     chore_data: dict[str, Any],
     start: datetime,
     end: datetime,
-    *,
-    unusable_schedule_counts_as_miss: bool = False,
 ) -> bool:
     """Call the shared helper with explicit bounds."""
     return ChoreEngine.has_missed_occurrence_between(
         chore_data,
         window_start_utc=start,
         window_end_utc=end,
-        unusable_schedule_counts_as_miss=unusable_schedule_counts_as_miss,
     )
 
 
@@ -119,13 +116,27 @@ class TestWindowGuards:
         """An inverted or empty window has nothing to evaluate."""
         assert missed(DAILY, start, end) is False
 
-    def test_open_ended_chore_never_reports_a_miss(self) -> None:
-        """A chore with no schedule has no occurrences to miss.
+    @pytest.mark.parametrize(
+        ("days_apart", "expected", "case"),
+        [
+            pytest.param(1, False, "consecutive-days-continue"),
+            pytest.param(2, True, "one-skipped-day-breaks"),
+            pytest.param(29, True, "long-gap-breaks"),
+        ],
+    )
+    def test_open_ended_chore_follows_daily_rules(
+        self,
+        days_apart: int,
+        expected: bool,
+        case: str,
+    ) -> None:
+        """A chore with no schedule is inferred as daily (decision 18).
 
-        Its streak decay is a separate calendar rule inside `calculate_streak`,
-        deliberately not unified here.
+        It has no rhythm to keep, so daily is the inferred intent: consecutive days
+        build the streak, a skipped day breaks it. Confirmed as a deliberate
+        inference rather than a derived fact, since the user never specified one.
         """
-        assert missed(OPEN_ENDED, utc_at(1), utc_at(30)) is False
+        assert missed(OPEN_ENDED, utc_at(1), utc_at(1 + days_apart)) is expected, case
 
 
 class TestScheduleAwareDetection:
@@ -329,34 +340,39 @@ class TestCallersAgree:
 
 
 class TestUnusableSchedulePolicy:
-    """The two callers deliberately differ when a schedule cannot be evaluated."""
+    """An unreadable schedule breaks the streak, on every caller.
+
+    Decision 19 unified this: the callers previously disagreed (the badge path
+    failed open, the chore path broke). Failing open masked the defect, so both now
+    treat an unreadable schedule as a miss and the parameter that allowed the split
+    is gone.
+    """
 
     @staticmethod
     def _raise(*_: Any, **__: Any) -> None:
         raise ValueError("unusable schedule")
 
-    def test_default_treats_unusable_schedule_as_no_miss(
+    def test_unusable_schedule_is_a_miss(
         self,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
-        """The badge path must never break a valid streak over bad data."""
+        """Bad data must surface, not hide behind a preserved streak."""
         monkeypatch.setattr(RecurrenceEngine, "__init__", self._raise)
 
-        assert missed(DAILY, utc_at(1), utc_at(3)) is False
+        assert missed(DAILY, utc_at(1), utc_at(3)) is True
 
-    def test_chore_streak_treats_unusable_schedule_as_a_break(
+    def test_chore_streak_also_breaks_on_unusable_schedule(
         self,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
-        """The chore path stays conservative and resets, preserving old behaviour."""
+        """Both paths share the policy, so a caller cannot diverge again."""
         monkeypatch.setattr(RecurrenceEngine, "__init__", self._raise)
 
-        assert (
-            missed(
-                DAILY,
-                utc_at(1),
-                utc_at(3),
-                unusable_schedule_counts_as_miss=True,
-            )
-            is True
+        streak = ChoreEngine.calculate_streak(
+            current_streak=5,
+            previous_last_completed_iso=utc_at(1).isoformat(),
+            current_work_date_iso=utc_at(3).isoformat(),
+            chore_data=DAILY,
         )
+
+        assert streak == 1

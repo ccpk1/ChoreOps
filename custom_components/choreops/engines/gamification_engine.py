@@ -620,8 +620,8 @@ class GamificationEngine:
         elif target_type == const.CANONICAL_TARGET_TYPE_COMPLETION_STREAK:
             # Current completion streak, derived fresh from chore data on every
             # evaluation. _get_tracked_current_streak() zeroes a chore's streak
-            # once its last completion is older than yesterday, so this value
-            # resets after a fully missed day.
+            # once a scheduled occurrence passed unmet, so a chore that is not due
+            # every day keeps its streak through the days it is not owed.
             #
             # This previously used max(stored_streak, tracked_streak). The stored
             # streak (DATA_USER_CURRENT_STREAK) is only ever written from this

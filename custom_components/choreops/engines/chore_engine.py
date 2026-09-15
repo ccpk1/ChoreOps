@@ -1481,7 +1481,6 @@ class ChoreEngine:
         *,
         window_start_utc: datetime,
         window_end_utc: datetime,
-        unusable_schedule_counts_as_miss: bool = False,
     ) -> bool:
         """Check whether a scheduled occurrence went unmet inside a window.
 
@@ -1496,17 +1495,21 @@ class ChoreEngine:
         Sub-day schedules (hour/minute intervals, `daily_multi`) are exempt, since
         their occurrences are not day-aligned.
 
+        An unscheduled chore (`FREQUENCY_NONE`, no due date) is evaluated on a
+        daily recurrence. It has no rhythm to keep, so the intent is inferred as
+        daily: consecutive days build the streak, a skipped day breaks it. This is
+        a deliberate inference, not a derived fact - the user never specified one.
+
         Args:
             chore_data: Chore definition containing the scheduling fields.
             window_start_utc: Exclusive lower bound (UTC).
             window_end_utc: Exclusive upper bound (UTC).
-            unusable_schedule_counts_as_miss: What to report when the schedule
-                cannot be evaluated. The two callers deliberately differ: a chore
-                streak treats it as a break (conservative), a badge streak as no
-                miss (never break a valid streak over unusable data).
 
         Returns:
-            True when at least one scheduled occurrence fell inside the window.
+            True when at least one scheduled occurrence fell inside the window, or
+            when the schedule could not be evaluated at all. An unreadable
+            schedule counts as a miss so the failure surfaces rather than hiding
+            behind a preserved streak.
         """
         from .schedule_engine import RecurrenceEngine
 
@@ -1516,11 +1519,6 @@ class ChoreEngine:
         frequency = chore_data.get(
             const.DATA_CHORE_RECURRING_FREQUENCY, const.FREQUENCY_NONE
         )
-        # An open-ended chore has no occurrences to miss. Its streak decay is a
-        # separate calendar rule, deliberately not unified here.
-        if frequency == const.FREQUENCY_NONE:
-            return False
-
         interval_unit = chore_data.get(
             const.DATA_CHORE_CUSTOM_INTERVAL_UNIT, const.TIME_UNIT_DAYS
         )
@@ -1538,10 +1536,12 @@ class ChoreEngine:
             chore_data,
             base_date_iso=window_start.isoformat(),
         )
+        if frequency == const.FREQUENCY_NONE:
+            schedule_config["frequency"] = const.FREQUENCY_DAILY
         try:
             engine = RecurrenceEngine(schedule_config)
         except (ValueError, KeyError, TypeError):
-            return unusable_schedule_counts_as_miss
+            return True
 
         return engine.has_missed_occurrences(window_start, window_end)
 
@@ -1572,22 +1572,6 @@ class ChoreEngine:
         if not previous_last_completed_iso:
             return 1
 
-        # Get schedule configuration from chore
-        frequency = chore_data.get(
-            const.DATA_CHORE_RECURRING_FREQUENCY, const.FREQUENCY_NONE
-        )
-
-        # No schedule (manual/one-time chore) = simple daily logic
-        if frequency == const.FREQUENCY_NONE:
-            # Check if previous completion was yesterday (simple streak)
-            prev_dt = dt_to_utc(previous_last_completed_iso)
-            current_dt = dt_to_utc(current_work_date_iso)
-            if prev_dt and current_dt:
-                days_diff = (current_dt.date() - prev_dt.date()).days
-                if days_diff <= 1:
-                    return current_streak + 1
-            return 1  # Broke streak
-
         # Parse timestamps once so the same normalized window is used for both
         # recurrence evaluation and fallback checks.
         prev_dt = dt_to_utc(previous_last_completed_iso)
@@ -1600,7 +1584,6 @@ class ChoreEngine:
             chore_data,
             window_start_utc=prev_dt,
             window_end_utc=current_dt,
-            unusable_schedule_counts_as_miss=True,
         ):
             return 1  # Missed a scheduled occurrence, streak broke
 

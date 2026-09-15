@@ -221,11 +221,16 @@ class TestMissedSinceAdvance:
 
         assert snapshot["missed_since_advance"] is True
 
-    def test_chore_without_a_schedule_never_reports_a_miss(
+    def test_chore_without_a_schedule_follows_daily_rules(
         self,
         snapshot_scenario: SetupResult,
     ) -> None:
-        """An open-ended chore has no occurrences to miss."""
+        """An unscheduled chore is evaluated as daily, so a long gap is a miss.
+
+        Decision 18: the intent is inferred as daily, because the user never
+        specified one. This replaces the previous behaviour where such a chore could
+        never report a miss, which left a badge scoped to it frozen forever.
+        """
         chore_id = snapshot_scenario.chore_ids["Make bed"]
         chore_info = snapshot_scenario.coordinator.chores_data[chore_id]
         original = chore_info[const.DATA_CHORE_RECURRING_FREQUENCY]
@@ -240,7 +245,7 @@ class TestMissedSinceAdvance:
         finally:
             chore_info[const.DATA_CHORE_RECURRING_FREQUENCY] = original
 
-        assert snapshot["missed_since_advance"] is False
+        assert snapshot["missed_since_advance"] is True
 
     def test_unknown_chore_id_is_skipped(
         self,
