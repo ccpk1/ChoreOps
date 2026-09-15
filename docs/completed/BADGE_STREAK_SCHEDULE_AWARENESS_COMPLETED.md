@@ -1,5 +1,23 @@
 # Initiative Plan — Badge Streak Schedule Awareness (Issue #294 follow-on)
 
+> ## ✅ INITIATIVE COMPLETED — 2026-09-15
+>
+> All six phases are done. Outcome: badge **Streak** and **Days** targets, chore streaks and
+> streak-type achievements now share one schedule-aware definition — consecutive *eligible
+> occurrences* — with one missed-occurrence authority and one unusable-schedule policy.
+>
+> | | |
+> | --- | --- |
+> | **Shipped** | Phases 0–5, PR [#296](https://github.com/ccpk1/ChoreOps/pull/296) → `main` `0c98fdc` |
+> | **Complete, awaiting PR** | Phase 6A `ec5a31d`, 6B `bfa3a1c`, docs `88dd129`, probe repair `08039f5` |
+> | **Validation** | Full suite **2267 passed / 4 skipped / 18 deselected / 0 failed**; `quick_lint.sh` green, mypy 0 errors |
+> | **Conflicts closed** | C1 (eligible scope), C2 (achievement streaks), C3 (open-ended semantics), C4 (dead API) |
+> | **Decisions** | 20 total, all resolved |
+> | **Out of scope** | Issue #122 — investigated and closed as a design question; analysis kept below |
+>
+> **Not yet released.** The latest tag is `1.5.3-beta.1`, so none of this has reached users. The
+> release note needs Phases 5 and 6B entries; both drafts are recorded in this document.
+
 ## Initiative snapshot
 
 - **Name / Code**: Badge Streak Schedule Awareness — `BADGE_STREAK_SCHEDULE_AWARENESS`
@@ -7,11 +25,11 @@
   **together in one release** (decided 2026-09-14). From the user's perspective this is one bug
   ("streak badges don't work"); the analysis just found several distinct defects behind it.
 - **Owner / driver(s)**: ChoreOps maintainer + ChoreOps Builder (ChoreOps Test Builder for Phase 4)
-- **Status**: ✅ **Phases 0–6 complete** — Phases 0–5 shipped in PR
-  [#296](https://github.com/ccpk1/ChoreOps/pull/296) (`main`, `0c98fdc`, **not yet released** — latest tag
-  `1.5.3-beta.1`). Phase 6A and 6B are implemented and committed on
-  `ccpk1/streak-subsystem-unification`. All decisions resolved (20 total). **Issue #122 investigated
-  and closed — out of scope**, see the record in the Phase 6 section.
+- **Status**: ✅ **COMPLETED 2026-09-15** — Phases 0–6 all complete. Phases 0–5 shipped in PR
+  [#296](https://github.com/ccpk1/ChoreOps/pull/296) (`main`, `0c98fdc`). Phase 6A and 6B are
+  implemented and committed on `ccpk1/streak-subsystem-unification`, awaiting their PR. The full test
+  suite passes. **Not yet released** — latest tag `1.5.3-beta.1`. All decisions resolved (20 total).
+  **Issue #122 investigated and closed — out of scope**, see the record in the Phase 6 section.
 - **Branch / delivery**: Phases 0–5 shipped via PR [#296](https://github.com/ccpk1/ChoreOps/pull/296)
   against `main` (merged `0c98fdc`, 2026-09-15). Phase 6 continues on
   `ccpk1/streak-subsystem-unification`. Phases are kept as **separate commits** so reviewers can
@@ -1072,6 +1090,10 @@ permanently neutral — never advancing and never breaking.
   - **Non-vacuity verified for the matrix, not assumed.** Replacing the neutral-hold branch (`eligible_total == 0` → `cycle_count`) with `0` fails 5 of the 13 cases — Mon/Wed/Fri, weekly, biweekly, monthly and the pending-occurrence trap. The hold assertions are therefore load-bearing rather than satisfied by an advancing or already-broken streak. Probe reverted, engine diff confirmed clean.
   - **Every matrix case asserts its own preconditions**, since decision 15 has the harness construct schedules. A case that mis-schedules itself would otherwise pass for the wrong reason; this caught three errors during implementation — the two probe/setup mistakes listed above, and the retention case that anchored a week before its occurrence and so measured a genuine miss rather than a neutral day.
   - **An escape hatch is not a fix.** Disabling an assertion to make a case pass hides the defect it was guarding; here it concealed a probe that could not distinguish a biweekly schedule from a weekly one. When an assertion cannot be made to pass, the assertion or its helper is wrong until proven otherwise.
+  - **Probe-flaw sweep (2026-09-15): the pattern existed in exactly one place.** Searched the whole suite for the widened-window construction. Only the #294 day-replay harness had it, and it is fixed. No other test builds a probe window:
+    - `test_missed_occurrence_authority.py:62` is the only other caller of `has_missed_occurrence_between`, and it passes explicit bounds from `utc_at(...)` — a real window such as `[day1, day3)`, not a single widened day.
+    - Every other `- timedelta(days=1)` hit is `yesterday` / `period_start` / `past_date` arithmetic, which is legitimate.
+    - The remaining `build_schedule_config` / `RecurrenceEngine` users either assert builder output directly (`test_badge_schedule_snapshot.py`, fixed inputs) or generate occurrences from their own base (`test_schedule_engine*.py`), neither of which probes a single day.
   - Timezone correctness: the scheduling layer stores UTC while day keys are local. Follow the established convention in `tests/test_badge_period_end_cycles.py` (explicit `set_default_timezone` with `try/finally`) rather than relying on the default zone.
   - The full suite is a release step, not a CI gate — validate broadly before release, since cross-test state (the `dt_utils` default-timezone module global) can only appear in a full run.
   - Do not weaken the two existing break-semantics guards (`TestStreakStillBreaks`) to make new cases pass.
