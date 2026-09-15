@@ -952,6 +952,11 @@ CUSTOM_INTERVAL_UNIT_OPTIONS: Final = [
 # Notifications
 NOTIFICATION_EVENT: Final = "mobile_app_notification_action"
 
+# Events fired on the Home Assistant bus for user automations.
+# Format: <domain>_<event_name>. Distinct from SIGNAL_SUFFIX_* dispatcher signals,
+# which are internal component-to-component wiring.
+EVENT_BADGE_STREAK_REPAIRED: Final = "choreops_badge_streak_repaired"
+
 # Extra entity settings
 CONF_SHOW_LEGACY_ENTITIES: Final = "show_legacy_entities"
 CONF_KIOSK_MODE: Final = "kiosk_mode"
@@ -2997,6 +3002,7 @@ SERVICE_DISAPPROVE_REWARD: Final = "disapprove_reward"
 
 SERVICE_REDEEM_REWARD: Final = "redeem_reward"
 SERVICE_REMOVE_AWARDED_BADGES: Final = "remove_awarded_badges"
+SERVICE_REPAIR_BADGE_STREAK: Final = "repair_badge_streak"
 SERVICE_RESET_CHORES_TO_PENDING_STATE: Final = (
     "reset_chores_to_pending_state"  # Renamed from reset_all_chores
 )
@@ -3195,6 +3201,8 @@ SERVICE_FIELD_BONUS_NAME: Final = "bonus_name"
 
 # Badge service fields
 SERVICE_FIELD_BADGE_NAME: Final = "badge_name"
+# Target streak count to restore. See the repair_badge_streak service.
+SERVICE_FIELD_BADGE_STREAK_COUNT: Final = "badge_streak_count"
 
 # Shared workflow fields
 SERVICE_FIELD_CHORE_DUE_DATE: Final = "due_date"
@@ -3403,6 +3411,10 @@ ENTITY_REGISTRY: Final[dict[str, EntityRequirement]] = {
 # These 12 templates replace 41 hardcoded f-strings in coordinator.py using placeholders
 # Format: TRANS_KEY_ERROR_{CATEGORY} with translation_placeholders for dynamic values
 TRANS_KEY_ERROR_NOT_FOUND: Final = "not_found"  # {entity_type} '{name}' not found
+TRANS_KEY_ERROR_BADGE_NOT_STREAK: Final = "badge_not_streak"
+TRANS_KEY_ERROR_BADGE_STREAK_NOTHING_TO_RESTORE: Final = (
+    "badge_streak_nothing_to_restore"
+)
 TRANS_KEY_ERROR_NOT_ASSIGNED: Final = (
     "not_assigned"  # {entity} not assigned to {assignee}
 )
@@ -3510,6 +3522,7 @@ ERROR_ACTION_APPLY_PENALTIES: Final = "apply_penalties"
 ERROR_ACTION_APPLY_BONUSES: Final = "apply_bonuses"
 ERROR_ACTION_ADJUST_POINTS: Final = "adjust_points"
 ERROR_ACTION_REMOVE_BADGES: Final = "remove_badges"
+ERROR_ACTION_REPAIR_BADGE_STREAK: Final = "repair_badge_streak"
 
 TRANS_KEY_ERROR_MSG_NO_ENTRY_FOUND: Final = "error_msg_no_entry_found"
 TRANS_KEY_ERROR_SERVICE_TARGET_AMBIGUOUS: Final = "service_target_ambiguous"

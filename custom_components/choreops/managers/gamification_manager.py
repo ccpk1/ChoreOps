@@ -1884,6 +1884,115 @@ class GamificationManager(BaseManager):
             canonical_target=canonical_target,
         )
 
+    def repair_badge_streak(
+        self,
+        assignee_id: str,
+        badge_id: str,
+        *,
+        count: int | None = None,
+    ) -> dict[str, Any]:
+        """Restore a badge streak, from retained history or an explicit count.
+
+        Moves `last_update_day` back to **yesterday**. Yesterday rather than today
+        because the evaluator treats `last_update_day == today_iso` as already
+        counted, so today would hold at the restored value instead of advancing it.
+        Yesterday also leaves an empty missed-occurrence window, which retroactively
+        clears the break that prompted the repair.
+
+        No caps and no guards are applied: an admin may restore any value, including
+        onto a live streak. That is deliberate, so the service is a bounded setter as
+        well as a repair.
+
+        Args:
+            assignee_id: Assignee internal ID.
+            badge_id: Badge internal ID.
+            count: Streak value to restore. When None, the highest retained value is
+                used and `source` reports `"history"`.
+
+        Returns:
+            Response payload with the restored count, its source, and the retained
+            history.
+
+        Raises:
+            HomeAssistantError: The badge has no progress, does not track a streak,
+                or has no retained history to restore from.
+        """
+        today_iso = dt_today_iso()
+
+        assignee_info = cast(
+            "dict[str, Any]", self.coordinator.assignees_data.get(assignee_id, {})
+        )
+        badge_progress = cast(
+            "dict[str, Any]", assignee_info.get(const.DATA_USER_BADGE_PROGRESS, {})
+        )
+        progress = badge_progress.get(badge_id)
+        badge_name = str(
+            cast("dict[str, Any]", self.coordinator.badges_data.get(badge_id, {})).get(
+                const.DATA_BADGE_NAME, badge_id
+            )
+        )
+
+        if not isinstance(progress, dict) or not progress:
+            raise HomeAssistantError(
+                translation_domain=const.DOMAIN,
+                translation_key=const.TRANS_KEY_ERROR_NOT_FOUND,
+                translation_placeholders={
+                    "entity_type": const.LABEL_BADGE,
+                    "name": badge_name,
+                },
+            )
+
+        if const.DATA_USER_BADGE_PROGRESS_DAYS_CYCLE_COUNT not in progress:
+            raise HomeAssistantError(
+                translation_domain=const.DOMAIN,
+                translation_key=const.TRANS_KEY_ERROR_BADGE_NOT_STREAK,
+                translation_placeholders={"name": badge_name},
+            )
+
+        history = self.get_badge_streak_history(progress)
+
+        if count is None:
+            if not history:
+                raise HomeAssistantError(
+                    translation_domain=const.DOMAIN,
+                    translation_key=const.TRANS_KEY_ERROR_BADGE_STREAK_NOTHING_TO_RESTORE,
+                    translation_placeholders={"name": badge_name},
+                )
+            restored_count = max(history.values())
+            source = "history"
+        else:
+            restored_count = count
+            source = "manual"
+
+        progress[const.DATA_USER_BADGE_PROGRESS_DAYS_CYCLE_COUNT] = restored_count
+        progress[const.DATA_USER_BADGE_PROGRESS_LAST_UPDATE_DAY] = dt_add_interval(
+            today_iso,
+            interval_unit=const.TIME_UNIT_DAYS,
+            delta=-1,
+            return_type=const.HELPER_RETURN_ISO_DATE,
+        )
+
+        self.coordinator._persist_and_update()
+
+        const.LOGGER.info(
+            "Repaired badge streak for badge '%s': count=%s source=%s history=%s",
+            badge_name,
+            restored_count,
+            source,
+            history,
+        )
+
+        return {
+            const.DATA_USER_INTERNAL_ID: assignee_id,
+            const.DATA_USER_NAME: assignee_info.get(const.DATA_USER_NAME, assignee_id),
+            "badge_id": badge_id,
+            const.DATA_BADGE_NAME: badge_name,
+            "restored_count": restored_count,
+            "source": source,
+            "history": dict(sorted(history.items())),
+            "retention_days": const.DEFAULT_BADGE_STREAK_HISTORY_DAYS,
+        }
+
     @staticmethod
     def get_badge_streak_history(progress: dict[str, Any]) -> dict[str, int]:
         """Return the retained per-day streak counts from badge progress.

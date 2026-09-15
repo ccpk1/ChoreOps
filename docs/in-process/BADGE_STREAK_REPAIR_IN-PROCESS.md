@@ -159,7 +159,23 @@ The existing codebase follows this already — `SERVICE_FIELD_BADGE_NAME`, and
     behaviour-affecting constant and should be treated as such.
   - Forward-only: the history accrues from install. A break that happens before the feature ships has
     nothing to restore from, which the service must report clearly rather than failing obscurely.
-- **Implementation notes (deviations from the plan as written)**
+- **Implementation notes (Phase 2 deviations)**
+  1. **`examples` in `en.json` must be strings.** Adding `"example": 42` for the numeric count
+     field broke **33 tests across four suites** with `TypeError: expected str, got int` — an error
+     that pointed nowhere near the cause. Every other service example in that file is a string, and
+     this was the only non-string one. Converted to `"42"`. **Worth remembering: the type of a
+     translation `example` is load-bearing, and a wrong one fails indirectly.** Integers are fine in
+     `services.yaml` (precedented by `create_reward`'s `cost: 50`).
+  2. **The assignee resolver was reused, not renamed.** `_resolve_manual_adjust_assignee_id` handles
+     the generic "exactly one of user_id / user_name, validated against assignees_data" case. It has
+     a single caller and a name tied to that caller, so it is now used by two services while keeping
+     the old name. Left as-is rather than renamed mid-feature; a rename to something
+     caller-agnostic would be a tidy-up worth doing separately.
+  3. **`get_item_id_by_name` was imported rather than `get_item_id_or_raise`.** The raising variant
+     produces an untranslated `HomeAssistantError`, whereas this service raises with the proper
+     `TRANS_KEY_ERROR_NOT_FOUND` plus the badge label, so the user sees a translated message.
+
+- **Implementation notes (Phase 1 deviations, for reference)**
   1. **The helpers are static methods on `GamificationManager`, not module-level functions.** The plan
      implied free functions, but that module contains no module-level functions — everything is a
      method — and `data_builders.py` is scoped to entity lifecycle/build rather than runtime progress.
@@ -183,8 +199,9 @@ The existing codebase follows this already — `SERVICE_FIELD_BADGE_NAME`, and
 - **Goal**: an admin-callable `choreops.repair_badge_streak` that restores a badge streak,
   auto-filling
   from the retained history, and returns that history for reference.
+- **Status**: ✅ **Complete** (2026-09-15). Gates green, 357 targeted tests pass.
 - **Steps**
-  1. **Constants** — VALIDATED against `DEVELOPMENT_STANDARDS.md` §3 and existing patterns
+  1. ✅ **Constants** — VALIDATED against `DEVELOPMENT_STANDARDS.md` §3 and existing patterns
      (2026-09-15). Most of the fields this service needs **already exist**, so the new-constant
      surface is far smaller than first assumed:
      - ✅ **Already exist, reuse — do not create:** `SERVICE_FIELD_USER_ID` / `SERVICE_FIELD_USER_NAME`
@@ -203,10 +220,10 @@ The existing codebase follows this already — `SERVICE_FIELD_BADGE_NAME`, and
        `SERVICE_FIELD_STREAK_COUNT` (named the feature). Both mistakes came from reaching for the
        mechanism instead of the domain.
      - `TRANS_KEY_*` for the service name, field labels and errors.
-  2. **Payload validator** in `services.py`, mirroring `_validate_manual_adjust_points_payload`
+  2. ✅ **Payload validator** in `services.py`, mirroring `_validate_manual_adjust_points_payload`
      (`services.py:129`): require exactly one of `user_id` / `user_name`; require `badge_name`.
      `count` is optional.
-  3. **Manager method** on `GamificationManager` (only managers write), named
+  3. ✅ **Manager method** on `GamificationManager` (only managers write), named
      `repair_badge_streak(...)` to stay anchored on the badge domain like the rest of the surface. It
      owns the write and returns a plain dict for the response:
      - **Naming note:** the method takes `assignee_id`, matching its neighbours in that manager
@@ -235,7 +252,7 @@ The existing codebase follows this already — `SERVICE_FIELD_BADGE_NAME`, and
        (`"manual"|"history"`) and `history` — a list of date/value pairs. Reuse existing `DATA_*`
        constants for keys (as `get_ledger` does with `DATA_USER_INTERNAL_ID` / `DATA_USER_NAME`)
        rather than inventing bare string keys.
-  4. **Handler** in `services.py`, registered with `supports_response=SupportsResponse.OPTIONAL`
+  4. ✅ **Handler** in `services.py`, registered with `supports_response=SupportsResponse.OPTIONAL`
      (pattern already used at `services.py:1542`, `:3733`):
      - resolve entry id and assignee
      - **auth**: copy the real pattern —
@@ -245,7 +262,7 @@ The existing codebase follows this already — `SERVICE_FIELD_BADGE_NAME`, and
        not exist in this codebase.
      - call the manager, log at info with `reason` and actor, fire the event, request a refresh
      - return the dict
-  5. **Event** — `hass.bus.async_fire(const.EVENT_BADGE_STREAK_REPAIRED, {...})`.
+  5. ✅ **Event** — `hass.bus.async_fire(const.EVENT_BADGE_STREAK_REPAIRED, {...})`.
      - **Not a new pattern.** An earlier revision called this "the integration's first HA event needing
        its own convention", which overstated it. Firing a bus event is entirely standard Home
        Assistant; this integration simply has not needed one yet. Verified the split:
@@ -257,14 +274,14 @@ The existing codebase follows this already — `SERVICE_FIELD_BADGE_NAME`, and
        automations on it, the name and payload become a contract. That is a reason to get the payload
        right, not a reason to avoid it.
      - Carries user, badge, count, source and reason, so the "earn back your streak" automation works.
-  6. **Log line** with reason and actor, as the audit surface in place of a ledger entry.
-  7. **`services.yaml`**: document the service with field descriptions and selectors, and state that
+  6. ✅ **Log line** with reason and actor, as the audit surface in place of a ledger entry.
+  7. ✅ **`services.yaml`**: document the service with field descriptions and selectors, and state that
      it returns JSON when called with `return_response: true` — copy the wording style from
      `get_ledger` (`services.yaml:506`).
-  8. **Translations**: add service and field labels to
+  8. ✅ **Translations**: add service and field labels to
      `custom_components/choreops/translations/en.json`. **There is no `strings.json` in this repo**,
      so `en.json` is the master and no regeneration step applies.
-  9. **Expose the retained history on the badge progress sensor** — add
+  9. (Phase 5) **Expose the retained history on the badge progress sensor** — add
      `DATA_USER_BADGE_PROGRESS_STREAK_HISTORY` to the attributes dict in
      `AssigneeBadgeProgressSensor.extra_state_attributes` (`sensor.py:2369`). No new constant: this
      sensor already exposes stored fields under their `DATA_*` keys (see decision 3 in the open
