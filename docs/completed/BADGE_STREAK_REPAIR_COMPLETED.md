@@ -1,5 +1,29 @@
 # Initiative Plan — Badge Streak Repair Service
 
+> ## ✅ INITIATIVE COMPLETED — 2026-09-15
+>
+> All five phases done. An admin can now restore a broken badge streak from a short retained
+> history of the streak's own values, auto-filled or supplied explicitly, with the repair logged
+> and announced by an event.
+>
+> | | |
+> | --- | --- |
+> | **Phases** | 1 data layer · 2 service · 3 tests · 4 docs · 5 sensor attribute — all complete |
+> | **Commits** | `fd28a8e` · `3ea04e3` · `853f606` · `227e643` · `8ff58d4` · `2112528` |
+> | **Validation** | 40 tests in the new suite; `quick_lint.sh` green, mypy **0 errors** |
+> | **Full suite** | ⬜ Outstanding — deliberately deferred to the release step |
+> | **Schema** | 153 (`SCHEMA_VERSION_1_5_3`) with an idempotent seed migration |
+> | **Ships in** | `1.5.3-beta.2` — set in `manifest.json`, **untagged** |
+> | **Wiki** | Committed and pushed to `choreops-wiki` (`b528d70`, `02ed887`, `8e29574`) |
+>
+> **Scope:** badges only, the 3 non-strict Streak target types, no caps or guards, log + event as
+> the audit surface. **Six defect classes were found and fixed during implementation** — see the
+> lifecycle audit and implementation notes below. Four of them were in this work itself, not
+> inherited: a response key collision, a refusal gate that tested the wrong field, history recorded
+> for Days badges, and a silent no-op on strict variants.
+>
+> **Not yet released.** No tag or GitHub release exists for `1.5.3-beta.2`.
+
 ## Initiative snapshot
 
 - **Name / Code**: Badge Streak Repair — `BADGE_STREAK_REPAIR`
@@ -10,8 +34,9 @@
   and #297, which are merged but unreleased. `1.5.3-beta.2` is set in `manifest.json` and is
   **untagged**, so it accumulates this work rather than needing a new beta number.
 - **Owner / driver(s)**: ChoreOps maintainer + ChoreOps Builder
-- **Status**: ✅ **COMPLETE** (2026-09-15) — all five phases done. Gates green, 375 targeted tests pass.
-  The full suite is still outstanding, deliberately deferred to the release step.
+- **Status**: ✅ **COMPLETED 2026-09-15** — all five phases done. `quick_lint.sh` green with mypy
+  0 errors; 40 tests in the new suite and 324 targeted tests across the affected suites. The full
+  suite is outstanding, deliberately deferred to the release step.
 - **Branch / delivery**: `ccpk1/badge-streak-repair`, off `main` after #297 merged (`7520470`,
   2026-09-15). Single PR; the change is self-contained.
 
