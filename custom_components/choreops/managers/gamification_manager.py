@@ -1884,6 +1884,82 @@ class GamificationManager(BaseManager):
             canonical_target=canonical_target,
         )
 
+    @staticmethod
+    def get_badge_streak_history(progress: dict[str, Any]) -> dict[str, int]:
+        """Return the retained per-day streak counts from badge progress.
+
+        The history maps LOCAL date keys ("YYYY-MM-DD") to the streak count for
+        that day, most recent days only. It exists so a broken streak's previous
+        value survives the reset to zero.
+
+        Reads defensively: a missing, wrongly typed, or partially malformed value
+        degrades to an empty history rather than raising, so corrupt data cannot
+        break badge evaluation. Non-integer counts are skipped for the same reason.
+        """
+        raw = progress.get(const.DATA_USER_BADGE_PROGRESS_STREAK_HISTORY)
+        if not isinstance(raw, dict):
+            return {}
+
+        history: dict[str, int] = {}
+        for day_iso, count in raw.items():
+            if not isinstance(day_iso, str):
+                continue
+            if isinstance(count, bool) or not isinstance(count, int):
+                continue
+            history[day_iso] = count
+        return history
+
+    @staticmethod
+    def record_badge_streak_history(
+        progress: dict[str, Any],
+        count: int,
+        today_iso: str,
+    ) -> bool:
+        """Record today's streak count, retaining the most recent days.
+
+        Written on every evaluation, including the day a streak breaks — there
+        `count` is 0. The pre-break value is not re-recorded under today's key; it
+        survives in the earlier day's entry and ages out on its own, which is what
+        bounds the repair lookback. Recording only on advance would leave nothing
+        to restore from.
+
+        A day is recorded when its key is absent or its value differs, deliberately
+        not behind the caller's "did the count change" check: a neutral day leaves
+        the count unchanged yet still needs its own key, and skipping it would leave
+        gaps that make "how many days ago" misleading.
+
+        Returns:
+            True when the history was modified, so the caller can flag persistence.
+        """
+        history = GamificationManager.get_badge_streak_history(progress)
+        if history.get(today_iso) == count:
+            return False
+
+        history[today_iso] = count
+        progress[const.DATA_USER_BADGE_PROGRESS_STREAK_HISTORY] = (
+            GamificationManager.prune_badge_streak_history(
+                history, const.DEFAULT_BADGE_STREAK_HISTORY_DAYS
+            )
+        )
+        return True
+
+    @staticmethod
+    def prune_badge_streak_history(
+        history: dict[str, int],
+        max_days: int,
+    ) -> dict[str, int]:
+        """Keep only the most recent `max_days` entries.
+
+        Keys are ISO dates, which sort correctly as strings, so the newest are
+        simply the last ones sorted. `max_days` is a parameter rather than being
+        baked in, so changing the retained depth never requires touching this code.
+        """
+        if max_days <= 0:
+            return {}
+        if len(history) <= max_days:
+            return dict(history)
+        return {day_iso: history[day_iso] for day_iso in sorted(history)[-max_days:]}
+
     def _persist_periodic_badge_progress(
         self,
         assignee_id: str,
@@ -2010,6 +2086,15 @@ class GamificationManager(BaseManager):
             days_count = int(criterion_current_value)
             if previous_days != days_count:
                 progress[const.DATA_USER_BADGE_PROGRESS_DAYS_CYCLE_COUNT] = days_count
+                changed = True
+
+            # Retain today's count, including the 0 written on a break, so the
+            # pre-break value survives in an earlier entry and can be restored.
+            # Recorded outside the change check above: a neutral day leaves the
+            # count unchanged but still needs its own key.
+            if GamificationManager.record_badge_streak_history(
+                progress, days_count, today_iso
+            ):
                 changed = True
 
             # The anchor advances only when the streak does. A held or neutral day

@@ -16,7 +16,7 @@
 
 | Phase | Description | % | Quick notes |
 | --- | --- | --- | --- |
-| 1 – Data layer | Per-day streak history on badge progress, pruned to 5 days; schema bump + migration | 0% | First collection-valued field on badge progress |
+| 1 – Data layer | Per-day streak history on badge progress, pruned to 5 days; schema bump + migration | 100% | ✅ Constants, helpers, write wiring, migration; mypy required a TypedDict key too |
 | 2 – Service | `repair_badge_streak` service + manager method, response-first, fires an event | 0% | Mirrors `get_ledger` response pattern |
 | 3 – Tests | New suite covering history, pruning, repair, response, auth | 0% | ~11 tests |
 | 4 – Docs | `services.yaml`, wiki, release note | 0% | `en.json` is the translation master |
@@ -84,16 +84,17 @@ The existing codebase follows this already — `SERVICE_FIELD_BADGE_NAME`, and
 ## Phase 1 – Data layer
 
 - **Goal**: retain the last 5 days of each badge's streak count, and bump the schema.
+- **Status**: ✅ **Complete** (2026-09-15). Gates green, no regressions.
 - **Key facts established**: `SCHEMA_VERSION_CURRENT = SCHEMA_VERSION_1_5_0` (`const.py:354-355`);
   badge progress keys live at `const.py:1057-1068`; every existing badge-progress field is a scalar,
   so this is the first collection-valued one.
 - **Steps**
-  1. Add `DATA_USER_BADGE_PROGRESS_STREAK_HISTORY: Final = "streak_history"` to `const.py`, with a
+  1. ✅ Add `DATA_USER_BADGE_PROGRESS_STREAK_HISTORY: Final = "streak_history"` to `const.py`, with a
      comment stating the shape: `dict[str, int]` of **local** date key → streak count for that day.
      ✅ **Name validated** — matches the existing `DATA_USER_BADGE_PROGRESS_<NAME>` family with a
      `snake_case` value, and `DATA_*` is documented as singular storage keys (`const.py:1057-1068`).
      Place it in the existing alphabetical run, after `START_DATE` and before `STATUS`.
-  2. Add `DEFAULT_BADGE_STREAK_HISTORY_DAYS: Final = 5`, following the `CONF_*` +
+  2. ✅ Add `DEFAULT_BADGE_STREAK_HISTORY_DAYS: Final = 5`, following the `CONF_*` +
      `DEFAULT_*` pairing the codebase already uses for exactly this purpose
      (`CONF_RETENTION_DAILY` + `DEFAULT_RETENTION_DAILY`, `const.py:820` / `:1846`).
      - Use **`DEFAULT_*`, not a bare noun**, precisely because this value may become user-configurable
@@ -105,7 +106,7 @@ The existing codebase follows this already — `SERVICE_FIELD_BADGE_NAME`, and
      - Deliberately not `..._RETENTION_DAYS`, so it cannot be confused with the unrelated
        `CONF_RETENTION_DAILY` (different subsystem, max 90).
      - Add a comment recording that it is simultaneously the storage window and the repair lookback.
-  2b. **Keep the number out of identifier names.** The value governs how much history is kept, but it
+  2b. ✅ **Keep the number out of identifier names.** The value governs how much history is kept, but it
      must not be embedded in logic or function names — otherwise changing 5 to 7 becomes a rename
      cascade. Required names:
      - `record_badge_streak_history(progress, count, today_iso)`
@@ -113,11 +114,8 @@ The existing codebase follows this already — `SERVICE_FIELD_BADGE_NAME`, and
      - `get_badge_streak_history(progress)`
      - ❌ Avoid `prune_five_day_history`, `lookback_5`, `MAX_5_DAYS`, or anything else encoding the
        current value.
-     ✅ **Name validated** — the bare-noun prefix is precedented for hardcoded behaviour constants
-     (`MAX_DATE_CALCULATION_ITERATIONS`, `MONTHS_PER_QUARTER`, `END_OF_DAY_HOUR`). It is *not* a
-     `DEFAULT_*`, which the standards reserve for default configuration values that a user can
-     override — this is fixed behaviour, and there is deliberately no setting.
-  3. **Record the day's value** in the `days_cycle` branch of the badge persistence path
+
+  3. ✅ **Record the day's value** in the `days_cycle` branch of the badge persistence path
      (`managers/gamification_manager.py:2006-2029`) — recorded on **every** evaluation, including the
      break, because recording only on advance would leave nothing to restore from.
      - ✅ **Mechanism verified from code.** The pre-break value is recoverable at break time: the
@@ -130,11 +128,11 @@ The existing codebase follows this already — `SERVICE_FIELD_BADGE_NAME`, and
        (absent, or different) rather than against `previous_days`.
      - Reference `dt_today_iso()` (`utils/dt_utils.py:149`) for the key. **Local date, never raw
        `datetime`** — same convention as the period buckets.
-  4. **Prune** to the most recent 5 date keys on write, sorted by key (ISO dates sort correctly as
+  4. ✅ **Prune** to the most recent 5 date keys on write, sorted by key (ISO dates sort correctly as
      strings).
-  5. **Read defensively.** A missing, non-dict, or partially malformed history must degrade to an
+  5. ✅ **Read defensively.** A missing, non-dict, or partially malformed history must degrade to an
      empty history rather than raising, so a corrupt value cannot break badge evaluation.
-  6. **Schema bump — CORRECTED 2026-09-15 after standards review.** Add
+  6. ✅ **Schema bump — CORRECTED 2026-09-15 after standards review.** Add
      `SCHEMA_VERSION_1_5_3: Final = 153` and point `SCHEMA_VERSION_CURRENT` at it. The convention
      is `major*100 + minor*10 + patch` (`const.py:353-355`: 1.0.0 → 100, 1.5.0 → 150), and the
      shipping release is 1.5.3.
@@ -152,7 +150,7 @@ The existing codebase follows this already — `SERVICE_FIELD_BADGE_NAME`, and
      - The `integrity/` lane does **not** apply: that lane is for impossible runtime states on an
        already-current schema, not for introducing a new key.
      - No backfill of values — a history cannot be invented for days that were never recorded.
-  7. Confirm the write path: badge progress is persisted via
+  7. ✅ Confirm the write path: badge progress is persisted via
      `coordinator._persist_and_update()` from `GamificationManager` (see existing calls at
      `managers/gamification_manager.py:487`, `:1125`).
 - **Key issues**
@@ -161,7 +159,25 @@ The existing codebase follows this already — `SERVICE_FIELD_BADGE_NAME`, and
     behaviour-affecting constant and should be treated as such.
   - Forward-only: the history accrues from install. A break that happens before the feature ships has
     nothing to restore from, which the service must report clearly rather than failing obscurely.
-
+- **Implementation notes (deviations from the plan as written)**
+  1. **The helpers are static methods on `GamificationManager`, not module-level functions.** The plan
+     implied free functions, but that module contains no module-level functions — everything is a
+     method — and `data_builders.py` is scoped to entity lifecycle/build rather than runtime progress.
+     Static methods keep them colocated with `_persist_periodic_badge_progress` while staying pure and
+     directly testable. Same names as planned.
+  2. **`record_badge_streak_history` returns `bool`.** Not in the plan, but needed so the caller can
+     set the `changed` flag that drives persistence.
+  3. **What gets recorded is the day's *actual* count, including `0` on a break** — not the pre-break
+     value. The plan's phrasing ("the count that existed before zeroing is in scope") was imprecise.
+     The pre-break value survives because *the previous day's entry is still there* and ages out on its
+     own, which is exactly what bounds the lookback. Verified by tracing: a streak of 100 recorded over
+     four days, then a break recorded as `0`, yields `max = 100`; four restart days later the 100 has
+     rolled off and `max = 4`. Recording the pre-break value under today's key would misrepresent the
+     day and break the natural expiry.
+  4. **Mypy required a `type_defs.py` change the plan missed.** `AssigneeBadgeProgress` is a TypedDict
+     and rejected the new key: *"has no key `streak_history`"*. That contract is precisely why the
+     project uses TypedDicts, so the field was added there with its shape documented. **Worth noting
+     the plan did not anticipate this file.**
 ## Phase 2 – Service
 
 - **Goal**: an admin-callable `choreops.repair_badge_streak` that restores a badge streak,

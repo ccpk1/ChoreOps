@@ -352,7 +352,8 @@ SCHEMA_VERSION_BETA4: Final = 44  # Post-migration schema checkpoint.
 SCHEMA_VERSION_BETA5: Final = 45  # Legacy schema45 checkpoint.
 SCHEMA_VERSION_1_0_0: Final = 100  # First GA schema checkpoint.
 SCHEMA_VERSION_1_5_0: Final = 150  # Release 1.5.0 schema checkpoint.
-SCHEMA_VERSION_CURRENT: Final = SCHEMA_VERSION_1_5_0
+SCHEMA_VERSION_1_5_3: Final = 153  # Release 1.5.3: badge streak_history added.
+SCHEMA_VERSION_CURRENT: Final = SCHEMA_VERSION_1_5_3
 
 # Float precision for stored numeric values (points, chore stats, etc.)
 # Prevents Python float arithmetic drift (e.g., 27.499999999999996 → 27.5)
@@ -1065,6 +1066,10 @@ DATA_USER_BADGE_PROGRESS_OVERALL_PROGRESS: Final = "overall_progress"
 DATA_USER_BADGE_PROGRESS_POINTS_CYCLE_COUNT: Final = "points_cycle_count"
 DATA_USER_BADGE_PROGRESS_RECURRING_FREQUENCY: Final = "recurring_frequency"
 DATA_USER_BADGE_PROGRESS_START_DATE: Final = "start_date"
+# Recent per-day streak counts, as {"YYYY-MM-DD": count} keyed by LOCAL date.
+# Retains the pre-break value so a broken streak can be repaired, and self-describes
+# when the break happened. Depth is DEFAULT_BADGE_STREAK_HISTORY_DAYS.
+DATA_USER_BADGE_PROGRESS_STREAK_HISTORY: Final = "streak_history"
 DATA_USER_BADGE_PROGRESS_STATUS: Final = "status"
 
 # Note: Shared fields already defined above in Common Badge Progress Fields section
@@ -1847,6 +1852,12 @@ DEFAULT_RETENTION_DAILY: Final = 14
 DEFAULT_RETENTION_WEEKLY: Final = 5
 DEFAULT_RETENTION_MONTHLY: Final = 3
 DEFAULT_RETENTION_YEARLY: Final = 3
+# How many days of badge streak history to retain. This is simultaneously the
+# storage window and the repair lookback: a break older than this has nothing to
+# restore from. Deliberately NOT named ..._RETENTION_DAYS, which is the unrelated
+# period-bucket setting (CONF_RETENTION_DAILY, max 90). May become user
+# configurable; promoting it means adding a CONF_ key and one options read.
+DEFAULT_BADGE_STREAK_HISTORY_DAYS: Final = 5
 DEFAULT_CHALLENGE_TARGET: Final = 1
 DEFAULT_CHORES_UNIT: Final = "Chores"
 DEFAULT_DAILY_RESET_TIME = {"hour": 0, "minute": 0, "second": 0}
