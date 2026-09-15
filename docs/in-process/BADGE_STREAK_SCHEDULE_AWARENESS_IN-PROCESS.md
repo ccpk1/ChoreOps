@@ -12,13 +12,12 @@
   `1.5.3-beta.1`). Phase 6A and 6B are implemented and committed on
   `ccpk1/streak-subsystem-unification`. All decisions resolved (20 total). **Issue #122 investigated
   and closed — out of scope**, see the record in the Phase 6 section.
-- **Branch / delivery**: `ccpk1/issue294` carries both the #294 hotfix and this initiative, which
-  ship as a single release via PR #296 against `main`. The phases are **separate commits** so
-  reviewers can follow the history, and the hotfix commit (`73e97d5`) doubles as a bisect point if
-  the wider change later needs backing out. The PR is a **draft** because the full-directory test
-  run has not been executed yet — note that CI runs only `lint-validation` and HACS validation, so
-  pytest is a manual pre-merge gate. Wiki docs were pushed directly to `choreops-wiki` `master`
-  (that repo has no PR flow).
+- **Branch / delivery**: Phases 0–5 shipped via PR [#296](https://github.com/ccpk1/ChoreOps/pull/296)
+  against `main` (merged `0c98fdc`, 2026-09-15). Phase 6 continues on
+  `ccpk1/streak-subsystem-unification`. Phases are kept as **separate commits** so reviewers can
+  follow the history, and the hotfix commit (`73e97d5`) doubles as a bisect point if the wider
+  change later needs backing out. Wiki docs were pushed directly to `choreops-wiki` `master` (that
+  repo has no PR flow).
 
 ## Summary & immediate steps
 
@@ -32,7 +31,7 @@
 | Phase 3 – Persistence & status alignment                | Ensure neutral days write nothing and status transitions stay coherent         | 100%       | ✅ Audit clean; 9 tests; fixed lost credit for a satisfied day after a break |
 | Phase 4 – Tests & validation                            | Extend the #294 regression suite; add schedule-matrix + days-family coverage    | 100%       | ✅ 24 new tests; step 7 exposed and closed a decision-11 implementation gap |
 | Phase 5 – Docs, wiki & release notes                    | Document eligible-occurrence semantics, option equivalence, and the behaviour change | 100%       | ✅ Wiki (4 pages), help text, Development Standards, Architecture, release-note draft |
-| Phase 6 – Streak subsystem unification                      | Split: 6A code hygiene (O4/O5); 6B achievement alignment (O3/C3/decision 19)   | 100%       | ✅ `ec5a31d` + `bfa3a1c`; conflict C2 closed, policy unified |
+| Phase 6 – Streak subsystem unification                      | Split: 6A code hygiene (O4/O5); 6B achievement alignment (O3/C3/decision 19)   | 100%       | ✅ `ec5a31d` + `bfa3a1c` + probe repair; C2 closed, policy unified; **full suite 2267 passed** |
 
 1. **Key objective** – Make badge streak target types count **consecutive satisfied eligible occurrences** instead of consecutive calendar days, so a streak respects each tracked chore's schedule. A badge must not break (or stall) on a day when the tracked chores are simply not due, and must never award from a gap where an occurrence genuinely passed unmet.
 
@@ -65,8 +64,8 @@
       after a break now starts a new streak instead of earning no credit.
    8. ✅ **Phase 4 complete** — 24 new tests across the schedule matrix, Days-family scope, contract
       traps and retention independence. One implementation gap was found and closed (decision 17).
-   9. ✅ **Phase 5 complete and PR #296 opened (draft)** — wiki (4 pages), option help text,
-      Development Standards, Architecture, and a release-note draft now in the PR description.
+   9. ✅ **Phase 5 complete** — wiki (4 pages), option help text, Development Standards, Architecture,
+      and a release-note draft. Shipped to `main` in PR #296.
    10. ✅ **Phases 0–5 shipped** — PR #296 merged to `main` (`0c98fdc`, 2026-09-15).
    11. ✅ **Issue #122 investigated and closed** — a streak day-boundary is a convention with no
        generally correct answer, and the day boundary is not even consulted by the miss check. Full
@@ -77,8 +76,11 @@
        closed), unscheduled chores follow daily rules (C3 closed), and the unusable-schedule policy
        is unified with its parameter removed. Documentation updated across four wiki pages,
        `DEVELOPMENT_STANDARDS.md` and `ARCHITECTURE.md`.
-   14. **Next: a full-suite run and the Phase 6 PR.** 6B changes achievement behaviour that a wider run
-       could exercise in ways targeted suites do not, so it should not ship without one.
+   14. ✅ **Full suite passes** (2026-09-15): **2267 passed, 4 skipped, 18 deselected, 0 failed**.
+       The 18 deselected are the default-excluded `performance`/`stress` markers.
+   15. **Next: the Phase 6 PR.** Four commits stand ready (`ec5a31d`, `bfa3a1c`, `88dd129`,
+       `08039f5`), each independently revertable. The release note needs the three 6B entries
+       recorded under "Documentation for 6B".
 
 4. **Risks / blockers** –
    - **BLOCKER (C1) — the eligible scope is currently too coarse.** `_is_chore_due_today_for_assignee`
@@ -1051,7 +1053,7 @@ permanently neutral — never advancing and never breaking.
      eligible. Implemented as `TestWorkedAnswersAreUnchanged`, with `_assert_scope_precondition` asserting the 3-of-5 eligible day so the ratio assertions cannot pass vacuously.
   9. ✅ Add the contract-trap tests, one per trap named in Phase 1 step 6, and the `never_overdue` case explicitly: skipping a due occurrence must still break the streak (the case a lateness-flag design gets wrong). Implemented as `TestStreakContractTraps` — four cases: the `never_overdue` skip still breaks; today's pending occurrence is not a miss; a chore added mid-streak reports no spurious miss (the anchor trap); and a break is not permanent (the recovery trap, which must still restart at 1).
   10. ✅ Parametrize across retention settings (including a low `retention_daily`) to prove the design does not depend on period history surviving. Implemented as `TestIndependentOfPeriodHistory`, which simulates the *outcome* of aggressive pruning by deleting the tracked chores' daily period buckets outright (the harness gained `clear_daily_period_history`). This is deliberately stronger than setting a `retention_daily` option value: `get_retention_config` reads config-entry options and the replay never runs the pruning job, so setting the option would not have applied it and the test would have been vacuous. Two cases: a neutral day still holds, and a skipped occurrence still breaks.
-  11. ✅ Run the targeted suites, then the badge/gamification set, then the release-gate commands from [RELEASE_CHECKLIST.md](../RELEASE_CHECKLIST.md) §2: `./utils/quick_lint.sh --fix`, `mypy custom_components/choreops/`, `python -m pytest tests/ -v --tb=line`. **Done 2026-09-15 for the targeted and badge/gamification sets** (see the Phase 4 baseline). The full-directory run was declined deliberately — targeted runs were used instead, so a full-suite pass remains outstanding for the release step.
+  11. ✅ Run the targeted suites, then the badge/gamification set, then the release-gate commands from [RELEASE_CHECKLIST.md](../RELEASE_CHECKLIST.md) §2: `./utils/quick_lint.sh --fix`, `mypy custom_components/choreops/`, `python -m pytest tests/ -v --tb=line`. **Targeted sets passed at each phase, and the full suite passed 2026-09-15** (see the full-suite baseline).
 - **⚠️ Finding not in the plan — the recurrence rebases on the window start, so a widened probe is not a valid oracle for interval frequencies.** Occurrences land at **local midnight**, and `has_missed_occurrence_between` treats both bounds as exclusive, so the narrow window `[day, day + 1)` reports no miss on the very day an occurrence falls — the anchor day's own occurrence is the window's *lower bound*. Widening to `[day - 1, day + 1)` isolates one day's occurrence, which is what the harness probe uses.
 
   That probe was nonetheless invalid for `biweekly` and `monthly`, because `build_schedule_config` is called with `base_date_iso=window_start`: the recurrence **rebases on the anchor**, and for an `INTERVAL=2` frequency the base week's parity decides which days are occurrences. Verified — a biweekly Monday anchored `2026-08-31` yields `08-31, 09-14, 09-28`, while the same chore probed from `09-13` yields `09-21, 10-05`.
@@ -1485,8 +1487,8 @@ accumulate rather than reset.
   `test_dashboard_due_today_weekday_gating`) → **319 passed**. `quick_lint.sh` green with mypy 0
   errors. **Non-vacuity evidence:** replacing the neutral-hold branch with `0` fails 5 of the 13
   matrix cases; the probe was reverted with a clean engine diff.
-  **⚠️ The full-directory run was deliberately skipped** (targeted runs only), so a full-suite pass
-  is still outstanding for the release step. Phases 5–6 must not regress the 44 Phase 4 tests.
+  **✅ Superseded by the full-suite pass** recorded below — targeted runs carried Phase 4 alone, and
+  the full suite was run once every phase was complete. Phases 5–6 must not regress the 44 Phase 4 tests.
 - **Baseline for Phase 6A (commit `ec5a31d`, 2026-09-15):** `test_statistics_engine.py`,
   `test_gamification_engine.py`, `test_badge_target_types.py`, `test_workflow_gamification_pending_queue.py`,
   `test_badge_streak_midnight_reset.py`, `test_missed_occurrence_authority.py` → **174 passed**.
@@ -1498,10 +1500,19 @@ accumulate rather than reset.
   assignment change, report rollup, chore manager) → **260 passed**. `quick_lint.sh` green with mypy
   0 errors. `test_gamification_streak_reset.py` grew from 13 to **24 tests** as the achievement
   coverage was rewritten against the new mechanism.
-  **Doing 6B may require a full-suite pass before release** — the tranche changes behaviour that a
-  wider run could exercise in ways targeted suites do not.
-- **Outstanding tests:** none for Phase 6 — both tranches are covered. A full-directory run remains
-  for the release gate.
+  **✅ The full suite was run after 6B and passed** — a tranche that changes behaviour warrants it (see the full-suite baseline).
+- **Baseline — FULL SUITE (2026-09-15, after Phase 6B + the probe repair):**
+  `./utils/run_tests.sh tests/ -q --tb=line` → **2267 passed, 4 skipped, 18 deselected**, in 8m31s.
+  **Zero failures.** This closes the last outstanding release gate, and it is the first full run
+  since Phase 0 — every earlier phase was validated with targeted suites only.
+  - The **18 deselected** are `performance` and `stress` marked tests, excluded by default via
+    `pytest.ini` (`addopts = -m "not performance and not stress"`). Expected, not a gap.
+  - The **4 skipped** matches the count recorded at Phase 1 and Phase 2, so nothing newly skipped.
+  - Worth noting: the full run discovered **2289 tests**, against the handful of files an earlier
+    workspace listing showed. The listing was truncated, not the suite — a reminder to verify test
+    inventory by running rather than by listing.
+- **Outstanding tests:** ✅ none. Both Phase 6 tranches are covered and the full suite passes. The
+  only remaining release step is the Phase 6 PR itself.
 - **Links to failing logs:** n/a.
 
 ---
