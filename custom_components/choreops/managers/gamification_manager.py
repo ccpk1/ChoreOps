@@ -26,6 +26,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.start import async_at_started
 
 from .. import const, data_builders as db
+from ..engines.chore_engine import ChoreEngine
 from ..engines.gamification_engine import GamificationEngine
 from ..engines.schedule_engine import RecurrenceEngine
 from ..helpers import entity_helpers as eh
@@ -36,11 +37,13 @@ from ..utils.dt_utils import (
     as_utc,
     dt_add_interval,
     dt_next_schedule,
+    dt_now_local,
     dt_now_utc_iso,
     dt_parse,
     dt_parse_date,
     dt_today_iso,
     dt_today_local,
+    start_of_local_day,
 )
 from .base_manager import BaseManager
 
@@ -1428,7 +1431,6 @@ class GamificationManager(BaseManager):
             assignee_id,
             tracked_chores,
             today_iso=today_iso,
-            current_badge_progress=current_badge_progress,
         )
         # One miss check serves both scope variants: the answer depends on the
         # badge's advance day, not on the chore scope.
@@ -2812,7 +2814,6 @@ class GamificationManager(BaseManager):
                 assignee_id,
                 tracked_chores,
                 today_iso=today_iso,
-                current_badge_progress=None,
             )
         )
         runtime_context["today_completion"] = (
@@ -2890,24 +2891,41 @@ class GamificationManager(BaseManager):
 
         return runtime_context
 
-    def _streak_alive(self, last_value: Any) -> bool:
-        """Return True if a streak's last activity keeps it alive today.
+    def _streak_alive(self, chore_id: str, last_value: Any) -> bool:
+        """Return True when a chore's stored streak has not been broken.
 
-        A streak is only updated on completion; there is no midnight job that
-        decays it when a day is fully missed. So a streak whose last completion
-        is older than yesterday has actually been broken. Uses an inclusive
-        "today or yesterday" window so a streak completed yesterday is not
-        prematurely zeroed at the start of today.
+        A streak is only written on completion and nothing decays it later, so a
+        broken streak keeps its stored value until the next completion. Whether it
+        actually survived is decided by the same schedule-aware check the chore and
+        badge streaks use: an occurrence that passed unmet inside
+        `[last completion, start of today)` breaks it.
 
-        Fails OPEN (returns True) on any missing value or parse failure, so a
-        valid streak is never wrongly zeroed over bad/absent data.
+        The window ends at the **start of today**, never "now", so today's
+        still-pending occurrence cannot break a valid streak mid-day. The
+        consequence is a one-day latch, the same as badges: a missed occurrence
+        breaks the streak on the following day.
+
+        Unreadable data returns False rather than preserving the streak. A positive
+        streak implies a completion timestamp exists, so its absence or an
+        unparseable value is a defect, and silently continuing would mask it
+        (decision 19). This is only reachable with `streak > 0`; a chore with no
+        credited streak is filtered by the caller before this runs.
         """
-        if not last_value:
-            return True
-        local_dt = dt_parse(last_value, return_type=HELPER_RETURN_DATETIME_LOCAL)
-        if not isinstance(local_dt, datetime):
-            return True
-        return local_dt.date() >= dt_today_local() - timedelta(days=1)
+        last_local = dt_parse(last_value, return_type=HELPER_RETURN_DATETIME_LOCAL)
+        if not last_value or not isinstance(last_local, datetime):
+            return False
+
+        chore_data = self.coordinator.chores_data.get(chore_id)
+        if not chore_data:
+            return False
+
+        today_start = as_utc(start_of_local_day(dt_now_local()))
+
+        return not ChoreEngine.has_missed_occurrence_between(
+            chore_data,
+            window_start_utc=as_utc(last_local),
+            window_end_utc=today_start,
+        )
 
     def _get_tracked_current_streak(
         self,
@@ -2916,8 +2934,9 @@ class GamificationManager(BaseManager):
     ) -> int:
         """Return current streak from assignee chore data for tracked chores.
 
-        A chore's stored streak only counts if it was last completed today or
-        yesterday; a fully missed day breaks the streak (see _streak_alive).
+        A chore's stored streak only counts while it has not been broken; a
+        missed occurrence ends it, on the chore's own schedule (see
+        `_streak_alive`).
         """
         assignee_data = cast(
             "dict[str, Any]",
@@ -2928,12 +2947,13 @@ class GamificationManager(BaseManager):
             assignee_data.get(const.DATA_USER_CHORE_DATA, {}),
         )
 
-        def _effective(chore_entry: dict[str, Any]) -> int:
+        def _effective(chore_id: str, chore_entry: dict[str, Any]) -> int:
             streak = int(chore_entry.get(const.DATA_USER_CHORE_DATA_CURRENT_STREAK, 0))
             if streak <= 0:
                 return 0
             if not self._streak_alive(
-                chore_entry.get(const.DATA_USER_CHORE_DATA_LAST_COMPLETED)
+                chore_id,
+                chore_entry.get(const.DATA_USER_CHORE_DATA_LAST_COMPLETED),
             ):
                 return 0
             return streak
@@ -2942,7 +2962,8 @@ class GamificationManager(BaseManager):
             return max(
                 (
                     _effective(
-                        cast("dict[str, Any]", assignee_chore_data.get(chore_id, {}))
+                        chore_id,
+                        cast("dict[str, Any]", assignee_chore_data.get(chore_id, {})),
                     )
                     for chore_id in tracked_chores
                 ),
@@ -2951,8 +2972,8 @@ class GamificationManager(BaseManager):
 
         return max(
             (
-                _effective(cast("dict[str, Any]", chore_entry))
-                for chore_entry in assignee_chore_data.values()
+                _effective(str(chore_id), cast("dict[str, Any]", chore_entry))
+                for chore_id, chore_entry in assignee_chore_data.items()
                 if isinstance(chore_entry, dict)
             ),
             default=0,

@@ -706,7 +706,7 @@ Chore scheduling fields are mapped onto a recurrence in exactly one place, `Chor
 - Day-based schedules are normalised to local day boundaries, so a DST shift between consecutive dates does not look like a skipped occurrence.
 - Sub-day schedules (`daily_multi`, and hour/minute interval units) are exempt, since their occurrences are not day-aligned.
 
-Callers own the anchor, because the correct one genuinely differs: badge streaks anchor on the badge's advance day, chore streaks on the previous completion. Callers also own the error policy, for the same reason — a chore streak treats an unusable schedule as a break, while a badge streak treats it as no miss so bad data cannot break a valid streak. See [DEVELOPMENT_STANDARDS.md](DEVELOPMENT_STANDARDS.md) for the full streak and days target semantics.
+Callers own the anchor, because the correct one genuinely differs: badge streaks anchor on the badge's advance day, while chore streaks and achievement streaks anchor on the previous completion. The error policy is **not** caller-owned: an unusable schedule counts as a miss for every caller, and the flag that once allowed the two paths to diverge was removed so the policy cannot drift apart again. See [DEVELOPMENT_STANDARDS.md](DEVELOPMENT_STANDARDS.md) for the full streak and days target semantics.
 
 ### iCal Compatibility
 

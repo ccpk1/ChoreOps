@@ -28,6 +28,7 @@ import pytest
 
 from custom_components.choreops import const
 from custom_components.choreops.engines.chore_engine import ChoreEngine
+from custom_components.choreops.engines.schedule_engine import RecurrenceEngine
 from custom_components.choreops.utils import dt_utils
 from custom_components.choreops.utils.dt_utils import as_utc, get_default_timezone
 from tests.helpers import (
@@ -320,32 +321,54 @@ class PeriodicDayReplay:
             periods = chore_entry.get(DATA_USER_CHORE_DATA_PERIODS, {})
             periods.pop(DATA_USER_CHORE_DATA_PERIODS_DAILY, None)
 
-    def scheduled_occurrence_on(self, day_iso: str) -> bool:
+    def scheduled_occurrence_on(self, day_iso: str, *, anchor_iso: str) -> bool:
         """Whether the recurrence places an occurrence on the given local day.
 
-        Probes the day widened by a day on each side. Occurrences land at local
-        midnight and the engine treats both bounds as exclusive, so the narrow
-        window ``[day, day + 1)`` would report False on the very day an occurrence
-        falls; widening it isolates that one occurrence and excludes the
-        neighbouring days'.
+        Built from ``anchor_iso``, because the recurrence **rebases on its anchor**
+        (`build_schedule_config` is called with `base_date_iso=window_start`). For an
+        interval-based frequency such as biweekly, the anchor's week parity decides
+        which weeks carry occurrences, so probing from any other date can report a
+        different phase than the evaluation being tested.
+
+        This mirrors what production does: the miss check builds its window from the
+        caller's anchor, so the same anchor has to be used here for the answer to
+        describe the schedule that was actually evaluated.
+
+        When the day under test precedes the anchor, the window is opened from the
+        day itself. The recurrence cannot generate occurrences before its own start,
+        so there is nothing to compare against otherwise, and the answer is then the
+        plain question "does this day carry an occurrence".
+
+        Deriving the day from a widened window instead does not work: occurrences
+        land at local midnight and both bounds are exclusive, so the widening shifts
+        the anchor by a day and, for an interval frequency, lands on the opposite
+        phase.
         """
         day = date.fromisoformat(day_iso)
+        anchor = date.fromisoformat(anchor_iso)
+        reference = min(anchor, day)
         local_tz = get_default_timezone()
-        window_start = as_utc(
-            datetime.combine(day - timedelta(days=1), time.min, tzinfo=local_tz)
-        )
+        window_start = as_utc(datetime.combine(reference, time.min, tzinfo=local_tz))
         window_end = as_utc(
             datetime.combine(day + timedelta(days=1), time.min, tzinfo=local_tz)
         )
 
-        return any(
-            ChoreEngine.has_missed_occurrence_between(
-                self._chore_info(chore_id),
-                window_start_utc=window_start,
-                window_end_utc=window_end,
+        for chore_id in self._chore_ids:
+            chore_info = self._chore_info(chore_id)
+            schedule_config = ChoreEngine.build_schedule_config(
+                chore_info,
+                base_date_iso=window_start.isoformat(),
             )
-            for chore_id in self._chore_ids
-        )
+            occurrences = RecurrenceEngine(schedule_config).get_occurrences(
+                window_start, window_end
+            )
+            if any(
+                dt_utils.as_local(occurrence).date() == day
+                for occurrence in occurrences
+            ):
+                return True
+
+        return False
 
     @contextmanager
     def chore_schedule(

@@ -39,8 +39,13 @@ class StatisticsEngine:
     This class provides methods to:
     - Generate consistent period keys (daily/weekly/monthly/yearly)
     - Record transactions to multiple period buckets atomically
-    - Update and calculate streaks
     - Prune historical data based on retention policies
+
+    Streaks are deliberately **not** calculated here. `ChoreEngine.calculate_streak`
+    owns chore streaks and `ChoreEngine.has_missed_occurrence_between` owns miss
+    detection, both schedule-aware. Calendar-day streak helpers used to live in this
+    class and were removed: a generically named streak utility implementing
+    yesterday-only logic is a trap for the next contributor.
 
     All methods are stateless - they operate on data structures passed as arguments.
     The engine does NOT persist data; the caller is responsible for persistence.
@@ -55,9 +60,6 @@ class StatisticsEngine:
             increments={"approved": 1, "points": 10},
             include_all_time=True,
         )
-
-        # Update streak
-        stats.update_streak(assignee_chore_data, "current_streak", "last_completed")
 
         # Prune old data
         stats.prune_history(period_data, retention_config)
@@ -325,95 +327,6 @@ class StatisticsEngine:
                 bucket[metric] = round(next_value, const.DATA_FLOAT_PRECISION)
             else:
                 bucket[metric] = next_value
-
-    # ────────────────────────────────────────────────────────────────
-    # Streak Management
-    # ────────────────────────────────────────────────────────────────
-
-    def update_streak(
-        self,
-        container: dict[str, Any],
-        streak_key: str,
-        last_date_key: str | None = None,
-        reference_date: date | datetime | None = None,
-    ) -> int:
-        """Update and return the current streak value.
-
-        Streak logic:
-        - Same day as last activity: No change (already counted)
-        - Day after last activity (yesterday): Increment streak
-        - Any other case: Reset streak to 1
-
-        This method mutates `container` in place. If `last_date_key` is provided,
-        it will also update the last activity date.
-
-        Args:
-            container: Dictionary containing streak data.
-            streak_key: Key for the streak counter in container.
-            last_date_key: Optional key for the last activity date.
-                          If provided, will be updated to current date.
-            reference_date: Date to use as "today". Defaults to actual today.
-
-        Returns:
-            Updated streak value.
-
-        Example:
-            # Update chore streak
-            streak = stats.update_streak(
-                chore_data,
-                streak_key="current_streak",
-                last_date_key="last_completed",
-            )
-            # streak = 5 (if continuing from yesterday)
-        """
-        if reference_date is None:
-            today = self._dt_today_local()
-        elif isinstance(reference_date, datetime):
-            today = reference_date.date()
-        else:
-            today = reference_date
-
-        today_iso = today.isoformat()
-        yesterday = today - timedelta(days=1)
-        yesterday_iso = yesterday.isoformat()
-
-        # Get current state
-        current_streak = container.get(streak_key, 0)
-        last_date_str = container.get(last_date_key) if last_date_key else None
-
-        # Determine new streak value
-        if last_date_str == today_iso:
-            # Same day - no change
-            new_streak = current_streak
-        elif last_date_str == yesterday_iso:
-            # Consecutive day - increment
-            new_streak = current_streak + 1
-        else:
-            # Gap or first time - reset to 1
-            new_streak = 1
-
-        # Update container
-        container[streak_key] = new_streak
-        if last_date_key is not None:
-            container[last_date_key] = today_iso
-
-        return new_streak
-
-    def get_streak(
-        self,
-        container: Mapping[str, Any],
-        streak_key: str,
-    ) -> int:
-        """Get current streak value without modifying container.
-
-        Args:
-            container: Dictionary containing streak data.
-            streak_key: Key for the streak counter.
-
-        Returns:
-            Current streak value, or 0 if not set.
-        """
-        return container.get(streak_key, 0)
 
     # ────────────────────────────────────────────────────────────────
     # History Pruning

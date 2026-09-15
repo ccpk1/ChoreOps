@@ -899,7 +899,6 @@ class TestPeriodicBadgeTargetTypes:
                 "today_points": 0.0,
                 "today_approved": 0,
                 "total_earned": 120.5,
-                "streak_yesterday": False,
             }
 
         def _mock_window_points(*_: Any, **__: Any) -> float:

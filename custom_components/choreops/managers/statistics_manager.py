@@ -42,7 +42,6 @@ from .. import const
 from ..engines.chore_engine import ChoreEngine
 from ..utils.dt_utils import (
     as_utc,
-    dt_add_interval,
     dt_local_date_iso,
     dt_now_local,
     dt_parse,
@@ -2395,7 +2394,6 @@ class StatisticsManager(BaseManager):
         tracked_chores: list[str],
         *,
         today_iso: str,
-        current_badge_progress: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Get badge-scoped daily stats for gamification evaluation.
 
@@ -2407,11 +2405,9 @@ class StatisticsManager(BaseManager):
             assignee_id: Assignee internal ID.
             tracked_chores: Chore IDs in scope for current badge.
             today_iso: Today date key (YYYY-MM-DD).
-            current_badge_progress: Current per-badge progress for streak gate.
 
         Returns:
-            Dict with keys: today_points, today_approved, total_earned,
-            streak_yesterday.
+            Dict with keys: today_points, today_approved, total_earned.
         """
         assignee_info = self._get_assignee(assignee_id)
         if not assignee_info:
@@ -2419,7 +2415,6 @@ class StatisticsManager(BaseManager):
                 "today_points": 0.0,
                 "today_approved": 0,
                 "total_earned": 0.0,
-                "streak_yesterday": False,
             }
 
         chore_data = cast(
@@ -2461,25 +2456,10 @@ class StatisticsManager(BaseManager):
                 )
             )
 
-        progress = current_badge_progress or {}
-        yesterday_iso = dt_add_interval(
-            today_iso,
-            interval_unit=const.TIME_UNIT_DAYS,
-            delta=-1,
-            return_type=const.HELPER_RETURN_ISO_DATE,
-        )
-        streak_yesterday = (
-            str(progress.get(const.DATA_USER_BADGE_PROGRESS_LAST_UPDATE_DAY, ""))
-            == str(yesterday_iso)
-            and int(progress.get(const.DATA_USER_BADGE_PROGRESS_DAYS_CYCLE_COUNT, 0))
-            > 0
-        )
-
         return {
             "today_points": today_points,
             "today_approved": today_approved,
             "total_earned": total_earned,
-            "streak_yesterday": streak_yesterday,
         }
 
     def get_badge_scoped_all_time_stats(
