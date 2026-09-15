@@ -346,31 +346,71 @@
         primitive. No claim-mode list change was needed, because a completed chore already resolves
         to `blocked_already_approved`, which counts.
 
-        **Accepted consequence (must appear in the release note):** one completion of a
-        `frequency = none` chore keeps the day satisfied on every later day, so a badge scoped only
-        to it advances daily off that single completion. The rejected alternative — counting it
-        only until approved — is self-contradictory: open gives `0/1` unmet while completed gives
-        `eligible_total == 0` neutral, so the badge could never advance and decision 11's pin would
-        remain unsatisfiable. A third option (scoping it to the day of approval) needs a
-        date-bounded scope that no other target type uses, so it was not taken.
+        **Consequence — CORRECTED 2026-09-15 after verification.** An earlier revision of this decision
+        stated that "one completion of a `frequency = none` chore keeps the day satisfied on every
+        later day, so a badge scoped only to it advances daily off that single completion". **That was
+        wrong — it was reasoned, not tested.** Verified by probe: the chore completed on day −1
+        advances the badge to 1, and on the following day the snapshot reports `due_count=1`,
+        `approved_due_today=0`, `missed_since_advance=False`, after which the count **stays at 1 and
+        never moves again**.
+
+        The actual and worse behaviour is that such a badge **freezes**. `approved_due_today` is read
+        from that day's own period bucket only, so a later day has nothing approved; and because
+        `has_missed_occurrence_between` short-circuits to `False` for `FREQUENCY_NONE`, no miss is
+        ever detected either. The day is therefore neither satisfied nor missed, so the streak
+        neither advances nor breaks. It is not free advancement — it is permanent stalling.
+
+        **This is exactly what decision 18 fixes.** Once an unscheduled chore follows daily streak
+        rules, the day after a completion is a genuine missed day, the break is detected, and a badge
+        scoped to it becomes a normal daily streak: keep it up and it builds, skip a day and it
+        resets. Decision 17 remains correct as written — such a chore *is* owed every day — it is the
+        downstream streak consequence that needed decision 18 to land.
+
+        No published documentation is affected: the merged release note and the wiki say only that
+        such a chore "counts on every day", which is accurate. The incorrect claim existed only here.
 
 > **Important:** Keep the entire Summary section (table + bullets) current with every meaningful update.
 
-     18. **PENDING CONFIRMATION — can an open-ended chore break a streak? (closes C3, pairs with O3.)**
-        Recommended: the shared helper honours an explicit rule for `FREQUENCY_NONE` that matches
-        `calculate_streak`, so one authority answers the question and **no current behaviour
-        changes**. Needed before 6B, because O3 alone would make an open-ended achievement streak
-        immortal while the underlying chore streak still resets (verified; see the Phase 6 section).
+     18. **CONFIRMED 2026-09-15 — an unscheduled chore follows daily streak rules (closes C3, pairs
+        with O3).** A chore with no due date and no recurrence is evaluated as if it were daily: do
+        it every day and the streak builds; skip a day and it breaks to zero. This applies to
+        **both badges and achievements**, so all three systems agree.
 
-     19. **PENDING CONFIRMATION — the achievement path's error policy.**
-        Recommended: pass `unusable_schedule_counts_as_miss=False`, preserving today's fail-open
-        behaviour so unusable data never zeroes a streak the user earned, and matching the badge
-        policy.
+        Rationale (product owner): the user never expressed an intent for such a chore, so an
+        intent must be inferred, and daily is the only relatively logical model — "streak" already
+        means consecutive days to a user, and a month-long streak off sporadic completions would be
+        meaningless. It is explicitly accepted as a compromise built on an assumption.
 
-     20. **PENDING CONFIRMATION — the achievement miss window's upper bound.**
-        Recommended: the **start of today**, matching the badge path exactly, so today's
-        still-pending occurrence cannot break a streak mid-day. Accepted consequence: the same
-        documented one-day latch as badges.
+        Implementation consequence: `has_missed_occurrence_between` stops short-circuiting
+        `FREQUENCY_NONE` and evaluates it on a daily recurrence instead, which also lets
+        `calculate_streak`'s inline `FREQUENCY_NONE` special case be deleted so the helper truly owns
+        the rule. This **fixes the frozen-badge defect** described under decision 17's corrected
+        consequence.
+
+        Behaviour change to note in the release note: badges scoped to an unscheduled chore
+        previously stalled after one advance; they now behave as daily streaks.
+
+     19. **CONFIRMED 2026-09-15 (against the recommendation) — an unreadable schedule counts as a
+        miss.** When a chore's schedule cannot be evaluated, the streak breaks rather than holding.
+
+        Rationale (product owner): unreadable data is a distinct problem that the user can notice
+        and report; silently continuing the streak would mask the underlying bug. This reverses the
+        earlier recommendation to fail open.
+
+        Consequence to accept: a data defect will zero streaks instead of passing quietly, so a
+        message should make the cause visible rather than leaving the user to guess. This also makes
+        all callers agree — `calculate_streak` already passes
+        `unusable_schedule_counts_as_miss=True` — removing the documented policy split.
+
+        ⚠️ **Scope question to settle:** the badge path currently passes `False`. Applying decision
+        19 everywhere means changing **already-merged badge behaviour**, which needs its own release
+        note entry and arguably its own PR rather than riding along in 6B. Confirm whether this is
+        achievements-only or all streak paths.
+
+     20. **CONFIRMED 2026-09-15 — the achievement miss window ends at the start of today.**
+        Matches the badge path exactly, so today's still-pending occurrence cannot break a streak
+        mid-day. Accepted consequence: the same documented one-day latch as badges (a missed
+        occurrence breaks the streak on the following day).
 
 ## Tracking expectations
 
@@ -1127,11 +1167,12 @@ permanently neutral — never advancing and never breaking.
   achievements at the shared missed-occurrence authority (closing conflict C2), and settle whether an
   open-ended chore can break a streak (conflict C3).
 - **Entry criteria — BOTH must hold**:
-  1. **Decisions 18, 19 and 20 answered** (below). They are product decisions, not refactor details.
-  2. **The badge fix confirmed in the field.** Phases 0–5 merged 2026-09-15 but the latest tag is
-     `1.5.3-beta.1`, so the fix is **unreleased and no user has run it**. Starting 6B before that
-     makes it impossible to attribute a new streak report to the right subsystem — which is the whole
-     reason this criterion exists.
+  1. ✅ **Decisions 18, 19 and 20 confirmed** (2026-09-15). See the section below. One follow-up
+     remains: whether decision 19 also applies to the **badge** path.
+  2. ⛔ **The badge fix confirmed in the field — still outstanding.** Phases 0–5 merged 2026-09-15
+     but the latest tag is `1.5.3-beta.1`, so the fix is **unreleased and no user has run it**.
+     Starting 6B before that makes it impossible to attribute a new streak report to the right
+     subsystem — which is the whole reason this criterion exists.
 - **Steps / detailed work items**
   1. Replace `_streak_alive` (`gamification_manager.py:2893`) with the shared helper, per decision 19
      (error policy) and decision 20 (upper bound), then retire `_streak_alive`.
@@ -1141,48 +1182,73 @@ permanently neutral — never advancing and never breaking.
   3. Re-express the **5 of 13** tests in `test_gamification_streak_reset.py` that pin the calendar
      gate (`test_streak_alive_today_and_yesterday`, `test_streak_alive_two_days_ago_is_dead`,
      `test_streak_alive_handles_datetime_strings`, `test_streak_alive_fails_open`, and the
-     B1 group around `:144`). They must keep asserting the same *intent* — a genuinely missed day
-     still breaks; bad data never zeroes a valid streak.
-  4. Settle C3 per decision 18 so open-ended chore data and the shared helper agree.
-  5. Add achievement-side coverage mirroring the badge matrix: a weekly chore's achievement streak
-     must accumulate instead of capping at 1.
+     B1 group around `:144`). Most keep the same *intent* — a genuinely missed day still breaks.
+     **`test_streak_alive_fails_open` is the exception:** decision 19 reverses that policy, so it must
+     be renamed and re-asserted to pin the new intent (unreadable data breaks the streak), not
+     quietly adjusted — see the note under Phase 6B key issues.
+  4. Settle C3 per decision 18: stop short-circuiting `FREQUENCY_NONE` in
+     `has_missed_occurrence_between` and evaluate it on a daily recurrence, then delete
+     `calculate_streak`'s inline `FREQUENCY_NONE` branch so the helper owns the rule. This also
+     fixes the frozen-badge defect recorded under decision 17.
+  5. Pass `unusable_schedule_counts_as_miss=True` per decision 19 — **but see the scope question
+     there before changing the badge path.**
+  6. Add achievement-side coverage mirroring the badge matrix: a weekly chore's achievement streak
+     must accumulate instead of capping at 1, and an unscheduled chore's streak must break after a
+     skipped day rather than freezing.
 - **Key issues**
   - **O3 alone would regress open-ended streaks — verified.** For a `FREQUENCY_NONE` chore whose
     stored streak is 5 and was last completed 10 days ago: `_streak_alive` reports 0 (correct, it
     broke), but `has_missed_occurrence_between` short-circuits to `False` for `FREQUENCY_NONE`, so
     O3 alone would report **5 forever** while `calculate_streak` still resets the underlying streak
-    to 1 on the next completion. That is conflict C3, and it is why decision 18 must be answered with
-    O3 rather than after it.
+    to 1 on the next completion. That is conflict C3, which is why decision 18 ships with O3 rather
+    than after it.
+  - **`test_streak_alive_fails_open` must be inverted, not merely re-expressed.** It currently pins
+    the fail-open policy that decision 19 reverses. Rename and re-assert it to pin the new intent —
+    unreadable data breaks the streak — so the change is deliberate and visible rather than looking
+    like a test that was quietly weakened.
   - O3 changes achievement behaviour and needs its own release note and validation pass.
   - The achievement streak is read through `max()` across tracked chores, so "the streak" is really
     "the best single chore streak". Worth confirming that stays intended.
 
-#### Decisions required for Phase 6B — background and recommendations
+#### Decisions 18–20 — CONFIRMED 2026-09-15
 
-**Decision 18 — can an open-ended chore ever break a streak?**
+All three answer the same design question — *how should achievements match badges* — and none of them
+introduces a new user-facing setting.
 
-*Background.* A chore with no schedule (`frequency = none`, no due date) is the "just do it whenever"
-case. Today two code paths disagree about whether it can break a streak: `calculate_streak` breaks it
-after **one** idle calendar day, while `has_missed_occurrence_between` says such a chore can **never**
-be missed. Neither is derived from anything a user chose; the 1-day rule is a convention inherited
-from the calendar-day model this initiative removed.
+**Decision 18 — an unscheduled chore follows daily streak rules. (CONFIRMED, closes C3.)**
 
-*A user's expectation.* A chore they never scheduled has no rhythm to keep, so "you missed it" is not
-meaningful. But "done it every day for a month" is. So the streak should extend when they do it and
-not punish gaps — yet it must not be immortal either, or the number stops meaning anything.
+A chore with no due date and no recurrence is treated as if it were daily, for **badges and
+achievements alike**: complete it every day and the streak builds; skip a day and it breaks to zero.
 
-*Recommendation:* **the helper honours an explicit rule for `FREQUENCY_NONE` that matches
-`calculate_streak`** — i.e. keep the existing 1-day rule as the convention, stated once in the helper
-rather than implied in two places. Rationale: it changes **no** current behaviour, needs no migration,
-closes C3 by making one authority answer the question, and keeps 6B a pure refactor. The alternative
-(never breaks) would be a behaviour change to open-ended streaks and would need its own release note.
+*Why:* the user never stated an intent for such a chore, so one must be inferred, and daily is the
+only relatively logical model — "streak" already means consecutive days to a user, and a month-long
+streak built from sporadic completions would be meaningless. It is explicitly accepted as a
+compromise resting on an assumption.
 
-**Decision 19 — what error policy should the achievement path use?**
+*Side effect:* this also fixes the frozen-badge defect above. Without it, a badge scoped to an
+unscheduled chore advanced once and then stalled permanently, because nothing was ever approved on
+later days and nothing was ever detectably missed.
 
-*Background.* When a chore's schedule cannot be evaluated, the two existing callers deliberately
-disagree: `calculate_streak` treats it as a **break** (conservative), while the badge path treats it
-as **no miss** (fails safe). `has_missed_occurrence_between` exposes this as
-`unusable_schedule_counts_as_miss`. Today's `_streak_alive` **fails open** — missing or unparseable
+**Decision 19 — an unreadable schedule counts as a miss. (CONFIRMED against the recommendation.)**
+
+When a chore's schedule cannot be evaluated, the streak breaks rather than holding.
+
+*Why:* unreadable data is a distinct problem the user can notice and report; continuing the streak
+silently would mask the underlying bug. This reverses the earlier recommendation to fail open.
+
+*Accepted consequence:* a data defect will zero streaks rather than pass quietly, so the cause needs
+to be visible — otherwise the user sees a lost streak with no explanation. This also removes the
+policy split between callers, since `calculate_streak` already passes `True`.
+
+*⚠️ Scope still to confirm:* the badge path currently passes `False`. Applying decision 19 to badges
+changes **already-merged behaviour**, which warrants its own release-note entry and arguably its own
+PR rather than riding along in 6B.
+
+**Decision 20 — the miss window ends at the start of today. (CONFIRMED as recommended.)**
+
+Matches the badge path exactly, so today's still-pending occurrence cannot break a streak mid-day.
+Accepted consequence: the same documented one-day latch as badges — a missed occurrence breaks the
+streak on the following day, because on the missed day itself the occurrence has not yet passed.
 data keeps the streak.
 
 *A user's expectation.* A data problem should never destroy progress the user earned. Punishing them
