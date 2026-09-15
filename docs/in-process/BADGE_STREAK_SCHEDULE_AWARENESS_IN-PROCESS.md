@@ -8,11 +8,10 @@
   ("streak badges don't work"); the analysis just found several distinct defects behind it.
 - **Owner / driver(s)**: ChoreOps maintainer + ChoreOps Builder (ChoreOps Test Builder for Phase 4)
 - **Status**: ✅ **Phases 0–5 shipped** — PR [#296](https://github.com/ccpk1/ChoreOps/pull/296) merged to
-  `main` on 2026-09-15 as `0c98fdc`. Phase 6 work is on `ccpk1/streak-subsystem-unification`.
-  All decisions resolved (17 total). **Phase 6 is split into two tranches** (see the Phase 6 section):
-  Tranche A (O4/O5, code hygiene) can start now; Tranche B (O3/C3, achievement behaviour) waits for
-  the field confirmation the entry criteria require. **Issue #122 was investigated and closed — it is
-  out of scope**, see the record in the Phase 6 section.
+  `main` on 2026-09-15 as `0c98fdc`, **not yet released** (latest tag `1.5.3-beta.1`). Phase 6 runs on
+  `ccpk1/streak-subsystem-unification` and is split into two tranches; **both are ready to implement**
+  (decisions 18–20 confirmed). **Issue #122 was investigated and closed — out of scope**, see the
+  record in the Phase 6 section. All decisions resolved (20 total).
 - **Branch / delivery**: `ccpk1/issue294` carries both the #294 hotfix and this initiative, which
   ship as a single release via PR #296 against `main`. The phases are **separate commits** so
   reviewers can follow the history, and the hotfix commit (`73e97d5`) doubles as a bisect point if
@@ -33,8 +32,8 @@
 | Phase 3 – Persistence & status alignment                | Ensure neutral days write nothing and status transitions stay coherent         | 100%       | ✅ Audit clean; 9 tests; fixed lost credit for a satisfied day after a break |
 | Phase 4 – Tests & validation                            | Extend the #294 regression suite; add schedule-matrix + days-family coverage    | 100%       | ✅ 24 new tests; step 7 exposed and closed a decision-11 implementation gap |
 | Phase 5 – Docs, wiki & release notes                    | Document eligible-occurrence semantics, option equivalence, and the behaviour change | 100%       | ✅ Wiki (4 pages), help text, Development Standards, Architecture, release-note draft |
-| Phase 6A – Code hygiene (O4/O5)                         | Retire `streak_yesterday`; delete the dead calendar streak API                 | 0% | ✅ Unblocked — mechanical, no product decision needed |
-| Phase 6B – Achievement alignment (O3/C3)                | Achievements adopt the shared helper; settle open-ended streak semantics        | 0% | ⛔ Blocked — needs decisions 18–20 **and** field confirmation of the badge fix |
+| Phase 6A – Code hygiene (O4/O5)                         | Retire `streak_yesterday`; delete the dead calendar streak API                 | 0% | ✅ **Ready to implement** — mechanical, no product decision, no doc impact |
+| Phase 6B – Achievement alignment (O3/C3/decision 19)    | Achievements adopt the shared helper; unscheduled-chore rule; unified error policy | 0% | ✅ **Ready to implement** — decisions confirmed, release gate restated |
 
 1. **Key objective** – Make badge streak target types count **consecutive satisfied eligible occurrences** instead of consecutive calendar days, so a streak respects each tracked chore's schedule. A badge must not break (or stall) on a day when the tracked chores are simply not due, and must never award from a gap where an occurrence genuinely passed unmet.
 
@@ -73,11 +72,15 @@
    11. ✅ **Issue #122 investigated and closed** — a streak day-boundary is a convention with no
        generally correct answer, and the day boundary is not even consulted by the miss check. Full
        evidence kept in the Phase 6 section. **Out of scope.**
-   12. **Next: Phase 6A (O4 + O5)** — retire `streak_yesterday` and delete the dead
-       `StatisticsEngine.update_streak` / `get_streak` pair. Both are mechanical and need no product
-       decision.
-   13. **Then Phase 6B (O3 + C3), after decisions 18–20 are answered** — and only once the badge fix
-       has been confirmed in the field, per the entry criteria.
+   12. **Phase 6A is ready to implement** — O4 (retire `streak_yesterday`, document the two remaining
+       `last_update_day` roles) and O5 (delete the dead `update_streak`/`get_streak` pair plus the
+       class docstring example). No product decisions and no documentation changes needed.
+   13. **Phase 6B is ready to implement** — decisions 18–20 confirmed, decision 19 now covering badges
+       too and shipping inside 6B rather than a separate PR. The original "field confirmation" gate
+       was restated because it assumed a release that is not happening first: 6B ships in the same
+       release as the badge fix, so users never see an inconsistent intermediate state.
+   14. **Order within 6B matters** — land the C3 helper rule and the decision-19 policy unification
+       before O3, so the helper is already correct when achievements begin consuming it.
 
 4. **Risks / blockers** –
    - **BLOCKER (C1) — the eligible scope is currently too coarse.** `_is_chore_due_today_for_assignee`
@@ -1128,10 +1131,15 @@ permanently neutral — never advancing and never breaking.
 
 | Tranche | Items | Risk | Gate |
 | --- | --- | --- | --- |
-| **6A** | O4, O5 | Low — dead code and a doc comment | None; can start now |
-| **6B** | O3, C3 | Medium — changes what users' achievements report | Decisions 18–20 **and** field confirmation |
+| **6A** | O4, O5 | Low — dead code and a doc comment | ✅ None; ready to implement |
+| **6B** | O3, C3, decision 19 applied to badges | Medium — changes what users' achievements report | ✅ Decisions confirmed; see the restated release gate |
 
-#### Phase 6A – Code hygiene (O4, O5) — UNBLOCKED
+**Revision 2026-09-15:** decision 19's scope was resolved to cover **all streak paths**, including
+badges, and it ships **inside 6B** rather than as a separate PR. Rationale: the badge changes merged
+today and are **unreleased** (latest tag `1.5.3-beta.1`), so no user has run them and adjusting them
+is not a change to shipped behaviour. It carries a release-note line but no separate review.
+
+#### Phase 6A – Code hygiene (O4, O5) — READY TO IMPLEMENT
 
 - **Goal**: Remove the dead calendar-day streak code and the stale field, so the anti-pattern cannot
   be reintroduced by reaching for either.
@@ -1143,16 +1151,29 @@ permanently neutral — never advancing and never breaking.
      at `:2482`; no production caller reads it. Two test files pass the key inertly
      (`test_badge_target_types.py:902`, `test_workflow_gamification_pending_queue.py:225`) and
      **neither asserts on its value**, so removal is low-risk.
-  2. **O4 — document `last_update_day`'s two surviving roles** (same-day idempotency gate and
-     miss-check anchor) with a typed comment at the definition site, then **delete `streak_yesterday`**
-     and its `dt_add_interval` computation. Two roles remain, not three, once the field is gone.
-  3. **O5 — delete `StatisticsEngine.update_streak` / `get_streak`** (`statistics_engine.py:333`,
-     `:408`) and the 13 tests in `test_statistics_engine.py` that pin their calendar semantics.
-  4. **O5 — fix the class docstring at `statistics_engine.py:60`**, which currently shows
+  2. **O4 — delete `streak_yesterday`** and its `dt_add_interval` computation
+     (`statistics_manager.py:2471`), the key in the returned snapshot (`:2482`), and the entry in the
+     empty-snapshot early return (`:2422`). Leave the two test files' inert keys alone — they are
+     not asserting anything, so removing them is optional cleanup, not a requirement.
+  3. **O4 — document `last_update_day`'s two surviving roles** with a typed comment at the definition
+     site: the same-day idempotency gate and the miss-check anchor. Two roles remain, not three,
+     once the field is gone.
+  4. **O5 — delete `StatisticsEngine.update_streak` / `get_streak`** (`statistics_engine.py:333`,
+     `:408`) and the tests that pin their calendar semantics in `test_statistics_engine.py`.
+  5. **O5 — fix the class docstring at `statistics_engine.py:60`**, which currently shows
      `stats.update_streak(...)` as usage. Deleting the method without this leaves the docstring
      documenting a method that no longer exists — the exact kind of stale guidance that caused this
      initiative.
-  5. Run `tests/test_statistics_engine.py`, the badge/gamification set, and the release gates.
+  6. **Verify nothing else references the deleted pair.** Re-run the grep used to establish the
+     premise (`update_streak|get_streak`) after the edit, and confirm the only remaining hits are
+     `GamificationManager.update_streak_progress`, which is unrelated.
+  7. Run `tests/test_statistics_engine.py`, the badge/gamification set, and the release gates.
+- **Documentation for 6A**
+  - **No wiki or release-note change.** This is internal code hygiene with no user-visible effect:
+    `streak_yesterday` and the dead engine pair have no consumers.
+  - [DEVELOPMENT_STANDARDS.md](../DEVELOPMENT_STANDARDS.md) needs no edit either — it already points
+    at the shared helper as the single authority, so deleting the competing implementation
+    strengthens the existing guidance rather than changing it.
 - **Key issues**
   - **Deleting a tested public method is a deliberate act.** State the rationale in the commit — dead
     generic API whose docstring documents calendar-yesterday logic as correct is a trap for the next
@@ -1161,52 +1182,97 @@ permanently neutral — never advancing and never breaking.
     and no migration.
   - O4 and O5 are independent of each other and can land as two commits.
 
-#### Phase 6B – Achievement alignment (O3, C3) — BLOCKED
+#### Phase 6B – Achievement alignment (O3, C3, decision-19 unification) — READY, pending release gate
 
 - **Goal**: Remove the last calendar-day streak gate in the system by pointing `COMPLETION_STREAK`
-  achievements at the shared missed-occurrence authority (closing conflict C2), and settle whether an
-  open-ended chore can break a streak (conflict C3).
-- **Entry criteria — BOTH must hold**:
-  1. ✅ **Decisions 18, 19 and 20 confirmed** (2026-09-15). See the section below. One follow-up
-     remains: whether decision 19 also applies to the **badge** path.
-  2. ⛔ **The badge fix confirmed in the field — still outstanding.** Phases 0–5 merged 2026-09-15
-     but the latest tag is `1.5.3-beta.1`, so the fix is **unreleased and no user has run it**.
-     Starting 6B before that makes it impossible to attribute a new streak report to the right
-     subsystem — which is the whole reason this criterion exists.
+  achievements at the shared missed-occurrence authority (closing conflict C2), settle whether an
+  open-ended chore can break a streak and make that rule live in the helper (closing conflict C3),
+  and unify the unusable-schedule policy so no caller can diverge again (decision 19).
+- **Entry criteria**:
+  1. ✅ **Decisions 18, 19 and 20 confirmed** (2026-09-15), with decision 19 now scoped to all streak
+     paths including badges. No follow-ups outstanding.
+  2. ✅ **Release gate restated — the original criterion no longer applies.** It required "badge
+     behaviour confirmed in the field", which assumed the badge fix would be released first. It
+     **will not be**: the badge work merged to `main` today but is unreleased (`1.5.3-beta.1`), and
+     6B is intended to ship in the same release. The criterion is therefore unsatisfiable as written
+     and has been replaced.
+
+     **Replacement rationale — doing 6B before any release is the better option, not a concession.**
+     If both ship together, users never experience badges-without-achievement-alignment, so there is
+     no inconsistent intermediate state to report against. The original worry was attributing a
+     future streak report to the right subsystem, but that only matters *after* users have the code;
+     with no release in between, there is nothing to attribute. Commit-per-tranche keeps the changes
+     reviewable and bisectable, which was the real intent.
+
+     **Trade-off accepted:** a defect found in the field would then span both changes. Mitigated by
+     keeping 6A, O3/C3 and the decision-19 policy change as three separate commits, so each can be
+     reverted independently.
 - **Steps / detailed work items**
-  1. Replace `_streak_alive` (`gamification_manager.py:2893`) with the shared helper, per decision 19
-     (error policy) and decision 20 (upper bound), then retire `_streak_alive`.
-  2. Update `_get_tracked_current_streak` (`gamification_manager.py:2912`) and its stale docstring
-     ("last completed today or yesterday"), plus the comment at `gamification_manager.py:620-622`
-     which describes the zeroing behaviour being removed.
-  3. Re-express the **5 of 13** tests in `test_gamification_streak_reset.py` that pin the calendar
-     gate (`test_streak_alive_today_and_yesterday`, `test_streak_alive_two_days_ago_is_dead`,
-     `test_streak_alive_handles_datetime_strings`, `test_streak_alive_fails_open`, and the
-     B1 group around `:144`). Most keep the same *intent* — a genuinely missed day still breaks.
-     **`test_streak_alive_fails_open` is the exception:** decision 19 reverses that policy, so it must
-     be renamed and re-asserted to pin the new intent (unreadable data breaks the streak), not
-     quietly adjusted — see the note under Phase 6B key issues.
-  4. Settle C3 per decision 18: stop short-circuiting `FREQUENCY_NONE` in
-     `has_missed_occurrence_between` and evaluate it on a daily recurrence, then delete
-     `calculate_streak`'s inline `FREQUENCY_NONE` branch so the helper owns the rule. This also
-     fixes the frozen-badge defect recorded under decision 17.
-  5. Pass `unusable_schedule_counts_as_miss=True` per decision 19 — **but see the scope question
-     there before changing the badge path.**
-  6. Add achievement-side coverage mirroring the badge matrix: a weekly chore's achievement streak
-     must accumulate instead of capping at 1, and an unscheduled chore's streak must break after a
-     skipped day rather than freezing.
+  1. **C3 (decision 18) — the helper owns the unscheduled-chore rule.** Stop short-circuiting
+     `FREQUENCY_NONE` in `ChoreEngine.has_missed_occurrence_between` (`chore_engine.py:1479`) and
+     evaluate such a chore on a daily recurrence instead, preserving the current 1-idle-day break
+     rule. Then delete `calculate_streak`'s inline `FREQUENCY_NONE` calendar branch
+     (`chore_engine.py:1574-1583`) so only the helper answers the question.
+  2. **Decision 19 — unify the policy on all paths.** Pass
+     `unusable_schedule_counts_as_miss=True` from the badge path
+     (`statistics_manager.py:2721`). With both callers now agreeing, **remove the parameter entirely**
+     and always treat an unusable schedule as a miss, so the policies cannot silently diverge again.
+  3. **Decision 19 — invert the test that pins the old badge policy.**
+     `TestUnusableSchedulePolicy::test_default_treats_unusable_schedule_as_no_miss`
+     (`test_missed_occurrence_authority.py:338`) asserts the badge path returns `False`
+     ("must never break a valid streak over bad data"). Under the confirmed decision that becomes a
+     **break**. Rename and re-assert it so the change is deliberate and visible — a test that pins a
+     reversed policy must be rewritten, never quietly flipped. Fold
+     `test_chore_streak_treats_unusable_schedule_as_a_break` (`:347`) into it once the split is gone,
+     since both paths now share one policy.
+  4. **O3 — achievements adopt the helper.** Replace `_streak_alive`
+     (`gamification_manager.py:2893`) with the shared check bound per decision 20 (start of today),
+     then retire `_streak_alive` and the `_streak_alive` import of `HELPER_RETURN_DATETIME_LOCAL` if
+     it becomes unused.
+  5. **O3 — update the surrounding prose.** `_get_tracked_current_streak`
+     (`gamification_manager.py:2912`) and its docstring ("last completed today or yesterday"), plus
+     the comment at `gamification_manager.py:620-622` which describes the zeroing behaviour being
+     removed.
+  6. **O3 — re-express the remaining calendar-gate tests** in `test_gamification_streak_reset.py`:
+     `test_streak_alive_today_and_yesterday`, `test_streak_alive_two_days_ago_is_dead`,
+     `test_streak_alive_handles_datetime_strings` and the B1 group around `:144`. These keep the same
+     *intent* — a genuinely missed day still breaks — so they must still pass, re-pointed at the new
+     mechanism rather than deleted.
+  7. **Add achievement-side coverage** mirroring the badge matrix: a weekly chore's achievement
+     streak accumulates instead of capping at 1; an unscheduled chore's streak breaks after a skipped
+     day rather than freezing; today's pending occurrence does not break the streak mid-day.
+- **Documentation for 6B**
+  - **Wiki — correct the achievements page.**
+    `choreops-wiki/Configuration:-Achievements.md` currently carries the `> [!WARNING]` added in
+    Phase 5 stating that achievement streaks still use calendar days and are "scheduled to be brought
+    in line with badge streaks in a later release". That limitation is removed by this tranche, so the
+    warning must be **replaced** with the shared occurrence-based definition, and its link to the
+    badges page kept.
+  - **Wiki — extend the badges page** with the two behaviour changes users can observe: an unscheduled
+    chore now behaves as a daily streak (so its badge resets instead of freezing), and unreadable
+    schedule data breaks a streak rather than preserving it. Add a short "for occasional chores,
+    prefer a count-based target over a streak" note, since unscheduled chores are often genuinely
+    occasional and a daily rule will reset often.
+  - **Wiki — the monthly/"7 in a row takes seven months" guidance** in `Configuration:-Badges-Periodic.md`
+    stays valid and should be checked to ensure it does not contradict the new unscheduled-chore rule.
+  - **Release note** — three entries: achievements now use the same definition as badges; an
+    unscheduled chore counts as a daily streak; unreadable schedule data breaks a streak so a defect
+    surfaces instead of being hidden.
+  - **`docs/DEVELOPMENT_STANDARDS.md`** — extend the existing streak-semantics section to state that
+    the unscheduled-chore rule lives in the helper, and that the unusable-schedule policy is now
+    uniform (a miss), removing the previously documented caller split.
 - **Key issues**
   - **O3 alone would regress open-ended streaks — verified.** For a `FREQUENCY_NONE` chore whose
     stored streak is 5 and was last completed 10 days ago: `_streak_alive` reports 0 (correct, it
     broke), but `has_missed_occurrence_between` short-circuits to `False` for `FREQUENCY_NONE`, so
     O3 alone would report **5 forever** while `calculate_streak` still resets the underlying streak
-    to 1 on the next completion. That is conflict C3, which is why decision 18 ships with O3 rather
-    than after it.
-  - **`test_streak_alive_fails_open` must be inverted, not merely re-expressed.** It currently pins
-    the fail-open policy that decision 19 reverses. Rename and re-assert it to pin the new intent —
-    unreadable data breaks the streak — so the change is deliberate and visible rather than looking
-    like a test that was quietly weakened.
-  - O3 changes achievement behaviour and needs its own release note and validation pass.
+    to 1 on the next completion. That is conflict C3, which is why step 1 must land before step 4.
+  - **Ordering inside 6B:** do C3 (step 1) and the policy unification (steps 2–3) **before** O3
+    (step 4), so the helper is already correct when achievements start consuming it.
+  - **`test_streak_alive_fails_open`** (`test_gamification_streak_reset.py`) pins the fail-open policy
+    that decision 19 reverses. Like the badge-policy test, it must be inverted with a clear name
+    rather than adjusted in place.
+  - O3 changes achievement behaviour and needs the release-note entries listed above.
   - The achievement streak is read through `max()` across tracked chores, so "the streak" is really
     "the best single chore streak". Worth confirming that stays intended.
 
@@ -1229,20 +1295,30 @@ compromise resting on an assumption.
 unscheduled chore advanced once and then stalled permanently, because nothing was ever approved on
 later days and nothing was ever detectably missed.
 
-**Decision 19 — an unreadable schedule counts as a miss. (CONFIRMED against the recommendation.)**
+**Decision 19 — an unreadable schedule counts as a miss, on every streak path. (CONFIRMED, scope
+resolved 2026-09-15.)**
 
-When a chore's schedule cannot be evaluated, the streak breaks rather than holding.
+When a chore's schedule cannot be evaluated, the streak breaks rather than holding — for
+**achievements and badges alike**.
 
 *Why:* unreadable data is a distinct problem the user can notice and report; continuing the streak
 silently would mask the underlying bug. This reverses the earlier recommendation to fail open.
 
-*Accepted consequence:* a data defect will zero streaks rather than pass quietly, so the cause needs
-to be visible — otherwise the user sees a lost streak with no explanation. This also removes the
-policy split between callers, since `calculate_streak` already passes `True`.
+*Scope resolved:* applied to **all** streak paths, not achievements only. It ships **inside 6B** with
+no separate PR, because the badge changes merged today and are unreleased (`1.5.3-beta.1`), so no user
+has run them — adjusting them is not a change to shipped behaviour. It carries its own release-note
+line.
 
-*⚠️ Scope still to confirm:* the badge path currently passes `False`. Applying decision 19 to badges
-changes **already-merged behaviour**, which warrants its own release-note entry and arguably its own
-PR rather than riding along in 6B.
+*Implementation consequence:* with both callers agreeing, the `unusable_schedule_counts_as_miss`
+parameter becomes redundant and should be **removed**, so the policy cannot diverge again. The two
+tests that pin the old split (`test_default_treats_unusable_schedule_as_no_miss` and
+`test_chore_streak_treats_unusable_schedule_as_a_break`, `test_missed_occurrence_authority.py:338`,
+`:347`) collapse into one that asserts a break.
+
+*Accepted consequence:* a data defect will zero streaks rather than pass quietly, so the cause needs
+to be visible — otherwise the user sees a lost streak with no explanation. `RecurrenceEngine`
+has rarely been observed to raise (Phase 1C probed unknown frequencies without provoking one), so
+this is a defensive path that should seldom trigger in practice.
 
 **Decision 20 — the miss window ends at the start of today. (CONFIRMED as recommended.)**
 
