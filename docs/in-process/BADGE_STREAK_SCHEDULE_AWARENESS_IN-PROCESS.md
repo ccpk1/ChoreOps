@@ -7,8 +7,9 @@
   **together in one release** (decided 2026-09-14). From the user's perspective this is one bug
   ("streak badges don't work"); the analysis just found several distinct defects behind it.
 - **Owner / driver(s)**: ChoreOps maintainer + ChoreOps Builder (ChoreOps Test Builder for Phase 4)
-- **Status**: In progress — Phases 0, 1, 1B, 1C, 2, 3 and **4** committed or complete; **Phase 5
-  next**; Phases 5–6 not started. All decisions resolved (17 total, none deferred except Phase 6).
+- **Status**: In progress — Phases 0, 1, 1B, 1C, 2, 3, 4 and 5 done; **Phase 6 remains
+  deliberately deferred** (decision 14). All decisions resolved (17 total). Outstanding before
+  release: the full-suite run and the release PR itself.
 - **Branch / delivery**: `ccpk1/issue294` carries both the #294 hotfix and this initiative, which
   ship as a single release. Keep the phases as **separate commits** regardless — reviewers follow
   commit history, and the hotfix commit (`73e97d5`) doubles as a bisect point if the wider change
@@ -25,7 +26,7 @@
 | Phase 2 – Evaluator semantics (both families)           | Streaks: neutral days hold, break/resume by missed occurrence. Both: eligible-day scope | 100%       | ✅ Motivating case now works end to end; restart gate added (see below) |
 | Phase 3 – Persistence & status alignment                | Ensure neutral days write nothing and status transitions stay coherent         | 100%       | ✅ Audit clean; 9 tests; fixed lost credit for a satisfied day after a break |
 | Phase 4 – Tests & validation                            | Extend the #294 regression suite; add schedule-matrix + days-family coverage    | 100%       | ✅ 24 new tests; step 7 exposed and closed a decision-11 implementation gap |
-| Phase 5 – Docs, wiki & release notes                    | Document eligible-occurrence semantics, option equivalence, and the behaviour change | 0%    | Wiki + help text + Development Standards + release note            |
+| Phase 5 – Docs, wiki & release notes                    | Document eligible-occurrence semantics, option equivalence, and the behaviour change | 100%       | ✅ Wiki (4 pages), help text, Development Standards, Architecture, release-note draft |
 | Phase 6 – Streak subsystem unification (O3/O4/O5)        | Achievements adopt the shared helper; retire dead calendar streak code; settle open-ended semantics | 0% | **After release** — decision 14, requires its own release note |
 
 1. **Key objective** – Make badge streak target types count **consecutive satisfied eligible occurrences** instead of consecutive calendar days, so a streak respects each tracked chore's schedule. A badge must not break (or stall) on a day when the tracked chores are simply not due, and must never award from a gap where an occurrence genuinely passed unmet.
@@ -990,52 +991,55 @@ permanently neutral — never advancing and never breaking.
 ### Phase 5 – Docs, wiki & release notes
 
 - **Goal**: Make the unified streak definition discoverable and explain the behaviour change.
+- **Status**: ✅ **Complete** (2026-09-15).
 - **Steps / detailed work items**
-  1. Update the wiki to state that a streak counts consecutive **eligible occurrences**, that days
-     where nothing is due are neutral, and that this applies to chore streaks, achievements and
-     badges alike. Use the target type labels users see in the picker ("Streak: Selected Chores
-     Completed"), not the internal constants:
-     - `choreops-wiki/Configuration:-Chores.md`
-     - `choreops-wiki/Advanced:-Chores.md` (already corrected for #294 — extend with the occurrence rule)
-     - `choreops-wiki/Configuration:-Badges-Periodic.md` (add a streak-semantics section next to the existing cycle-alignment section, plus the primer's worked example)
-     - `choreops-wiki/Configuration:-Achievements.md`
-  2. Document the two confirmed semantic decisions where users will look for them: that an
+  1. ✅ Update the wiki to state that a streak counts consecutive **eligible occurrences**, that days
+     where nothing is due are neutral. **Scope correction:** the plan said this applies to "chore streaks, achievements and badges alike" — that is true of **chore streaks and badges**, but **not achievements**: `_streak_alive` still gates on today-or-yesterday (conflict C2, deferred to Phase 6). The achievements page therefore documents the current calendar-day limitation and its scheduling, rather than overstating the fix. Files touched:
+     - `choreops-wiki/Configuration:-Chores.md` — "How the schedule affects streaks" under Scheduling
+     - `choreops-wiki/Advanced:-Chores.md` — "Chore streaks vs badge streaks", including why the pause rule is chore-specific
+     - `choreops-wiki/Configuration:-Badges-Periodic.md` — full "Streak and days semantics" section (terms, worked Mon/Wed/Fri table, the unbounded-neutral-stretch note, both exceptions, the verbatim guidance, and an upgrading note)
+     - `choreops-wiki/Configuration:-Achievements.md` — a `> [!WARNING]` stating the current limitation and pointing at the badge rules
+  2. ✅ Document the two confirmed semantic decisions where users will look for them: that an
      unbounded stretch of neutral days keeps a streak alive (decision 6), and that legacy
      in-progress counts are not migrated (decision 7). Both are update-visible behaviour, so a
      short "what changed" note belongs in the periodic-badges page.
-  3. **Per decision 9**, add equivalence wording to the option help text for the redundant pairs —
+  3. ✅ **Per decision 9**, add equivalence wording to the option help text for the redundant pairs —
      two in the streak family, three in the days family — so users can pick either: the *Due* and
      non-*Due* spellings behave identically once "selected" means "due today".
-  4. Update the badge target-type descriptions in `custom_components/choreops/translations/en.json`
-     so the **scope** of every non-*Due* option is described accurately ("the selected chores that
-     are due today"), then regenerate the English file with
-     `python3 -m script.translations develop --integration choreops` (tests read
-     `translations/en.json`, not `strings.json`).
-  5. **Recommended guidance to include verbatim in the badges wiki** — strengthen the existing
-     streak/days sections with an explicit recommendation, because the fix makes these badges
-     *work* with schedules but does not make them *sensible* with long-cycle schedules:
-     > Streak and Days badges now respect each chore's schedule, so a chore that is not due today
-     > no longer counts against the badge. They will behave correctly with weekly, biweekly or
-     > monthly chores. In practice, though, these badges are easiest to reason about — and most
-     > predictable for the user — when the selected chores are **daily recurring**. A streak over
-     > a monthly chore, for example, advances only once a month, so "7 in a row" takes seven
-     > months. If you want a badge that recognises steady effort on a less frequent chore, prefer
-     > a count-based or points-based target, or scope the badge to the daily chores.
-  6. Document the two documented distinctions from decisions 10 and 11 in the same
-     periodic-badges page, since both are visible in the picker and either could be read as a bug:
-     the `Days Minimum 3/5/7` options count completed chores regardless of due date (an absolute
-     count, not a ratio), and a selected chore with no schedule still counts as available every
-     day.
-  7. Add the streak definition to [DEVELOPMENT_STANDARDS.md](../DEVELOPMENT_STANDARDS.md) so future
+  4. ✅ Update the badge target-type **help text** so the scope of the non-*Due* options is described accurately ("the selected chores that are due today"). **Two plan corrections:** there is no `strings.json` in this repo — `translations/en.json` is the master file — and the option **labels** live in `const.py` (`TARGET_TYPE_OPTIONS`), not in translations, so no label change was made and no regeneration step was needed. The guidance therefore went into the existing `data_description/target_type` strings for the periodic and daily badge steps (2 each, covering both the `config` and `options` copies), which is where the picker reads them from.
+  5. ✅ **Recommended guidance to include verbatim in the badges wiki.**
+  6. ✅ Document the two documented distinctions from decisions 10 and 11 in the same periodic-badges page.
+  7. ✅ Add the streak definition to [DEVELOPMENT_STANDARDS.md](../DEVELOPMENT_STANDARDS.md) so future
      work does not reintroduce calendar-day counting — including the `missed_since_advance`
      contract and its three traps, which are the easiest part of this design to re-break.
-  8. Draft the release note describing the behaviour change: in-progress streak counts may rise;
-     badges already held are unaffected; some Days badges may be easier to earn (decision 8); the
-     Days/Days-Minimum scope distinctions above.
-  9. Update `docs/ARCHITECTURE.md` for the shared schedule-config builder introduced in Phase 1.
+     Implemented as "Streak and Days target semantics (do not reintroduce calendar-day counting)" under the scheduling standards, covering the ownership rule, the neutral-day rule, why break detection must never be calendar-based, the two shared authorities and their caller-owned anchor/error policy, the three traps, and the occurrence-at-midnight / rebasing gotchas that cost time during Phase 4.
+  8. ✅ Draft the release note describing the behaviour change. Drafted below, ready to paste into the release PR description — release notes have no dedicated file in this repo.
+  9. ✅ Update `docs/ARCHITECTURE.md` for the shared schedule-config builder introduced in Phase 1, together with the caller-owned anchor and error policy. Corrected the stale `engines/schedule.py` path to `engines/schedule_engine.py` while there.
 - **Key issues**
   - Wiki is a separate repository with no PR flow (commit directly to `choreops-wiki` `master`).
-  - Any new user-facing string must be a `TRANS_KEY_*` constant in `const.py`; the engine's `reason` strings are existing English f-strings and stay internal, so no new translation key is expected — confirm during implementation.
+  - No new translation key was needed: the guidance extends existing `data_description` strings, so the `TRANS_KEY_*` rule does not apply here (that rule governs integration strings, and these are flow help text).
+
+#### Release note draft
+
+> **Badge streak and Days targets now respect each chore's schedule**
+>
+> Issue #294 fixed streaks being reset every night. This release fixes the wider defect behind it.
+>
+> **What changed**
+>
+> - A streak or Days badge counts consecutive *occurrences* of the chores you selected, not calendar days. A chore that is not due today no longer counts against the day, so a badge scoped to a mix of daily and weekly chores can be earned on days the weekly chore is absent. Previously such a badge stalled — and at a 100% threshold it could never accumulate at all, even at perfect compliance.
+> - A day on which nothing is due is **neutral**: it neither advances nor breaks a streak. There is no limit on how long a neutral stretch can be, so a monthly chore's streak can span several months.
+> - A missed occurrence breaks the streak on the **following** day, since on the day itself the occurrence has not yet passed.
+> - The `Selected Chores` and `Selected Due Chores` options now behave the same way, because "selected" now means "selected and due today". No options were removed, so existing badges keep working either way.
+> - `Days Minimum 3/5/7 Chores` options are **unchanged**: they count completed chores regardless of due date, because they are an absolute count rather than a ratio.
+> - A selected chore with no schedule (one-time, no due date) counts on **every** day, including after it has been completed.
+>
+> **What to expect**
+>
+> - In-progress streak and days counts are not converted. They continue from where they are and self-correct on the next day that advances.
+> - Badges already earned stay earned.
+> - Some Days and Streak badges may advance more readily than before. This is the intended fix.
+> - Achievement streak tracking is **unchanged** for now: it still uses calendar days, so it can differ from a badge streak on a non-daily chore. Bringing it in line is planned for a later release.
 
 ### Phase 6 – Streak subsystem unification (O3, O4, O5) — DELIBERATELY LATER
 
