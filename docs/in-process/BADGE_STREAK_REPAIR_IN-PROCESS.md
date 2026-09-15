@@ -8,7 +8,8 @@
   "Scope decisions" below for what was deliberately excluded and why.
 - **Target release / milestone**: next release, alongside the streak work from PRs #296 and #297.
 - **Owner / driver(s)**: ChoreOps maintainer + ChoreOps Builder
-- **Status**: ✅ **Ready to implement** — all decisions settled (2026-09-15), no open questions.
+- **Status**: ✅ **COMPLETE** (2026-09-15) — all five phases done. Gates green, 375 targeted tests pass.
+  The full suite is still outstanding, deliberately deferred to the release step.
 - **Branch / delivery**: `ccpk1/badge-streak-repair`, off `main` after #297 merged (`7520470`,
   2026-09-15). Single PR; the change is self-contained.
 
@@ -17,10 +18,10 @@
 | Phase | Description | % | Quick notes |
 | --- | --- | --- | --- |
 | 1 – Data layer | Per-day streak history on badge progress, pruned to 5 days; schema bump + migration | 100% | ✅ Constants, helpers, write wiring, migration; mypy required a TypedDict key too |
-| 2 – Service | `repair_badge_streak` service + manager method, response-first, fires an event | 0% | Mirrors `get_ledger` response pattern |
-| 3 – Tests | New suite covering history, pruning, repair, response, auth | 0% | ~11 tests |
-| 4 – Docs | `services.yaml`, wiki, release note | 0% | `en.json` is the translation master |
-| 5 – Sensor | Expose the retained history as an attribute | 0% | Reuses an existing constant |
+| 2 – Service | `repair_badge_streak` service + manager method, response-first, fires an event | 100% | ✅ Found and fixed a response key collision |
+| 3 – Tests | New suite covering history, pruning, repair, response, refusals | 100% | ✅ 30 tests |
+| 4 – Docs | `services.yaml`, wiki, release note | 100% | ✅ Wiki committed; note + rationale drafted |
+| 5 – Sensor | Expose the retained history as an attribute | 100% | ✅ Reuses an existing constant, no new one |
 
 1. **Objective** – give an admin a supported way to undo a broken badge streak, using a short
    retained history of the streak's own values rather than manual `.storage` editing.
@@ -281,7 +282,7 @@ The existing codebase follows this already — `SERVICE_FIELD_BADGE_NAME`, and
   8. ✅ **Translations**: add service and field labels to
      `custom_components/choreops/translations/en.json`. **There is no `strings.json` in this repo**,
      so `en.json` is the master and no regeneration step applies.
-  9. (Phase 5) **Expose the retained history on the badge progress sensor** — add
+  9. ✅ (Phase 5) **Expose the retained history on the badge progress sensor** — add
      `DATA_USER_BADGE_PROGRESS_STREAK_HISTORY` to the attributes dict in
      `AssigneeBadgeProgressSensor.extra_state_attributes` (`sensor.py:2369`). No new constant: this
      sensor already exposes stored fields under their `DATA_*` keys (see decision 3 in the open
@@ -340,22 +341,44 @@ The existing codebase follows this already — `SERVICE_FIELD_BADGE_NAME`, and
 ## Phase 4 – Docs
 
 - **Goal**: make the service discoverable and the consequences explicit.
+- **Status**: ✅ **Complete** (2026-09-15). Wiki committed to `choreops-wiki`
+  (`b528d70`); the release note and PR rationale are drafted below, ready to paste into the PR.
 - **Steps**
-  1. Wiki `Configuration:-Badges-Periodic.md`: a "Repairing a broken streak" section — what the
+  1. ✅ Wiki `Configuration:-Badges-Periodic.md`: a "Repairing a broken streak" section — what the
      service does, that it auto-fills from the last 5 days when `count` is omitted, that it can also
      set any value (no cap), that it needs an admin, and that restoring above the threshold re-awards
      the badge.
-  2. Note the two accepted limitations: it is **badges only**, so achievements and chore streaks over
+  2. ✅ Note the two accepted limitations: it is **badges only**, so achievements and chore streaks over
      the same chore are not affected; and a break older than the history's 5-day depth has nothing to
      restore from.
-  2b. Document the `choreops_badge_streak_repaired` event and its payload, so the "earn back your
+  2b. ✅ Document the `choreops_badge_streak_repaired` event and its payload, so the "earn back your
      streak" automation pattern is reproducible, and mention the `streak_history` sensor attribute
      as where to read the retained values.
-  3. Refresh that page's `Last Updated` footer.
-  4. Release note: one entry.
-  5. PR description: record why the ledger was not used, why there are no guards, and why the
-     scalar-plus-date alternative was rejected (it needs two fields and an invariant to answer
-     "how long ago").
+  2c. ✅ Added a troubleshooting entry for the two refusal messages ("does not track a streak",
+     "nothing to restore from"), plus a tip that pausing in advance is usually simpler than repairing.
+
+- **Release note entry (draft)**
+  > **Badge streaks can now be repaired.** A broken badge streak can be restored with
+  > `choreops.repair_badge_streak`, for the times a streak breaks for reasons unrelated to
+  > effort — illness, travel, a family event. Omit the count to restore the highest value
+  > from the last 5 days, or set one explicitly. Requires an admin, is logged, and fires a
+  > `choreops_badge_streak_repaired` event. Badges only: chore and achievement streaks are
+  > unaffected.
+
+- **PR description rationale (draft)**
+  - **Why not the points ledger.** Its shape is `amount` / `balance_after` / `POINTS_SOURCE_*` — an
+    economy record. A streak repair has no balance, so a ledger entry would need a new entry type
+    carrying no balance, or would pollute the audit trail. A log line plus the event is the audit
+    surface instead.
+  - **Why there are no caps or guards.** The maintainer's call: admins decide how they use the
+    service. The accepted consequence — that it can therefore also raise a live streak — is
+    intentional and documented rather than accidental.
+  - **Why not scalar-plus-date.** A single retained value plus a companion date needs two fields and
+    an invariant between them: write the value but forget the date and the window guard silently
+    breaks. A date-keyed history self-describes when the break happened, so it answers "how long ago"
+    with no second field and no invariant to maintain.
+  - **Why the response keys are literals.** `DATA_USER_NAME` and `DATA_BADGE_NAME` are both `"name"`,
+    so keying a payload on those constants silently drops one of the two names.
 
 ## Settled decisions
 
