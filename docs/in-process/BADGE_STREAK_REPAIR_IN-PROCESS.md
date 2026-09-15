@@ -6,7 +6,9 @@
 - **Origin**: issue #290 (which proposes a `repair_streak` service). Scoped down from the original
   request — see
   "Scope decisions" below for what was deliberately excluded and why.
-- **Target release / milestone**: next release, alongside the streak work from PRs #296 and #297.
+- **Target release / milestone**: **`1.5.3-beta.2`** — ships alongside the streak work from PRs #296
+  and #297, which are merged but unreleased. `1.5.3-beta.2` is set in `manifest.json` and is
+  **untagged**, so it accumulates this work rather than needing a new beta number.
 - **Owner / driver(s)**: ChoreOps maintainer + ChoreOps Builder
 - **Status**: ✅ **COMPLETE** (2026-09-15) — all five phases done. Gates green, 375 targeted tests pass.
   The full suite is still outstanding, deliberately deferred to the release step.

@@ -15,21 +15,25 @@
 > | **Decisions** | 20 total, all resolved |
 > | **Out of scope** | Issue #122 — investigated and closed as a design question; analysis kept below |
 >
-> **Not yet released.** The latest tag is `1.5.3-beta.1`, so none of this has reached users. The
-> release note needs Phases 5 and 6B entries; both drafts are recorded in this document.
+> **Ships in `1.5.3-beta.2`, which is not yet tagged.** The latest tag is `1.5.3-beta.1`, so none
+> of this has reached users. The release note needs Phases 5 and 6B entries; both drafts are
+> recorded in this document.
 
 ## Initiative snapshot
 
 - **Name / Code**: Badge Streak Schedule Awareness — `BADGE_STREAK_SCHEDULE_AWARENESS`
-- **Target release / milestone**: next release after 1.5.3 — the #294 hotfix and this initiative ship
+- **Target release / milestone**: **`1.5.3-beta.2`** — the #294 hotfix and this initiative ship
   **together in one release** (decided 2026-09-14). From the user's perspective this is one bug
   ("streak badges don't work"); the analysis just found several distinct defects behind it.
+  `1.5.3-beta.2` is set in `manifest.json` and is **untagged**, so an unreleased beta is
+  accumulating work, as intended.
 - **Owner / driver(s)**: ChoreOps maintainer + ChoreOps Builder (ChoreOps Test Builder for Phase 4)
 - **Status**: ✅ **COMPLETED 2026-09-15** — Phases 0–6 all complete. Phases 0–5 shipped in PR
-  [#296](https://github.com/ccpk1/ChoreOps/pull/296) (`main`, `0c98fdc`). Phase 6A and 6B are
-  implemented and committed on `ccpk1/streak-subsystem-unification`, awaiting their PR. The full test
-  suite passes. **Not yet released** — latest tag `1.5.3-beta.1`. All decisions resolved (20 total).
-  **Issue #122 investigated and closed — out of scope**, see the record in the Phase 6 section.
+  [#296](https://github.com/ccpk1/ChoreOps/pull/296) (`main`, `0c98fdc`); Phase 6 shipped in PR
+  [#297](https://github.com/ccpk1/ChoreOps/pull/297) (`main`, merged 2026-09-15). The full test
+  suite passes (2267 passed, 0 failed). **Ships in `1.5.3-beta.2`, untagged.** All decisions
+  resolved (20 total). **Issue #122 investigated and closed — out of scope**, see the record in the
+  Phase 6 section.
 - **Branch / delivery**: Phases 0–5 shipped via PR [#296](https://github.com/ccpk1/ChoreOps/pull/296)
   against `main` (merged `0c98fdc`, 2026-09-15). Phase 6 continues on
   `ccpk1/streak-subsystem-unification`. Phases are kept as **separate commits** so reviewers can
