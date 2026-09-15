@@ -832,7 +832,7 @@
           "badge_description": "Ange en beskrivning av märkets syfte eller kriterier (valfritt).",
           "badge_labels": "Lägg till etiketter för att kategorisera eller tagga märket (valfritt).",
           "icon": "Ange en ikon för märket med hjälp av Material Design Icons (t.ex. mdi:star).",
-          "target_type": "Välj typ av dagligt mål för detta märke (t.ex. poäng, antal sysslor eller dagar).",
+          "target_type": "Select the type of daily target for this badge: points, chore count, or days.\n\nDays targets count only those selected chores that are due today, so a chore that is not due cannot count against the day. A day on which nothing is due does not count.\n\nThe 'Selected Chores' and 'Selected Due Chores' options therefore behave the same way.\n\nThe 'Days Minimum 3/5/7 Chores' options are the exception: they count completed chores regardless of due date, so they are unchanged.\n\nA selected chore with no schedule (one-time, no due date) counts on every day.",
           "threshold_value": "Ange dagliga poäng, sysslor eller antal dagar som krävs för att få detta märke. För måltyperna \"Dagar\" anger du 1 eftersom märket utvärderas dagligen (t.ex. 1 för en dag där alla valda sysslor slutförs).",
           "selected_chores": "Välj de sysslor som bidrar med poäng till detta märke. Lämna tomt om du vill spåra alla tilldelade sysslor (valfritt).",
           "assigned_user_ids": "Tilldela detta märke till specifika tilldelade personer för spårning.",
@@ -870,7 +870,7 @@
           "badge_description": "Ange en beskrivning av märkets syfte eller kriterier (valfritt).",
           "badge_labels": "Lägg till etiketter för att kategorisera eller tagga märket (valfritt).",
           "icon": "Ange en ikon för märket med hjälp av Material Design Icons (t.ex. mdi:star).",
-          "target_type": "Välj typ av mål för den här märke (t.ex. poäng, syssloantal, dagar eller svit).",
+          "target_type": "Select the type of target for this badge: points, chore count, days, or streak.\n\nStreak and Days targets count only those selected chores that are due today, so a chore that is not due cannot count against the day. A day on which nothing is due is neutral: it neither advances a streak nor breaks it.\n\nThe 'Selected Chores' and 'Selected Due Chores' options therefore behave the same way.\n\nThe 'Days Minimum 3/5/7 Chores' options are the exception: they count completed chores regardless of due date, so they are unchanged.\n\nA selected chore with no schedule (one-time, no due date) counts on every day.",
           "threshold_value": "Ange det totala antalet poäng, sysslor eller antalet dagar (t.ex. för serier med slutförda sysslor) som krävs för att få detta märke inom den definierade perioden.",
           "maintenance_rules": "Ange det lägsta antal poäng som krävs under återställningscykeln för att behålla märket och dess aktiva multiplikator (valfritt).",
           "occasion_type": "Välj typ av tillfälle för den här etiketten (t.ex. helgdag, födelsedag).",
@@ -1312,7 +1312,7 @@
           "badge_description": "Ange en beskrivning av märkets syfte eller kriterier (valfritt).",
           "badge_labels": "Lägg till etiketter för att kategorisera eller tagga märket (valfritt).",
           "icon": "Ange en ikon för märket med hjälp av Material Design Icons (t.ex. mdi:star).",
-          "target_type": "Välj typ av dagligt mål för detta märke (t.ex. poäng, antal sysslor eller dagar).",
+          "target_type": "Select the type of daily target for this badge: points, chore count, or days.\n\nDays targets count only those selected chores that are due today, so a chore that is not due cannot count against the day. A day on which nothing is due does not count.\n\nThe 'Selected Chores' and 'Selected Due Chores' options therefore behave the same way.\n\nThe 'Days Minimum 3/5/7 Chores' options are the exception: they count completed chores regardless of due date, so they are unchanged.\n\nA selected chore with no schedule (one-time, no due date) counts on every day.",
           "threshold_value": "Ange dagliga poäng, sysslor eller antal dagar som krävs för att få detta märke. För måltyperna \"Dagar\" anger du 1 eftersom märket utvärderas dagligen (t.ex. 1 för en dag där alla valda sysslor slutförs).",
           "selected_chores": "Välj de sysslor som bidrar med poäng till detta märke. Lämna tomt om du vill spåra alla tilldelade sysslor (valfritt).",
           "assigned_user_ids": "Tilldela detta märke till specifika tilldelade personer för spårning.",
@@ -1350,7 +1350,7 @@
           "badge_description": "Ange en beskrivning av märkets syfte eller kriterier (valfritt).",
           "badge_labels": "Lägg till etiketter för att kategorisera eller tagga märket (valfritt).",
           "icon": "Ange en ikon för märket med hjälp av Material Design Icons (t.ex. mdi:star).",
-          "target_type": "Välj typ av mål för den här märke (t.ex. poäng, syssloantal, dagar eller svit).",
+          "target_type": "Select the type of target for this badge: points, chore count, days, or streak.\n\nStreak and Days targets count only those selected chores that are due today, so a chore that is not due cannot count against the day. A day on which nothing is due is neutral: it neither advances a streak nor breaks it.\n\nThe 'Selected Chores' and 'Selected Due Chores' options therefore behave the same way.\n\nThe 'Days Minimum 3/5/7 Chores' options are the exception: they count completed chores regardless of due date, so they are unchanged.\n\nA selected chore with no schedule (one-time, no due date) counts on every day.",
           "threshold_value": "Ange det totala antalet poäng, sysslor eller antalet dagar (t.ex. för serier med slutförda sysslor) som krävs för att få detta märke inom den definierade perioden.",
           "maintenance_rules": "Ange det lägsta antal poäng som krävs under återställningscykeln för att behålla märket och dess aktiva multiplikator (valfritt).",
           "occasion_type": "Välj typ av tillfälle för den här etiketten (t.ex. helgdag, födelsedag).",
@@ -2761,6 +2761,51 @@
         "standby_claim_mode": {
           "name": "Standby-anspråksläge",
           "description": "Styr när reservpersoner kan göra anspråk på den här uppgiften (när som helst, on_forfallodatum, manual_only). Gäller endast för Primära och Standby-slutförandekriterier."
+        },
+        "custom_interval": {
+          "name": "Custom Interval",
+          "description": "Number of time units between repetitions when frequency is custom or custom_from_complete.",
+          "example": "6"
+        },
+        "custom_interval_unit": {
+          "name": "Custom Interval Unit",
+          "description": "Time unit used with custom_interval when frequency is custom or custom_from_complete.",
+          "example": "månader"
+        },
+        "notify_on_claim": {
+          "name": "Meddela vid anspråk",
+          "description": "Send a notification when this chore is claimed. Omit to use the default (enabled).",
+          "example": "sann"
+        },
+        "notify_on_approval": {
+          "name": "Meddela vid godkännande",
+          "description": "Send a notification when this chore is approved. Omit to use the default (enabled).",
+          "example": "sann"
+        },
+        "notify_on_disapproval": {
+          "name": "Meddela vid avslag",
+          "description": "Send a notification when this chore is disapproved. Omit to use the default (enabled).",
+          "example": "sann"
+        },
+        "notify_on_overdue": {
+          "name": "Notify on Overdue",
+          "description": "Send a notification when this chore becomes overdue. Omit to use the default (enabled).",
+          "example": "sann"
+        },
+        "notify_on_due_window": {
+          "name": "Meddela när förfallofönstret börjar",
+          "description": "Send a notification when this chore enters its due window. Omit to use the default (disabled).",
+          "example": "falsk"
+        },
+        "notify_due_reminder": {
+          "name": "Meddela vid förfallotidpunkten för påminnelse",
+          "description": "Send a notification at the configured due reminder offset. Omit to use the default (enabled).",
+          "example": "sann"
+        },
+        "show_on_calendar": {
+          "name": "Visa i kalendern",
+          "description": "Show this chore on the ChoreOps calendar. Omit to use the default (enabled).",
+          "example": "sann"
         }
       }
     },
@@ -2871,6 +2916,51 @@
         "standby_claim_mode": {
           "name": "Standby-anspråksläge",
           "description": "Styr när reservpersoner kan göra anspråk på den här uppgiften (när som helst, on_forfallodatum, manual_only). Gäller endast för Primära och Standby-slutförandekriterier."
+        },
+        "custom_interval": {
+          "name": "Custom Interval",
+          "description": "New number of time units between repetitions when frequency is custom or custom_from_complete.",
+          "example": "6"
+        },
+        "custom_interval_unit": {
+          "name": "Custom Interval Unit",
+          "description": "New time unit used with custom_interval when frequency is custom or custom_from_complete.",
+          "example": "månader"
+        },
+        "notify_on_claim": {
+          "name": "Meddela vid anspråk",
+          "description": "Set whether to notify when this chore is claimed. Omit to leave the current setting unchanged.",
+          "example": "sann"
+        },
+        "notify_on_approval": {
+          "name": "Meddela vid godkännande",
+          "description": "Set whether to notify when this chore is approved. Omit to leave the current setting unchanged.",
+          "example": "sann"
+        },
+        "notify_on_disapproval": {
+          "name": "Meddela vid avslag",
+          "description": "Set whether to notify when this chore is disapproved. Omit to leave the current setting unchanged.",
+          "example": "sann"
+        },
+        "notify_on_overdue": {
+          "name": "Notify on Overdue",
+          "description": "Set whether to notify when this chore becomes overdue. Omit to leave the current setting unchanged.",
+          "example": "sann"
+        },
+        "notify_on_due_window": {
+          "name": "Meddela när förfallofönstret börjar",
+          "description": "Set whether to notify when this chore enters its due window. Omit to leave the current setting unchanged.",
+          "example": "falsk"
+        },
+        "notify_due_reminder": {
+          "name": "Meddela vid förfallotidpunkten för påminnelse",
+          "description": "Set whether to notify at the configured due reminder offset. Omit to leave the current setting unchanged.",
+          "example": "sann"
+        },
+        "show_on_calendar": {
+          "name": "Visa i kalendern",
+          "description": "Set whether this chore appears on the ChoreOps calendar. Omit to leave the current setting unchanged.",
+          "example": "sann"
         }
       }
     },
@@ -3337,6 +3427,47 @@
           "name": "Märkesnamn",
           "description": "Namnet på märket som ska tas bort.",
           "example": "Sysslomästare"
+        }
+      }
+    },
+    "repair_badge_streak": {
+      "name": "Repair Badge Streak",
+      "description": "Restore a broken badge streak. Intended for undoing a genuinely missed day - illness, travel, a family event - without editing storage by hand. Pass badge_streak_count to set a specific value, or omit it to restore the highest value retained in the last few days of history. The badge must currently track a streak, and restores beyond the retained history are not possible. No cap is applied: an admin may set any value, including onto a live streak. Restoring above the badge's threshold re-awards it on the next evaluation. Fires a choreops_badge_streak_repaired event. This service is response-first and returns JSON when called with return_response: true, including the retained history.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Konfigurationspost-ID (valfritt)",
+          "description": "Använd detta om du har mer än en ChoreOps-inställning. Den riktar sig mot en specifik inställning.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Konfigurationspostnamn (valfritt)",
+          "description": "Använd detta om du har fler än en ChoreOps-konfiguration och de har unika namn. Om namnen upprepas, använd Config Entry ID.",
+          "example": "Familjesysslor"
+        },
+        "user_name": {
+          "name": "Användarnamn",
+          "description": "The user whose badge streak should be repaired.",
+          "example": "Guppa"
+        },
+        "badge_name": {
+          "name": "Märkesnamn",
+          "description": "The name of the badge whose streak should be repaired.",
+          "example": "Wildfire Bronze"
+        },
+        "badge_streak_count": {
+          "name": "Streak Count (Optional)",
+          "description": "The streak value to restore. Omit to use the highest value retained in history.",
+          "example": "42"
+        },
+        "reason": {
+          "name": "Reason",
+          "description": "Why the streak is being repaired. Recorded in the log and the event.",
+          "example": "Home sick Monday"
+        },
+        "approver_name": {
+          "name": "Approver Name (Optional)",
+          "description": "Who authorised the repair. Recorded in the log and the event.",
+          "example": "John"
         }
       }
     }
@@ -5578,6 +5709,15 @@
     },
     "chore_paused": {
       "message": "Bearbetningen av sysslor är för närvarande pausad för den här användaren."
+    },
+    "badge_not_streak": {
+      "message": "Badge {name} does not track a consecutive streak, so there is no streak to repair. Days-type badges instead add up the days that qualify, so a missed day reduces nothing and there is no streak to restore."
+    },
+    "badge_streak_nothing_to_restore": {
+      "message": "Badge {name} has no retained streak history to restore from. Its recent streak values may predate this feature, or have already aged out."
+    },
+    "badge_streak_no_overdue": {
+      "message": "Badge {name} is a no-overdue badge, which resets its whole cycle on any slip by design. A repaired value would be reset again on the next evaluation. Use a streak target without the 'No Overdue' option if you want a streak that can be repaired."
     }
   }
 }

@@ -384,7 +384,7 @@
         "data": {
           "name": "Name des Erfolgs",
           "description": "Beschreibung (optional)",
-          "achievement_labels": "Schlagwörter des Erfolges",
+          "achievement_labels": "Schlagwörter des Erfolgs",
           "icon": "Symbol (mdi:xxx)",
           "assigned_user_ids": "Zugewiesen an",
           "type": "Art des Erfolgs",
@@ -563,7 +563,7 @@
         "title": "Punkteeinstellungen bearbeiten",
         "description": "Ändern Sie die Bezeichnung, das Symbol und die Standardpunkte pro Aufgabe, die in ChoreOps verwendet werden.\n\n ℹ️ [Konfigurationsanleitung]({documentation_url})",
         "data": {
-          "points_label": "Punkte-Schlagwort",
+          "points_label": "Punktebezeichnung",
           "points_icon": "Punkte-Symbol",
           "default_chore_points": "Standardpunkte je Aufgabe"
         },
@@ -832,7 +832,7 @@
           "badge_description": "Geben Sie optional eine Beschreibung des Zwecks oder der Kriterien des Abzeichens an (optional).",
           "badge_labels": "Fügen Sie Schlagwörter hinzu, um das Abzeichen zu kategorisieren oder zu kennzeichnen (optional).",
           "icon": "Geben Sie ein Symbol für das Abzeichen mithilfe von Material Design Icons an (z. B. mdi:star).",
-          "target_type": "Wählen Sie den Typ des täglichen Ziels für dieses Abzeichen aus (z. B. Punkte, Anzahl der Aufgaben oder Tage).",
+          "target_type": "Wählen Sie die Art des Tagesziels für dieses Abzeichen aus: Punkte, Anzahl der Aufgaben oder Tage. \n\nBei Tageszielen werden nur die ausgewählten Aufgaben berücksichtigt, die heute fällig sind. Eine Aufgabe, die nicht fällig ist, kann daher für diesen Tag nicht berücksichtigt werden. Ein Tag, an dem keine Aufgabe fällig ist, wird nicht gezählt.\n\nDie Optionen „Ausgewählte Aufgaben“ und „Ausgewählte fällige Aufgaben“ verhalten sich daher gleich. \n\nEine Ausnahme bilden die Optionen „Mindestens 3/5/7 Aufgaben pro Tag“: \nHier werden erledigte Aufgaben unabhängig vom Fälligkeitstermin gezählt, daher bleiben diese unverändert. \n\nEine ausgewählte Aufgabe ohne Zeitplan (einmalig, ohne Fälligkeitstermin) wird an jedem Tag berücksichtigt.",
           "threshold_value": "Legen Sie die tägliche Punktzahl, die Anzahl der Aufgaben oder die Anzahl der Tage fest, die zum Erhalt dieses Abzeichens erforderlich sind. Für den Zieltyp „Tage“ geben Sie 1 ein, da das Abzeichen täglich ausgewertet wird (z. B. 1 für „alle ausgewählten Aufgaben an einem Tag erledigt“).",
           "selected_chores": "Wählen Sie die Aufgaben aus, deren Punkte für dieses Abzeichen berücksichtigt werden. Lassen Sie das Feld leer, um alle zugewiesenen Aufgaben zu berücksichtigen (optional).",
           "assigned_user_ids": "Weisen Sie dieses Abzeichen bestimmten zugewiesenen Personen zur Nachverfolgung zu.",
@@ -870,7 +870,7 @@
           "badge_description": "Geben Sie eine Beschreibung des Zwecks oder der Kriterien des Abzeichens an (optional).",
           "badge_labels": "Fügen Sie Schlagwörter hinzu, um das Abzeichen zu kategorisieren oder zu kennzeichnen (optional).",
           "icon": "Geben Sie ein Symbol für das Abzeichen mithilfe von Material Design Icons an (z. B. mdi:star).",
-          "target_type": "Wählen Sie den Zieltyp für dieses Abzeichen aus (z. B. Punkte, Anzahl der Aufgaben, Tage oder Serie).",
+          "target_type": "Wählen Sie die Art des Ziels für dieses Abzeichen aus: Punkte, Anzahl der Aufgaben, Tage oder Serie. Bei Serien- und Tageszielen werden nur die ausgewählten Aufgaben berücksichtigt, die heute fällig sind.\n\nEine Aufgabe, die nicht fällig ist, kann daher für diesen Tag nicht berücksichtigt werden. Ein Tag, an dem keine Aufgabe fällig ist, ist neutral: Er setzt eine Serie weder fort noch unterbricht er sie. Die Optionen „Ausgewählte Aufgaben“ und „Ausgewählte fällige Aufgaben“ verhalten sich daher gleich.\n \nEine Ausnahme bilden die Optionen „Mindestens 3/5/7 Aufgaben pro Tag“: Hier werden erledigte Aufgaben unabhängig vom Fälligkeitstermin gezählt, daher bleiben diese unverändert. \n\nEine ausgewählte Aufgabe ohne Zeitplan (einmalig, ohne Fälligkeitstermin) wird an jedem Tag berücksichtigt.",
           "threshold_value": "Legen Sie die Gesamtpunktzahl, die Anzahl der Aufgaben oder die Anzahl der Tage (z. B. für Serien mehrerer abgeschlossener Aufgaben) fest, die innerhalb des festgelegten Zeitraums zum Erhalt dieses Abzeichens erforderlich sind.",
           "maintenance_rules": "Geben Sie die Mindestpunktzahl an, die während des Rücksetzzyklus erforderlich ist, um das Abzeichen und seinen aktiven Multiplikator zu behalten (optional).",
           "occasion_type": "Wählen Sie die Art des Anlasses für dieses Abzeichen aus (z. B. Feiertag oder Geburtstag).",
@@ -879,7 +879,7 @@
           "assigned_user_ids": "Weisen Sie dieses Abzeichen bestimmten zugewiesenen Personen zur Nachverfolgung zu.",
           "award_items": "Wählen Sie eine oder mehrere Auszeichnungen aus: Punkte, Belohnungen, Boni oder Strafen. Alle ausgewählten Auszeichnungen werden beim Erhalt des Abzeichens vergeben oder angewendet. Strafen werden nur angewendet, wenn das Abzeichen bis zum Enddatum oder zum Datum der Genehmigungsrücksetzung nicht erreicht wurde (optional).",
           "award_points": "Wenn „Punkte“ als Auszeichnung ausgewählt wurden, geben Sie die Anzahl der Punkte an, die beim Erhalt dieses Abzeichens vergeben werden (optional).",
-          "recurring_frequency": "Define the reset cycle for this badge. Weekly and Biweekly are rolling cycles counted from the start date. Week-End, Month-End, Quarter-End and Year-End align to the calendar (Week-End resets on Sunday).",
+          "recurring_frequency": "Lege den Rücksetzzyklus für dieses Abzeichen fest. Wöchentlich und zweiwöchentlich sind fortlaufende Zyklen ab dem Startdatum. Wochen-, Monats-, Quartals- und Jahresende richten sich nach dem Kalender (das Wochenende wird am Sonntag zurückgesetzt).",
           "custom_interval": "Geben Sie die ANZAHL der Tage, Wochen, Monate usw. für die benutzerdefinierte Wiederholung an (z. B. 3 bei „alle 3 Wochen“).",
           "custom_interval_unit": "Wählen Sie die Einheit für das benutzerdefinierte Intervall aus (z. B. Tage oder Wochen).",
           "start_date": "Legen Sie das Startdatum für den Rücksetzzyklus fest (optional).",
@@ -1312,7 +1312,7 @@
           "badge_description": "Geben Sie eine Beschreibung des Zwecks oder der Kriterien des Abzeichens an (optional).",
           "badge_labels": "Fügen Sie optionale Schlagwörter hinzu, um das Abzeichen zu kategorisieren oder zu kennzeichnen (optional).",
           "icon": "Geben Sie ein Symbol für das Abzeichen mithilfe von Material Design Icons an (z. B. mdi:star).",
-          "target_type": "Wählen Sie die Art des täglichen Ziels für dieses Abzeichen aus (z. B. Punkte, Anzahl erledigter Aufgaben oder Tage).",
+          "target_type": "Wählen Sie die Art des Tagesziels für dieses Abzeichen aus: Punkte, Anzahl der Aufgaben oder Tage. \n\nBei Tageszielen werden nur die ausgewählten Aufgaben berücksichtigt, die heute fällig sind. Eine Aufgabe, die nicht fällig ist, kann daher für diesen Tag nicht berücksichtigt werden.\n\n Ein Tag, an dem keine Aufgabe fällig ist, wird nicht gezählt. Die Optionen „Ausgewählte Aufgaben“ und „Ausgewählte fällige Aufgaben“ verhalten sich daher gleich. \n\nEine Ausnahme bilden die Optionen „Mindestens 3/5/7 Aufgaben pro Tag“: Hier werden erledigte Aufgaben unabhängig vom Fälligkeitstermin gezählt, daher bleiben diese unverändert. \n\nEine ausgewählte Aufgabe ohne Zeitplan (einmalig, ohne Fälligkeitstermin) wird an jedem Tag berücksichtigt.",
           "threshold_value": "Legen Sie die erforderliche Anzahl täglicher Punkte, erledigter Aufgaben oder Tage fest, die zum Erhalt dieses Abzeichens nötig sind. Für den Zieltyp „Tage“ geben Sie 1 ein, da das Abzeichen täglich ausgewertet wird (z. B. 1 für „alle ausgewählten Aufgaben an einem Tag erledigt“).",
           "selected_chores": "Wählen Sie die Aufgaben aus, deren Punkte zu diesem Abzeichen beitragen. Lassen Sie das Feld leer, wenn alle zugewiesenen Aufgaben berücksichtigt werden sollen (optional).",
           "assigned_user_ids": "Weisen Sie dieses Abzeichen bestimmten zugewiesenen Personen zur Nachverfolgung zu.",
@@ -1350,7 +1350,7 @@
           "badge_description": "Geben Sie eine Beschreibung des Zwecks oder der Kriterien des Abzeichens an (optional).",
           "badge_labels": "Fügen Sie Schlagwörter hinzu, um das Abzeichen zu kategorisieren oder zu kennzeichnen.(optional).",
           "icon": "Geben Sie ein Symbol für das Abzeichen mithilfe von Material Design Icons an (z. B. mdi:star).",
-          "target_type": "Wählen Sie die Art des Ziels für dieses Abzeichen aus (z. B. Punkte, Anzahl der Aufgaben, Tage oder Serie).",
+          "target_type": "Wählen Sie die Art des Ziels für dieses Abzeichen aus: Punkte, Anzahl der Aufgaben, Tage oder Serie. \n\nBei Serien- und Tageszielen werden nur die ausgewählten Aufgaben berücksichtigt, die heute fällig sind. Eine Aufgabe, die nicht fällig ist, kann daher für diesen Tag nicht berücksichtigt werden. \n\nEin Tag, an dem keine Aufgabe fällig ist, ist neutral: Er setzt eine Serie weder fort noch unterbricht er sie. Die Optionen „Ausgewählte Aufgaben“ und „Ausgewählte fällige Aufgaben“ verhalten sich daher gleich. \n\nEine Ausnahme bilden die Optionen „Mindestens 3/5/7 Aufgaben pro Tag“: Hier werden erledigte Aufgaben unabhängig vom Fälligkeitstermin gezählt, daher bleiben diese unverändert. \n\nEine ausgewählte Aufgabe ohne Zeitplan (einmalig, ohne Fälligkeitstermin) wird an jedem Tag berücksichtigt.",
           "threshold_value": "Legen Sie die Gesamtpunktzahl, die Anzahl der Aufgaben oder die Anzahl der Tage (z. B. für Serien vollständig erledigter Aufgaben) fest, die innerhalb des festgelegten Zeitraums zum Erhalt dieses Abzeichens erforderlich sind.",
           "maintenance_rules": "Geben Sie die Mindestpunktzahl an, die während des Rücksetzzyklus erforderlich ist, um das Abzeichen und seinen aktiven Multiplikator zu behalten (optional).",
           "occasion_type": "Wählen Sie die Art des Anlasses für dieses Abzeichen aus (z. B. Feiertag oder Geburtstag).",
@@ -1359,7 +1359,7 @@
           "assigned_user_ids": "Weisen Sie dieses Abzeichen bestimmten zugewiesenen Personen zur Nachverfolgung zu.",
           "award_items": "Wählen Sie eine oder mehrere Auszeichnungen aus: Punkte, Belohnungen, Boni oder Strafen. Alle ausgewählten Auszeichnungen werden beim Erhalt des Abzeichens vergeben oder angewendet. Strafen werden nur angewendet, wenn das Abzeichen bis zum Enddatum oder Rücksetzungsdatum nicht erreicht wurde (optional).",
           "award_points": "Wenn „Punkte“ als Auszeichnung ausgewählt wurden, geben Sie die Anzahl der Punkte an, die beim Erhalt dieses Abzeichens vergeben werden (optional).",
-          "recurring_frequency": "Define the reset cycle for this badge. Weekly and Biweekly are rolling cycles counted from the start date. Week-End, Month-End, Quarter-End and Year-End align to the calendar (Week-End resets on Sunday).",
+          "recurring_frequency": "Lege den Rücksetzzyklus für dieses Abzeichen fest. Wöchentlich und zweiwöchentlich sind fortlaufende Zyklen ab dem Startdatum. Wochen-, Monats-, Quartals- und Jahresende richten sich nach dem Kalender (das Wochenende wird am Sonntag zurückgesetzt).",
           "custom_interval": "Geben Sie die ANZAHL der Tage, Wochen, Monate usw. für die benutzerdefinierte Wiederholung an (z. B. 3 bei „alle 3 Wochen“).",
           "custom_interval_unit": "Wählen Sie die Einheit für das benutzerdefinierte Intervall aus (z. B. Tage oder Wochen).",
           "start_date": "Legen Sie das Startdatum des Rücksetzzyklus fest (optional).",
@@ -2086,7 +2086,7 @@
         "rotation_simple": "Einfache Rotation (Nur aktuelle Person, feste Reihenfolge)",
         "rotation_smart": "Intelligente Rotation (Nur aktuelle Person, fair gewichtet)",
         "rotation_primary_standby": "Primär & Bereitschaft (Primär standardmäßig an der Reihe, Bereitschaft wenn berechtigt)",
-        "rotation_simple_from_turn_holder": "Rotation Simple (Advance From Current Turn Holder)"
+        "rotation_simple_from_turn_holder": "Einfache Rotation (ab aktuell zuständiger Person fortsetzen)"
       }
     },
     "standby_claim_mode": {
@@ -2109,7 +2109,7 @@
     "overdue_handling_type": {
       "options": {
         "never_overdue": "Nie überfällig",
-        "never_overdue_clear_at_approval_reset": "Never Overdue (Reset at Approval Boundary)",
+        "never_overdue_clear_at_approval_reset": "Nie überfällig (beim Genehmigungszyklus zurücksetzen)",
         "at_due_date": "Überfällig bis zur Erledigung",
         "at_due_date_clear_at_approval_reset": "Überfällig bis zur Genehmigungsrücksetzung",
         "at_due_date_clear_immediate_on_late": "Überfällig bis zur Erledigung (Verspätete Genehmigungen sofort zurücksetzen)",
@@ -2715,7 +2715,7 @@
         },
         "completion_criteria": {
           "name": "Abschlusskriterien",
-          "description": "How the chore is completed when multiple assignees are assigned: independent, shared_first, shared_all, rotation_simple, rotation_smart, rotation_primary_standby, or rotation_simple_from_turn_holder.",
+          "description": "Legt fest, wie die Aufgabe erledigt wird, wenn mehrere Personen zugewiesen sind: unabhängig, gemeinsam_erste_Person, gemeinsam_alle, einfache Rotation, intelligente Rotation, Primär-/Bereitschaftsrotation oder einfache Rotation ab der aktuell zuständigen Person.",
           "example": "unabhängig"
         },
         "approval_reset_type": {
@@ -2730,7 +2730,7 @@
         },
         "overdue_handling": {
           "name": "Umgang mit Überfälligkeit",
-          "description": "How overdue chores behave at the due date and approval reset boundary.",
+          "description": "Legt fest, wie überfällige Aufgaben zum Fälligkeitstermin und beim Zurücksetzen des Genehmigungszyklus behandelt werden.",
           "example": "at_due_date"
         },
         "chore_claim_lock_until_window": {
@@ -2761,6 +2761,51 @@
         "standby_claim_mode": {
           "name": "Bereitschaftsmodus für Übernahmen",
           "description": "Legt fest, wann Bereitschaftspersonen diese Aufgabe übernehmen können (jederzeit, bei Überfälligkeit oder nur manuell). Gilt nur für das Abschlusskriterium „Primär & Bereitschaft“."
+        },
+        "custom_interval": {
+          "name": "Benutzerdefiniertes Intervall",
+          "description": "Anzahl der Zeiteinheiten zwischen Wiederholungen, wenn die Wiederholung auf „Benutzerdefiniert“ oder „Benutzerdefiniert ab Abschluss“ eingestellt ist",
+          "example": "6"
+        },
+        "custom_interval_unit": {
+          "name": "Einheit des benutzerdefinierten Intervalls",
+          "description": "Zeiteinheit für das benutzerdefinierte Intervall, wenn die Wiederholung auf „Benutzerdefiniert“ oder „Benutzerdefiniert ab Abschluss“ eingestellt ist.",
+          "example": "Monate"
+        },
+        "notify_on_claim": {
+          "name": "Bei Übernahme benachrichtigen",
+          "description": "Benachrichtigung senden, wenn diese Aufgabe übernommen wird. Weglassen, um die Standardeinstellung (aktiviert) zu verwenden.",
+          "example": "wahr"
+        },
+        "notify_on_approval": {
+          "name": "Bei Genehmigung benachrichtigen",
+          "description": "Benachrichtigung senden, wenn diese Aufgabe genehmigt wird. Weglassen, um die Standardeinstellung (aktiviert) zu verwenden.",
+          "example": "wahr"
+        },
+        "notify_on_disapproval": {
+          "name": "Bei Ablehnung benachrichtigen",
+          "description": "Benachrichtigung senden, wenn diese Aufgabe abgelehnt wird. Weglassen, um die Standardeinstellung (aktiviert) zu verwenden.",
+          "example": "wahr"
+        },
+        "notify_on_overdue": {
+          "name": "Bei Überfälligkeit benachrichtigen",
+          "description": "Benachrichtigung senden, wenn diese Aufgabe überfällig wird. Weglassen, um die Standardeinstellung (aktiviert) zu verwenden.",
+          "example": "wahr"
+        },
+        "notify_on_due_window": {
+          "name": "Benachrichtigen, wenn das Fälligkeitsfenster beginnt",
+          "description": "Benachrichtigung senden, wenn diese Aufgabe ihr Fälligkeitsfenster erreicht. Weglassen, um die Standardeinstellung (deaktiviert) zu verwenden.",
+          "example": "unwahr"
+        },
+        "notify_due_reminder": {
+          "name": "Zum Zeitpunkt der Fälligkeitserinnerung benachrichtigen",
+          "description": "Benachrichtigung zum konfigurierten Zeitpunkt der Fälligkeitserinnerung senden. Weglassen, um die Standardeinstellung (aktiviert) zu verwenden.",
+          "example": "wahr"
+        },
+        "show_on_calendar": {
+          "name": "Im Kalender anzeigen",
+          "description": "Diese Aufgabe im ChoreOps Kalender anzeigen. Weglassen, um die Standardeinstellung (aktiviert) zu verwenden.",
+          "example": "wahr"
         }
       }
     },
@@ -2871,6 +2916,51 @@
         "standby_claim_mode": {
           "name": "Bereitschaftsmodus für Übernahmen",
           "description": "Legt fest, wann Bereitschaftspersonen diese Aufgabe übernehmen können (jederzeit, bei Überfälligkeit oder nur manuell). Gilt nur für das Abschlusskriterium „Primär & Bereitschaft“."
+        },
+        "custom_interval": {
+          "name": "Benutzerdefiniertes Intervall",
+          "description": "Neue Anzahl der Zeiteinheiten zwischen Wiederholungen, wenn die Wiederholung auf „Benutzerdefiniert“ oder „Benutzerdefiniert ab Abschluss“ eingestellt ist.",
+          "example": "6"
+        },
+        "custom_interval_unit": {
+          "name": "Einheit des benutzerdefinierten Intervalls",
+          "description": "Neue Zeiteinheit für das benutzerdefinierte Intervall, wenn die Wiederholung auf „Benutzerdefiniert“ oder „Benutzerdefiniert ab Abschluss“ eingestellt ist.",
+          "example": "Monate"
+        },
+        "notify_on_claim": {
+          "name": "Bei Übernahme benachrichtigen",
+          "description": "Festlegen, ob bei Genehmigung dieser Aufgabe benachrichtigt werden soll. Weglassen, um die aktuelle Einstellung unverändert zu lassen.",
+          "example": "wahr"
+        },
+        "notify_on_approval": {
+          "name": "Bei Genehmigung benachrichtigen",
+          "description": "Festlegen, ob bei Ablehnung dieser Aufgabe benachrichtigt werden soll. Weglassen, um die aktuelle Einstellung unverändert zu lassen.",
+          "example": "wahr"
+        },
+        "notify_on_disapproval": {
+          "name": "Bei Ablehnung benachrichtigen",
+          "description": "Festlegen, ob bei Ablehnung dieser Aufgabe benachrichtigt werden soll. Weglassen, um die aktuelle Einstellung unverändert zu lassen.",
+          "example": "wahr"
+        },
+        "notify_on_overdue": {
+          "name": "Bei Überfälligkeit benachrichtigen",
+          "description": "Festlegen, ob benachrichtigt werden soll, wenn diese Aufgabe überfällig wird. Weglassen, um die aktuelle Einstellung unverändert zu lassen.",
+          "example": "wahr"
+        },
+        "notify_on_due_window": {
+          "name": "Benachrichtigen, wenn das Fälligkeitsfenster beginnt",
+          "description": "Festlegen, ob benachrichtigt werden soll, wenn diese Aufgabe ihr Fälligkeitsfenster erreicht. Weglassen, um die aktuelle Einstellung unverändert zu lassen.",
+          "example": "unwahr"
+        },
+        "notify_due_reminder": {
+          "name": "Zum Zeitpunkt der Fälligkeitserinnerung benachrichtigen",
+          "description": "Festlegen, ob zum konfigurierten Zeitpunkt der Fälligkeitserinnerung benachrichtigt werden soll. Weglassen, um die aktuelle Einstellung unverändert zu lassen.",
+          "example": "wahr"
+        },
+        "show_on_calendar": {
+          "name": "Im Kalender anzeigen",
+          "description": "Festlegen, ob diese Aufgabe im ChoreOps Kalender angezeigt wird. Weglassen, um die aktuelle Einstellung unverändert zu lassen.",
+          "example": "wahr"
         }
       }
     },
@@ -3339,6 +3429,47 @@
           "example": "Aufgabenmeister"
         }
       }
+    },
+    "repair_badge_streak": {
+      "name": "Repair Badge Streak",
+      "description": "Restore a broken badge streak. Intended for undoing a genuinely missed day - illness, travel, a family event - without editing storage by hand. Pass badge_streak_count to set a specific value, or omit it to restore the highest value retained in the last few days of history. The badge must currently track a streak, and restores beyond the retained history are not possible. No cap is applied: an admin may set any value, including onto a live streak. Restoring above the badge's threshold re-awards it on the next evaluation. Fires a choreops_badge_streak_repaired event. This service is response-first and returns JSON when called with return_response: true, including the retained history.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Name des Konfigurationseintrags (optional)",
+          "description": "Verwenden Sie diese Option, wenn Sie mehrere ChoreOps-Instanzen haben. Sie richtet sich an eine bestimmte Instanz.\n",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Name des Konfigurationseintrags (optional)",
+          "description": "Verwenden Sie diese Option, wenn Sie mehrere ChoreOps-Instanzen haben. Sie richtet sich an eine bestimmte Instanz.",
+          "example": "Familienaufgaben"
+        },
+        "user_name": {
+          "name": "Benutzername",
+          "description": "The user whose badge streak should be repaired.",
+          "example": "Bob"
+        },
+        "badge_name": {
+          "name": "Name des Abzeichens",
+          "description": "The name of the badge whose streak should be repaired.",
+          "example": "Wildfire Bronze"
+        },
+        "badge_streak_count": {
+          "name": "Streak Count (Optional)",
+          "description": "The streak value to restore. Omit to use the highest value retained in history.",
+          "example": "42"
+        },
+        "reason": {
+          "name": "Grund",
+          "description": "Why the streak is being repaired. Recorded in the log and the event.",
+          "example": "Home sick Monday"
+        },
+        "approver_name": {
+          "name": "Name des Genehmigers (optional)",
+          "description": "Who authorised the repair. Recorded in the log and the event.",
+          "example": "John"
+        }
+      }
     }
   },
   "entity": {
@@ -3395,7 +3526,7 @@
               "rotation_simple": "Einfache Rotation",
               "rotation_smart": "Smarte Rotation (Fairness)",
               "rotation_primary_standby": "Primär & Bereitschaft",
-              "rotation_simple_from_turn_holder": "Rotation Simple (Turn Holder)"
+              "rotation_simple_from_turn_holder": "Einfache Rotation (aktuell zuständige Person)"
             }
           },
           "approval_reset_type": {
@@ -3421,7 +3552,7 @@
             "name": "Art der Überfälligkeitsbehandlung",
             "state": {
               "never_overdue": "Nie überfällig",
-              "never_overdue_clear_at_approval_reset": "Never Overdue (Reset at Approval Boundary)",
+              "never_overdue_clear_at_approval_reset": "Nie überfällig (beim Genehmigungszyklus zurücksetzen)",
               "at_due_date": "Überfällig bis zur Fertigstellung",
               "at_due_date_clear_at_approval_reset": "Überfällig bis zum Genehmigungs–Reset",
               "at_due_date_clear_immediate_on_late": "Überfällig bis zur Fertigstellung (verspätete Genehmigungen sofort löschen)",
@@ -3741,7 +3872,7 @@
         }
       },
       "system_chore_approvals_sensor": {
-        "name": "{kid_name} – Erledigte Aufgaben (gesamt)",
+        "name": "Erledigte Aufgaben - gesamt",
         "state_attributes": {
           "purpose": {
             "name": "Zweck",
@@ -3752,7 +3883,7 @@
         }
       },
       "system_chore_approvals_daily_sensor": {
-        "name": "{kid_name} – Erledigte Aufgaben (täglich)",
+        "name": "Erledigte Aufgaben - täglich",
         "state_attributes": {
           "purpose": {
             "name": "Zweck",
@@ -3774,7 +3905,7 @@
         }
       },
       "system_chore_approvals_monthly_sensor": {
-        "name": "{kid_name} - Erledigte Aufgaben (monatlich)",
+        "name": "Erledigte Aufgaben - monatlich",
         "state_attributes": {
           "purpose": {
             "name": "Zweck",
@@ -4022,7 +4153,7 @@
         }
       },
       "assignee_badges_sensor": {
-        "name": "{kid_name} - Abzeichen",
+        "name": "Abzeichen",
         "state_attributes": {
           "purpose": {
             "name": "Zweck",
@@ -4358,7 +4489,7 @@
               "rotation_simple": "Einfache Rotation",
               "rotation_smart": "Rotation Smart",
               "rotation_primary_standby": "Primär & Bereitschaft",
-              "rotation_simple_from_turn_holder": "Rotation Simple (Turn Holder)"
+              "rotation_simple_from_turn_holder": "Einfache Rotation (aktuell zuständige Person)"
             }
           },
           "approval_reset_type": {
@@ -4618,7 +4749,7 @@
         }
       },
       "assignee_points_earned_daily_sensor": {
-        "name": "{kid_name} - Täglich verdiente Punkte",
+        "name": "Täglich verdiente Punkte",
         "state_attributes": {
           "purpose": {
             "name": "Zweck",
@@ -5578,6 +5709,15 @@
     },
     "chore_paused": {
       "message": "Die Aufgabenverarbeitung ist für diese Person derzeit pausiert"
+    },
+    "badge_not_streak": {
+      "message": "Badge {name} does not track a consecutive streak, so there is no streak to repair. Days-type badges instead add up the days that qualify, so a missed day reduces nothing and there is no streak to restore."
+    },
+    "badge_streak_nothing_to_restore": {
+      "message": "Badge {name} has no retained streak history to restore from. Its recent streak values may predate this feature, or have already aged out."
+    },
+    "badge_streak_no_overdue": {
+      "message": "Badge {name} is a no-overdue badge, which resets its whole cycle on any slip by design. A repaired value would be reset again on the next evaluation. Use a streak target without the 'No Overdue' option if you want a streak that can be repaired."
     }
   }
 }

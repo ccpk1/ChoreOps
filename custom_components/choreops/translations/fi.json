@@ -832,7 +832,7 @@
           "badge_description": "Anna kuvaus merkin tarkoituksesta tai kriteereistä (valinnainen).",
           "badge_labels": "Lisää tunnisteita merkin luokittelemiseksi tai merkitsemiseksi (valinnainen).",
           "icon": "Määritä merkille kuvake käyttämällä Material Design Icons -kuvakkeita (esim. mdi:star).",
-          "target_type": "Valitse tämän ansiomerkin päivittäisen tavoitteen tyyppi (esim. pisteet, tehtävien määrä tai päivät).",
+          "target_type": "Select the type of daily target for this badge: points, chore count, or days.\n\nDays targets count only those selected chores that are due today, so a chore that is not due cannot count against the day. A day on which nothing is due does not count.\n\nThe 'Selected Chores' and 'Selected Due Chores' options therefore behave the same way.\n\nThe 'Days Minimum 3/5/7 Chores' options are the exception: they count completed chores regardless of due date, so they are unchanged.\n\nA selected chore with no schedule (one-time, no due date) counts on every day.",
           "threshold_value": "Aseta päivittäiset pisteet, tehtävien määrä tai päivien lukumäärä, jotka vaaditaan tämän ansiomerkin ansaitsemiseksi. Jos tavoitetyyppi on 'Päivät', anna arvoksi 1, koska ansiomerkki arvioidaan päivittäin (esim. 1, jos suoritat kaikki valitut tehtävät yhden päivän aikana).",
           "selected_chores": "Valitse tehtävät, jotka kerryttävät pisteitä tähän merkkiin. Jätä tyhjäksi, jos haluat seurata kaikkia määrättyjä tehtäviä (valinnainen).",
           "assigned_user_ids": "Anna tämä merkki tietyille henkilöille seurantaa varten.",
@@ -870,7 +870,7 @@
           "badge_description": "Anna kuvaus merkin tarkoituksesta tai kriteereistä (valinnainen).",
           "badge_labels": "Lisää tunnisteita merkin luokittelemiseksi tai merkitsemiseksi (valinnainen).",
           "icon": "Määritä merkille kuvake käyttämällä Material Design Icons -kuvakkeita (esim. mdi:star).",
-          "target_type": "Valitse tämän ansiomerkin tavoitetyyppi (esim. pisteet, tehtävien määrä, päivät tai suoritussarja).",
+          "target_type": "Select the type of target for this badge: points, chore count, days, or streak.\n\nStreak and Days targets count only those selected chores that are due today, so a chore that is not due cannot count against the day. A day on which nothing is due is neutral: it neither advances a streak nor breaks it.\n\nThe 'Selected Chores' and 'Selected Due Chores' options therefore behave the same way.\n\nThe 'Days Minimum 3/5/7 Chores' options are the exception: they count completed chores regardless of due date, so they are unchanged.\n\nA selected chore with no schedule (one-time, no due date) counts on every day.",
           "threshold_value": "Aseta kokonaispistemäärä, tehtävien määrä tai päivien lukumäärä (esimerkiksi useiden tehtävien suoritussarjoille), joka vaaditaan tämän ansiomerkin ansaitsemiseksi määritellyn ajanjakson sisällä.",
           "maintenance_rules": "Määritä nollausjakson aikana vaadittava vähimmäispistemäärä merkin ja sen aktiivisen kertoimen (valinnainen) säilyttämiseksi.",
           "occasion_type": "Valitse tämän merkin tilaisuuden tyyppi (esim. loma, syntymäpäivä).",
@@ -1312,7 +1312,7 @@
           "badge_description": "Anna kuvaus merkin tarkoituksesta tai kriteereistä (valinnainen).",
           "badge_labels": "Lisää tunnisteita merkin luokittelemiseksi tai merkitsemiseksi (valinnainen).",
           "icon": "Määritä merkille kuvake käyttämällä Material Design Icons -kuvakkeita (esim. mdi:star).",
-          "target_type": "Valitse tämän ansiomerkin päivittäisen tavoitteen tyyppi (esim. pisteet, tehtävien määrä tai päivät).",
+          "target_type": "Select the type of daily target for this badge: points, chore count, or days.\n\nDays targets count only those selected chores that are due today, so a chore that is not due cannot count against the day. A day on which nothing is due does not count.\n\nThe 'Selected Chores' and 'Selected Due Chores' options therefore behave the same way.\n\nThe 'Days Minimum 3/5/7 Chores' options are the exception: they count completed chores regardless of due date, so they are unchanged.\n\nA selected chore with no schedule (one-time, no due date) counts on every day.",
           "threshold_value": "Aseta päivittäiset pisteet, tehtävien määrä tai päivien lukumäärä, jotka vaaditaan tämän ansiomerkin ansaitsemiseksi. Jos tavoitetyyppi on 'Päivät', anna arvoksi 1, koska ansiomerkki arvioidaan päivittäin (esim. 1, jos suoritat kaikki valitut tehtävät yhden päivän aikana).",
           "selected_chores": "Valitse tehtävät, jotka kerryttävät pisteitä tähän merkkiin. Jätä tyhjäksi, jos haluat seurata kaikkia määrättyjä tehtäviä (valinnainen).",
           "assigned_user_ids": "Anna tämä merkki tietyille henkilöille seurantaa varten.",
@@ -1350,7 +1350,7 @@
           "badge_description": "Anna kuvaus merkin tarkoituksesta tai kriteereistä (valinnainen).",
           "badge_labels": "Lisää tunnisteita merkin luokittelemiseksi tai merkitsemiseksi (valinnainen).",
           "icon": "Määritä merkille kuvake käyttämällä Material Design Icons -kuvakkeita (esim. mdi:star).",
-          "target_type": "Valitse tämän ansiomerkin tavoitetyyppi (esim. pisteet, tehtävien määrä, päivät tai suoritussarja).",
+          "target_type": "Select the type of target for this badge: points, chore count, days, or streak.\n\nStreak and Days targets count only those selected chores that are due today, so a chore that is not due cannot count against the day. A day on which nothing is due is neutral: it neither advances a streak nor breaks it.\n\nThe 'Selected Chores' and 'Selected Due Chores' options therefore behave the same way.\n\nThe 'Days Minimum 3/5/7 Chores' options are the exception: they count completed chores regardless of due date, so they are unchanged.\n\nA selected chore with no schedule (one-time, no due date) counts on every day.",
           "threshold_value": "Aseta kokonaispistemäärä, tehtävien määrä tai päivien lukumäärä (esimerkiksi useiden tehtävien suoritussarjoille), joka vaaditaan tämän ansiomerkin ansaitsemiseksi määritellyn ajanjakson sisällä.",
           "maintenance_rules": "Määritä nollausjakson aikana vaadittava vähimmäispistemäärä merkin ja sen aktiivisen kertoimen (valinnainen) säilyttämiseksi.",
           "occasion_type": "Valitse tämän merkin tilaisuuden tyyppi (esim. loma, syntymäpäivä).",
@@ -2761,6 +2761,51 @@
         "standby_claim_mode": {
           "name": "Valmiustilavaatimustila",
           "description": "Määrittää, milloin valmiustilassa olevat voivat lunastaa tämän tehtävän (milloin tahansa, on_overdue, manual_only). Koskee vain ensisijaisia ja valmiustilassa olevien suorituskriteerejä."
+        },
+        "custom_interval": {
+          "name": "Custom Interval",
+          "description": "Number of time units between repetitions when frequency is custom or custom_from_complete.",
+          "example": "6"
+        },
+        "custom_interval_unit": {
+          "name": "Custom Interval Unit",
+          "description": "Time unit used with custom_interval when frequency is custom or custom_from_complete.",
+          "example": "kuukaudet"
+        },
+        "notify_on_claim": {
+          "name": "Ilmoita vaatimuksesta",
+          "description": "Send a notification when this chore is claimed. Omit to use the default (enabled).",
+          "example": "totta"
+        },
+        "notify_on_approval": {
+          "name": "Ilmoita hyväksynnästä",
+          "description": "Send a notification when this chore is approved. Omit to use the default (enabled).",
+          "example": "totta"
+        },
+        "notify_on_disapproval": {
+          "name": "Ilmoita hylkäämisestä",
+          "description": "Send a notification when this chore is disapproved. Omit to use the default (enabled).",
+          "example": "totta"
+        },
+        "notify_on_overdue": {
+          "name": "Notify on Overdue",
+          "description": "Send a notification when this chore becomes overdue. Omit to use the default (enabled).",
+          "example": "totta"
+        },
+        "notify_on_due_window": {
+          "name": "Ilmoita, kun eräpäivä alkaa",
+          "description": "Send a notification when this chore enters its due window. Omit to use the default (disabled).",
+          "example": "väärä"
+        },
+        "notify_due_reminder": {
+          "name": "Ilmoita muistutusaikana",
+          "description": "Send a notification at the configured due reminder offset. Omit to use the default (enabled).",
+          "example": "totta"
+        },
+        "show_on_calendar": {
+          "name": "Näytetäänkö kalenterissa",
+          "description": "Show this chore on the ChoreOps calendar. Omit to use the default (enabled).",
+          "example": "totta"
         }
       }
     },
@@ -2871,6 +2916,51 @@
         "standby_claim_mode": {
           "name": "Valmiustilavaatimustila",
           "description": "Määrittää, milloin valmiustilassa olevat voivat lunastaa tämän tehtävän (milloin tahansa, on_overdue, manual_only). Koskee vain ensisijaisia ja valmiustilassa olevien suorituskriteerejä."
+        },
+        "custom_interval": {
+          "name": "Custom Interval",
+          "description": "New number of time units between repetitions when frequency is custom or custom_from_complete.",
+          "example": "6"
+        },
+        "custom_interval_unit": {
+          "name": "Custom Interval Unit",
+          "description": "New time unit used with custom_interval when frequency is custom or custom_from_complete.",
+          "example": "kuukaudet"
+        },
+        "notify_on_claim": {
+          "name": "Ilmoita vaatimuksesta",
+          "description": "Set whether to notify when this chore is claimed. Omit to leave the current setting unchanged.",
+          "example": "totta"
+        },
+        "notify_on_approval": {
+          "name": "Ilmoita hyväksynnästä",
+          "description": "Set whether to notify when this chore is approved. Omit to leave the current setting unchanged.",
+          "example": "totta"
+        },
+        "notify_on_disapproval": {
+          "name": "Ilmoita hylkäämisestä",
+          "description": "Set whether to notify when this chore is disapproved. Omit to leave the current setting unchanged.",
+          "example": "totta"
+        },
+        "notify_on_overdue": {
+          "name": "Notify on Overdue",
+          "description": "Set whether to notify when this chore becomes overdue. Omit to leave the current setting unchanged.",
+          "example": "totta"
+        },
+        "notify_on_due_window": {
+          "name": "Ilmoita, kun eräpäivä alkaa",
+          "description": "Set whether to notify when this chore enters its due window. Omit to leave the current setting unchanged.",
+          "example": "väärä"
+        },
+        "notify_due_reminder": {
+          "name": "Ilmoita muistutusaikana",
+          "description": "Set whether to notify at the configured due reminder offset. Omit to leave the current setting unchanged.",
+          "example": "totta"
+        },
+        "show_on_calendar": {
+          "name": "Näytetäänkö kalenterissa",
+          "description": "Set whether this chore appears on the ChoreOps calendar. Omit to leave the current setting unchanged.",
+          "example": "totta"
         }
       }
     },
@@ -3337,6 +3427,47 @@
           "name": "Merkin nimi",
           "description": "Poistettavan merkin nimi.",
           "example": "Kotitöiden mestari"
+        }
+      }
+    },
+    "repair_badge_streak": {
+      "name": "Repair Badge Streak",
+      "description": "Restore a broken badge streak. Intended for undoing a genuinely missed day - illness, travel, a family event - without editing storage by hand. Pass badge_streak_count to set a specific value, or omit it to restore the highest value retained in the last few days of history. The badge must currently track a streak, and restores beyond the retained history are not possible. No cap is applied: an admin may set any value, including onto a live streak. Restoring above the badge's threshold re-awards it on the next evaluation. Fires a choreops_badge_streak_repaired event. This service is response-first and returns JSON when called with return_response: true, including the retained history.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Konfiguraatiomerkinnän tunnus (valinnainen)",
+          "description": "Käytä tätä, jos sinulla on useampi kuin yksi ChoreOps-kokoonpano. Se kohdistuu yhteen tiettyyn kokoonpanoon.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Konfiguraatiomerkinnän nimi (valinnainen)",
+          "description": "Käytä tätä, jos sinulla on useampi kuin yksi ChoreOps-asetus ja niillä jokaisella on yksilölliset nimet. Jos nimet toistuvat, käytä määritysmerkinnän tunnusta.",
+          "example": "Perheen askareita"
+        },
+        "user_name": {
+          "name": "Käyttäjänimi",
+          "description": "The user whose badge streak should be repaired.",
+          "example": "Bob"
+        },
+        "badge_name": {
+          "name": "Merkin nimi",
+          "description": "The name of the badge whose streak should be repaired.",
+          "example": "Wildfire Bronze"
+        },
+        "badge_streak_count": {
+          "name": "Streak Count (Optional)",
+          "description": "The streak value to restore. Omit to use the highest value retained in history.",
+          "example": "42"
+        },
+        "reason": {
+          "name": "Reason",
+          "description": "Why the streak is being repaired. Recorded in the log and the event.",
+          "example": "Home sick Monday"
+        },
+        "approver_name": {
+          "name": "Approver Name (Optional)",
+          "description": "Who authorised the repair. Recorded in the log and the event.",
+          "example": "John"
         }
       }
     }
@@ -5578,6 +5709,15 @@
     },
     "chore_paused": {
       "message": "Työn käsittely on tällä hetkellä keskeytetty tällä käyttäjällä."
+    },
+    "badge_not_streak": {
+      "message": "Badge {name} does not track a consecutive streak, so there is no streak to repair. Days-type badges instead add up the days that qualify, so a missed day reduces nothing and there is no streak to restore."
+    },
+    "badge_streak_nothing_to_restore": {
+      "message": "Badge {name} has no retained streak history to restore from. Its recent streak values may predate this feature, or have already aged out."
+    },
+    "badge_streak_no_overdue": {
+      "message": "Badge {name} is a no-overdue badge, which resets its whole cycle on any slip by design. A repaired value would be reset again on the next evaluation. Use a streak target without the 'No Overdue' option if you want a streak that can be repaired."
     }
   }
 }
