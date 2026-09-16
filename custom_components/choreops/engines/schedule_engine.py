@@ -34,7 +34,6 @@ from .. import const
 from ..utils.dt_utils import (
     as_local,
     as_utc,
-    dt_add_interval,
     dt_next_schedule,
     dt_now_local,
     dt_now_utc,
@@ -940,213 +939,6 @@ def coerce_applicable_days(raw_days: Iterable[Any] | None) -> list[int]:
     return days
 
 
-def add_interval(
-    base_date: str | datetime,
-    interval_unit: str,
-    delta: int,
-    end_of_period: str | None = None,
-    require_future: bool = False,
-    reference_datetime: datetime | None = None,
-) -> datetime | None:
-    """Add a time interval to a date and optionally adjust to period-end.
-
-    This is the unified interval arithmetic function. It consolidates:
-    - Basic interval addition (hours, days, weeks, months, quarters, years)
-    - Period-end adjustments (DAY_END, WEEK_END, MONTH_END, QUARTER_END, YEAR_END)
-    - Future-ensuring logic (loop until result > reference)
-
-    Uses relativedelta for month/year arithmetic to preserve clamping behavior
-    (e.g., Jan 31 + 1 month = Feb 28, not skipped).
-
-    Args:
-        base_date: Base date (ISO string or datetime).
-        interval_unit: Time unit constant (TIME_UNIT_HOURS, TIME_UNIT_DAYS, etc.).
-        delta: Number of units to add (can be negative for subtraction).
-        end_of_period: Optional PERIOD_*_END constant to snap result to period end.
-        require_future: If True, loop until result is strictly after reference_datetime.
-        reference_datetime: Reference for require_future comparison (default: now).
-
-    Returns:
-        Result as UTC datetime, or None if base_date is invalid.
-
-    Examples:
-        # Add 3 days
-        add_interval("2026-01-15T09:00:00", TIME_UNIT_DAYS, 3)
-        → datetime(2026, 1, 18, 9, 0, tzinfo=UTC)
-
-        # Add 1 month with clamping
-        add_interval("2026-01-31T09:00:00", TIME_UNIT_MONTHS, 1)
-        → datetime(2026, 2, 28, 9, 0, tzinfo=UTC)
-
-        # Add 0 days but snap to month end
-        add_interval("2026-01-15T09:00:00", TIME_UNIT_DAYS, 0, PERIOD_MONTH_END)
-        → datetime(2026, 1, 31, 23, 59, 0, tzinfo=UTC)
-    """
-    # Parse base_date
-    if isinstance(base_date, datetime):
-        base_dt = as_utc(base_date)
-    else:
-        try:
-            parsed = dt_parse(base_date)
-            if not parsed or not isinstance(parsed, datetime):
-                const.LOGGER.error(
-                    "add_interval: Could not parse base_date: %s", base_date
-                )
-                return None
-            base_dt = as_utc(parsed)
-        except (ValueError, TypeError) as err:
-            const.LOGGER.error("add_interval: Invalid base_date %s: %s", base_date, err)
-            return None
-
-    # Calculate interval addition using relativedelta for consistent clamping
-    if interval_unit == const.TIME_UNIT_MINUTES:
-        result = base_dt + timedelta(minutes=delta)
-    elif interval_unit == const.TIME_UNIT_HOURS:
-        result = base_dt + timedelta(hours=delta)
-    elif interval_unit == const.TIME_UNIT_DAYS:
-        result = base_dt + timedelta(days=delta)
-    elif interval_unit == const.TIME_UNIT_WEEKS:
-        result = base_dt + timedelta(weeks=delta)
-    elif interval_unit == const.TIME_UNIT_MONTHS:
-        result = base_dt + relativedelta(months=delta)
-    elif interval_unit == const.TIME_UNIT_QUARTERS:
-        result = base_dt + relativedelta(months=delta * const.MONTHS_PER_QUARTER)
-    elif interval_unit == const.TIME_UNIT_YEARS:
-        result = base_dt + relativedelta(years=delta)
-    else:
-        const.LOGGER.warning(
-            "add_interval: Unsupported interval_unit %s, defaulting to days",
-            interval_unit,
-        )
-        result = base_dt + timedelta(days=delta)
-
-    # Apply end_of_period adjustment if specified
-    if end_of_period:
-        result = _apply_period_end(result, end_of_period)
-
-    # Handle require_future: loop until result > reference
-    if require_future:
-        ref_utc = reference_datetime or dt_now_utc()
-        if not isinstance(ref_utc, datetime):
-            ref_utc = dt_now_utc()
-        ref_utc = as_utc(ref_utc)
-
-        iteration = 0
-        while result <= ref_utc and iteration < const.MAX_DATE_CALCULATION_ITERATIONS:
-            iteration += 1
-            previous = result
-
-            # Add interval again
-            if interval_unit == const.TIME_UNIT_MINUTES:
-                result = result + timedelta(minutes=delta)
-            elif interval_unit == const.TIME_UNIT_HOURS:
-                result = result + timedelta(hours=delta)
-            elif interval_unit == const.TIME_UNIT_DAYS:
-                result = result + timedelta(days=delta)
-            elif interval_unit == const.TIME_UNIT_WEEKS:
-                result = result + timedelta(weeks=delta)
-            elif interval_unit == const.TIME_UNIT_MONTHS:
-                result = result + relativedelta(months=delta)
-            elif interval_unit == const.TIME_UNIT_QUARTERS:
-                result = result + relativedelta(months=delta * const.MONTHS_PER_QUARTER)
-            elif interval_unit == const.TIME_UNIT_YEARS:
-                result = result + relativedelta(years=delta)
-            else:
-                result = result + timedelta(days=delta)
-
-            # Re-apply end_of_period
-            if end_of_period:
-                result = _apply_period_end(result, end_of_period)
-
-            # Break infinite loop if result didn't change
-            if result == previous:
-                result = result + timedelta(hours=1)
-                if end_of_period:
-                    result = _apply_period_end(result, end_of_period)
-
-        if iteration >= const.MAX_DATE_CALCULATION_ITERATIONS:
-            const.LOGGER.warning(
-                "add_interval: Max iterations reached. base=%s, unit=%s, delta=%s",
-                base_date,
-                interval_unit,
-                delta,
-            )
-
-    return as_utc(result)
-
-
-def _apply_period_end(dt: datetime, period: str) -> datetime:
-    """Apply period-end adjustment to a datetime.
-
-    Uses dt_util.start_of_local_day + timedelta for DST safety.
-
-    Args:
-        dt: Input datetime (any timezone).
-        period: PERIOD_*_END constant.
-
-    Returns:
-        Datetime adjusted to the specified period end.
-    """
-    # Convert to local for period calculations
-    local_dt = as_local(dt)
-
-    if period == const.PERIOD_DAY_END:
-        start = start_of_local_day(local_dt)
-        return start + timedelta(
-            hours=const.END_OF_DAY_HOUR,
-            minutes=const.END_OF_DAY_MINUTE,
-            seconds=const.END_OF_DAY_SECOND,
-        )
-
-    if period == const.PERIOD_WEEK_END:
-        days_until_sunday = (const.SUNDAY_WEEKDAY_INDEX - local_dt.weekday()) % 7
-        sunday = local_dt + timedelta(days=days_until_sunday)
-        start = start_of_local_day(sunday)
-        return start + timedelta(
-            hours=const.END_OF_DAY_HOUR,
-            minutes=const.END_OF_DAY_MINUTE,
-            seconds=const.END_OF_DAY_SECOND,
-        )
-
-    if period == const.PERIOD_MONTH_END:
-        last_day = monthrange(local_dt.year, local_dt.month)[1]
-        month_end = local_dt.replace(day=last_day)
-        start = start_of_local_day(month_end)
-        return start + timedelta(
-            hours=const.END_OF_DAY_HOUR,
-            minutes=const.END_OF_DAY_MINUTE,
-            seconds=const.END_OF_DAY_SECOND,
-        )
-
-    if period == const.PERIOD_QUARTER_END:
-        last_month = (
-            (local_dt.month - 1) // const.MONTHS_PER_QUARTER + 1
-        ) * const.MONTHS_PER_QUARTER
-        last_day = monthrange(local_dt.year, last_month)[1]
-        quarter_end = local_dt.replace(month=last_month, day=last_day)
-        start = start_of_local_day(quarter_end)
-        return start + timedelta(
-            hours=const.END_OF_DAY_HOUR,
-            minutes=const.END_OF_DAY_MINUTE,
-            seconds=const.END_OF_DAY_SECOND,
-        )
-
-    if period == const.PERIOD_YEAR_END:
-        year_end = local_dt.replace(
-            month=const.LAST_MONTH_OF_YEAR, day=const.LAST_DAY_OF_DECEMBER
-        )
-        start = start_of_local_day(year_end)
-        return start + timedelta(
-            hours=const.END_OF_DAY_HOUR,
-            minutes=const.END_OF_DAY_MINUTE,
-            seconds=const.END_OF_DAY_SECOND,
-        )
-
-    # Unknown period - return unchanged
-    const.LOGGER.warning("_apply_period_end: Unknown period type: %s", period)
-    return dt
-
-
 def calculate_next_due_date(
     base_date: str | datetime,
     frequency: str,
@@ -1182,6 +974,51 @@ def calculate_next_due_date(
 
     engine = RecurrenceEngine(config)
     return engine.get_next_occurrence(after=reference_datetime, require_future=True)
+
+
+def next_custom_interval_occurrence(
+    anchor: datetime,
+    interval: int,
+    interval_unit: str,
+    applicable_days: list[int] | None = None,
+    reference_time: datetime | None = None,
+) -> datetime | None:
+    """Return the next on-interval occurrence at least one interval past the anchor.
+
+    Delegates to RecurrenceEngine so every cadence step advances by the FULL
+    interval. Walking one unit at a time would truncate multi-unit intervals
+    (e.g. an "every 2 days" chore 5 days late would land 1 day out instead of
+    landing on its own anchor grid).
+
+    Args:
+        anchor: Anchor datetime (UTC) the interval repeats from.
+        interval: Number of units between occurrences.
+        interval_unit: TIME_UNIT_* constant.
+        applicable_days: Optional weekday filter (0=Mon...6=Sun).
+        reference_time: Result must be strictly after this. Defaults to now.
+
+    Returns:
+        Next occurrence as UTC datetime, or None if calculation failed.
+    """
+    engine = RecurrenceEngine(
+        {
+            "frequency": const.FREQUENCY_CUSTOM,
+            "interval": interval,
+            "interval_unit": interval_unit,
+            "base_date": anchor.isoformat(),
+            "applicable_days": applicable_days or [],
+        }
+    )
+    reference_utc = as_utc(reference_time) if reference_time else dt_now_utc()
+    # The result must be at least one full interval past the anchor (never the
+    # anchor itself) AND strictly after the reference. Bounding by the later of
+    # the two covers both: a FROM_COMPLETE anchor can already sit past the
+    # completion moment (completion earlier in the day than the preserved due
+    # time), and returning that anchor unchanged would skip the interval.
+    return engine.get_next_occurrence(
+        after=max(reference_utc, anchor),
+        require_future=True,
+    )
 
 
 def calculate_next_due_date_from_chore_info(
@@ -1254,17 +1091,15 @@ def calculate_next_due_date_from_chore_info(
         assert custom_unit is not None
         assert custom_interval is not None
 
-        next_due_utc = cast(
-            "datetime",
-            dt_add_interval(
-                base_date=current_due_utc,
-                interval_unit=custom_unit,
-                delta=custom_interval,
-                require_future=True,
-                reference_datetime=reference_time,
-                return_type=const.HELPER_RETURN_DATETIME,
-            ),
+        next_due_utc = next_custom_interval_occurrence(
+            current_due_utc,
+            custom_interval,
+            custom_unit,
+            applicable_days,
+            reference_time,
         )
+        if next_due_utc is None:
+            return None
     elif freq == const.FREQUENCY_CUSTOM_FROM_COMPLETE:
         # CFE-2026-001 Feature 1: Reschedule from completion timestamp
         # Use completion_timestamp if available, fallback to current_due_utc
@@ -1278,17 +1113,15 @@ def calculate_next_due_date_from_chore_info(
                 chore_info.get(const.DATA_CHORE_NAME),
             )
             return None
-        next_due_utc = cast(
-            "datetime",
-            dt_add_interval(
-                base_date=base_date,
-                interval_unit=custom_unit,
-                delta=custom_interval,
-                require_future=True,
-                reference_datetime=reference_time,
-                return_type=const.HELPER_RETURN_DATETIME,
-            ),
+        next_due_utc = next_custom_interval_occurrence(
+            base_date,
+            custom_interval,
+            custom_unit,
+            applicable_days,
+            reference_time,
         )
+        if next_due_utc is None:
+            return None
     elif freq == const.FREQUENCY_CUSTOM_FROM_COMPLETE_DATE_ONLY:
         # Reschedule from completion DATE but preserve original due TIME
         # e.g., due 6/1 noon, completed 6/2 4pm, interval 3d -> 6/5 noon (not 6/5 4pm)
@@ -1309,17 +1142,15 @@ def calculate_next_due_date_from_chore_info(
             second=due_time.second,
             microsecond=0,
         )
-        next_due_utc = cast(
-            "datetime",
-            dt_add_interval(
-                base_date=base_with_due_time,
-                interval_unit=custom_unit,
-                delta=custom_interval,
-                require_future=True,
-                reference_datetime=reference_time,
-                return_type=const.HELPER_RETURN_DATETIME,
-            ),
+        next_due_utc = next_custom_interval_occurrence(
+            base_with_due_time,
+            custom_interval,
+            custom_unit,
+            applicable_days,
+            reference_time,
         )
+        if next_due_utc is None:
+            return None
     elif freq == const.FREQUENCY_DAILY_MULTI:
         # CFE-2026-001 Feature 2: Multiple times per day
         # Use dedicated helper for slot-based scheduling

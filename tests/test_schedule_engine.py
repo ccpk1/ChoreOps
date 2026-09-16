@@ -16,7 +16,7 @@ Tests edge cases per Phase 2a plan:
 
 from collections.abc import Iterator
 from datetime import date, datetime, timedelta
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from zoneinfo import ZoneInfo
 
 from homeassistant.util import dt as dt_util
@@ -26,7 +26,9 @@ from custom_components.choreops import const
 from custom_components.choreops.engines.schedule_engine import (
     RecurrenceEngine,
     calculate_next_due_date,
+    calculate_next_due_date_from_chore_info,
 )
+from custom_components.choreops.type_defs import ChoreData
 from custom_components.choreops.utils.dt_utils import (
     as_local,
     dt_next_schedule,
@@ -561,6 +563,207 @@ class TestCustomIntervals:
 
         assert result is not None
         assert result.day == 15  # 10 + 5 days
+
+
+# =============================================================================
+# Issue #299: late completion must stay on the chore's own anchor grid
+# =============================================================================
+
+
+ANCHOR = datetime(2026, 9, 14, 21, 0, tzinfo=ZoneInfo("UTC"))  # Monday 21:00
+
+
+def make_custom_chore(interval: int, unit: str, **overrides: object) -> ChoreData:
+    """Build a minimal custom-frequency chore payload for the helper."""
+    chore: dict[str, object] = {
+        const.DATA_CHORE_NAME: "Practice",
+        const.DATA_CHORE_RECURRING_FREQUENCY: const.FREQUENCY_CUSTOM,
+        const.DATA_CHORE_CUSTOM_INTERVAL: interval,
+        const.DATA_CHORE_CUSTOM_INTERVAL_UNIT: unit,
+        const.DATA_CHORE_APPLICABLE_DAYS: [],
+    }
+    chore.update(overrides)
+    return cast("ChoreData", chore)
+
+
+class TestLateCompletionStaysOnAnchorGrid:
+    """A late completion must land on an actual slot of its own cadence.
+
+    Regression cover for #299: the custom branches used to walk forward one
+    unit per catch-up hop, which truncated multi-unit intervals and produced
+    both off-grid dates and (for short hourly intervals) dates in the past.
+    """
+
+    @pytest.mark.parametrize(
+        ("late_days", "expected_day_offset"),
+        [
+            pytest.param(1, 2, id="1d-late"),
+            pytest.param(2, 4, id="2d-late"),
+            pytest.param(3, 4, id="3d-late"),
+            pytest.param(4, 6, id="4d-late"),
+            pytest.param(5, 6, id="5d-late"),
+            pytest.param(6, 8, id="6d-late"),
+            pytest.param(7, 8, id="7d-late"),
+            pytest.param(8, 10, id="8d-late"),
+        ],
+    )
+    def test_every_other_day_lands_on_even_day_offset(
+        self, late_days: int, expected_day_offset: int
+    ) -> None:
+        """A 2-day chore may only ever be due on even day offsets from anchor."""
+        reference = ANCHOR + timedelta(days=late_days, hours=14)
+
+        result = calculate_next_due_date_from_chore_info(
+            ANCHOR, make_custom_chore(2, const.TIME_UNIT_DAYS), reference_time=reference
+        )
+
+        assert result is not None
+        assert (result - ANCHOR).days == expected_day_offset
+        assert (result - ANCHOR).days % 2 == 0
+        assert result > reference
+
+    def test_three_day_interval_stays_on_its_grid(self) -> None:
+        """A 3-day chore must land on a multiple-of-3 day offset."""
+        reference = ANCHOR + timedelta(days=4, hours=14)
+
+        result = calculate_next_due_date_from_chore_info(
+            ANCHOR, make_custom_chore(3, const.TIME_UNIT_DAYS), reference_time=reference
+        )
+
+        assert result is not None
+        assert (result - ANCHOR).days == 6
+        assert (result - ANCHOR).days % 3 == 0
+
+    @pytest.mark.parametrize(
+        "hours_late",
+        [1, 3, 6, 7, 12, 18, 19, 24, 25, 47, 100],
+    )
+    def test_six_hour_interval_lands_on_a_slot(self, hours_late: int) -> None:
+        """A 6-hour chore must land on a 6-hour slot and never in the past."""
+        anchor = datetime(2026, 9, 16, 6, 0, tzinfo=ZoneInfo("UTC"))
+        reference = anchor + timedelta(hours=hours_late)
+
+        result = calculate_next_due_date_from_chore_info(
+            anchor,
+            make_custom_chore(6, const.TIME_UNIT_HOURS),
+            reference_time=reference,
+        )
+
+        assert result is not None
+        assert (result - anchor).total_seconds() % (6 * 3600) == 0
+        assert result > reference
+
+    def test_short_hourly_interval_never_returns_the_past(self) -> None:
+        """Hourly intervals must not exhaust a walk budget into the past.
+
+        The previous 1-unit walk gave up after a bounded number of hops and
+        returned a stale date, so a 3-hour chore several days late rescheduled
+        to a moment already past.
+        """
+        anchor = datetime(2026, 9, 14, 21, 0, tzinfo=ZoneInfo("UTC"))
+
+        for reference in (
+            anchor + timedelta(days=4, hours=8),
+            anchor + timedelta(days=12, hours=8),
+            anchor + timedelta(days=33, hours=8),
+        ):
+            result = calculate_next_due_date_from_chore_info(
+                anchor,
+                make_custom_chore(3, const.TIME_UNIT_HOURS),
+                reference_time=reference,
+            )
+
+            assert result is not None
+            assert result > reference
+
+    def test_applicable_days_still_filter_custom_intervals(self) -> None:
+        """Custom intervals must keep honouring applicable_days."""
+        reference = ANCHOR + timedelta(days=4, hours=14)
+
+        result = calculate_next_due_date_from_chore_info(
+            ANCHOR,
+            make_custom_chore(
+                2,
+                const.TIME_UNIT_DAYS,
+                **{const.DATA_CHORE_APPLICABLE_DAYS: [0]},
+            ),
+            reference_time=reference,
+        )
+
+        assert result is not None
+        assert result.weekday() == 0  # Monday
+        assert result > reference
+
+
+class TestCustomLateCompletionAlwaysFuture:
+    """Invariant: a rescheduled due date is always strictly after the reference."""
+
+    @pytest.mark.parametrize(
+        "unit",
+        [
+            const.TIME_UNIT_HOURS,
+            const.TIME_UNIT_DAYS,
+            const.TIME_UNIT_WEEKS,
+            const.TIME_UNIT_MONTHS,
+        ],
+    )
+    @pytest.mark.parametrize("interval", [1, 2, 3, 6, 12])
+    @pytest.mark.parametrize("late_hours", [0, 1, 25, 100, 300, 800])
+    def test_custom_interval_is_always_future(
+        self, unit: str, interval: int, late_hours: int
+    ) -> None:
+        """No custom interval may reschedule into the past or onto 'now'."""
+        reference = ANCHOR + timedelta(hours=late_hours)
+
+        result = calculate_next_due_date_from_chore_info(
+            ANCHOR, make_custom_chore(interval, unit), reference_time=reference
+        )
+
+        assert result is not None
+        assert result > reference
+
+    def test_from_complete_advances_one_full_interval(self) -> None:
+        """FROM_COMPLETE reschedules from the completion timestamp, not the due date."""
+        completion = ANCHOR + timedelta(days=4, hours=14)
+
+        result = calculate_next_due_date_from_chore_info(
+            ANCHOR,
+            make_custom_chore(
+                2,
+                const.TIME_UNIT_DAYS,
+                **{
+                    const.DATA_CHORE_RECURRING_FREQUENCY: const.FREQUENCY_CUSTOM_FROM_COMPLETE
+                },
+            ),
+            completion_timestamp=completion,
+            reference_time=completion,
+        )
+
+        assert result == completion + timedelta(days=2)
+
+    def test_from_complete_date_only_keeps_due_time(self) -> None:
+        """DATE_ONLY uses the completion date but preserves the original due time."""
+        completion = ANCHOR + timedelta(days=4, hours=14)  # Friday 11:00
+        expected = datetime(2026, 9, 22, 21, 0, tzinfo=ZoneInfo("UTC"))
+
+        result = calculate_next_due_date_from_chore_info(
+            ANCHOR,
+            make_custom_chore(
+                3,
+                const.TIME_UNIT_DAYS,
+                **{
+                    const.DATA_CHORE_RECURRING_FREQUENCY: (
+                        const.FREQUENCY_CUSTOM_FROM_COMPLETE_DATE_ONLY
+                    )
+                },
+            ),
+            completion_timestamp=completion,
+            reference_time=completion,
+        )
+
+        assert result == expected
+        assert result.hour == ANCHOR.hour
+        assert result.minute == ANCHOR.minute
 
 
 # =============================================================================
