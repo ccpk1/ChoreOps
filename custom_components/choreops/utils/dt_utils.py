@@ -863,7 +863,14 @@ def dt_add_interval(
     if result_dt is None:
         return None
 
-    # Handle require_future
+    # Handle require_future: keep advancing until the result is past the reference.
+    # TRAP: every catch-up hop MUST advance by the full `delta`. Stepping a single
+    # unit instead truncates multi-unit intervals, landing the result off the
+    # schedule's own cadence (e.g. an "every 2 days" chore 5 days late would come
+    # back 1 day out rather than on its anchor grid). More than one catch-up hop is
+    # only needed when `delta` is smaller than the gap to the reference, so this
+    # loop is normally skipped. dt_next_schedule advances by `delta` for the same
+    # reason; keep the two consistent.
     if require_future and ref_dt:
         iteration_count = 0
         result_utc = as_utc(result_dt)
@@ -877,7 +884,9 @@ def dt_add_interval(
             next_result = _add_interval_internal(
                 base_dt=result_dt,
                 interval_unit=interval_unit,
-                delta=1,  # Add one more interval
+                # Zero/negative intervals cannot step forward, so they retain the
+                # 1-unit hop that (re)applies end_of_period snapping.
+                delta=delta if delta > 0 else 1,
                 end_of_period=end_of_period,
             )
             if next_result is None:

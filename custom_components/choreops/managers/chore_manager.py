@@ -6668,7 +6668,11 @@ class ChoreManager(BaseManager):
             )
             == const.FREQUENCY_DAILY_MULTI
         ):
-            effective_reference_time = original_due_utc
+            # DAILY_MULTI slots are computed for the anchor's day, so anchoring a
+            # stale due date would return a moment that has already passed (the
+            # skipped chore would come back immediately overdue). Skip means
+            # "advance from where we are", so the reference never moves backwards.
+            effective_reference_time = max(original_due_utc, effective_reference_time)
 
         return calculate_next_due_date_from_chore_info(
             original_due_utc,
@@ -6802,7 +6806,9 @@ class ChoreManager(BaseManager):
             )
             == const.FREQUENCY_DAILY_MULTI
         ):
-            effective_reference_time = original_due_utc
+            # See _calculate_next_due_date_for_chore: never anchor DAILY_MULTI on a
+            # stale due date, or the next slot lands in the past.
+            effective_reference_time = max(original_due_utc, effective_reference_time)
 
         return calculate_next_due_date_from_chore_info(
             original_due_utc,

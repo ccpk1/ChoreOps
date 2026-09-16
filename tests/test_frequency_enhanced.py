@@ -44,6 +44,7 @@ from tests.helpers import (
     DATA_CHORE_CUSTOM_INTERVAL_UNIT,
     DATA_CHORE_DAILY_MULTI_TIMES,
     DATA_CHORE_DUE_DATE,
+    DATA_CHORE_PER_ASSIGNEE_DUE_DATES,
     DATA_CHORE_RECURRING_FREQUENCY,
     DATA_USER_CHORE_DATA,
     DATA_USER_CHORE_DATA_STATE,
@@ -1089,6 +1090,114 @@ class TestDailyMulti:
         assert len(result) == 2
         for slot in result:
             assert slot.tzinfo is not None
+
+    @pytest.mark.asyncio
+    async def test_f2_19_skip_overdue_shared_stays_future(
+        self,
+        hass: HomeAssistant,
+        scenario_enhanced_frequencies: SetupResult,
+    ) -> None:
+        """F2-19: Skipping an overdue SHARED daily_multi chore stays in the future.
+
+        Slot times are local, so a chore left overdue for days used to skip to a
+        slot on the stale day, which was already in the past and left the chore
+        immediately overdue again.
+        """
+        coordinator = scenario_enhanced_frequencies.coordinator
+        chore_id = scenario_enhanced_frequencies.chore_ids[
+            "Daily Multi Morning Evening"
+        ]
+
+        local_now = dt_util.as_local(dt_util.utcnow())
+        stale_local = (local_now - timedelta(days=3)).replace(
+            hour=7, minute=0, second=0, microsecond=0
+        )
+        set_chore_due_date(coordinator, chore_id, dt_util.as_utc(stale_local))
+
+        before_skip = dt_util.utcnow()
+        await coordinator.chore_manager.skip_due_date(chore_id)
+        await hass.async_block_till_done()
+
+        new_due = get_chore_due_date(coordinator, chore_id)
+        assert new_due is not None
+        new_due_dt = dt_util.parse_datetime(new_due)
+        assert new_due_dt is not None
+        assert new_due_dt > before_skip
+        # The next slot is at most a day out, not another stale occurrence.
+        assert new_due_dt - before_skip <= timedelta(days=1)
+
+    @pytest.mark.asyncio
+    async def test_f2_20_skip_overdue_independent_stays_future(
+        self,
+        hass: HomeAssistant,
+        scenario_enhanced_frequencies: SetupResult,
+    ) -> None:
+        """F2-20: Skipping an overdue INDEPENDENT daily_multi chore stays future."""
+        coordinator = scenario_enhanced_frequencies.coordinator
+        assignee_id = scenario_enhanced_frequencies.assignee_ids["Zoë"]
+        chore_id = scenario_enhanced_frequencies.chore_ids[
+            "Daily Multi Single Assignee"
+        ]
+
+        local_now = dt_util.as_local(dt_util.utcnow())
+        stale_local = (local_now - timedelta(days=5)).replace(
+            hour=9, minute=0, second=0, microsecond=0
+        )
+        stale_utc = dt_util.as_utc(stale_local)
+
+        chore_info = coordinator.chores_data[chore_id]
+        chore_info[DATA_CHORE_PER_ASSIGNEE_DUE_DATES] = {
+            assignee_id: stale_utc.isoformat()
+        }
+        chore_info[DATA_CHORE_DUE_DATE] = stale_utc.isoformat()
+
+        before_skip = dt_util.utcnow()
+        await coordinator.chore_manager.skip_due_date(chore_id, assignee_id)
+        await hass.async_block_till_done()
+
+        per_assignee = coordinator.chores_data[chore_id][
+            DATA_CHORE_PER_ASSIGNEE_DUE_DATES
+        ]
+        new_due = per_assignee.get(assignee_id)
+        assert new_due is not None
+        new_due_dt = dt_util.parse_datetime(new_due)
+        assert new_due_dt is not None
+        assert new_due_dt > before_skip
+        assert new_due_dt - before_skip <= timedelta(days=1)
+
+    @pytest.mark.asyncio
+    async def test_f2_21_skip_future_due_still_advances_one_slot(
+        self,
+        hass: HomeAssistant,
+        scenario_enhanced_frequencies: SetupResult,
+    ) -> None:
+        """F2-21: A not-yet-due chore still skips exactly one slot forward.
+
+        Guards the intent of anchoring on the current due date: when the due date
+        has not passed, skipping moves to the very next slot of that day rather
+        than jumping to the next slot after now.
+        """
+        coordinator = scenario_enhanced_frequencies.coordinator
+        chore_id = scenario_enhanced_frequencies.chore_ids[
+            "Daily Multi Morning Evening"
+        ]
+
+        local_now = dt_util.as_local(dt_util.utcnow())
+        tomorrow_local = (local_now + timedelta(days=1)).replace(
+            hour=7, minute=0, second=0, microsecond=0
+        )
+        set_chore_due_date(coordinator, chore_id, dt_util.as_utc(tomorrow_local))
+
+        await coordinator.chore_manager.skip_due_date(chore_id)
+        await hass.async_block_till_done()
+
+        new_due = get_chore_due_date(coordinator, chore_id)
+        assert new_due is not None
+        new_due_dt = dt_util.as_local(cast("datetime", dt_util.parse_datetime(new_due)))
+
+        # Next slot the same day (18:00 local), not the following morning.
+        assert new_due_dt.date() == tomorrow_local.date()
+        assert new_due_dt.hour == 18
 
 
 # =============================================================================
