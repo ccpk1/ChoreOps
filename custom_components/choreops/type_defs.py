@@ -235,6 +235,8 @@ class ChoreData(TypedDict):
     due_reminder_offset: NotRequired[
         str | None
     ]  # Duration string for reminder notification
+    notification_channel: NotRequired[str]  # Android notification channel name
+    notification_importance: NotRequired[str]  # min|low|default|high|max
 
     # Runtime tracking (set during chore lifecycle)
     last_completed: NotRequired[str | None]  # ISO datetime
@@ -637,6 +639,8 @@ class AssigneeData(TypedDict):
     dashboard_language: NotRequired[str]
     notif_click_url: NotRequired[str]
     notif_approve_click_url: NotRequired[str]
+    notification_priority: NotRequired[str]
+    notification_ttl: NotRequired[str]
     ui_preferences: NotRequired[dict[str, Any]]
 
     # Badge tracking

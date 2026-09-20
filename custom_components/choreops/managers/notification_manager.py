@@ -847,7 +847,7 @@ class NotificationManager(BaseManager):
         title: str,
         message: str,
         actions: list[dict[str, str]] | None = None,
-        extra_data: dict[str, str] | None = None,
+        extra_data: dict[str, Any] | None = None,
     ) -> None:
         """Send a notification using the specified notify service.
 
@@ -1013,6 +1013,81 @@ class NotificationManager(BaseManager):
             extra_data["clickAction"] = click_url
             extra_data["url"] = click_url
 
+        # ONLY "high" IS EMITTED. Normal is the platform default, so sending it
+        # explicitly changes nothing about delivery while adding a key to every
+        # payload - and the form's default is "normal", so emitting it would mean
+        # anyone who merely opens and saves a profile starts sending it forever.
+        # Choosing "normal" therefore means "leave delivery alone", which is also
+        # what it reads as.
+        priority = user_info.get(const.DATA_USER_NOTIFICATION_PRIORITY)
+        if priority == const.NOTIFY_PRIORITY_HIGH:
+            extra_data[const.NOTIFY_PRIORITY] = const.NOTIFY_PRIORITY_HIGH
+
+        ttl = user_info.get(const.DATA_USER_NOTIFICATION_TTL)
+        # Guard the RAW value: a stored None would stringify to "None", fail the
+        # parse and warn on every single notification.
+        if ttl is not None and str(ttl).strip():
+            # "0" is meaningful - discard rather than retry - so test the string,
+            # not the parsed int, or a deliberate 0 would be dropped as falsy.
+            try:
+                # via float so a numeric selector's 3600.0 parses as well as "3600"
+                parsed = int(float(str(ttl).strip()))
+            except ValueError:
+                const.LOGGER.warning("Ignoring non-numeric notification TTL: %s", ttl)
+            else:
+                if parsed < 0:
+                    const.LOGGER.warning("Ignoring negative notification TTL: %s", ttl)
+                else:
+                    extra_data[const.NOTIFY_TTL] = parsed
+
+    def _apply_chore_notification_options(
+        self,
+        extra_data: dict[str, Any],
+        chore_id: str | None,
+    ) -> None:
+        """Merge a chore's own notification options into ``extra_data``.
+
+        Mutates ``extra_data`` in place. Separate from the per-user helper
+        because this axis is the SUBJECT of the notification, not its recipient:
+        the same person receives chores that should be grouped differently.
+
+        SUBJECT RESOLUTION: takes an explicit chore_id rather than reading
+        tag_identifiers. Those tuples carry a REWARD id at two call sites, so
+        position 0 is not reliably a chore, and inferring from it would silently
+        mis-group reward notifications.
+
+        Args:
+            extra_data: Payload ``data`` dict to update in place.
+            chore_id: The chore this notification is about, when it is about one.
+        """
+        if not chore_id:
+            return
+        chore_info = self.coordinator.chores_data.get(chore_id)
+        if not chore_info:
+            return
+        channel = str(
+            chore_info.get(const.DATA_CHORE_NOTIFICATION_CHANNEL, const.SENTINEL_EMPTY)
+        ).strip()
+        if not channel:
+            return
+        extra_data[const.NOTIFY_CHANNEL] = channel
+
+        # IMPORTANCE IS SENT WITH THE CHANNEL OR NOT AT ALL. It applies the
+        # first time a device sees the channel name and the integration cannot
+        # change it later, though the person can in Android's settings.
+        # Omitting it means the channel is born at "default" - makes noise, does
+        # not pop on screen - so a high-priority push routed into it arrives
+        # promptly and then alerts quietly, which is not what the priority
+        # setting was asked for. Priority decides DELIVERY, importance decides
+        # PRESENTATION; a must-not-miss chore needs both.
+        importance = str(
+            chore_info.get(
+                const.DATA_CHORE_NOTIFICATION_IMPORTANCE, const.SENTINEL_EMPTY
+            )
+        ).strip()
+        if importance in const.NOTIFY_IMPORTANCE_OPTIONS:
+            extra_data[const.NOTIFY_IMPORTANCE] = importance
+
     # =========================================================================
     # Assignee Notifications
     # =========================================================================
@@ -1023,9 +1098,10 @@ class NotificationManager(BaseManager):
         title: str,
         message: str,
         actions: list[dict[str, str]] | None = None,
-        extra_data: dict[str, str] | None = None,
+        extra_data: dict[str, Any] | None = None,
         tag_type: str | None = None,
         tag_identifiers: tuple[str, ...] | None = None,
+        chore_id: str | None = None,
     ) -> None:
         """Notify a assignee using their configured notification settings."""
         assignee_info: AssigneeData | None = self.coordinator.assignees_data.get(
@@ -1068,6 +1144,7 @@ class NotificationManager(BaseManager):
                 assignee_info,
                 const.DATA_USER_NOTIF_CLICK_URL,
             )
+            self._apply_chore_notification_options(final_extra_data, chore_id)
 
             await self._send_notification(
                 mobile_notify_service,
@@ -1102,9 +1179,10 @@ class NotificationManager(BaseManager):
         message_key: str,
         message_data: dict[str, Any] | None = None,
         actions: list[dict[str, str]] | None = None,
-        extra_data: dict[str, str] | None = None,
+        extra_data: dict[str, Any] | None = None,
         tag_type: str | None = None,
         tag_identifiers: tuple[str, ...] | None = None,
+        chore_id: str | None = None,
     ) -> None:
         """Notify a assignee using translated title and message.
 
@@ -1192,6 +1270,7 @@ class NotificationManager(BaseManager):
             extra_data,
             tag_type=tag_type,
             tag_identifiers=tag_identifiers,
+            chore_id=chore_id,
         )
 
     # =========================================================================
@@ -1204,7 +1283,7 @@ class NotificationManager(BaseManager):
         title: str,
         message: str,
         actions: list[dict[str, str]] | None = None,
-        extra_data: dict[str, str] | None = None,
+        extra_data: dict[str, Any] | None = None,
     ) -> None:
         """Notify all approvers associated with a assignee using their settings."""
         perf_start = time.perf_counter()
@@ -1275,9 +1354,10 @@ class NotificationManager(BaseManager):
         message_key: str,
         message_data: dict[str, Any] | None = None,
         actions: list[dict[str, str]] | None = None,
-        extra_data: dict[str, str] | None = None,
+        extra_data: dict[str, Any] | None = None,
         tag_type: str | None = None,
         tag_identifiers: tuple[str, ...] | None = None,
+        chore_id: str | None = None,
     ) -> None:
         """Notify approvers using translated title and message.
 
@@ -1294,6 +1374,9 @@ class NotificationManager(BaseManager):
             extra_data: Optional extra data for mobile notifications
             tag_type: Optional tag type for smart notification replacement.
             tag_identifiers: Optional tuple of identifiers for tag uniqueness.
+            chore_id: The chore this notification is about, when it is about one.
+                Used to resolve that chore's notification channel. Must be a
+                chore id - some callers pass a reward id in tag_identifiers.
         """
         perf_start = time.perf_counter()
 
@@ -1410,6 +1493,7 @@ class NotificationManager(BaseManager):
                 approver_info,
                 const.DATA_USER_NOTIF_APPROVE_CLICK_URL,
             )
+            self._apply_chore_notification_options(final_extra_data, chore_id)
 
             # Determine notification method and prepare coroutine
             persistent_enabled = approver_info.get(
@@ -1911,6 +1995,7 @@ class NotificationManager(BaseManager):
                 extra_data=extra_data,
                 tag_type=const.NOTIFY_TAG_TYPE_STATUS,
                 tag_identifiers=(chore_id, assignee_id),
+                chore_id=chore_id,
             )
             const.LOGGER.info(
                 "Resent reminder for Chore ID '%s' for Assignee ID '%s'",
@@ -2237,6 +2322,7 @@ class NotificationManager(BaseManager):
                 extra_data=extra_data,
                 tag_type=const.NOTIFY_TAG_TYPE_STATUS,
                 tag_identifiers=(chore_id, assignee_id),
+                chore_id=chore_id,
             )
         else:
             # Single chore notification
@@ -2252,6 +2338,7 @@ class NotificationManager(BaseManager):
                 extra_data=extra_data,
                 tag_type=const.NOTIFY_TAG_TYPE_STATUS,
                 tag_identifiers=(chore_id, assignee_id),
+                chore_id=chore_id,
             )
 
         const.LOGGER.debug(
@@ -2471,6 +2558,7 @@ class NotificationManager(BaseManager):
             message_key=const.TRANS_KEY_NOTIF_MESSAGE_CHORE_DISAPPROVED_ASSIGNEE,
             message_data={"chore_name": chore_name},
             extra_data=extra_data,
+            chore_id=chore_id,
         )
 
         # Clear the original claim notification from approvers' devices
@@ -2571,6 +2659,7 @@ class NotificationManager(BaseManager):
                     "chore_name": chore_name,
                     "points": points,
                 },
+                chore_id=chore_id,
             )
 
     async def _handle_bonus_applied(self, payload: dict[str, Any]) -> None:
@@ -2742,6 +2831,7 @@ class NotificationManager(BaseManager):
             actions=self.build_claim_action(assignee_id, chore_id, self.entry_id),
             tag_type=const.NOTIFY_TAG_TYPE_STATUS,
             tag_identifiers=(chore_id, assignee_id),
+            chore_id=chore_id,
         )
 
         # Record notification sent (persists to storage)
@@ -2799,6 +2889,7 @@ class NotificationManager(BaseManager):
             actions=self.build_claim_action(assignee_id, chore_id, self.entry_id),
             tag_type=const.NOTIFY_TAG_TYPE_STATUS,
             tag_identifiers=(chore_id, assignee_id),
+            chore_id=chore_id,
         )
 
         # Record notification sent (persists to storage)
@@ -2939,6 +3030,7 @@ class NotificationManager(BaseManager):
             ),
             tag_type=const.NOTIFY_TAG_TYPE_STATUS,
             tag_identifiers=(chore_id, target_assignee_id),
+            chore_id=chore_id,
         )
 
         # Skip approver notification for standby entries — the chore isn't theirs.
@@ -2987,6 +3079,7 @@ class NotificationManager(BaseManager):
                 actions=approver_actions,
                 tag_type=const.NOTIFY_TAG_TYPE_STATUS,
                 tag_identifiers=(chore_id, target_assignee_id),
+                chore_id=chore_id,
             )
 
         # Record notification sent (persists to storage)
@@ -3073,6 +3166,7 @@ class NotificationManager(BaseManager):
             actions=None,  # No actions - chore is locked
             tag_type=const.NOTIFY_TAG_TYPE_STATUS,
             tag_identifiers=(chore_id, assignee_id),
+            chore_id=chore_id,
         )
 
         # Skip approver notification for standbys in primary-standby mode.
@@ -3121,6 +3215,7 @@ class NotificationManager(BaseManager):
                 actions=approver_actions,
                 tag_type=const.NOTIFY_TAG_TYPE_STATUS,
                 tag_identifiers=(chore_id, assignee_id),
+                chore_id=chore_id,
             )
 
         # Record notification sent (persists to storage)

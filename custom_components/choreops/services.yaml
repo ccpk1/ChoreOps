@@ -1481,6 +1481,26 @@ create_chore:
       required: false
       selector:
         text:
+    notification_channel:
+      name: "Notification Channel"
+      description: "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately from other chores. Leave empty to use the app default. iOS ignores this."
+      example: "Medicine"
+      required: false
+      selector:
+        text:
+    notification_importance:
+      name: "Notification Importance"
+      description: "Optional. Android only. How prominently this chore's notifications alert (min, low, default, high, max). Requires notification_channel. Note: sets the channel's INITIAL state the first time a device sees that channel name. The integration cannot change it afterwards; the person still can, in Android settings. iOS ignores this."
+      example: "high"
+      required: false
+      selector:
+        select:
+          options:
+            - "min"
+            - "low"
+            - "default"
+            - "high"
+            - "max"
     notify_on_claim:
       name: "Notify on Claim"
       description: "Send a notification when this chore is claimed. Omit to use the default (enabled)."
@@ -1760,6 +1780,26 @@ update_chore:
       required: false
       selector:
         text:
+    notification_channel:
+      name: "Notification Channel"
+      description: "New notification channel. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately from other chores. Leave empty to use the app default. iOS ignores this."
+      example: "Medicine"
+      required: false
+      selector:
+        text:
+    notification_importance:
+      name: "Notification Importance"
+      description: "Optional. Android only. How prominently this chore's notifications alert (min, low, default, high, max). Requires notification_channel. Note: sets the channel's INITIAL state the first time a device sees that channel name. The integration cannot change it afterwards; the person still can, in Android settings. iOS ignores this."
+      example: "high"
+      required: false
+      selector:
+        select:
+          options:
+            - "min"
+            - "low"
+            - "default"
+            - "high"
+            - "max"
     notify_on_claim:
       name: "Notify on Claim"
       description: "Set whether to notify when this chore is claimed. Omit to leave the current setting unchanged."

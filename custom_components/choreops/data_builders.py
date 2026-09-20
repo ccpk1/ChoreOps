@@ -896,6 +896,24 @@ def build_user_assignment_profile(
                 "",
             )
         ),
+        const.DATA_USER_NOTIFICATION_PRIORITY: str(
+            _resolve_user_input_field(
+                user_input,
+                existing_data,
+                const.CFOF_USERS_INPUT_NOTIFICATION_PRIORITY,
+                const.DATA_USER_NOTIFICATION_PRIORITY,
+                "",
+            )
+        ),
+        const.DATA_USER_NOTIFICATION_TTL: str(
+            _resolve_user_input_field(
+                user_input,
+                existing_data,
+                const.CFOF_USERS_INPUT_NOTIFICATION_TTL,
+                const.DATA_USER_NOTIFICATION_TTL,
+                "",
+            )
+        ),
         const.DATA_USER_UI_PREFERENCES: _normalize_dict_field(
             _resolve_user_input_field(
                 user_input,
@@ -1232,6 +1250,24 @@ def build_user_profile(
                 existing_data,
                 const.CFOF_USERS_INPUT_NOTIF_APPROVE_CLICK_URL,
                 const.DATA_USER_NOTIF_APPROVE_CLICK_URL,
+                "",
+            )
+        ),
+        const.DATA_USER_NOTIFICATION_PRIORITY: str(
+            _resolve_user_input_field(
+                user_input,
+                existing_data,
+                const.CFOF_USERS_INPUT_NOTIFICATION_PRIORITY,
+                const.DATA_USER_NOTIFICATION_PRIORITY,
+                "",
+            )
+        ),
+        const.DATA_USER_NOTIFICATION_TTL: str(
+            _resolve_user_input_field(
+                user_input,
+                existing_data,
+                const.CFOF_USERS_INPUT_NOTIFICATION_TTL,
+                const.DATA_USER_NOTIFICATION_TTL,
                 "",
             )
         ),
@@ -1813,6 +1849,12 @@ def build_chore(
             ),
             const.DATA_CHORE_DUE_REMINDER_OFFSET: get_field(
                 const.DATA_CHORE_DUE_REMINDER_OFFSET, const.DEFAULT_DUE_REMINDER_OFFSET
+            ),
+            const.DATA_CHORE_NOTIFICATION_CHANNEL: str(
+                get_field(const.DATA_CHORE_NOTIFICATION_CHANNEL, "") or ""
+            ),
+            const.DATA_CHORE_NOTIFICATION_IMPORTANCE: str(
+                get_field(const.DATA_CHORE_NOTIFICATION_IMPORTANCE, "") or ""
             ),
             # Runtime tracking (preserve existing values on update)
             const.DATA_CHORE_LAST_COMPLETED: get_field(

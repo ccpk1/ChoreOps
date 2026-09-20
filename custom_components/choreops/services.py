@@ -922,6 +922,12 @@ CREATE_CHORE_SCHEMA = vol.Schema(
             vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_DUE_REMINDER_OFFSET): vol.All(
                 cv.string, flow_helpers.validate_duration_string
             ),
+            vol.Optional(
+                const.SERVICE_FIELD_CHORE_CRUD_NOTIFICATION_CHANNEL
+            ): cv.string,
+            vol.Optional(
+                const.SERVICE_FIELD_CHORE_CRUD_NOTIFICATION_IMPORTANCE
+            ): vol.In(const.NOTIFY_IMPORTANCE_OPTIONS),
             # Notification preferences: omit any field to keep its stored value.
             # Never add `default=` here; a defaulted key would overwrite storage.
             vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_CLAIM): cv.boolean,
@@ -1014,6 +1020,12 @@ UPDATE_CHORE_SCHEMA = vol.Schema(
             vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_DUE_REMINDER_OFFSET): vol.All(
                 cv.string, flow_helpers.validate_duration_string
             ),
+            vol.Optional(
+                const.SERVICE_FIELD_CHORE_CRUD_NOTIFICATION_CHANNEL
+            ): cv.string,
+            vol.Optional(
+                const.SERVICE_FIELD_CHORE_CRUD_NOTIFICATION_IMPORTANCE
+            ): vol.In(const.NOTIFY_IMPORTANCE_OPTIONS),
             # Notification preferences: omit any field to keep its stored value.
             # Never add `default=` here; a defaulted key would overwrite storage.
             vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_CLAIM): cv.boolean,
@@ -1068,6 +1080,8 @@ _SERVICE_TO_CHORE_DATA_MAPPING: dict[str, str] = {
     const.SERVICE_FIELD_CHORE_CRUD_AUTO_APPROVE: const.DATA_CHORE_AUTO_APPROVE,
     const.SERVICE_FIELD_CHORE_CRUD_DUE_WINDOW_OFFSET: const.DATA_CHORE_DUE_WINDOW_OFFSET,
     const.SERVICE_FIELD_CHORE_CRUD_DUE_REMINDER_OFFSET: const.DATA_CHORE_DUE_REMINDER_OFFSET,
+    const.SERVICE_FIELD_CHORE_CRUD_NOTIFICATION_CHANNEL: const.DATA_CHORE_NOTIFICATION_CHANNEL,
+    const.SERVICE_FIELD_CHORE_CRUD_NOTIFICATION_IMPORTANCE: const.DATA_CHORE_NOTIFICATION_IMPORTANCE,
     const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_CLAIM: const.DATA_CHORE_NOTIFY_ON_CLAIM,
     const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_APPROVAL: const.DATA_CHORE_NOTIFY_ON_APPROVAL,
     const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_DISAPPROVAL: const.DATA_CHORE_NOTIFY_ON_DISAPPROVAL,

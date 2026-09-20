@@ -82,14 +82,18 @@
               "ha_user_id": "Home Assistant User",
               "dashboard_language": "Language",
               "mobile_notify_service": "Notifications",
-              "notif_click_url": "Notification tap URL"
+              "notif_click_url": "Notification tap URL",
+              "notification_priority": "Delivery priority",
+              "notification_ttl": "Notification lifetime (seconds)"
             },
             "data_description": {
               "name": "Unique name for this user profile.",
               "ha_user_id": "Optional: Link this profile to a Home Assistant user. If kiosk mode is disabled, shared-device claim and redeem actions rely on this link.",
               "dashboard_language": "Language used for dashboard content and notifications.",
               "mobile_notify_service": "Select notification service or leave empty to disable notifications.",
-              "notif_click_url": "Optional URL to open when notification is tapped. Leave empty for default behavior."
+              "notif_click_url": "Optional URL to open when notification is tapped. Leave empty for default behavior.",
+              "notification_priority": "Android only. High asks the mobile app to deliver immediately even while the device is asleep; Normal may be delayed until it wakes. iOS ignores this.",
+              "notification_ttl": "Optional. Android only. How long delivery keeps being retried before the notification is dropped as stale. Leave empty for the platform default of 28 days; 0 discards anything that cannot be delivered right away. A good value is shorter than how often the chore recurs, so a retry can never arrive looking like the next occurrence - for a daily chore, around 20 hours. iOS ignores this."
             }
           },
           "section_system_usage": {
@@ -194,6 +198,8 @@
               "auto_approve": "✅ Auto-Approve Claims?",
               "overdue_handling_type": "⏰ Overdue: Handling",
               "chore_due_reminder_offset": "🔔 Due Reminder: Offset Before Due Date",
+              "chore_notification_channel": "🔔 Notification Channel",
+              "chore_notification_importance": "🔔 Notification Importance",
               "chore_notifications": "🔔 Notification Events (optional)",
               "show_on_calendar": "📅 Show on Calendar?",
               "chore_labels": "📋 Labels (optional)"
@@ -204,6 +210,8 @@
               "auto_approve": "When enabled, claims are instantly approved without approver review.",
               "overdue_handling_type": "Action after due date: Hide overdue status, remain overdue until claimed, or reset to pending at next approval cycle.",
               "chore_due_reminder_offset": "When to send the due reminder notification. Format: '1d 6h 30m' or just '30' for minutes. Default: 30m (30 minutes before due). Enter '0' to disable.",
+              "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+              "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
               "chore_notifications": "When to send notifications: On claim, on approval, on rejection, or any combination.",
               "show_on_calendar": "Display this chore on the calendar view.",
               "chore_labels": "Tags to organize chores (e.g., 'kitchen', 'outdoor'). Leave blank if not needed."
@@ -230,6 +238,8 @@
           "due_date": "📅 Schedule: Due Date (optional)",
           "chore_due_window_offset": "⏱️ Due Window: Offset Before Due Date",
           "chore_due_reminder_offset": "🔔 Due Reminder: Offset Before Due Date",
+          "chore_notification_channel": "🔔 Notification Channel",
+          "chore_notification_importance": "🔔 Notification Importance",
           "show_on_calendar": "📅 Show on Calendar?",
           "chore_notifications": "🔔 Notification Events (optional)",
           "standby_claim_mode": "🔑 Standby Claim Mode"
@@ -254,6 +264,8 @@
           "due_date": "Optional deadline. Can be combined with recurring schedules.",
           "chore_due_window_offset": "When the chore state changes from Pending to Due. Format: '1d 6h 30m' or just '30' for minutes. Enter '0' to disable. Example: '1d' means chore shows as 'Due' 1 day before deadline.",
           "chore_due_reminder_offset": "When to send the due reminder notification. Format: '1d 6h 30m' or just '30' for minutes. Default: 30m (30 minutes before due). Enter '0' to disable.",
+          "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+          "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
           "show_on_calendar": "Display this chore on the calendar view.",
           "chore_notifications": "When to send notifications: On claim, on approval, on rejection, or any combination.",
           "standby_claim_mode": "Controls when standbys can claim this chore (anytime, on_overdue, manual_only). Only applies to Primary & Standby completion criteria."
@@ -583,14 +595,18 @@
               "ha_user_id": "Home Assistant User",
               "dashboard_language": "Language",
               "mobile_notify_service": "Notifications",
-              "notif_click_url": "Notification tap URL"
+              "notif_click_url": "Notification tap URL",
+              "notification_priority": "Delivery priority",
+              "notification_ttl": "Notification lifetime (seconds)"
             },
             "data_description": {
               "name": "Unique name for this user profile.",
               "ha_user_id": "Optional: Link this profile to a Home Assistant user. If kiosk mode is disabled, shared-device claim and redeem actions rely on this link.",
               "dashboard_language": "Language used for dashboard content and notifications.",
               "mobile_notify_service": "Select notification service or leave empty to disable notifications.",
-              "notif_click_url": "Optional URL to open when notification is tapped. Leave empty for default behavior."
+              "notif_click_url": "Optional URL to open when notification is tapped. Leave empty for default behavior.",
+              "notification_priority": "Android only. High asks the mobile app to deliver immediately even while the device is asleep; Normal may be delayed until it wakes. iOS ignores this.",
+              "notification_ttl": "Optional. Android only. How long delivery keeps being retried before the notification is dropped as stale. Leave empty for the platform default of 28 days; 0 discards anything that cannot be delivered right away. A good value is shorter than how often the chore recurs, so a retry can never arrive looking like the next occurrence - for a daily chore, around 20 hours. iOS ignores this."
             }
           },
           "section_system_usage": {
@@ -688,6 +704,8 @@
               "auto_approve": "✅ Auto-Approve Claims?",
               "overdue_handling_type": "⏰ Overdue: Handling",
               "chore_due_reminder_offset": "🔔 Due Reminder: Offset Before Due Date",
+              "chore_notification_channel": "🔔 Notification Channel",
+              "chore_notification_importance": "🔔 Notification Importance",
               "chore_notifications": "🔔 Notification Events (optional)",
               "show_on_calendar": "📅 Show on Calendar?",
               "chore_labels": "📋 Labels (optional)"
@@ -698,6 +716,8 @@
               "auto_approve": "When enabled, claims are instantly approved without approver review.",
               "overdue_handling_type": "Controls what happens when the due date passes and what happens to overdue chores at the approval reset boundary.",
               "chore_due_reminder_offset": "When to send the due reminder notification. Format: '1d 6h 30m' or just '30' for minutes. Default: 30m (30 minutes before due). Enter '0' to disable.",
+              "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+              "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
               "chore_notifications": "When to send notifications: On claim, on approval, on rejection, or any combination.",
               "show_on_calendar": "Display this chore on the calendar view.",
               "chore_labels": "Tags to organize chores (e.g., 'kitchen', 'outdoor'). Leave blank if not needed."
@@ -725,6 +745,8 @@
           "clear_due_date": "🗑️ Clear Due Date",
           "chore_due_window_offset": "⏱️ Due Window: Offset Before Due Date",
           "chore_due_reminder_offset": "🔔 Due Reminder: Offset Before Due Date",
+          "chore_notification_channel": "🔔 Notification Channel",
+          "chore_notification_importance": "🔔 Notification Importance",
           "show_on_calendar": "📅 Show on Calendar?",
           "chore_notifications": "🔔 Notification Events (optional)",
           "standby_claim_mode": "🔑 Standby Claim Mode"
@@ -750,6 +772,8 @@
           "clear_due_date": "Check this box to remove the due date from this chore.",
           "chore_due_window_offset": "When the chore state changes from Pending to Due. Format: '1d 6h 30m' or just '30' for minutes. Enter '0' to disable. Example: '1d' means chore shows as 'Due' 1 day before deadline.",
           "chore_due_reminder_offset": "When to send the due reminder notification. Format: '1d 6h 30m' or just '30' for minutes. Default: 30m (30 minutes before due). Enter '0' to disable.",
+          "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+          "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
           "show_on_calendar": "Display this chore on the calendar view.",
           "chore_notifications": "When to send notifications: On claim, on approval, on rejection, or any combination.",
           "standby_claim_mode": "Controls when standbys can claim this chore (anytime, on_overdue, manual_only). Only applies to Primary & Standby completion criteria."
@@ -1035,14 +1059,18 @@
               "ha_user_id": "Home Assistant User",
               "dashboard_language": "Language",
               "mobile_notify_service": "Notifications",
-              "notif_click_url": "Notification tap URL"
+              "notif_click_url": "Notification tap URL",
+              "notification_priority": "Delivery priority",
+              "notification_ttl": "Notification lifetime (seconds)"
             },
             "data_description": {
               "name": "Unique name for this user profile.",
               "ha_user_id": "Optional: Link this profile to a Home Assistant user. If kiosk mode is disabled, shared-device claim and redeem actions rely on this link.",
               "dashboard_language": "Language used for dashboard content and notifications.",
               "mobile_notify_service": "Select notification service or leave empty to disable notifications.",
-              "notif_click_url": "Optional URL to open when notification is tapped. Leave empty for default behavior."
+              "notif_click_url": "Optional URL to open when notification is tapped. Leave empty for default behavior.",
+              "notification_priority": "Android only. High asks the mobile app to deliver immediately even while the device is asleep; Normal may be delayed until it wakes. iOS ignores this.",
+              "notification_ttl": "Optional. Android only. How long delivery keeps being retried before the notification is dropped as stale. Leave empty for the platform default of 28 days; 0 discards anything that cannot be delivered right away. A good value is shorter than how often the chore recurs, so a retry can never arrive looking like the next occurrence - for a daily chore, around 20 hours. iOS ignores this."
             }
           },
           "section_system_usage": {
@@ -1140,6 +1168,8 @@
               "auto_approve": "✅ Auto-Approve Claims?",
               "overdue_handling_type": "⏰ Overdue: Handling",
               "chore_due_reminder_offset": "🔔 Due Reminder: Offset Before Due Date",
+              "chore_notification_channel": "🔔 Notification Channel",
+              "chore_notification_importance": "🔔 Notification Importance",
               "chore_notifications": "🔔 Notification Events (optional)",
               "show_on_calendar": "📅 Show on Calendar?",
               "chore_labels": "📋 Labels (optional)"
@@ -1150,6 +1180,8 @@
               "auto_approve": "When enabled, claims are instantly approved without approver review.",
               "overdue_handling_type": "Controls what happens when the due date passes and what happens to overdue chores at the approval reset boundary.",
               "chore_due_reminder_offset": "When to send the due reminder notification. Format: '1d 6h 30m' or just '30' for minutes. Default: 30m (30 minutes before due). Enter '0' to disable.",
+              "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+              "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
               "chore_notifications": "When to send notifications: On claim, on approval, on rejection, or any combination.",
               "show_on_calendar": "Display this chore on the calendar view.",
               "chore_labels": "Tags to organize chores (e.g., 'kitchen', 'outdoor'). Leave blank if not needed."
@@ -1178,6 +1210,8 @@
           "clear_due_date": "🗑️ Clear Due Date",
           "chore_due_window_offset": "⏱️ Due Window: Offset Before Due Date",
           "chore_due_reminder_offset": "🔔 Due Reminder: Offset Before Due Date",
+          "chore_notification_channel": "🔔 Notification Channel",
+          "chore_notification_importance": "🔔 Notification Importance",
           "show_on_calendar": "📅 Show on Calendar?",
           "chore_notifications": "🔔 Notification Events (optional)",
           "standby_claim_mode": "🔑 Standby Claim Mode"
@@ -1203,6 +1237,8 @@
           "clear_due_date": "Check this box to remove the due date from this chore.",
           "chore_due_window_offset": "When the chore state changes from Pending to Due. Format: '1d 6h 30m' or just '30' for minutes. Enter '0' to disable. Example: '1d' means chore shows as 'Due' 1 day before deadline.",
           "chore_due_reminder_offset": "When to send the due reminder notification. Format: '1d 6h 30m' or just '30' for minutes. Default: 30m (30 minutes before due). Enter '0' to disable.",
+          "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+          "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
           "show_on_calendar": "Display this chore on the calendar view.",
           "chore_notifications": "When to send notifications: On claim, on approval, on rejection, or any combination.",
           "standby_claim_mode": "Controls when standbys can claim this chore (anytime, on_overdue, manual_only). Only applies to Primary & Standby completion criteria."
@@ -2078,6 +2114,12 @@
         "custom_1_month": "Custom: 1-Month Period"
       }
     },
+    "notification_priority": {
+      "options": {
+        "normal": "Normal (may be delayed while the device is asleep)",
+        "high": "High (deliver immediately, even while the device is asleep)"
+      }
+    },
     "completion_criteria": {
       "options": {
         "shared_all": "Shared All (All assignees must complete together)",
@@ -2203,6 +2245,15 @@
         "current_active": "📂 Use current active data file",
         "migrate_from_kidschores": "🔄 Migrate from KidsChores (non-destructive copy)",
         "paste_json": "📋 Paste JSON from data file or diagnostics"
+      }
+    },
+    "notification_importance": {
+      "options": {
+        "min": "Minimum (no sound, collapsed)",
+        "low": "Low (no sound)",
+        "default": "Default (makes a sound)",
+        "high": "High (pops on screen and makes a sound)",
+        "max": "Maximum (pops on screen, most urgent)"
       }
     }
   },
@@ -2758,6 +2809,14 @@
           "description": "Duration before due date to send reminder notification. Format: '30m', '1h', '1d 6h 30m', etc. Use '0' to disable reminders.",
           "example": "30m"
         },
+        "notification_channel": {
+          "name": "Notification Channel",
+          "description": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately from other chores. Leave empty to use the app default. iOS ignores this."
+        },
+        "notification_importance": {
+          "name": "Notification Importance",
+          "description": "Optional. Android only. How prominently this chore's notifications alert (min, low, default, high, max). Requires notification_channel. Note: sets the channel's INITIAL state the first time a device sees that channel name. The integration cannot change it afterwards; the person still can, in Android settings. iOS ignores this."
+        },
         "standby_claim_mode": {
           "name": "Standby Claim Mode",
           "description": "Controls when standbys can claim this chore (anytime, on_overdue, manual_only). Only applies to Primary & Standby completion criteria."
@@ -2907,6 +2966,14 @@
           "name": "Due Reminder Offset",
           "description": "New due reminder offset. Duration before due date to send reminder notification. Format: '30m', '1h', '1d 6h 30m', etc. Use '0' to disable.",
           "example": "30m"
+        },
+        "notification_channel": {
+          "name": "Notification Channel",
+          "description": "New notification channel. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately from other chores. Leave empty to use the app default. iOS ignores this."
+        },
+        "notification_importance": {
+          "name": "Notification Importance",
+          "description": "Optional. Android only. How prominently this chore's notifications alert (min, low, default, high, max). Requires notification_channel. Note: sets the channel's INITIAL state the first time a device sees that channel name. The integration cannot change it afterwards; the person still can, in Android settings. iOS ignores this."
         },
         "assignment_action": {
           "name": "Assignment Action",
