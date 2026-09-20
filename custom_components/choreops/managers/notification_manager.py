@@ -33,6 +33,8 @@ from ..utils.math_utils import round_points
 from .base_manager import BaseManager
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     from homeassistant.core import HomeAssistant
 
     from ..coordinator import ChoreOpsDataCoordinator
@@ -984,6 +986,34 @@ class NotificationManager(BaseManager):
             )
 
     # =========================================================================
+    # Shared notification payload helpers
+    # =========================================================================
+
+    @staticmethod
+    def _apply_user_notification_options(
+        extra_data: dict[str, Any],
+        user_info: Mapping[str, Any],
+        click_url_key: str,
+    ) -> None:
+        """Merge a user's notification delivery preferences into ``extra_data``.
+
+        Mutates ``extra_data`` in place. Every recipient path builds the same
+        per-user keys, so they are assembled here once rather than repeated at
+        each call site.
+
+        Args:
+            extra_data: Payload ``data`` dict to update in place.
+            user_info: The assignee or approver profile to read settings from.
+            click_url_key: Which click-URL setting applies to this recipient -
+                assignees and approvers store their own.
+        """
+        click_url = str(user_info.get(click_url_key, const.SENTINEL_EMPTY))
+        if click_url:
+            # clickAction is Android, url is iOS.
+            extra_data["clickAction"] = click_url
+            extra_data["url"] = click_url
+
+    # =========================================================================
     # Assignee Notifications
     # =========================================================================
 
@@ -1033,13 +1063,11 @@ class NotificationManager(BaseManager):
             if notification_tag:
                 final_extra_data[const.NOTIFY_TAG] = notification_tag
 
-            # Add clickAction URL (Android) / url (iOS) if user has configured one
-            notif_click_url = str(
-                assignee_info.get(const.DATA_USER_NOTIF_CLICK_URL, const.SENTINEL_EMPTY)
+            self._apply_user_notification_options(
+                final_extra_data,
+                assignee_info,
+                const.DATA_USER_NOTIF_CLICK_URL,
             )
-            if notif_click_url:
-                final_extra_data["clickAction"] = notif_click_url
-                final_extra_data["url"] = notif_click_url
 
             await self._send_notification(
                 mobile_notify_service,
@@ -1201,17 +1229,12 @@ class NotificationManager(BaseManager):
 
             if mobile_notify_service:
                 approver_count += 1
-                # Build extra_data with clickAction (Android) / url (iOS) if approver has one configured
                 final_extra_data = dict(extra_data) if extra_data else {}
-                notif_click_url = str(
-                    approver_info.get(
-                        const.DATA_USER_NOTIF_APPROVE_CLICK_URL,
-                        const.SENTINEL_EMPTY,
-                    )
+                self._apply_user_notification_options(
+                    final_extra_data,
+                    approver_info,
+                    const.DATA_USER_NOTIF_APPROVE_CLICK_URL,
                 )
-                if notif_click_url:
-                    final_extra_data["clickAction"] = notif_click_url
-                    final_extra_data["url"] = notif_click_url
                 await self._send_notification(
                     mobile_notify_service,
                     title,
@@ -1382,15 +1405,11 @@ class NotificationManager(BaseManager):
             if notification_tag:
                 final_extra_data[const.NOTIFY_TAG] = notification_tag
 
-            # Add clickAction URL (Android) / url (iOS) if approver has configured one
-            notif_click_url = str(
-                approver_info.get(
-                    const.DATA_USER_NOTIF_APPROVE_CLICK_URL, const.SENTINEL_EMPTY
-                )
+            self._apply_user_notification_options(
+                final_extra_data,
+                approver_info,
+                const.DATA_USER_NOTIF_APPROVE_CLICK_URL,
             )
-            if notif_click_url:
-                final_extra_data["clickAction"] = notif_click_url
-                final_extra_data["url"] = notif_click_url
 
             # Determine notification method and prepare coroutine
             persistent_enabled = approver_info.get(
@@ -1528,17 +1547,12 @@ class NotificationManager(BaseManager):
             )
 
             if mobile_notify_service:
-                # Build extra_data with clickAction (Android) / url (iOS) if approver has configured one
-                broadcast_extra_data: dict[str, str] = {}
-                notif_click_url = str(
-                    approver_info.get(
-                        const.DATA_USER_NOTIF_APPROVE_CLICK_URL,
-                        const.SENTINEL_EMPTY,
-                    )
+                broadcast_extra_data: dict[str, Any] = {}
+                self._apply_user_notification_options(
+                    broadcast_extra_data,
+                    approver_info,
+                    const.DATA_USER_NOTIF_APPROVE_CLICK_URL,
                 )
-                if notif_click_url:
-                    broadcast_extra_data["clickAction"] = notif_click_url
-                    broadcast_extra_data["url"] = notif_click_url
                 notification_tasks.append(
                     (
                         approver_id,
