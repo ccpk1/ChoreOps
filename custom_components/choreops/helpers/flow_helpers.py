@@ -2622,7 +2622,21 @@ def validate_badge_common_inputs(
                         const.TRANS_KEY_CFOF_ERROR_AWARD_POINTS_MINIMUM
                     )
         else:
-            user_input[const.CFOF_BADGES_INPUT_AWARD_POINTS] = const.DEFAULT_ZERO
+            raw_points = user_input.get(
+                const.CFOF_BADGES_INPUT_AWARD_POINTS, const.DEFAULT_ZERO
+            )
+            try:
+                parsed_points = parse_points_value(raw_points, allow_negative=False)
+            except (ValueError, TypeError):
+                parsed_points = const.DEFAULT_ZERO
+            if parsed_points > const.DEFAULT_ZERO:
+                # Manifest ignores award_items at payout time; reject the
+                # conflicting value instead of silently zero-filling it.
+                errors[const.CFOF_BADGES_INPUT_AWARD_POINTS] = (
+                    const.TRANS_KEY_CFOF_ERROR_AWARD_POINTS_REQUIRES_ITEM
+                )
+            else:
+                user_input[const.CFOF_BADGES_INPUT_AWARD_POINTS] = const.DEFAULT_ZERO
 
         # 2. POINTS MULTIPLIER: logic
         if const.AWARD_ITEMS_KEY_POINTS_MULTIPLIER in award_items:
@@ -2651,7 +2665,23 @@ def validate_badge_common_inputs(
                         const.TRANS_KEY_CFOF_ERROR_AWARD_INVALID_MULTIPLIER
                     )
         else:
-            user_input[const.CFOF_BADGES_INPUT_POINTS_MULTIPLIER] = const.SENTINEL_NONE
+            raw_multiplier = user_input.get(const.CFOF_BADGES_INPUT_POINTS_MULTIPLIER)
+            try:
+                parsed_multiplier = (
+                    parse_points_value(raw_multiplier, allow_negative=False)
+                    if raw_multiplier is not None
+                    else None
+                )
+            except (ValueError, TypeError):
+                parsed_multiplier = None
+            if parsed_multiplier is not None and parsed_multiplier > const.DEFAULT_ZERO:
+                errors[const.CFOF_BADGES_INPUT_POINTS_MULTIPLIER] = (
+                    const.TRANS_KEY_CFOF_ERROR_AWARD_MULTIPLIER_REQUIRES_ITEM
+                )
+            else:
+                user_input[const.CFOF_BADGES_INPUT_POINTS_MULTIPLIER] = (
+                    const.SENTINEL_NONE
+                )
 
         # 3. All selected award_items must be valid
         for item in award_items:

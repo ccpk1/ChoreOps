@@ -354,6 +354,70 @@ def test_validate_badge_common_inputs_rejects_more_than_two_decimals() -> None:
     )
 
 
+def test_validate_badge_common_inputs_rejects_points_without_points_item() -> None:
+    """Test points value without 'points' in award_items errors (issue #304)."""
+    user_input = {
+        const.CFOF_BADGES_INPUT_NAME: "Silent payout badge",
+        const.CFOF_BADGES_INPUT_ASSIGNED_USER_IDS: ["user-1"],
+        const.CFOF_BADGES_INPUT_TARGET_THRESHOLD_VALUE: 100,
+        const.CFOF_BADGES_INPUT_MAINTENANCE_RULES: 0,
+        const.CFOF_BADGES_INPUT_RESET_SCHEDULE_GRACE_PERIOD_DAYS: 0,
+        const.CFOF_BADGES_INPUT_AWARD_ITEMS: [],
+        const.CFOF_BADGES_INPUT_AWARD_POINTS: 20.0,
+    }
+
+    errors = fh.validate_badge_common_inputs(user_input, None)
+
+    assert errors == {
+        const.CFOF_BADGES_INPUT_AWARD_POINTS: (
+            const.TRANS_KEY_CFOF_ERROR_AWARD_POINTS_REQUIRES_ITEM
+        )
+    }
+    # Typed value must survive so the form can redisplay it with the error
+    assert user_input[const.CFOF_BADGES_INPUT_AWARD_POINTS] == 20.0
+
+
+def test_validate_badge_common_inputs_normalizes_inactive_zero_points() -> None:
+    """Test zero points without 'points' in award_items still normalizes."""
+    user_input = {
+        const.CFOF_BADGES_INPUT_NAME: "No points badge",
+        const.CFOF_BADGES_INPUT_ASSIGNED_USER_IDS: ["user-1"],
+        const.CFOF_BADGES_INPUT_TARGET_THRESHOLD_VALUE: 100,
+        const.CFOF_BADGES_INPUT_MAINTENANCE_RULES: 0,
+        const.CFOF_BADGES_INPUT_RESET_SCHEDULE_GRACE_PERIOD_DAYS: 0,
+        const.CFOF_BADGES_INPUT_AWARD_ITEMS: [],
+        const.CFOF_BADGES_INPUT_AWARD_POINTS: 0.0,
+    }
+
+    errors = fh.validate_badge_common_inputs(user_input, None)
+
+    assert errors == {}
+    assert user_input[const.CFOF_BADGES_INPUT_AWARD_POINTS] == const.DEFAULT_ZERO
+
+
+def test_validate_badge_common_inputs_rejects_multiplier_without_item() -> None:
+    """Test multiplier value without its award_item errors instead of dropping."""
+    user_input = {
+        const.CFOF_BADGES_INPUT_NAME: "Silent multiplier badge",
+        const.CFOF_BADGES_INPUT_ASSIGNED_USER_IDS: ["user-1"],
+        const.CFOF_BADGES_INPUT_TARGET_THRESHOLD_VALUE: 100,
+        const.CFOF_BADGES_INPUT_MAINTENANCE_RULES: 0,
+        const.CFOF_BADGES_INPUT_RESET_SCHEDULE_GRACE_PERIOD_DAYS: 0,
+        const.CFOF_BADGES_INPUT_AWARD_ITEMS: [const.AWARD_ITEMS_KEY_POINTS],
+        const.CFOF_BADGES_INPUT_AWARD_POINTS: 5.0,
+        const.CFOF_BADGES_INPUT_POINTS_MULTIPLIER: 1.5,
+    }
+
+    errors = fh.validate_badge_common_inputs(user_input, None)
+
+    assert errors == {
+        const.CFOF_BADGES_INPUT_POINTS_MULTIPLIER: (
+            const.TRANS_KEY_CFOF_ERROR_AWARD_MULTIPLIER_REQUIRES_ITEM
+        )
+    }
+    assert user_input[const.CFOF_BADGES_INPUT_POINTS_MULTIPLIER] == 1.5
+
+
 def test_validate_rewards_inputs_accepts_decimal_cost() -> None:
     """Test reward validation accepts decimal costs."""
     errors = fh.validate_rewards_inputs(

@@ -3723,6 +3723,12 @@ TRANS_KEY_ERROR_SINGLE_INSTANCE: Final = "single_instance_allowed"
 TRANS_KEY_CFOF_ERROR_AWARD_POINTS_MINIMUM: Final = "error_award_points_minimum"
 TRANS_KEY_CFOF_ERROR_AWARD_INVALID_MULTIPLIER: Final = "error_award_invalid_multiplier"
 TRANS_KEY_CFOF_ERROR_AWARD_INVALID_AWARD_ITEM: Final = "invalid_award_item_selected"
+TRANS_KEY_CFOF_ERROR_AWARD_POINTS_REQUIRES_ITEM: Final = (
+    "error_award_points_requires_item"
+)
+TRANS_KEY_CFOF_ERROR_AWARD_MULTIPLIER_REQUIRES_ITEM: Final = (
+    "error_award_multiplier_requires_item"
+)
 TRANS_KEY_CFOF_ERROR_BADGE_ACHIEVEMENT_REQUIRED: Final = (
     "error_badge_achievement_required"
 )
