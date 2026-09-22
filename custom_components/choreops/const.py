@@ -4128,6 +4128,12 @@ NOTIFY_TITLE = "title"
 # discards anything undeliverable immediately.
 NOTIFY_PRIORITY = "priority"
 NOTIFY_TTL = "ttl"
+# FCM accepts 0..2,419,200 seconds (28 days) and rejects anything else with
+# InvalidTtl - the message is then NOT SENT. Out of range is therefore as fatal
+# as a crash and just as silent, so the parse bounds the value rather than only
+# guarding against exceptions: "1e308" raises nothing at all, clears a
+# `parsed < 0` check, and would ship a 309-digit integer.
+NOTIFY_TTL_MAX_SECONDS: Final = 2_419_200
 # Android groups notifications by channel, and a channel is what the OS exposes
 # to the user for per-category sound, importance and Do Not Disturb. Set per
 # CHORE rather than per user, so one person can silence routine chores without
@@ -4142,8 +4148,10 @@ NOTIFY_CHANNEL = "channel"
 NOTIFY_IMPORTANCE = "importance"
 NOTIFY_IMPORTANCE_DEFAULT: Final = "default"
 NOTIFY_IMPORTANCE_OPTIONS: Final = ("min", "low", "default", "high", "max")
-NOTIFY_PRIORITY_NORMAL = "normal"
-NOTIFY_PRIORITY_HIGH = "high"
+# Final so these narrow to Literal["normal"] / Literal["high"] rather than str,
+# which is what lets the builders assign them to the typed fields without a cast.
+NOTIFY_PRIORITY_NORMAL: Final = "normal"
+NOTIFY_PRIORITY_HIGH: Final = "high"
 NOTIFY_PRIORITY_OPTIONS: Final = (NOTIFY_PRIORITY_NORMAL, NOTIFY_PRIORITY_HIGH)
 
 # Notification tag system

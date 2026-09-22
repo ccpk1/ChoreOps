@@ -236,7 +236,13 @@ class ChoreData(TypedDict):
         str | None
     ]  # Duration string for reminder notification
     notification_channel: NotRequired[str]  # Android notification channel name
-    notification_importance: NotRequired[str]  # min|low|default|high|max
+    # Closed set, validated at runtime against NOTIFY_IMPORTANCE_OPTIONS. Typing
+    # it as the literal union lets mypy enforce it statically instead.
+    # "" is a member for the same reason as notification_priority below: the
+    # builder stores it for a chore that has never set one.
+    notification_importance: NotRequired[
+        Literal["", "min", "low", "default", "high", "max"]
+    ]
 
     # Runtime tracking (set during chore lifecycle)
     last_completed: NotRequired[str | None]  # ISO datetime
@@ -639,7 +645,20 @@ class AssigneeData(TypedDict):
     dashboard_language: NotRequired[str]
     notif_click_url: NotRequired[str]
     notif_approve_click_url: NotRequired[str]
-    notification_priority: NotRequired[str]
+    # Closed set, validated at runtime against NOTIFY_PRIORITY_OPTIONS - see the
+    # note on notification_importance above.
+    #
+    # ⚠️ "" IS A MEMBER, and leaving it out would be a lie that mypy enforces.
+    # The builder writes "" for a profile that has never set this, so the runtime
+    # `== NOTIFY_PRIORITY_HIGH` check is genuinely doing work rather than being
+    # redundant. Typing it as just normal|high type-checks and then misdescribes
+    # every existing user.
+    notification_priority: NotRequired[Literal["", "normal", "high"]]
+    # Deliberately str, not int | None: this is the form-native value, and the
+    # options flow stores "" for unset. Moving it to int | None would mean
+    # choosing how "unset" is represented and touching the builder, the
+    # validator and the flow - a design change rather than a cleanup. The parse
+    # in _apply_recipient_notification_options is where it becomes a number.
     notification_ttl: NotRequired[str]
     ui_preferences: NotRequired[dict[str, Any]]
 

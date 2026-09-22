@@ -990,16 +990,18 @@ class NotificationManager(BaseManager):
     # =========================================================================
 
     @staticmethod
-    def _apply_user_notification_options(
+    def _apply_recipient_notification_options(
         extra_data: dict[str, Any],
         user_info: Mapping[str, Any],
         click_url_key: str,
     ) -> None:
-        """Merge a user's notification delivery preferences into ``extra_data``.
+        """Merge the RECIPIENT's notification delivery preferences into ``extra_data``.
 
-        Mutates ``extra_data`` in place. Every recipient path builds the same
-        per-user keys, so they are assembled here once rather than repeated at
-        each call site.
+        Mutates ``extra_data`` in place. One of exactly two axes: this one is who
+        the notification goes TO, and
+        :meth:`_apply_subject_notification_options` is what it is ABOUT. Every
+        recipient path builds the same keys, so they are assembled here once
+        rather than repeated at each call site.
 
         Args:
             extra_data: Payload ``data`` dict to update in place.
@@ -1031,25 +1033,42 @@ class NotificationManager(BaseManager):
             # not the parsed int, or a deliberate 0 would be dropped as falsy.
             try:
                 # via float so a numeric selector's 3600.0 parses as well as "3600"
+                # OverflowError, not just ValueError: float() does NOT raise on
+                # "1e400"/"inf" - it returns inf, and int(inf) is what raises. An
+                # escaping exception here silences every notification for this
+                # user, since all recipient paths go through this helper.
                 parsed = int(float(str(ttl).strip()))
-            except ValueError:
+            except (ValueError, OverflowError):
                 const.LOGGER.warning("Ignoring non-numeric notification TTL: %s", ttl)
             else:
-                if parsed < 0:
-                    const.LOGGER.warning("Ignoring negative notification TTL: %s", ttl)
+                # BOUND, not just an exception guard. "1e308" raises nothing,
+                # clears a negative check, and would ship a 309-digit integer;
+                # FCM answers anything outside 0..NOTIFY_TTL_MAX_SECONDS with
+                # InvalidTtl and does not send the message - the same silent
+                # failure as the crash above, reached without an exception.
+                if not 0 <= parsed <= const.NOTIFY_TTL_MAX_SECONDS:
+                    const.LOGGER.warning(
+                        "Ignoring out-of-range notification TTL (allowed 0-%s): %s",
+                        const.NOTIFY_TTL_MAX_SECONDS,
+                        ttl,
+                    )
                 else:
                     extra_data[const.NOTIFY_TTL] = parsed
 
-    def _apply_chore_notification_options(
+    def _apply_subject_notification_options(
         self,
         extra_data: dict[str, Any],
         chore_id: str | None,
     ) -> None:
-        """Merge a chore's own notification options into ``extra_data``.
+        """Merge the SUBJECT's notification options into ``extra_data``.
 
-        Mutates ``extra_data`` in place. Separate from the per-user helper
-        because this axis is the SUBJECT of the notification, not its recipient:
-        the same person receives chores that should be grouped differently.
+        Mutates ``extra_data`` in place. One of exactly two axes: this one is
+        what the notification is ABOUT, and
+        :meth:`_apply_recipient_notification_options` is who it goes TO. The
+        same person receives chores that should be grouped differently, which is
+        why the split is by axis and not by which record the data happens to be
+        read from. A third source-named helper would be a mistake - new settings
+        belong on one of these two.
 
         SUBJECT RESOLUTION: takes an explicit chore_id rather than reading
         tag_identifiers. Those tuples carry a REWARD id at two call sites, so
@@ -1139,12 +1158,12 @@ class NotificationManager(BaseManager):
             if notification_tag:
                 final_extra_data[const.NOTIFY_TAG] = notification_tag
 
-            self._apply_user_notification_options(
+            self._apply_recipient_notification_options(
                 final_extra_data,
                 assignee_info,
                 const.DATA_USER_NOTIF_CLICK_URL,
             )
-            self._apply_chore_notification_options(final_extra_data, chore_id)
+            self._apply_subject_notification_options(final_extra_data, chore_id)
 
             await self._send_notification(
                 mobile_notify_service,
@@ -1309,7 +1328,7 @@ class NotificationManager(BaseManager):
             if mobile_notify_service:
                 approver_count += 1
                 final_extra_data = dict(extra_data) if extra_data else {}
-                self._apply_user_notification_options(
+                self._apply_recipient_notification_options(
                     final_extra_data,
                     approver_info,
                     const.DATA_USER_NOTIF_APPROVE_CLICK_URL,
@@ -1488,12 +1507,12 @@ class NotificationManager(BaseManager):
             if notification_tag:
                 final_extra_data[const.NOTIFY_TAG] = notification_tag
 
-            self._apply_user_notification_options(
+            self._apply_recipient_notification_options(
                 final_extra_data,
                 approver_info,
                 const.DATA_USER_NOTIF_APPROVE_CLICK_URL,
             )
-            self._apply_chore_notification_options(final_extra_data, chore_id)
+            self._apply_subject_notification_options(final_extra_data, chore_id)
 
             # Determine notification method and prepare coroutine
             persistent_enabled = approver_info.get(
@@ -1632,7 +1651,7 @@ class NotificationManager(BaseManager):
 
             if mobile_notify_service:
                 broadcast_extra_data: dict[str, Any] = {}
-                self._apply_user_notification_options(
+                self._apply_recipient_notification_options(
                     broadcast_extra_data,
                     approver_info,
                     const.DATA_USER_NOTIF_APPROVE_CLICK_URL,
