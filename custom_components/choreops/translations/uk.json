@@ -82,14 +82,18 @@
               "ha_user_id": "Користувач домашнього помічника",
               "dashboard_language": "Мова",
               "mobile_notify_service": "Сповіщення",
-              "notif_click_url": "URL-адреса сповіщення про натискання"
+              "notif_click_url": "URL-адреса сповіщення про натискання",
+              "notification_priority": "Delivery priority",
+              "notification_ttl": "Notification lifetime (seconds)"
             },
             "data_description": {
               "name": "Унікальне ім'я для цього профілю користувача.",
               "ha_user_id": "Додатково: Пов’яжіть цей профіль із користувачем Домашнього асистента. Якщо режим кіоску вимкнено, дії щодо заявки та активації на спільному пристрої залежать від цього посилання.",
               "dashboard_language": "Мова, що використовується для вмісту та сповіщень панелі інструментів.",
               "mobile_notify_service": "Виберіть службу сповіщень або залиште поле порожнім, щоб вимкнути сповіщення.",
-              "notif_click_url": "Додаткова URL-адреса, яка відкриватиметься після натискання на сповіщення. Залиште поле порожнім, щоб використовувати поведінку за замовчуванням."
+              "notif_click_url": "Додаткова URL-адреса, яка відкриватиметься після натискання на сповіщення. Залиште поле порожнім, щоб використовувати поведінку за замовчуванням.",
+              "notification_priority": "Android only. High asks the mobile app to deliver immediately even while the device is asleep; Normal may be delayed until it wakes. iOS ignores this.",
+              "notification_ttl": "Optional. Android only. How long delivery keeps being retried before the notification is dropped as stale. Leave empty for the platform default of 28 days; 0 discards anything that cannot be delivered right away. A good value is shorter than how often the chore recurs, so a retry can never arrive looking like the next occurrence - for a daily chore, around 20 hours. iOS ignores this."
             }
           },
           "section_system_usage": {
@@ -194,6 +198,8 @@
               "auto_approve": "✅ Автоматичне схвалення заявок?",
               "overdue_handling_type": "⏰ Прострочено: Обробка",
               "chore_due_reminder_offset": "🔔 Нагадування про сплату: Зсув до дати сплати",
+              "chore_notification_channel": "🔔 Notification Channel",
+              "chore_notification_importance": "🔔 Notification Importance",
               "chore_notifications": "🔔 Події сповіщень (необов'язково)",
               "show_on_calendar": "📅 Показати в календарі?",
               "chore_labels": "📋 Мітки (необов'язково)"
@@ -204,6 +210,8 @@
               "auto_approve": "Якщо ввімкнено, заявки миттєво схвалюються без перевірки особою, яка їх затверджує.",
               "overdue_handling_type": "Дія після дати виконання: приховати статус прострочення, залишити простроченим до отримання заявки або скинути до стану «очікує» під час наступного циклу затвердження.",
               "chore_due_reminder_offset": "Коли надсилати нагадування про термін виконання. Формат: «1д 6год 30хв» або просто «30» для хвилин. За замовчуванням: 30хв (за 30 хвилин до терміну виконання). Введіть «0», щоб вимкнути.",
+              "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+              "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
               "chore_notifications": "Коли надсилати сповіщення: після заявки, після схвалення, після відхилення або будь-яка комбінація.",
               "show_on_calendar": "Відобразити це завдання в календарі.",
               "chore_labels": "Теги для організації домашніх справ (наприклад, «кухня», «на вулиці»). Залиште поле порожнім, якщо не потрібно."
@@ -230,6 +238,8 @@
           "due_date": "📅 Розклад: Дата виконання (необов'язково)",
           "chore_due_window_offset": "⏱️ Термін оплати: Зсув до дати оплати",
           "chore_due_reminder_offset": "🔔 Нагадування про сплату: Зсув до дати сплати",
+          "chore_notification_channel": "🔔 Notification Channel",
+          "chore_notification_importance": "🔔 Notification Importance",
           "show_on_calendar": "📅 Показати в календарі?",
           "chore_notifications": "🔔 Події сповіщень (необов'язково)",
           "standby_claim_mode": "🔑 Режим очікування"
@@ -254,6 +264,8 @@
           "due_date": "Необов'язковий термін. Можна поєднувати з повторюваними графіками.",
           "chore_due_window_offset": "Коли стан завдання змінюється з «Очікує виконання» на «Термін виконання». Формат: «1д 6г 30м» або просто «30» для хвилин. Введіть «0», щоб вимкнути. Приклад: «1д» означає, що завдання відображається як «Термін виконання» за 1 день до дедлайну.",
           "chore_due_reminder_offset": "Коли надсилати нагадування про термін виконання. Формат: «1д 6год 30хв» або просто «30» для хвилин. За замовчуванням: 30хв (за 30 хвилин до терміну виконання). Введіть «0», щоб вимкнути.",
+          "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+          "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
           "show_on_calendar": "Відобразити це завдання в календарі.",
           "chore_notifications": "Коли надсилати сповіщення: після заявки, після схвалення, після відхилення або будь-яка комбінація.",
           "standby_claim_mode": "Контролює, коли резервні завдання можуть вимагати виконання цього завдання (будь-коли, за простроченням, лише вручну). Застосовується лише до критеріїв виконання основних та резервних завдань."
@@ -585,14 +597,18 @@
               "ha_user_id": "Користувач домашнього помічника",
               "dashboard_language": "Мова",
               "mobile_notify_service": "Сповіщення",
-              "notif_click_url": "URL-адреса сповіщення про натискання"
+              "notif_click_url": "URL-адреса сповіщення про натискання",
+              "notification_priority": "Delivery priority",
+              "notification_ttl": "Notification lifetime (seconds)"
             },
             "data_description": {
               "name": "Унікальне ім'я для цього профілю користувача.",
               "ha_user_id": "Додатково: Пов’яжіть цей профіль із користувачем Домашнього асистента. Якщо режим кіоску вимкнено, дії щодо заявки та активації на спільному пристрої залежать від цього посилання.",
               "dashboard_language": "Мова, що використовується для вмісту та сповіщень панелі інструментів.",
               "mobile_notify_service": "Виберіть службу сповіщень або залиште поле порожнім, щоб вимкнути сповіщення.",
-              "notif_click_url": "Додаткова URL-адреса, яка відкриватиметься після натискання на сповіщення. Залиште поле порожнім, щоб використовувати поведінку за замовчуванням."
+              "notif_click_url": "Додаткова URL-адреса, яка відкриватиметься після натискання на сповіщення. Залиште поле порожнім, щоб використовувати поведінку за замовчуванням.",
+              "notification_priority": "Android only. High asks the mobile app to deliver immediately even while the device is asleep; Normal may be delayed until it wakes. iOS ignores this.",
+              "notification_ttl": "Optional. Android only. How long delivery keeps being retried before the notification is dropped as stale. Leave empty for the platform default of 28 days; 0 discards anything that cannot be delivered right away. A good value is shorter than how often the chore recurs, so a retry can never arrive looking like the next occurrence - for a daily chore, around 20 hours. iOS ignores this."
             }
           },
           "section_system_usage": {
@@ -690,6 +706,8 @@
               "auto_approve": "✅ Автоматичне схвалення заявок?",
               "overdue_handling_type": "⏰ Прострочено: Обробка",
               "chore_due_reminder_offset": "🔔 Нагадування про сплату: Зсув до дати сплати",
+              "chore_notification_channel": "🔔 Notification Channel",
+              "chore_notification_importance": "🔔 Notification Importance",
               "chore_notifications": "🔔 Події сповіщень (необов'язково)",
               "show_on_calendar": "📅 Показати в календарі?",
               "chore_labels": "📋 Мітки (необов'язково)"
@@ -700,6 +718,8 @@
               "auto_approve": "Якщо ввімкнено, заявки миттєво схвалюються без перевірки особою, яка їх затверджує.",
               "overdue_handling_type": "Контролює, що відбувається після закінчення терміну виконання та що відбувається з простроченими завданнями на межі скидання затвердження.",
               "chore_due_reminder_offset": "Коли надсилати нагадування про термін виконання. Формат: «1д 6год 30хв» або просто «30» для хвилин. За замовчуванням: 30хв (за 30 хвилин до терміну виконання). Введіть «0», щоб вимкнути.",
+              "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+              "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
               "chore_notifications": "Коли надсилати сповіщення: після заявки, після схвалення, після відхилення або будь-яка комбінація.",
               "show_on_calendar": "Відобразити це завдання в календарі.",
               "chore_labels": "Теги для організації домашніх справ (наприклад, «кухня», «на вулиці»). Залиште поле порожнім, якщо не потрібно."
@@ -727,6 +747,8 @@
           "clear_due_date": "🗑️ Чітка дата виконання",
           "chore_due_window_offset": "⏱️ Термін оплати: Зсув до дати оплати",
           "chore_due_reminder_offset": "🔔 Нагадування про сплату: Зсув до дати сплати",
+          "chore_notification_channel": "🔔 Notification Channel",
+          "chore_notification_importance": "🔔 Notification Importance",
           "show_on_calendar": "📅 Показати в календарі?",
           "chore_notifications": "🔔 Події сповіщень (необов'язково)",
           "standby_claim_mode": "🔑 Режим очікування"
@@ -752,6 +774,8 @@
           "clear_due_date": "Поставте позначку в цьому полі, щоб видалити термін виконання з цього завдання.",
           "chore_due_window_offset": "Коли стан завдання змінюється з «Очікує виконання» на «Термін виконання». Формат: «1д 6г 30м» або просто «30» для хвилин. Введіть «0», щоб вимкнути. Приклад: «1д» означає, що завдання відображається як «Термін виконання» за 1 день до дедлайну.",
           "chore_due_reminder_offset": "Коли надсилати нагадування про термін виконання. Формат: «1д 6год 30хв» або просто «30» для хвилин. За замовчуванням: 30хв (за 30 хвилин до терміну виконання). Введіть «0», щоб вимкнути.",
+          "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+          "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
           "show_on_calendar": "Відобразити це завдання в календарі.",
           "chore_notifications": "Коли надсилати сповіщення: після заявки, після схвалення, після відхилення або будь-яка комбінація.",
           "standby_claim_mode": "Контролює, коли резервні завдання можуть вимагати виконання цього завдання (будь-коли, за простроченням, лише вручну). Застосовується лише до критеріїв виконання основних та резервних завдань."
@@ -1037,14 +1061,18 @@
               "ha_user_id": "Користувач домашнього помічника",
               "dashboard_language": "Мова",
               "mobile_notify_service": "Сповіщення",
-              "notif_click_url": "URL-адреса сповіщення про натискання"
+              "notif_click_url": "URL-адреса сповіщення про натискання",
+              "notification_priority": "Delivery priority",
+              "notification_ttl": "Notification lifetime (seconds)"
             },
             "data_description": {
               "name": "Унікальне ім'я для цього профілю користувача.",
               "ha_user_id": "Додатково: Пов’яжіть цей профіль із користувачем Домашнього асистента. Якщо режим кіоску вимкнено, дії щодо заявки та активації на спільному пристрої залежать від цього посилання.",
               "dashboard_language": "Мова, що використовується для вмісту та сповіщень панелі інструментів.",
               "mobile_notify_service": "Виберіть службу сповіщень або залиште поле порожнім, щоб вимкнути сповіщення.",
-              "notif_click_url": "Додаткова URL-адреса, яка відкриватиметься після натискання на сповіщення. Залиште поле порожнім, щоб використовувати поведінку за замовчуванням."
+              "notif_click_url": "Додаткова URL-адреса, яка відкриватиметься після натискання на сповіщення. Залиште поле порожнім, щоб використовувати поведінку за замовчуванням.",
+              "notification_priority": "Android only. High asks the mobile app to deliver immediately even while the device is asleep; Normal may be delayed until it wakes. iOS ignores this.",
+              "notification_ttl": "Optional. Android only. How long delivery keeps being retried before the notification is dropped as stale. Leave empty for the platform default of 28 days; 0 discards anything that cannot be delivered right away. A good value is shorter than how often the chore recurs, so a retry can never arrive looking like the next occurrence - for a daily chore, around 20 hours. iOS ignores this."
             }
           },
           "section_system_usage": {
@@ -1142,6 +1170,8 @@
               "auto_approve": "✅ Автоматичне схвалення заявок?",
               "overdue_handling_type": "⏰ Прострочено: Обробка",
               "chore_due_reminder_offset": "🔔 Нагадування про сплату: Зсув до дати сплати",
+              "chore_notification_channel": "🔔 Notification Channel",
+              "chore_notification_importance": "🔔 Notification Importance",
               "chore_notifications": "🔔 Події сповіщень (необов'язково)",
               "show_on_calendar": "📅 Показати в календарі?",
               "chore_labels": "📋 Мітки (необов'язково)"
@@ -1152,6 +1182,8 @@
               "auto_approve": "Якщо ввімкнено, заявки миттєво схвалюються без перевірки особою, яка їх затверджує.",
               "overdue_handling_type": "Контролює, що відбувається після закінчення терміну виконання та що відбувається з простроченими завданнями на межі скидання затвердження.",
               "chore_due_reminder_offset": "Коли надсилати нагадування про термін виконання. Формат: «1д 6год 30хв» або просто «30» для хвилин. За замовчуванням: 30хв (за 30 хвилин до терміну виконання). Введіть «0», щоб вимкнути.",
+              "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+              "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
               "chore_notifications": "Коли надсилати сповіщення: після заявки, після схвалення, після відхилення або будь-яка комбінація.",
               "show_on_calendar": "Відобразити це завдання в календарі.",
               "chore_labels": "Теги для організації домашніх справ (наприклад, «кухня», «на вулиці»). Залиште поле порожнім, якщо не потрібно."
@@ -1180,6 +1212,8 @@
           "clear_due_date": "🗑️ Чітка дата виконання",
           "chore_due_window_offset": "⏱️ Термін оплати: Зсув до дати оплати",
           "chore_due_reminder_offset": "🔔 Нагадування про сплату: Зсув до дати сплати",
+          "chore_notification_channel": "🔔 Notification Channel",
+          "chore_notification_importance": "🔔 Notification Importance",
           "show_on_calendar": "📅 Показати в календарі?",
           "chore_notifications": "🔔 Події сповіщень (необов'язково)",
           "standby_claim_mode": "🔑 Режим очікування"
@@ -1205,6 +1239,8 @@
           "clear_due_date": "Поставте позначку в цьому полі, щоб видалити термін виконання з цього завдання.",
           "chore_due_window_offset": "Коли стан завдання змінюється з «Очікує виконання» на «Термін виконання». Формат: «1д 6г 30м» або просто «30» для хвилин. Введіть «0», щоб вимкнути. Приклад: «1д» означає, що завдання відображається як «Термін виконання» за 1 день до дедлайну.",
           "chore_due_reminder_offset": "Коли надсилати нагадування про термін виконання. Формат: «1д 6год 30хв» або просто «30» для хвилин. За замовчуванням: 30хв (за 30 хвилин до терміну виконання). Введіть «0», щоб вимкнути.",
+          "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+          "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
           "show_on_calendar": "Відобразити це завдання в календарі.",
           "chore_notifications": "Коли надсилати сповіщення: після заявки, після схвалення, після відхилення або будь-яка комбінація.",
           "standby_claim_mode": "Контролює, коли резервні завдання можуть вимагати виконання цього завдання (будь-коли, за простроченням, лише вручну). Застосовується лише до критеріїв виконання основних та резервних завдань."
@@ -2082,6 +2118,12 @@
         "custom_1_month": "Спеціальний: 1-місячний період"
       }
     },
+    "notification_priority": {
+      "options": {
+        "normal": "Normal (may be delayed while the device is asleep)",
+        "high": "High (deliver immediately, even while the device is asleep)"
+      }
+    },
     "completion_criteria": {
       "options": {
         "shared_all": "Спільний доступ для всіх (усі учасники повинні виконати завдання разом)",
@@ -2207,6 +2249,15 @@
         "current_active": "📂 Використовувати поточний активний файл даних",
         "migrate_from_kidschores": "🔄 Перенести з KidsChores (копія без пошкоджень)",
         "paste_json": "📋 Вставити JSON з файлу даних або діагностики"
+      }
+    },
+    "notification_importance": {
+      "options": {
+        "min": "Minimum (no sound, collapsed)",
+        "low": "Low (no sound)",
+        "default": "Default (makes a sound)",
+        "high": "High (pops on screen and makes a sound)",
+        "max": "Maximum (pops on screen, most urgent)"
       }
     }
   },
@@ -2762,6 +2813,14 @@
           "description": "Тривалість до дати виконання для надсилання нагадування. Формат: «30 хв», «1 год», «1 день 6 год 30 хв» тощо. Використовуйте «0», щоб вимкнути нагадування.",
           "example": "30 м"
         },
+        "notification_channel": {
+          "name": "Notification Channel",
+          "description": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately from other chores. Leave empty to use the app default. iOS ignores this."
+        },
+        "notification_importance": {
+          "name": "Notification Importance",
+          "description": "Optional. Android only. How prominently this chore's notifications alert (min, low, default, high, max). Requires notification_channel. Note: sets the channel's INITIAL state the first time a device sees that channel name. The integration cannot change it afterwards; the person still can, in Android settings. iOS ignores this."
+        },
         "standby_claim_mode": {
           "name": "Режим очікування заявки",
           "description": "Контролює, коли резервні завдання можуть вимагати виконання цього завдання (будь-коли, за простроченням, лише вручну). Застосовується лише до критеріїв виконання основних та резервних завдань."
@@ -2911,6 +2970,14 @@
           "name": "Зсув нагадування про сплату",
           "description": "Нове зміщення нагадування про термін виконання. Тривалість до дати виконання для надсилання сповіщення про нагадування. Формат: «30 хв», «1 год», «1 день 6 год 30 хв» тощо. Використовуйте «0», щоб вимкнути.",
           "example": "30 м"
+        },
+        "notification_channel": {
+          "name": "Notification Channel",
+          "description": "New notification channel. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately from other chores. Leave empty to use the app default. iOS ignores this."
+        },
+        "notification_importance": {
+          "name": "Notification Importance",
+          "description": "Optional. Android only. How prominently this chore's notifications alert (min, low, default, high, max). Requires notification_channel. Note: sets the channel's INITIAL state the first time a device sees that channel name. The integration cannot change it afterwards; the person still can, in Android settings. iOS ignores this."
         },
         "assignment_action": {
           "name": "Дія призначення",

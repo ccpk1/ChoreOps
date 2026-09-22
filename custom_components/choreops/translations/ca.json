@@ -82,14 +82,18 @@
               "ha_user_id": "Usuari de l'Assistent de la Llar",
               "dashboard_language": "Llengua",
               "mobile_notify_service": "Notificacions",
-              "notif_click_url": "URL de toc de notificació"
+              "notif_click_url": "URL de toc de notificació",
+              "notification_priority": "Delivery priority",
+              "notification_ttl": "Notification lifetime (seconds)"
             },
             "data_description": {
               "name": "Nom únic per a aquest perfil d'usuari.",
               "ha_user_id": "Opcional: Enllaça aquest perfil a un usuari de Home Assistant. Si el mode quiosc està desactivat, les accions de reclamació i bescanvi de dispositius compartits depenen d'aquest enllaç.",
               "dashboard_language": "Idioma utilitzat per al contingut i les notificacions del tauler de control.",
               "mobile_notify_service": "Seleccioneu el servei de notificacions o deixeu-ho en blanc per desactivar les notificacions.",
-              "notif_click_url": "URL opcional per obrir quan es toca la notificació. Deixeu-ho en blanc per al comportament predeterminat."
+              "notif_click_url": "URL opcional per obrir quan es toca la notificació. Deixeu-ho en blanc per al comportament predeterminat.",
+              "notification_priority": "Android only. High asks the mobile app to deliver immediately even while the device is asleep; Normal may be delayed until it wakes. iOS ignores this.",
+              "notification_ttl": "Optional. Android only. How long delivery keeps being retried before the notification is dropped as stale. Leave empty for the platform default of 28 days; 0 discards anything that cannot be delivered right away. A good value is shorter than how often the chore recurs, so a retry can never arrive looking like the next occurrence - for a daily chore, around 20 hours. iOS ignores this."
             }
           },
           "section_system_usage": {
@@ -194,6 +198,8 @@
               "auto_approve": "✅ Aprovació automàtica de reclamacions?",
               "overdue_handling_type": "⏰ Endarrerit: Tractament",
               "chore_due_reminder_offset": "🔔 Recordatori de venciment: Compensació abans de la data de venciment",
+              "chore_notification_channel": "🔔 Notification Channel",
+              "chore_notification_importance": "🔔 Notification Importance",
               "chore_notifications": "🔔 Esdeveniments de notificació (opcional)",
               "show_on_calendar": "📅 Mostrar al calendari?",
               "chore_labels": "📋 Etiquetes (opcional)"
@@ -204,6 +210,8 @@
               "auto_approve": "Quan estan habilitades, les reclamacions s'aproven instantàniament sense la revisió de l'aprovador.",
               "overdue_handling_type": "Acció després de la data de venciment: Amaga l'estat de venciment, mantén el venciment fins que es reclama o restableix-lo a pendent en el següent cicle d'aprovació.",
               "chore_due_reminder_offset": "Quan s'ha d'enviar la notificació de recordatori de venciment. Format: \"1d 6h 30m\" o simplement \"30\" per a minuts. Per defecte: 30m (30 minuts abans del venciment). Introduïu \"0\" per desactivar-ho.",
+              "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+              "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
               "chore_notifications": "Quan enviar notificacions: En cas de reclamació, aprovació, rebuig o qualsevol combinació.",
               "show_on_calendar": "Mostra aquesta tasca a la vista de calendari.",
               "chore_labels": "Etiquetes per organitzar les tasques (per exemple, \"cuina\", \"exterior\"). Deixeu-ho en blanc si no és necessari."
@@ -230,6 +238,8 @@
           "due_date": "📅 Horari: Data de venciment (opcional)",
           "chore_due_window_offset": "⏱️ Finestra de venciment: Compensació abans de la data de venciment",
           "chore_due_reminder_offset": "🔔 Recordatori de venciment: Compensació abans de la data de venciment",
+          "chore_notification_channel": "🔔 Notification Channel",
+          "chore_notification_importance": "🔔 Notification Importance",
           "show_on_calendar": "📅 Mostrar al calendari?",
           "chore_notifications": "🔔 Esdeveniments de notificació (opcional)",
           "standby_claim_mode": "🔑 Mode de reclamació en espera"
@@ -254,6 +264,8 @@
           "due_date": "Data límit opcional. Es pot combinar amb programacions recurrents.",
           "chore_due_window_offset": "Quan l'estat de la tasca canvia de Pendent a Vençuda. Format: '1d 6h 30m' o simplement '30' per a minuts. Introduïu '0' per desactivar-ho. Exemple: '1d' significa que la tasca es mostra com a 'Vençuda' 1 dia abans de la data límit.",
           "chore_due_reminder_offset": "Quan s'ha d'enviar la notificació de recordatori de venciment. Format: \"1d 6h 30m\" o simplement \"30\" per a minuts. Per defecte: 30m (30 minuts abans del venciment). Introduïu \"0\" per desactivar-ho.",
+          "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+          "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
           "show_on_calendar": "Mostra aquesta tasca a la vista de calendari.",
           "chore_notifications": "Quan enviar notificacions: En cas de reclamació, aprovació, rebuig o qualsevol combinació.",
           "standby_claim_mode": "Controla quan els servidors en espera poden reclamar aquesta tasca (en qualsevol moment, en cas de venciment, només manual). Només s'aplica als criteris de finalització principals i de servidor en espera."
@@ -585,14 +597,18 @@
               "ha_user_id": "Usuari de l'Assistent de la Llar",
               "dashboard_language": "Llengua",
               "mobile_notify_service": "Notificacions",
-              "notif_click_url": "URL de toc de notificació"
+              "notif_click_url": "URL de toc de notificació",
+              "notification_priority": "Delivery priority",
+              "notification_ttl": "Notification lifetime (seconds)"
             },
             "data_description": {
               "name": "Nom únic per a aquest perfil d'usuari.",
               "ha_user_id": "Opcional: Enllaça aquest perfil a un usuari de Home Assistant. Si el mode quiosc està desactivat, les accions de reclamació i bescanvi de dispositius compartits depenen d'aquest enllaç.",
               "dashboard_language": "Idioma utilitzat per al contingut i les notificacions del tauler de control.",
               "mobile_notify_service": "Seleccioneu el servei de notificacions o deixeu-ho en blanc per desactivar les notificacions.",
-              "notif_click_url": "URL opcional per obrir quan es toca la notificació. Deixeu-ho en blanc per al comportament predeterminat."
+              "notif_click_url": "URL opcional per obrir quan es toca la notificació. Deixeu-ho en blanc per al comportament predeterminat.",
+              "notification_priority": "Android only. High asks the mobile app to deliver immediately even while the device is asleep; Normal may be delayed until it wakes. iOS ignores this.",
+              "notification_ttl": "Optional. Android only. How long delivery keeps being retried before the notification is dropped as stale. Leave empty for the platform default of 28 days; 0 discards anything that cannot be delivered right away. A good value is shorter than how often the chore recurs, so a retry can never arrive looking like the next occurrence - for a daily chore, around 20 hours. iOS ignores this."
             }
           },
           "section_system_usage": {
@@ -690,6 +706,8 @@
               "auto_approve": "✅ Aprovació automàtica de reclamacions?",
               "overdue_handling_type": "⏰ Endarrerit: Tractament",
               "chore_due_reminder_offset": "🔔 Recordatori de venciment: Compensació abans de la data de venciment",
+              "chore_notification_channel": "🔔 Notification Channel",
+              "chore_notification_importance": "🔔 Notification Importance",
               "chore_notifications": "🔔 Esdeveniments de notificació (opcional)",
               "show_on_calendar": "📅 Mostrar al calendari?",
               "chore_labels": "📋 Etiquetes (opcional)"
@@ -700,6 +718,8 @@
               "auto_approve": "Quan estan habilitades, les reclamacions s'aproven instantàniament sense la revisió de l'aprovador.",
               "overdue_handling_type": "Controla què passa quan passa la data de venciment i què passa amb les tasques endarrerides al límit de restabliment de l'aprovació.",
               "chore_due_reminder_offset": "Quan s'ha d'enviar la notificació de recordatori de venciment. Format: \"1d 6h 30m\" o simplement \"30\" per a minuts. Per defecte: 30m (30 minuts abans del venciment). Introduïu \"0\" per desactivar-ho.",
+              "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+              "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
               "chore_notifications": "Quan enviar notificacions: En cas de reclamació, aprovació, rebuig o qualsevol combinació.",
               "show_on_calendar": "Mostra aquesta tasca a la vista de calendari.",
               "chore_labels": "Etiquetes per organitzar les tasques (per exemple, \"cuina\", \"exterior\"). Deixeu-ho en blanc si no és necessari."
@@ -727,6 +747,8 @@
           "clear_due_date": "🗑️ Data de venciment clara",
           "chore_due_window_offset": "⏱️ Finestra de venciment: Compensació abans de la data de venciment",
           "chore_due_reminder_offset": "🔔 Recordatori de venciment: Compensació abans de la data de venciment",
+          "chore_notification_channel": "🔔 Notification Channel",
+          "chore_notification_importance": "🔔 Notification Importance",
           "show_on_calendar": "📅 Mostrar al calendari?",
           "chore_notifications": "🔔 Esdeveniments de notificació (opcional)",
           "standby_claim_mode": "🔑 Mode de reclamació en espera"
@@ -752,6 +774,8 @@
           "clear_due_date": "Marqueu aquesta casella per eliminar la data de venciment d'aquesta tasca.",
           "chore_due_window_offset": "Quan l'estat de la tasca canvia de Pendent a Vençuda. Format: '1d 6h 30m' o simplement '30' per a minuts. Introduïu '0' per desactivar-ho. Exemple: '1d' significa que la tasca es mostra com a 'Vençuda' 1 dia abans de la data límit.",
           "chore_due_reminder_offset": "Quan s'ha d'enviar la notificació de recordatori de venciment. Format: \"1d 6h 30m\" o simplement \"30\" per a minuts. Per defecte: 30m (30 minuts abans del venciment). Introduïu \"0\" per desactivar-ho.",
+          "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+          "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
           "show_on_calendar": "Mostra aquesta tasca a la vista de calendari.",
           "chore_notifications": "Quan enviar notificacions: En cas de reclamació, aprovació, rebuig o qualsevol combinació.",
           "standby_claim_mode": "Controla quan els servidors en espera poden reclamar aquesta tasca (en qualsevol moment, en cas de venciment, només manual). Només s'aplica als criteris de finalització principals i de servidor en espera."
@@ -1037,14 +1061,18 @@
               "ha_user_id": "Usuari de l'Assistent de la Llar",
               "dashboard_language": "Llengua",
               "mobile_notify_service": "Notificacions",
-              "notif_click_url": "URL de toc de notificació"
+              "notif_click_url": "URL de toc de notificació",
+              "notification_priority": "Delivery priority",
+              "notification_ttl": "Notification lifetime (seconds)"
             },
             "data_description": {
               "name": "Nom únic per a aquest perfil d'usuari.",
               "ha_user_id": "Opcional: Enllaça aquest perfil a un usuari de Home Assistant. Si el mode quiosc està desactivat, les accions de reclamació i bescanvi de dispositius compartits depenen d'aquest enllaç.",
               "dashboard_language": "Idioma utilitzat per al contingut i les notificacions del tauler de control.",
               "mobile_notify_service": "Seleccioneu el servei de notificacions o deixeu-ho en blanc per desactivar les notificacions.",
-              "notif_click_url": "URL opcional per obrir quan es toca la notificació. Deixeu-ho en blanc per al comportament predeterminat."
+              "notif_click_url": "URL opcional per obrir quan es toca la notificació. Deixeu-ho en blanc per al comportament predeterminat.",
+              "notification_priority": "Android only. High asks the mobile app to deliver immediately even while the device is asleep; Normal may be delayed until it wakes. iOS ignores this.",
+              "notification_ttl": "Optional. Android only. How long delivery keeps being retried before the notification is dropped as stale. Leave empty for the platform default of 28 days; 0 discards anything that cannot be delivered right away. A good value is shorter than how often the chore recurs, so a retry can never arrive looking like the next occurrence - for a daily chore, around 20 hours. iOS ignores this."
             }
           },
           "section_system_usage": {
@@ -1142,6 +1170,8 @@
               "auto_approve": "✅ Aprovació automàtica de reclamacions?",
               "overdue_handling_type": "⏰ Endarrerit: Tractament",
               "chore_due_reminder_offset": "🔔 Recordatori de venciment: Compensació abans de la data de venciment",
+              "chore_notification_channel": "🔔 Notification Channel",
+              "chore_notification_importance": "🔔 Notification Importance",
               "chore_notifications": "🔔 Esdeveniments de notificació (opcional)",
               "show_on_calendar": "📅 Mostrar al calendari?",
               "chore_labels": "📋 Etiquetes (opcional)"
@@ -1152,6 +1182,8 @@
               "auto_approve": "Quan estan habilitades, les reclamacions s'aproven instantàniament sense la revisió de l'aprovador.",
               "overdue_handling_type": "Controla què passa quan passa la data de venciment i què passa amb les tasques endarrerides al límit de restabliment de l'aprovació.",
               "chore_due_reminder_offset": "Quan s'ha d'enviar la notificació de recordatori de venciment. Format: \"1d 6h 30m\" o simplement \"30\" per a minuts. Per defecte: 30m (30 minuts abans del venciment). Introduïu \"0\" per desactivar-ho.",
+              "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+              "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
               "chore_notifications": "Quan enviar notificacions: En cas de reclamació, aprovació, rebuig o qualsevol combinació.",
               "show_on_calendar": "Mostra aquesta tasca a la vista de calendari.",
               "chore_labels": "Etiquetes per organitzar les tasques (per exemple, \"cuina\", \"exterior\"). Deixeu-ho en blanc si no és necessari."
@@ -1180,6 +1212,8 @@
           "clear_due_date": "🗑️ Data de venciment clara",
           "chore_due_window_offset": "⏱️ Finestra de venciment: Compensació abans de la data de venciment",
           "chore_due_reminder_offset": "🔔 Recordatori de venciment: Compensació abans de la data de venciment",
+          "chore_notification_channel": "🔔 Notification Channel",
+          "chore_notification_importance": "🔔 Notification Importance",
           "show_on_calendar": "📅 Mostrar al calendari?",
           "chore_notifications": "🔔 Esdeveniments de notificació (opcional)",
           "standby_claim_mode": "🔑 Mode de reclamació en espera"
@@ -1205,6 +1239,8 @@
           "clear_due_date": "Marqueu aquesta casella per eliminar la data de venciment d'aquesta tasca.",
           "chore_due_window_offset": "Quan l'estat de la tasca canvia de Pendent a Vençuda. Format: '1d 6h 30m' o simplement '30' per a minuts. Introduïu '0' per desactivar-ho. Exemple: '1d' significa que la tasca es mostra com a 'Vençuda' 1 dia abans de la data límit.",
           "chore_due_reminder_offset": "Quan s'ha d'enviar la notificació de recordatori de venciment. Format: \"1d 6h 30m\" o simplement \"30\" per a minuts. Per defecte: 30m (30 minuts abans del venciment). Introduïu \"0\" per desactivar-ho.",
+          "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+          "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
           "show_on_calendar": "Mostra aquesta tasca a la vista de calendari.",
           "chore_notifications": "Quan enviar notificacions: En cas de reclamació, aprovació, rebuig o qualsevol combinació.",
           "standby_claim_mode": "Controla quan els servidors en espera poden reclamar aquesta tasca (en qualsevol moment, en cas de venciment, només manual). Només s'aplica als criteris de finalització principals i de servidor en espera."
@@ -2082,6 +2118,12 @@
         "custom_1_month": "Personalitzat: període d'1 mes"
       }
     },
+    "notification_priority": {
+      "options": {
+        "normal": "Normal (may be delayed while the device is asleep)",
+        "high": "High (deliver immediately, even while the device is asleep)"
+      }
+    },
     "completion_criteria": {
       "options": {
         "shared_all": "Compartit tot (tots els assignats han de completar-ho junts)",
@@ -2207,6 +2249,15 @@
         "current_active": "📂 Utilitza el fitxer de dades actiu actual",
         "migrate_from_kidschores": "🔄 Migrar des de KidsChores (còpia no destructiva)",
         "paste_json": "📋 Enganxa JSON des d'un fitxer de dades o diagnòstic"
+      }
+    },
+    "notification_importance": {
+      "options": {
+        "min": "Minimum (no sound, collapsed)",
+        "low": "Low (no sound)",
+        "default": "Default (makes a sound)",
+        "high": "High (pops on screen and makes a sound)",
+        "max": "Maximum (pops on screen, most urgent)"
       }
     }
   },
@@ -2762,6 +2813,14 @@
           "description": "Durada abans de la data de venciment per enviar la notificació de recordatori. Format: '30m', '1h', '1d 6h 30m', etc. Utilitzeu '0' per desactivar els recordatoris.",
           "example": "30 m"
         },
+        "notification_channel": {
+          "name": "Notification Channel",
+          "description": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately from other chores. Leave empty to use the app default. iOS ignores this."
+        },
+        "notification_importance": {
+          "name": "Notification Importance",
+          "description": "Optional. Android only. How prominently this chore's notifications alert (min, low, default, high, max). Requires notification_channel. Note: sets the channel's INITIAL state the first time a device sees that channel name. The integration cannot change it afterwards; the person still can, in Android settings. iOS ignores this."
+        },
         "standby_claim_mode": {
           "name": "Mode de reclamació en espera",
           "description": "Controla quan els servidors en espera poden reclamar aquesta tasca (en qualsevol moment, en cas de venciment, només manual). Només s'aplica als criteris de finalització principals i de servidor en espera."
@@ -2911,6 +2970,14 @@
           "name": "Compensació de recordatori de venciment",
           "description": "Nou desplaçament del recordatori de venciment. Durada abans de la data de venciment per enviar la notificació de recordatori. Format: '30m', '1h', '1d 6h 30m', etc. Utilitzeu '0' per desactivar-lo.",
           "example": "30 m"
+        },
+        "notification_channel": {
+          "name": "Notification Channel",
+          "description": "New notification channel. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately from other chores. Leave empty to use the app default. iOS ignores this."
+        },
+        "notification_importance": {
+          "name": "Notification Importance",
+          "description": "Optional. Android only. How prominently this chore's notifications alert (min, low, default, high, max). Requires notification_channel. Note: sets the channel's INITIAL state the first time a device sees that channel name. The integration cannot change it afterwards; the person still can, in Android settings. iOS ignores this."
         },
         "assignment_action": {
           "name": "Acció d'assignació",
