@@ -285,6 +285,20 @@ class SystemManager(BaseManager):
                 due_state_repair_summary["global_states_normalized"],
             )
 
+        ledger_repair_summary = boot_repair_summaries["repair_point_all_time_ledger"]
+        if any(ledger_repair_summary.values()):
+            const.LOGGER.warning(
+                "SystemManager: Applied point ledger integrity repair "
+                "assignees=%d balance_gaps=%d history_nets=%d history_signs=%d "
+                "sign_fixes_deferred=%d highest_floored=%d",
+                ledger_repair_summary["assignees_repaired"],
+                ledger_repair_summary["ledger_gaps_folded"],
+                ledger_repair_summary["history_nets_folded"],
+                ledger_repair_summary["history_signs_fixed"],
+                ledger_repair_summary["history_sign_fixes_deferred"],
+                ledger_repair_summary["highest_floored"],
+            )
+
         # 1e. Normalize reward assigned_user_ids (missing/sentinel → explicit UUIDs)
         # Empty lists [] are intentional ("no users") and must NOT be normalized.
         rewards_data = self.coordinator._data.get(const.DATA_REWARDS, {})

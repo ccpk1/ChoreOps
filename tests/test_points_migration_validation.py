@@ -15,6 +15,7 @@ Strategy:
 
 import json
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any, cast
 
 from homeassistant.core import Context, HomeAssistant
@@ -24,13 +25,17 @@ from pytest_homeassistant_custom_component.common import (
 )
 
 from custom_components.choreops import const
+from custom_components.choreops.engines.statistics_engine import StatisticsEngine
 from custom_components.choreops.helpers.storage_helpers import (
     get_entry_storage_key_from_entry,
 )
 from custom_components.choreops.migrations.pre_v50_constants import (
     DATA_ASSIGNEE_POINT_STATS_EARNED_ALL_TIME_LEGACY,
 )
-from custom_components.choreops.sensor import AssigneeRewardStatusSensor
+from custom_components.choreops.sensor import (
+    AssigneePointsSensor,
+    AssigneeRewardStatusSensor,
+)
 from custom_components.choreops.sensor_legacy import (
     AssigneePointsEarnedDailySensor,
     AssigneePointsEarnedMonthlySensor,
@@ -637,6 +642,59 @@ class TestPointsSensorAttributes:
             2,
         ), "year net != earned + spent"
 
+    def test_all_time_attributes_publish_stored_values(
+        self, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """All-time attributes are published as stored, never recomputed (issue #306).
+
+        Stored earned/spent intentionally disagree with the balance and with
+        highest_balance so the pre-fix read-time guards (floor earned at
+        highest, spent = balance - earned) would publish different numbers.
+        """
+        assignee_id = "user-1"
+        assignee: dict[str, Any] = {
+            const.DATA_USER_POINTS: 366.0,
+            const.DATA_USER_POINTS_MULTIPLIER: 1.0,
+            const.DATA_USER_POINT_PERIODS: {
+                const.DATA_USER_POINT_PERIODS_ALL_TIME: {
+                    const.PERIOD_ALL_TIME: {
+                        const.DATA_USER_POINT_PERIOD_POINTS_EARNED: 767.0,
+                        const.DATA_USER_POINT_PERIOD_POINTS_SPENT: -401.0,
+                        const.DATA_USER_POINT_PERIOD_HIGHEST_BALANCE: 800.0,
+                        const.DATA_USER_POINT_PERIOD_BY_SOURCE: {
+                            const.POINTS_SOURCE_CHORES: 724.0,
+                            const.POINTS_SOURCE_REWARDS: -880.0,
+                        },
+                    }
+                },
+            },
+        }
+        coordinator = SimpleNamespace(
+            assignees_data={assignee_id: assignee},
+            stats=StatisticsEngine(),
+            statistics_manager=SimpleNamespace(get_stats=lambda _uid: {}),
+        )
+        sensor_entity = AssigneePointsSensor.__new__(AssigneePointsSensor)
+        sensor_entity.coordinator = cast("Any", coordinator)
+        sensor_entity._assignee_id = assignee_id
+        sensor_entity._assignee_name = "Zoe"
+
+        attrs = sensor_entity.extra_state_attributes
+
+        # Pre-fix guards would publish earned=800 (floored at highest) and
+        # spent=-434 (balance - earned); stored values must survive untouched.
+        assert attrs["point_stat_points_earned_all_time"] == 767.0
+        assert attrs["point_stat_points_spent_all_time"] == -401.0
+        assert attrs["point_stat_highest_balance_all_time"] == 800.0
+        assert attrs["point_stat_points_net_all_time"] == 366.0
+        assert attrs["point_stat_points_by_source_all_time"] == {
+            const.POINTS_SOURCE_CHORES: 724.0,
+            const.POINTS_SOURCE_REWARDS: -880.0,
+        }
+        assert any(
+            "ledger mismatch" in record.getMessage() for record in caplog.records
+        ), "sensor should warn while storage still violates the ledger identities"
+
 
 # =============================================================================
 # MANUAL ADJUSTMENT VALIDATION
@@ -748,101 +806,6 @@ class TestPointsSensorUpdatesOnManualAdjustment:
         assert new_attrs["point_stat_points_net_today"] == (
             initial_attrs["point_stat_points_net_today"] + 2.25
         )
-
-
-def test_reward_status_sensor_uses_decimal_affordability(
-    scenario_minimal: SetupResult,
-) -> None:
-    """Verify reward status uses decimal costs without truncation."""
-    coordinator = scenario_minimal.coordinator
-    entry = scenario_minimal.config_entry
-    assignee_id = scenario_minimal.assignee_ids["Zoë"]
-
-    coordinator.assignees_data[assignee_id][const.DATA_USER_POINTS] = 2.25
-    coordinator.rewards_data["decimal_reward"] = {
-        const.DATA_REWARD_COST: 2.25,
-        const.DATA_REWARD_NAME: "Decimal Reward",
-    }
-
-    sensor = AssigneeRewardStatusSensor(
-        coordinator,
-        entry,
-        assignee_id,
-        "Zoë",
-        "decimal_reward",
-        "Decimal Reward",
-    )
-    assert sensor.native_value == const.REWARD_STATE_AVAILABLE
-
-    coordinator.rewards_data["decimal_reward"][const.DATA_REWARD_COST] = 2.26
-    assert sensor.native_value == const.REWARD_STATE_LOCKED
-
-
-def test_legacy_point_sensors_preserve_decimal_values(
-    scenario_minimal: SetupResult,
-) -> None:
-    """Verify legacy point-valued sensors no longer truncate decimals."""
-    coordinator = scenario_minimal.coordinator
-    entry = scenario_minimal.config_entry
-    assignee_id = scenario_minimal.assignee_ids["Zoë"]
-    assignee_name = "Zoë"
-
-    coordinator.assignees_data[assignee_id][const.DATA_USER_POINT_PERIODS] = {
-        const.DATA_USER_POINT_PERIODS_ALL_TIME: {
-            const.DATA_USER_POINT_PERIODS_ALL_TIME: {
-                const.DATA_USER_POINT_PERIOD_HIGHEST_BALANCE: 9.75,
-            }
-        }
-    }
-
-    stats_payload = {
-        const.PRES_USER_POINTS_NET_TODAY: 1.25,
-        const.PRES_USER_POINTS_NET_WEEK: 3.5,
-        const.PRES_USER_POINTS_NET_MONTH: 7.75,
-    }
-
-    original_get_stats = coordinator.statistics_manager.get_stats
-    coordinator.statistics_manager.get_stats = lambda _assignee_id: stats_payload
-    try:
-        daily_sensor = AssigneePointsEarnedDailySensor(
-            coordinator,
-            entry,
-            assignee_id,
-            assignee_name,
-            const.DEFAULT_POINTS_LABEL,
-            const.DEFAULT_POINTS_ICON,
-        )
-        weekly_sensor = AssigneePointsEarnedWeeklySensor(
-            coordinator,
-            entry,
-            assignee_id,
-            assignee_name,
-            const.DEFAULT_POINTS_LABEL,
-            const.DEFAULT_POINTS_ICON,
-        )
-        monthly_sensor = AssigneePointsEarnedMonthlySensor(
-            coordinator,
-            entry,
-            assignee_id,
-            assignee_name,
-            const.DEFAULT_POINTS_LABEL,
-            const.DEFAULT_POINTS_ICON,
-        )
-        max_sensor = AssigneePointsMaxEverSensor(
-            coordinator,
-            entry,
-            assignee_id,
-            assignee_name,
-            const.DEFAULT_POINTS_LABEL,
-            const.DEFAULT_POINTS_ICON,
-        )
-
-        assert daily_sensor.native_value == 1.25
-        assert weekly_sensor.native_value == 3.5
-        assert monthly_sensor.native_value == 7.75
-        assert max_sensor.native_value == 9.75
-    finally:
-        coordinator.statistics_manager.get_stats = original_get_stats
 
     async def test_plus_two_updates_all_net_attributes(
         self,
@@ -1098,3 +1061,98 @@ def test_legacy_point_sensors_preserve_decimal_values(
         assert final_attrs["point_stat_points_net_all_time"] == (
             initial_attrs["point_stat_points_net_all_time"] + 10.0
         )
+
+
+def test_reward_status_sensor_uses_decimal_affordability(
+    scenario_minimal: SetupResult,
+) -> None:
+    """Verify reward status uses decimal costs without truncation."""
+    coordinator = scenario_minimal.coordinator
+    entry = scenario_minimal.config_entry
+    assignee_id = scenario_minimal.assignee_ids["Zoë"]
+
+    coordinator.assignees_data[assignee_id][const.DATA_USER_POINTS] = 2.25
+    coordinator.rewards_data["decimal_reward"] = {
+        const.DATA_REWARD_COST: 2.25,
+        const.DATA_REWARD_NAME: "Decimal Reward",
+    }
+
+    sensor = AssigneeRewardStatusSensor(
+        coordinator,
+        entry,
+        assignee_id,
+        "Zoë",
+        "decimal_reward",
+        "Decimal Reward",
+    )
+    assert sensor.native_value == const.REWARD_STATE_AVAILABLE
+
+    coordinator.rewards_data["decimal_reward"][const.DATA_REWARD_COST] = 2.26
+    assert sensor.native_value == const.REWARD_STATE_LOCKED
+
+
+def test_legacy_point_sensors_preserve_decimal_values(
+    scenario_minimal: SetupResult,
+) -> None:
+    """Verify legacy point-valued sensors no longer truncate decimals."""
+    coordinator = scenario_minimal.coordinator
+    entry = scenario_minimal.config_entry
+    assignee_id = scenario_minimal.assignee_ids["Zoë"]
+    assignee_name = "Zoë"
+
+    coordinator.assignees_data[assignee_id][const.DATA_USER_POINT_PERIODS] = {
+        const.DATA_USER_POINT_PERIODS_ALL_TIME: {
+            const.DATA_USER_POINT_PERIODS_ALL_TIME: {
+                const.DATA_USER_POINT_PERIOD_HIGHEST_BALANCE: 9.75,
+            }
+        }
+    }
+
+    stats_payload = {
+        const.PRES_USER_POINTS_NET_TODAY: 1.25,
+        const.PRES_USER_POINTS_NET_WEEK: 3.5,
+        const.PRES_USER_POINTS_NET_MONTH: 7.75,
+    }
+
+    original_get_stats = coordinator.statistics_manager.get_stats
+    coordinator.statistics_manager.get_stats = lambda _assignee_id: stats_payload
+    try:
+        daily_sensor = AssigneePointsEarnedDailySensor(
+            coordinator,
+            entry,
+            assignee_id,
+            assignee_name,
+            const.DEFAULT_POINTS_LABEL,
+            const.DEFAULT_POINTS_ICON,
+        )
+        weekly_sensor = AssigneePointsEarnedWeeklySensor(
+            coordinator,
+            entry,
+            assignee_id,
+            assignee_name,
+            const.DEFAULT_POINTS_LABEL,
+            const.DEFAULT_POINTS_ICON,
+        )
+        monthly_sensor = AssigneePointsEarnedMonthlySensor(
+            coordinator,
+            entry,
+            assignee_id,
+            assignee_name,
+            const.DEFAULT_POINTS_LABEL,
+            const.DEFAULT_POINTS_ICON,
+        )
+        max_sensor = AssigneePointsMaxEverSensor(
+            coordinator,
+            entry,
+            assignee_id,
+            assignee_name,
+            const.DEFAULT_POINTS_LABEL,
+            const.DEFAULT_POINTS_ICON,
+        )
+
+        assert daily_sensor.native_value == 1.25
+        assert weekly_sensor.native_value == 3.5
+        assert monthly_sensor.native_value == 7.75
+        assert max_sensor.native_value == 9.75
+    finally:
+        coordinator.statistics_manager.get_stats = original_get_stats

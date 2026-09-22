@@ -19,11 +19,16 @@ from custom_components.choreops import const
 from custom_components.choreops.engines.chore_engine import ChoreEngine
 from custom_components.choreops.utils.dt_utils import dt_parse, dt_to_utc
 
+from ._point_ledger import repair_point_all_time_ledger
+
 
 def run_boot_repairs(data: dict[str, Any]) -> dict[str, dict[str, int]]:
     """Run all modern boot repairs and return per-repair summaries."""
     return {
-        "repair_impossible_due_state_residue": repair_impossible_due_state_residue(data)
+        "repair_impossible_due_state_residue": repair_impossible_due_state_residue(
+            data
+        ),
+        "repair_point_all_time_ledger": repair_point_all_time_ledger(data),
     }
 
 
