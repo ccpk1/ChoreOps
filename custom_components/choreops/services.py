@@ -3765,7 +3765,7 @@ def async_setup_services(hass: HomeAssistant):
 
         assignee_name = call.data.get(const.SERVICE_FIELD_USER_NAME)
         assignee_id: str | None = None
-        if assignee_name:
+        if assignee_name is not None:
             assignee_id = get_item_id_or_raise(
                 coordinator,
                 const.ITEM_TYPE_USER,
