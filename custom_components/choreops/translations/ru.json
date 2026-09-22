@@ -437,6 +437,8 @@
       "error_award_points_minimum": "Начисляемые очки должны быть больше нуля.",
       "error_award_invalid_multiplier": "Множитель очков должен быть больше нуля.",
       "invalid_award_item_selected": "Один или несколько выбранных элементов награды указаны неверно.",
+      "error_award_points_requires_item": "Select 'Points' in Award items to grant points, or set points to zero",
+      "error_award_multiplier_requires_item": "Select 'Points multiplier' in Award items, or clear the multiplier",
       "start_date_required": "Укажите дату начала.",
       "end_date_required": "Укажите дату окончания.",
       "end_date_before_start_date": "Дата окончания должна быть позже даты начала.",
@@ -832,7 +834,7 @@
           "badge_description": "Опишите, за что выдаётся значок (необязательно).",
           "badge_labels": "Метки для группировки значков (необязательно).",
           "icon": "Иконка значка из набора Material Design — например mdi:star.",
-          "target_type": "Select the type of daily target for this badge: points, chore count, or days.\n\nDays targets count only those selected chores that are due today, so a chore that is not due cannot count against the day. A day on which nothing is due does not count.\n\nThe 'Selected Chores' and 'Selected Due Chores' options therefore behave the same way.\n\nThe 'Days Minimum 3/5/7 Chores' options are the exception: they count completed chores regardless of due date, so they are unchanged.\n\nA selected chore with no schedule (one-time, no due date) counts on every day.",
+          "target_type": "Тип дневной цели для этого значка: очки, количество задач или дни.\n\nЦели по дням учитывают только те выбранные задачи, у которых срок сегодня, поэтому задача без срока на сегодня не может испортить день. День, в который ничего не нужно было делать, не засчитывается.\n\nПоэтому варианты «выбранные задачи» и «выбранные задачи со сроком» работают одинаково.\n\nИсключение — варианты «Дней, когда выполнено минимум 3/5/7 задач»: они считают выполненные задачи независимо от срока, для них ничего не изменилось.\n\nВыбранная задача без расписания (разовая, без срока) учитывается каждый день.",
           "threshold_value": "Сколько очков, задач или дней нужно за день, чтобы получить значок. Для целей типа «Дни» укажите 1: значок проверяется каждый день (например, 1 — за один день выполнить все выбранные задачи).",
           "selected_chores": "Задачи, очки за которые засчитываются в этот значок. Оставьте пустым, чтобы учитывались все назначенные задачи (необязательно).",
           "assigned_user_ids": "Кому этот значок назначен для отслеживания.",
@@ -870,7 +872,7 @@
           "badge_description": "Опишите, за что выдаётся значок (необязательно).",
           "badge_labels": "Метки для группировки значков (необязательно).",
           "icon": "Иконка значка из набора Material Design — например mdi:star.",
-          "target_type": "Select the type of target for this badge: points, chore count, days, or streak.\n\nStreak and Days targets count only those selected chores that are due today, so a chore that is not due cannot count against the day. A day on which nothing is due is neutral: it neither advances a streak nor breaks it.\n\nThe 'Selected Chores' and 'Selected Due Chores' options therefore behave the same way.\n\nThe 'Days Minimum 3/5/7 Chores' options are the exception: they count completed chores regardless of due date, so they are unchanged.\n\nA selected chore with no schedule (one-time, no due date) counts on every day.",
+          "target_type": "Тип цели для этого значка: очки, количество задач, дни или серия.\n\nЦели по дням и сериям учитывают только те выбранные задачи, у которых срок сегодня, поэтому задача без срока на сегодня не может испортить день. День, в который ничего не нужно было делать, нейтрален: он и не продлевает серию, и не прерывает её.\n\nПоэтому варианты «выбранные задачи» и «выбранные задачи со сроком» работают одинаково.\n\nИсключение — варианты «Дней, когда выполнено минимум 3/5/7 задач»: они считают выполненные задачи независимо от срока, для них ничего не изменилось.\n\nВыбранная задача без расписания (разовая, без срока) учитывается каждый день.",
           "threshold_value": "Сколько всего очков, задач или дней нужно набрать внутри периода, чтобы получить значок. Дни пригодятся для серий из нескольких задач.",
           "maintenance_rules": "Минимум очков, который нужно набрать за цикл сброса, чтобы сохранить значок и его множитель (необязательно).",
           "occasion_type": "Тип события для этого значка — например праздник или день рождения.",
@@ -879,7 +881,7 @@
           "assigned_user_ids": "Кому этот значок назначен для отслеживания.",
           "award_items": "Выберите одно или несколько: очки, награды, бонусы или штрафы. Всё выбранное выдаётся при получении значка. Штрафы применяются только если значок так и не получен к дате окончания или к дате сброса (необязательно).",
           "award_points": "Если в наградах выбраны очки, укажите, сколько начислить при получении значка (необязательно).",
-          "recurring_frequency": "Define the reset cycle for this badge. Weekly and Biweekly are rolling cycles counted from the start date. Week-End, Month-End, Quarter-End and Year-End align to the calendar (Week-End resets on Sunday).",
+          "recurring_frequency": "Как часто сбрасывается этот значок. «Еженедельно» и «Раз в две недели» — скользящие циклы, отсчитываются от даты начала. «Конец недели», «Конец месяца», «Конец квартала» и «Конец года» привязаны к календарю («Конец недели» сбрасывается в воскресенье).",
           "custom_interval": "КОЛИЧЕСТВО дней, недель, месяцев и так далее для частоты «Свой» — например 3, если нужен интервал в 3 недели.",
           "custom_interval_unit": "Единица для своего интервала — дни, недели и так далее.",
           "start_date": "Дата начала цикла сброса (необязательно).",
@@ -1312,7 +1314,7 @@
           "badge_description": "Опишите, за что выдаётся значок (необязательно).",
           "badge_labels": "Метки для группировки значков (необязательно).",
           "icon": "Иконка значка из набора Material Design — например mdi:star.",
-          "target_type": "Select the type of daily target for this badge: points, chore count, or days.\n\nDays targets count only those selected chores that are due today, so a chore that is not due cannot count against the day. A day on which nothing is due does not count.\n\nThe 'Selected Chores' and 'Selected Due Chores' options therefore behave the same way.\n\nThe 'Days Minimum 3/5/7 Chores' options are the exception: they count completed chores regardless of due date, so they are unchanged.\n\nA selected chore with no schedule (one-time, no due date) counts on every day.",
+          "target_type": "Тип дневной цели для этого значка: очки, количество задач или дни.\n\nЦели по дням учитывают только те выбранные задачи, у которых срок сегодня, поэтому задача без срока на сегодня не может испортить день. День, в который ничего не нужно было делать, не засчитывается.\n\nПоэтому варианты «выбранные задачи» и «выбранные задачи со сроком» работают одинаково.\n\nИсключение — варианты «Дней, когда выполнено минимум 3/5/7 задач»: они считают выполненные задачи независимо от срока, для них ничего не изменилось.\n\nВыбранная задача без расписания (разовая, без срока) учитывается каждый день.",
           "threshold_value": "Сколько очков, задач или дней нужно за день, чтобы получить значок. Для целей типа «Дни» укажите 1: значок проверяется каждый день (например, 1 — за один день выполнить все выбранные задачи).",
           "selected_chores": "Задачи, очки за которые засчитываются в этот значок. Оставьте пустым, чтобы учитывались все назначенные задачи (необязательно).",
           "assigned_user_ids": "Кому этот значок назначен для отслеживания.",
@@ -1350,7 +1352,7 @@
           "badge_description": "Опишите, за что выдаётся значок (необязательно).",
           "badge_labels": "Метки для группировки значков (необязательно).",
           "icon": "Иконка значка из набора Material Design — например mdi:star.",
-          "target_type": "Select the type of target for this badge: points, chore count, days, or streak.\n\nStreak and Days targets count only those selected chores that are due today, so a chore that is not due cannot count against the day. A day on which nothing is due is neutral: it neither advances a streak nor breaks it.\n\nThe 'Selected Chores' and 'Selected Due Chores' options therefore behave the same way.\n\nThe 'Days Minimum 3/5/7 Chores' options are the exception: they count completed chores regardless of due date, so they are unchanged.\n\nA selected chore with no schedule (one-time, no due date) counts on every day.",
+          "target_type": "Тип цели для этого значка: очки, количество задач, дни или серия.\n\nЦели по дням и сериям учитывают только те выбранные задачи, у которых срок сегодня, поэтому задача без срока на сегодня не может испортить день. День, в который ничего не нужно было делать, нейтрален: он и не продлевает серию, и не прерывает её.\n\nПоэтому варианты «выбранные задачи» и «выбранные задачи со сроком» работают одинаково.\n\nИсключение — варианты «Дней, когда выполнено минимум 3/5/7 задач»: они считают выполненные задачи независимо от срока, для них ничего не изменилось.\n\nВыбранная задача без расписания (разовая, без срока) учитывается каждый день.",
           "threshold_value": "Сколько всего очков, задач или дней нужно набрать внутри периода, чтобы получить значок. Дни пригодятся для серий из нескольких задач.",
           "maintenance_rules": "Минимум очков, который нужно набрать за цикл сброса, чтобы сохранить значок и его множитель (необязательно).",
           "occasion_type": "Тип события для этого значка — например праздник или день рождения.",
@@ -1359,7 +1361,7 @@
           "assigned_user_ids": "Кому этот значок назначен для отслеживания.",
           "award_items": "Выберите одно или несколько: очки, награды, бонусы или штрафы. Всё выбранное выдаётся при получении значка. Штрафы применяются только если значок так и не получен к дате окончания или к дате сброса (необязательно).",
           "award_points": "Если в наградах выбраны очки, укажите, сколько начислить при получении значка (необязательно).",
-          "recurring_frequency": "Define the reset cycle for this badge. Weekly and Biweekly are rolling cycles counted from the start date. Week-End, Month-End, Quarter-End and Year-End align to the calendar (Week-End resets on Sunday).",
+          "recurring_frequency": "Как часто сбрасывается этот значок. «Еженедельно» и «Раз в две недели» — скользящие циклы, отсчитываются от даты начала. «Конец недели», «Конец месяца», «Конец квартала» и «Конец года» привязаны к календарю («Конец недели» сбрасывается в воскресенье).",
           "custom_interval": "КОЛИЧЕСТВО дней, недель, месяцев и так далее для частоты «Свой» — например 3, если нужен интервал в 3 недели.",
           "custom_interval_unit": "Единица для своего интервала — дни, недели и так далее.",
           "start_date": "Дата начала цикла сброса (необязательно).",
@@ -1822,6 +1824,8 @@
       "error_award_points_minimum": "Начисляемые очки должны быть больше нуля.",
       "error_award_invalid_multiplier": "Множитель очков должен быть больше нуля.",
       "invalid_award_item_selected": "Один или несколько выбранных элементов награды указаны неверно.",
+      "error_award_points_requires_item": "Select 'Points' in Award items to grant points, or set points to zero",
+      "error_award_multiplier_requires_item": "Select 'Points multiplier' in Award items, or clear the multiplier",
       "start_date_required": "Укажите дату начала.",
       "end_date_required": "Укажите дату окончания.",
       "end_date_before_start_date": "Дата окончания должна быть позже даты начала.",
@@ -2086,7 +2090,7 @@
         "rotation_simple": "По очереди, простая (только чья очередь, строгий порядок)",
         "rotation_smart": "По очереди, умная (только чья очередь, очередь по справедливости)",
         "rotation_primary_standby": "Основной и запасные (по умолчанию ходит основной, запасные — когда разрешено)",
-        "rotation_simple_from_turn_holder": "Rotation Simple (Advance From Current Turn Holder)"
+        "rotation_simple_from_turn_holder": "По очереди, простая (очередь идёт дальше, даже если задачу не сделали)"
       }
     },
     "standby_claim_mode": {
@@ -2109,7 +2113,7 @@
     "overdue_handling_type": {
       "options": {
         "never_overdue": "Никогда не просрочена",
-        "never_overdue_clear_at_approval_reset": "Never Overdue (Reset at Approval Boundary)",
+        "never_overdue_clear_at_approval_reset": "Никогда не просрочена (перенос при сбросе подтверждения)",
         "at_due_date": "Просрочена до выполнения",
         "at_due_date_clear_at_approval_reset": "Просрочена до сброса подтверждения",
         "at_due_date_clear_immediate_on_late": "Просрочена до выполнения (снимать сразу при позднем подтверждении)",
@@ -2715,7 +2719,7 @@
         },
         "completion_criteria": {
           "name": "Способ выполнения",
-          "description": "How the chore is completed when multiple assignees are assigned: independent, shared_first, shared_all, rotation_simple, rotation_smart, rotation_primary_standby, or rotation_simple_from_turn_holder.",
+          "description": "Как считается выполнение, когда исполнителей несколько: independent, shared_first, shared_all, rotation_simple, rotation_smart, rotation_primary_standby или rotation_simple_from_turn_holder.",
           "example": "independent"
         },
         "approval_reset_type": {
@@ -2730,7 +2734,7 @@
         },
         "overdue_handling": {
           "name": "Обработка просрочки",
-          "description": "How overdue chores behave at the due date and approval reset boundary.",
+          "description": "Как ведут себя просроченные задачи при наступлении срока и на границе сброса подтверждения.",
           "example": "at_due_date"
         },
         "chore_claim_lock_until_window": {
@@ -2763,48 +2767,48 @@
           "description": "Когда запасные могут взять задачу: anytime, on_overdue или manual_only. Работает только со способом выполнения «Основной и запасные»."
         },
         "custom_interval": {
-          "name": "Custom Interval",
-          "description": "Number of time units between repetitions when frequency is custom or custom_from_complete.",
+          "name": "Свой интервал",
+          "description": "Сколько единиц времени между повторами при частоте custom или custom_from_complete.",
           "example": "6"
         },
         "custom_interval_unit": {
-          "name": "Custom Interval Unit",
-          "description": "Time unit used with custom_interval when frequency is custom or custom_from_complete.",
+          "name": "Единица своего интервала",
+          "description": "Единица времени для custom_interval при частоте custom или custom_from_complete.",
           "example": "месяцы"
         },
         "notify_on_claim": {
           "name": "Когда задачу взяли",
-          "description": "Send a notification when this chore is claimed. Omit to use the default (enabled).",
+          "description": "Уведомлять, когда задачу взяли. Если не указано — по умолчанию (включено).",
           "example": "true"
         },
         "notify_on_approval": {
           "name": "При подтверждении",
-          "description": "Send a notification when this chore is approved. Omit to use the default (enabled).",
+          "description": "Уведомлять, когда задачу подтвердили. Если не указано — по умолчанию (включено).",
           "example": "true"
         },
         "notify_on_disapproval": {
           "name": "При отклонении",
-          "description": "Send a notification when this chore is disapproved. Omit to use the default (enabled).",
+          "description": "Уведомлять, когда задачу отклонили. Если не указано — по умолчанию (включено).",
           "example": "true"
         },
         "notify_on_overdue": {
-          "name": "Notify on Overdue",
-          "description": "Send a notification when this chore becomes overdue. Omit to use the default (enabled).",
+          "name": "При просрочке",
+          "description": "Уведомлять, когда задача просрочена. Если не указано — по умолчанию (включено).",
           "example": "true"
         },
         "notify_on_due_window": {
           "name": "Когда открывается окно выполнения",
-          "description": "Send a notification when this chore enters its due window. Omit to use the default (disabled).",
+          "description": "Уведомлять, когда открывается окно выполнения. Если не указано — по умолчанию (выключено).",
           "example": "false"
         },
         "notify_due_reminder": {
           "name": "В момент напоминания о сроке",
-          "description": "Send a notification at the configured due reminder offset. Omit to use the default (enabled).",
+          "description": "Присылать напоминание за заданное время до срока. Если не указано — по умолчанию (включено).",
           "example": "true"
         },
         "show_on_calendar": {
           "name": "Показывать в календаре",
-          "description": "Show this chore on the ChoreOps calendar. Omit to use the default (enabled).",
+          "description": "Показывать задачу в календаре ChoreOps. Если не указано — по умолчанию (включено).",
           "example": "true"
         }
       }
@@ -2918,48 +2922,48 @@
           "description": "Когда запасные могут взять задачу: anytime, on_overdue или manual_only. Работает только со способом выполнения «Основной и запасные»."
         },
         "custom_interval": {
-          "name": "Custom Interval",
-          "description": "New number of time units between repetitions when frequency is custom or custom_from_complete.",
+          "name": "Свой интервал",
+          "description": "Новое количество единиц времени между повторами при частоте custom или custom_from_complete.",
           "example": "6"
         },
         "custom_interval_unit": {
-          "name": "Custom Interval Unit",
-          "description": "New time unit used with custom_interval when frequency is custom or custom_from_complete.",
+          "name": "Единица своего интервала",
+          "description": "Новая единица времени для custom_interval при частоте custom или custom_from_complete.",
           "example": "месяцы"
         },
         "notify_on_claim": {
           "name": "Когда задачу взяли",
-          "description": "Set whether to notify when this chore is claimed. Omit to leave the current setting unchanged.",
+          "description": "Уведомлять ли, когда задачу взяли. Не указывайте, чтобы оставить как есть.",
           "example": "true"
         },
         "notify_on_approval": {
           "name": "При подтверждении",
-          "description": "Set whether to notify when this chore is approved. Omit to leave the current setting unchanged.",
+          "description": "Уведомлять ли, когда задачу подтвердили. Не указывайте, чтобы оставить как есть.",
           "example": "true"
         },
         "notify_on_disapproval": {
           "name": "При отклонении",
-          "description": "Set whether to notify when this chore is disapproved. Omit to leave the current setting unchanged.",
+          "description": "Уведомлять ли, когда задачу отклонили. Не указывайте, чтобы оставить как есть.",
           "example": "true"
         },
         "notify_on_overdue": {
-          "name": "Notify on Overdue",
-          "description": "Set whether to notify when this chore becomes overdue. Omit to leave the current setting unchanged.",
+          "name": "При просрочке",
+          "description": "Уведомлять ли, когда задача просрочена. Не указывайте, чтобы оставить как есть.",
           "example": "true"
         },
         "notify_on_due_window": {
           "name": "Когда открывается окно выполнения",
-          "description": "Set whether to notify when this chore enters its due window. Omit to leave the current setting unchanged.",
+          "description": "Уведомлять ли, когда открывается окно выполнения. Не указывайте, чтобы оставить как есть.",
           "example": "false"
         },
         "notify_due_reminder": {
           "name": "В момент напоминания о сроке",
-          "description": "Set whether to notify at the configured due reminder offset. Omit to leave the current setting unchanged.",
+          "description": "Присылать ли напоминание за заданное время до срока. Не указывайте, чтобы оставить как есть.",
           "example": "true"
         },
         "show_on_calendar": {
           "name": "Показывать в календаре",
-          "description": "Set whether this chore appears on the ChoreOps calendar. Omit to leave the current setting unchanged.",
+          "description": "Показывать ли задачу в календаре ChoreOps. Не указывайте, чтобы оставить как есть.",
           "example": "true"
         }
       }
@@ -3431,8 +3435,8 @@
       }
     },
     "repair_badge_streak": {
-      "name": "Repair Badge Streak",
-      "description": "Restore a broken badge streak. Intended for undoing a genuinely missed day - illness, travel, a family event - without editing storage by hand. Pass badge_streak_count to set a specific value, or omit it to restore the highest value retained in the last few days of history. The badge must currently track a streak, and restores beyond the retained history are not possible. No cap is applied: an admin may set any value, including onto a live streak. Restoring above the badge's threshold re-awards it on the next evaluation. Fires a choreops_badge_streak_repaired event. This service is response-first and returns JSON when called with return_response: true, including the retained history.",
+      "name": "Восстановить серию значка",
+      "description": "Восстановить прерванную серию значка. Нужно, чтобы отменить действительно уважительный пропуск — болезнь, поездку, семейное событие — без ручной правки хранилища. Укажите badge_streak_count, чтобы задать конкретное значение, или не указывайте, чтобы восстановить наибольшее значение из истории за последние несколько дней. Значок должен сейчас отслеживать серию; восстановить глубже сохранённой истории нельзя. Ограничений нет: администратор может задать любое значение, в том числе поверх идущей серии. Если восстановленное значение выше порога значка, он будет выдан заново при следующей проверке. Генерирует событие choreops_badge_streak_repaired. Действие возвращает ответ: при вызове с return_response: true отдаёт JSON, включая сохранённую историю.",
       "fields": {
         "config_entry_id": {
           "name": "ID записи конфигурации (необязательно)",
@@ -3446,28 +3450,28 @@
         },
         "user_name": {
           "name": "Имя пользователя",
-          "description": "The user whose badge streak should be repaired.",
+          "description": "Пользователь, чью серию значка нужно восстановить.",
           "example": "Борис"
         },
         "badge_name": {
           "name": "Название значка",
-          "description": "The name of the badge whose streak should be repaired.",
-          "example": "Wildfire Bronze"
+          "description": "Название значка, серию которого нужно восстановить.",
+          "example": "Огненная серия — бронза"
         },
         "badge_streak_count": {
-          "name": "Streak Count (Optional)",
-          "description": "The streak value to restore. Omit to use the highest value retained in history.",
+          "name": "Длина серии (необязательно)",
+          "description": "Какое значение серии восстановить. Если не указано — наибольшее из сохранённой истории.",
           "example": "42"
         },
         "reason": {
           "name": "Причина",
-          "description": "Why the streak is being repaired. Recorded in the log and the event.",
-          "example": "Home sick Monday"
+          "description": "Почему восстанавливается серия. Записывается в журнал и в событие.",
+          "example": "Болел в понедельник"
         },
         "approver_name": {
           "name": "Имя подтверждающего (необязательно)",
-          "description": "Who authorised the repair. Recorded in the log and the event.",
-          "example": "John"
+          "description": "Кто разрешил восстановление. Записывается в журнал и в событие.",
+          "example": "Иван"
         }
       }
     }
@@ -3526,7 +3530,7 @@
               "rotation_simple": "По очереди (простая)",
               "rotation_smart": "По очереди (умная)",
               "rotation_primary_standby": "Основной и запасные",
-              "rotation_simple_from_turn_holder": "Rotation Simple (Turn Holder)"
+              "rotation_simple_from_turn_holder": "По очереди (сдвиг всегда)"
             }
           },
           "approval_reset_type": {
@@ -3552,7 +3556,7 @@
             "name": "Обработка просрочки",
             "state": {
               "never_overdue": "Никогда не просрочена",
-              "never_overdue_clear_at_approval_reset": "Never Overdue (Reset at Approval Boundary)",
+              "never_overdue_clear_at_approval_reset": "Никогда не просрочена (перенос при сбросе подтверждения)",
               "at_due_date": "Просрочена до выполнения",
               "at_due_date_clear_at_approval_reset": "Просрочена до сброса подтверждения",
               "at_due_date_clear_immediate_on_late": "Просрочена до выполнения (снимать сразу при позднем подтверждении)",
@@ -4489,7 +4493,7 @@
               "rotation_simple": "По очереди (простая)",
               "rotation_smart": "По очереди (умная)",
               "rotation_primary_standby": "Основной и запасные",
-              "rotation_simple_from_turn_holder": "Rotation Simple (Turn Holder)"
+              "rotation_simple_from_turn_holder": "По очереди (сдвиг всегда)"
             }
           },
           "approval_reset_type": {
@@ -5711,13 +5715,13 @@
       "message": "Обработка задач у этого пользователя сейчас приостановлена."
     },
     "badge_not_streak": {
-      "message": "Badge {name} does not track a consecutive streak, so there is no streak to repair. Days-type badges instead add up the days that qualify, so a missed day reduces nothing and there is no streak to restore."
+      "message": "Значок {name} не отслеживает серию подряд, поэтому восстанавливать нечего. Значки с целью по дням просто суммируют подходящие дни: пропущенный день ничего не отнимает, и серии для восстановления нет."
     },
     "badge_streak_nothing_to_restore": {
-      "message": "Badge {name} has no retained streak history to restore from. Its recent streak values may predate this feature, or have already aged out."
+      "message": "У значка {name} нет сохранённой истории серии, из которой можно восстановить. Возможно, последние значения старше этой функции или уже устарели."
     },
     "badge_streak_no_overdue": {
-      "message": "Badge {name} is a no-overdue badge, which resets its whole cycle on any slip by design. A repaired value would be reset again on the next evaluation. Use a streak target without the 'No Overdue' option if you want a streak that can be repaired."
+      "message": "Значок {name} — «без просрочек», он по замыслу сбрасывает весь цикл при любой ошибке. Восстановленное значение снова обнулится при следующей проверке. Если нужна серия, которую можно восстанавливать, выберите цель серии без варианта «(без просрочек)»."
     }
   }
 }
