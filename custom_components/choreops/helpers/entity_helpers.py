@@ -14,7 +14,7 @@ import re
 import time
 from typing import TYPE_CHECKING, Any, cast
 
-from homeassistant.exceptions import HomeAssistantError
+from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.entity_registry import (
     RegistryEntry,
     async_entries_for_config_entry,
@@ -447,6 +447,8 @@ def get_item_id_by_name(
 
     Searches the storage for a Domain Item (Assignee, Chore, Reward, etc.) by its name
     and returns the internal_id (UUID) if found. This is NOT looking up an HA Entity.
+    Leading/trailing whitespace is stripped from the input and stored names before an
+    exact, case-sensitive comparison.
 
     Args:
         coordinator: The ChoreOps data coordinator.
@@ -461,6 +463,8 @@ def get_item_id_by_name(
     Raises:
         ValueError: If item_type is not recognized.
     """
+    item_name = item_name.strip()
+
     # Map item type to (data dict, name key constant)
     item_map = {
         const.ITEM_TYPE_CHORE: (coordinator.chores_data, const.DATA_CHORE_NAME),
@@ -495,7 +499,8 @@ def get_item_id_by_name(
             )
 
         for item_id, item_info in user_records.items():
-            if item_info.get(name_key) == item_name:
+            stored_name = item_info.get(name_key)
+            if isinstance(stored_name, str) and stored_name.strip() == item_name:
                 return item_id
         return None
 
@@ -507,9 +512,28 @@ def get_item_id_by_name(
     mapped_records, name_key = item_map[item_type]
     records = cast("dict[str, Any]", mapped_records)
     for item_id, item_info in records.items():
-        if item_info.get(name_key) == item_name:
+        stored_name = item_info.get(name_key)
+        if isinstance(stored_name, str) and stored_name.strip() == item_name:
             return item_id
     return None
+
+
+def _item_type_label(item_type: str, role: str | None) -> str:
+    """Return the human-readable label for an item type (role-aware for users)."""
+    if item_type == const.ITEM_TYPE_USER:
+        if role == const.ROLE_APPROVER:
+            return const.LABEL_APPROVER
+        return const.LABEL_ASSIGNEE
+    labels = {
+        const.ITEM_TYPE_CHORE: const.LABEL_CHORE,
+        const.ITEM_TYPE_REWARD: const.LABEL_REWARD,
+        const.ITEM_TYPE_PENALTY: const.LABEL_PENALTY,
+        const.ITEM_TYPE_BADGE: const.LABEL_BADGE,
+        const.ITEM_TYPE_BONUS: const.LABEL_BONUS,
+        const.ITEM_TYPE_ACHIEVEMENT: const.LABEL_ACHIEVEMENT,
+        const.ITEM_TYPE_CHALLENGE: const.LABEL_CHALLENGE,
+    }
+    return labels.get(item_type, item_type.capitalize())
 
 
 def get_item_id_or_raise(
@@ -535,12 +559,17 @@ def get_item_id_or_raise(
         The internal ID (UUID) of the Item.
 
     Raises:
-        HomeAssistantError: If the Item is not found in storage.
+        ServiceValidationError: If the Item is not found in storage.
     """
     item_id = get_item_id_by_name(coordinator, item_type, item_name, role=role)
     if not item_id:
-        raise HomeAssistantError(
-            f"{item_type.capitalize()} item '{item_name}' not found"
+        raise ServiceValidationError(
+            translation_domain=const.DOMAIN,
+            translation_key=const.TRANS_KEY_ERROR_NOT_FOUND,
+            translation_placeholders={
+                "entity_type": _item_type_label(item_type, role),
+                "name": item_name,
+            },
         )
     return item_id
 

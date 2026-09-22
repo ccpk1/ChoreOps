@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from homeassistant.exceptions import ServiceValidationError
 import pytest
 
 from custom_components.choreops import const
@@ -123,6 +124,50 @@ async def test_get_ledger_filters_to_single_user(
         assert const.DATA_USER_INTERNAL_ID not in entry
         assert const.DATA_USER_NAME not in entry
         assert entry[const.DATA_LEDGER_SOURCE] == const.POINTS_SOURCE_MANUAL
+
+
+async def test_get_ledger_trims_user_name(
+    hass: HomeAssistant,
+    scenario_full: SetupResult,
+) -> None:
+    """get_ledger trims surrounding whitespace before the exact name match."""
+    coordinator = scenario_full.coordinator
+    zoe_id = scenario_full.assignee_ids["Zoë"]
+
+    await coordinator.economy_manager.deposit(
+        assignee_id=zoe_id,
+        amount=10.0,
+        source=const.POINTS_SOURCE_MANUAL,
+        item_name="For being a very good kid",
+    )
+
+    response = await _call_get_ledger(hass, user_name="  Zoë  ")
+
+    assert response["assignee_id"] == zoe_id
+    assert response["assignee_name"] == "Zoë"
+    assert response["count"] >= 1
+
+
+@pytest.mark.usefixtures("scenario_full")
+@pytest.mark.parametrize(
+    "user_name",
+    [
+        pytest.param("zoë", id="case-mismatch"),
+        pytest.param("Nobody", id="unknown-name"),
+        pytest.param("", id="explicit-empty"),
+        pytest.param("   ", id="whitespace-only"),
+    ],
+)
+async def test_get_ledger_invalid_user_name_raises(
+    hass: HomeAssistant,
+    user_name: str,
+) -> None:
+    """get_ledger raises a translated error when user_name has no exact match."""
+    with pytest.raises(ServiceValidationError) as exc_info:
+        await _call_get_ledger(hass, user_name=user_name)
+
+    assert exc_info.value.translation_domain == const.DOMAIN
+    assert exc_info.value.translation_key == const.TRANS_KEY_ERROR_NOT_FOUND
 
 
 async def test_get_ledger_includes_source_label(
