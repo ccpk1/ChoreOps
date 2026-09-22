@@ -82,14 +82,18 @@
               "ha_user_id": "Používateľ domáceho asistenta",
               "dashboard_language": "Jazyk",
               "mobile_notify_service": "Upozornenia",
-              "notif_click_url": "URL adresa klepnutia na upozornenie"
+              "notif_click_url": "URL adresa klepnutia na upozornenie",
+              "notification_priority": "Delivery priority",
+              "notification_ttl": "Notification lifetime (seconds)"
             },
             "data_description": {
               "name": "Jedinečný názov pre tento používateľský profil.",
               "ha_user_id": "Voliteľné: Prepojte tento profil s používateľom služby Home Assistant. Ak je režim kiosku vypnutý, akcie nárokovania a uplatnenia na zdieľanom zariadení sa spoliehajú na toto prepojenie.",
               "dashboard_language": "Jazyk používaný pre obsah a upozornenia ovládacieho panela.",
               "mobile_notify_service": "Vyberte službu upozornení alebo nechajte pole prázdne, ak chcete upozornenia vypnúť.",
-              "notif_click_url": "Voliteľná URL adresa, ktorá sa otvorí po klepnutí na upozornenie. Pre predvolené správanie ponechajte pole prázdne."
+              "notif_click_url": "Voliteľná URL adresa, ktorá sa otvorí po klepnutí na upozornenie. Pre predvolené správanie ponechajte pole prázdne.",
+              "notification_priority": "Android only. High asks the mobile app to deliver immediately even while the device is asleep; Normal may be delayed until it wakes. iOS ignores this.",
+              "notification_ttl": "Optional. Android only. How long delivery keeps being retried before the notification is dropped as stale. Leave empty for the platform default of 28 days; 0 discards anything that cannot be delivered right away. A good value is shorter than how often the chore recurs, so a retry can never arrive looking like the next occurrence - for a daily chore, around 20 hours. iOS ignores this."
             }
           },
           "section_system_usage": {
@@ -194,6 +198,8 @@
               "auto_approve": "✅ Automatické schvaľovanie reklamácií?",
               "overdue_handling_type": "⏰ Po termíne: Vybavenie",
               "chore_due_reminder_offset": "🔔 Pripomienka: Započítanie pred dátumom splatnosti",
+              "chore_notification_channel": "🔔 Notification Channel",
+              "chore_notification_importance": "🔔 Notification Importance",
               "chore_notifications": "🔔 Udalosti oznámení (voliteľné)",
               "show_on_calendar": "📅 Zobraziť v kalendári?",
               "chore_labels": "📋 Štítky (voliteľné)"
@@ -204,6 +210,8 @@
               "auto_approve": "Ak je povolená, nároky sa okamžite schvaľujú bez kontroly schvaľovateľom.",
               "overdue_handling_type": "Akcia po dátume splatnosti: Skryť stav po splatnosti, zostať po splatnosti až do uplatnenia alebo obnoviť stav „čaká sa“ v ďalšom schvaľovacom cykle.",
               "chore_due_reminder_offset": "Kedy odoslať upozornenie na pripomenutie termínu. Formát: „1d 6h 30m“ alebo len „30“ pre minúty. Predvolené: 30m (30 minút pred termínom). Zadajte „0“ pre vypnutie.",
+              "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+              "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
               "chore_notifications": "Kedy odosielať oznámenia: Pri reklamácii, schválení, zamietnutí alebo akejkoľvek kombinácii.",
               "show_on_calendar": "Zobraziť túto úlohu v zobrazení kalendára.",
               "chore_labels": "Štítky na organizovanie domácich prác (napr. „kuchyňa“, „vonkajšie“). Ak nie sú potrebné, nechajte pole prázdne."
@@ -230,6 +238,8 @@
           "due_date": "📅 Harmonogram: Termín odovzdania (voliteľné)",
           "chore_due_window_offset": "⏱️ Termín: Kompenzácia pred dátumom splatnosti",
           "chore_due_reminder_offset": "🔔 Pripomienka: Započítanie pred dátumom splatnosti",
+          "chore_notification_channel": "🔔 Notification Channel",
+          "chore_notification_importance": "🔔 Notification Importance",
           "show_on_calendar": "📅 Zobraziť v kalendári?",
           "chore_notifications": "🔔 Udalosti oznámení (voliteľné)",
           "standby_claim_mode": "🔑 Pohotovostný režim nárokovania"
@@ -254,6 +264,8 @@
           "due_date": "Voliteľný termín. Možno kombinovať s opakujúcimi sa harmonogramami.",
           "chore_due_window_offset": "Keď sa stav úlohy zmení z Čaká na dokončenie na Termín. Formát: „1d 6h 30m“ alebo len „30“ pre minúty. Zadajte „0“ pre vypnutie. Príklad: „1d“ znamená, že úloha sa zobrazí ako „Termín“ 1 deň pred termínom.",
           "chore_due_reminder_offset": "Kedy odoslať upozornenie na pripomenutie termínu. Formát: „1d 6h 30m“ alebo len „30“ pre minúty. Predvolené: 30m (30 minút pred termínom). Zadajte „0“ pre vypnutie.",
+          "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+          "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
           "show_on_calendar": "Zobraziť túto úlohu v zobrazení kalendára.",
           "chore_notifications": "Kedy odosielať oznámenia: Pri reklamácii, schválení, zamietnutí alebo akejkoľvek kombinácii.",
           "standby_claim_mode": "Určuje, kedy si záložné úlohy môžu nárokovať túto úlohu (kedykoľvek, pri oneskorení, iba manuálne). Vzťahuje sa iba na kritériá dokončenia primárnych a záložných úloh."
@@ -585,14 +597,18 @@
               "ha_user_id": "Používateľ domáceho asistenta",
               "dashboard_language": "Jazyk",
               "mobile_notify_service": "Upozornenia",
-              "notif_click_url": "URL adresa klepnutia na upozornenie"
+              "notif_click_url": "URL adresa klepnutia na upozornenie",
+              "notification_priority": "Delivery priority",
+              "notification_ttl": "Notification lifetime (seconds)"
             },
             "data_description": {
               "name": "Jedinečný názov pre tento používateľský profil.",
               "ha_user_id": "Voliteľné: Prepojte tento profil s používateľom služby Home Assistant. Ak je režim kiosku vypnutý, akcie nárokovania a uplatnenia na zdieľanom zariadení sa spoliehajú na toto prepojenie.",
               "dashboard_language": "Jazyk používaný pre obsah a upozornenia ovládacieho panela.",
               "mobile_notify_service": "Vyberte službu upozornení alebo nechajte pole prázdne, ak chcete upozornenia vypnúť.",
-              "notif_click_url": "Voliteľná URL adresa, ktorá sa otvorí po klepnutí na upozornenie. Pre predvolené správanie ponechajte pole prázdne."
+              "notif_click_url": "Voliteľná URL adresa, ktorá sa otvorí po klepnutí na upozornenie. Pre predvolené správanie ponechajte pole prázdne.",
+              "notification_priority": "Android only. High asks the mobile app to deliver immediately even while the device is asleep; Normal may be delayed until it wakes. iOS ignores this.",
+              "notification_ttl": "Optional. Android only. How long delivery keeps being retried before the notification is dropped as stale. Leave empty for the platform default of 28 days; 0 discards anything that cannot be delivered right away. A good value is shorter than how often the chore recurs, so a retry can never arrive looking like the next occurrence - for a daily chore, around 20 hours. iOS ignores this."
             }
           },
           "section_system_usage": {
@@ -690,6 +706,8 @@
               "auto_approve": "✅ Automatické schvaľovanie reklamácií?",
               "overdue_handling_type": "⏰ Po termíne: Vybavenie",
               "chore_due_reminder_offset": "🔔 Pripomienka: Započítanie pred dátumom splatnosti",
+              "chore_notification_channel": "🔔 Notification Channel",
+              "chore_notification_importance": "🔔 Notification Importance",
               "chore_notifications": "🔔 Udalosti oznámení (voliteľné)",
               "show_on_calendar": "📅 Zobraziť v kalendári?",
               "chore_labels": "📋 Štítky (voliteľné)"
@@ -700,6 +718,8 @@
               "auto_approve": "Ak je povolená, nároky sa okamžite schvaľujú bez kontroly schvaľovateľom.",
               "overdue_handling_type": "Riadi, čo sa stane po uplynutí dátumu splatnosti a čo sa stane s oneskorenými úlohami na hranici resetovania schválenia.",
               "chore_due_reminder_offset": "Kedy odoslať upozornenie na pripomenutie termínu. Formát: „1d 6h 30m“ alebo len „30“ pre minúty. Predvolené: 30m (30 minút pred termínom). Zadajte „0“ pre vypnutie.",
+              "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+              "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
               "chore_notifications": "Kedy odosielať oznámenia: Pri reklamácii, schválení, zamietnutí alebo akejkoľvek kombinácii.",
               "show_on_calendar": "Zobraziť túto úlohu v zobrazení kalendára.",
               "chore_labels": "Štítky na organizovanie domácich prác (napr. „kuchyňa“, „vonkajšie“). Ak nie sú potrebné, nechajte pole prázdne."
@@ -727,6 +747,8 @@
           "clear_due_date": "🗑️ Jasný dátum splatnosti",
           "chore_due_window_offset": "⏱️ Termín: Kompenzácia pred dátumom splatnosti",
           "chore_due_reminder_offset": "🔔 Pripomienka: Započítanie pred dátumom splatnosti",
+          "chore_notification_channel": "🔔 Notification Channel",
+          "chore_notification_importance": "🔔 Notification Importance",
           "show_on_calendar": "📅 Zobraziť v kalendári?",
           "chore_notifications": "🔔 Udalosti oznámení (voliteľné)",
           "standby_claim_mode": "🔑 Pohotovostný režim nárokovania"
@@ -752,6 +774,8 @@
           "clear_due_date": "Začiarknite toto políčko, ak chcete odstrániť dátum dokončenia z tejto úlohy.",
           "chore_due_window_offset": "Keď sa stav úlohy zmení z Čaká na dokončenie na Termín. Formát: „1d 6h 30m“ alebo len „30“ pre minúty. Zadajte „0“ pre vypnutie. Príklad: „1d“ znamená, že úloha sa zobrazí ako „Termín“ 1 deň pred termínom.",
           "chore_due_reminder_offset": "Kedy odoslať upozornenie na pripomenutie termínu. Formát: „1d 6h 30m“ alebo len „30“ pre minúty. Predvolené: 30m (30 minút pred termínom). Zadajte „0“ pre vypnutie.",
+          "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+          "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
           "show_on_calendar": "Zobraziť túto úlohu v zobrazení kalendára.",
           "chore_notifications": "Kedy odosielať oznámenia: Pri reklamácii, schválení, zamietnutí alebo akejkoľvek kombinácii.",
           "standby_claim_mode": "Určuje, kedy si záložné úlohy môžu nárokovať túto úlohu (kedykoľvek, pri oneskorení, iba manuálne). Vzťahuje sa iba na kritériá dokončenia primárnych a záložných úloh."
@@ -1037,14 +1061,18 @@
               "ha_user_id": "Používateľ domáceho asistenta",
               "dashboard_language": "Jazyk",
               "mobile_notify_service": "Upozornenia",
-              "notif_click_url": "URL adresa klepnutia na upozornenie"
+              "notif_click_url": "URL adresa klepnutia na upozornenie",
+              "notification_priority": "Delivery priority",
+              "notification_ttl": "Notification lifetime (seconds)"
             },
             "data_description": {
               "name": "Jedinečný názov pre tento používateľský profil.",
               "ha_user_id": "Voliteľné: Prepojte tento profil s používateľom služby Home Assistant. Ak je režim kiosku vypnutý, akcie nárokovania a uplatnenia na zdieľanom zariadení sa spoliehajú na toto prepojenie.",
               "dashboard_language": "Jazyk používaný pre obsah a upozornenia ovládacieho panela.",
               "mobile_notify_service": "Vyberte službu upozornení alebo nechajte pole prázdne, ak chcete upozornenia vypnúť.",
-              "notif_click_url": "Voliteľná URL adresa, ktorá sa otvorí po klepnutí na upozornenie. Pre predvolené správanie ponechajte pole prázdne."
+              "notif_click_url": "Voliteľná URL adresa, ktorá sa otvorí po klepnutí na upozornenie. Pre predvolené správanie ponechajte pole prázdne.",
+              "notification_priority": "Android only. High asks the mobile app to deliver immediately even while the device is asleep; Normal may be delayed until it wakes. iOS ignores this.",
+              "notification_ttl": "Optional. Android only. How long delivery keeps being retried before the notification is dropped as stale. Leave empty for the platform default of 28 days; 0 discards anything that cannot be delivered right away. A good value is shorter than how often the chore recurs, so a retry can never arrive looking like the next occurrence - for a daily chore, around 20 hours. iOS ignores this."
             }
           },
           "section_system_usage": {
@@ -1142,6 +1170,8 @@
               "auto_approve": "✅ Automatické schvaľovanie reklamácií?",
               "overdue_handling_type": "⏰ Po termíne: Vybavenie",
               "chore_due_reminder_offset": "🔔 Pripomienka: Započítanie pred dátumom splatnosti",
+              "chore_notification_channel": "🔔 Notification Channel",
+              "chore_notification_importance": "🔔 Notification Importance",
               "chore_notifications": "🔔 Udalosti oznámení (voliteľné)",
               "show_on_calendar": "📅 Zobraziť v kalendári?",
               "chore_labels": "📋 Štítky (voliteľné)"
@@ -1152,6 +1182,8 @@
               "auto_approve": "Ak je povolená, nároky sa okamžite schvaľujú bez kontroly schvaľovateľom.",
               "overdue_handling_type": "Riadi, čo sa stane po uplynutí dátumu splatnosti a čo sa stane s oneskorenými úlohami na hranici resetovania schválenia.",
               "chore_due_reminder_offset": "Kedy odoslať upozornenie na pripomenutie termínu. Formát: „1d 6h 30m“ alebo len „30“ pre minúty. Predvolené: 30m (30 minút pred termínom). Zadajte „0“ pre vypnutie.",
+              "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+              "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
               "chore_notifications": "Kedy odosielať oznámenia: Pri reklamácii, schválení, zamietnutí alebo akejkoľvek kombinácii.",
               "show_on_calendar": "Zobraziť túto úlohu v zobrazení kalendára.",
               "chore_labels": "Štítky na organizovanie domácich prác (napr. „kuchyňa“, „vonkajšie“). Ak nie sú potrebné, nechajte pole prázdne."
@@ -1180,6 +1212,8 @@
           "clear_due_date": "🗑️ Jasný dátum splatnosti",
           "chore_due_window_offset": "⏱️ Termín: Kompenzácia pred dátumom splatnosti",
           "chore_due_reminder_offset": "🔔 Pripomienka: Započítanie pred dátumom splatnosti",
+          "chore_notification_channel": "🔔 Notification Channel",
+          "chore_notification_importance": "🔔 Notification Importance",
           "show_on_calendar": "📅 Zobraziť v kalendári?",
           "chore_notifications": "🔔 Udalosti oznámení (voliteľné)",
           "standby_claim_mode": "🔑 Pohotovostný režim nárokovania"
@@ -1205,6 +1239,8 @@
           "clear_due_date": "Začiarknite toto políčko, ak chcete odstrániť dátum dokončenia z tejto úlohy.",
           "chore_due_window_offset": "Keď sa stav úlohy zmení z Čaká na dokončenie na Termín. Formát: „1d 6h 30m“ alebo len „30“ pre minúty. Zadajte „0“ pre vypnutie. Príklad: „1d“ znamená, že úloha sa zobrazí ako „Termín“ 1 deň pred termínom.",
           "chore_due_reminder_offset": "Kedy odoslať upozornenie na pripomenutie termínu. Formát: „1d 6h 30m“ alebo len „30“ pre minúty. Predvolené: 30m (30 minút pred termínom). Zadajte „0“ pre vypnutie.",
+          "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+          "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
           "show_on_calendar": "Zobraziť túto úlohu v zobrazení kalendára.",
           "chore_notifications": "Kedy odosielať oznámenia: Pri reklamácii, schválení, zamietnutí alebo akejkoľvek kombinácii.",
           "standby_claim_mode": "Určuje, kedy si záložné úlohy môžu nárokovať túto úlohu (kedykoľvek, pri oneskorení, iba manuálne). Vzťahuje sa iba na kritériá dokončenia primárnych a záložných úloh."
@@ -2082,6 +2118,12 @@
         "custom_1_month": "Vlastné: 1-mesačné obdobie"
       }
     },
+    "notification_priority": {
+      "options": {
+        "normal": "Normal (may be delayed while the device is asleep)",
+        "high": "High (deliver immediately, even while the device is asleep)"
+      }
+    },
     "completion_criteria": {
       "options": {
         "shared_all": "Zdieľané pre všetkých (všetci poverení musia dokončiť spoločne)",
@@ -2207,6 +2249,15 @@
         "current_active": "📂 Použiť aktuálny aktívny dátový súbor",
         "migrate_from_kidschores": "🔄 Migrácia z KidsChores (nedeštruktívna kópia)",
         "paste_json": "📋 Vložte JSON z dátového súboru alebo diagnostiky"
+      }
+    },
+    "notification_importance": {
+      "options": {
+        "min": "Minimum (no sound, collapsed)",
+        "low": "Low (no sound)",
+        "default": "Default (makes a sound)",
+        "high": "High (pops on screen and makes a sound)",
+        "max": "Maximum (pops on screen, most urgent)"
       }
     }
   },
@@ -2762,6 +2813,14 @@
           "description": "Čas pred dátumom splatnosti, kedy sa má odoslať pripomienka. Formát: „30 min“, „1 h“, „1 deň 6 h 30 min“ atď. Na vypnutie pripomienok použite hodnotu „0“.",
           "example": "30 metrov"
         },
+        "notification_channel": {
+          "name": "Notification Channel",
+          "description": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately from other chores. Leave empty to use the app default. iOS ignores this."
+        },
+        "notification_importance": {
+          "name": "Notification Importance",
+          "description": "Optional. Android only. How prominently this chore's notifications alert (min, low, default, high, max). Requires notification_channel. Note: sets the channel's INITIAL state the first time a device sees that channel name. The integration cannot change it afterwards; the person still can, in Android settings. iOS ignores this."
+        },
         "standby_claim_mode": {
           "name": "Pohotovostný režim nárokovania",
           "description": "Určuje, kedy si záložné úlohy môžu nárokovať túto úlohu (kedykoľvek, pri oneskorení, iba manuálne). Vzťahuje sa iba na kritériá dokončenia primárnych a záložných úloh."
@@ -2911,6 +2970,14 @@
           "name": "Posunutie pripomienky splatnosti",
           "description": "Nový posun pripomienky termínu. Čas pred dátumom termínu na odoslanie upozornenia na pripomienku. Formát: „30 min“, „1 h“, „1 deň 6 h 30 min“ atď. Na vypnutie použite „0“.",
           "example": "30 metrov"
+        },
+        "notification_channel": {
+          "name": "Notification Channel",
+          "description": "New notification channel. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately from other chores. Leave empty to use the app default. iOS ignores this."
+        },
+        "notification_importance": {
+          "name": "Notification Importance",
+          "description": "Optional. Android only. How prominently this chore's notifications alert (min, low, default, high, max). Requires notification_channel. Note: sets the channel's INITIAL state the first time a device sees that channel name. The integration cannot change it afterwards; the person still can, in Android settings. iOS ignores this."
         },
         "assignment_action": {
           "name": "Akcia priradenia",

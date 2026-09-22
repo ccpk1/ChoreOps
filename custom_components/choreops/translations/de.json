@@ -82,14 +82,18 @@
               "ha_user_id": "Home Assistant Benutzer",
               "dashboard_language": "Sprache",
               "mobile_notify_service": "Benachrichtigungen",
-              "notif_click_url": "URL für Benachrichtigungs-Tipp"
+              "notif_click_url": "URL für Benachrichtigungs-Tipp",
+              "notification_priority": "Delivery priority",
+              "notification_ttl": "Notification lifetime (seconds)"
             },
             "data_description": {
               "name": "Eindeutiger Name für dieses Benutzerprofil.",
               "ha_user_id": "Optional: Verknüpfen Sie dieses Profil mit einem Home Assistant-Benutzer. Wenn der Kioskmodus deaktiviert ist, basieren Aktionen zum Beanspruchen und Einlösen von gemeinsam genutzten Geräten auf dieser Verknüpfung.",
               "dashboard_language": "Sprache, die für Dashboard-Inhalte und Benachrichtigungen verwendet wird.",
               "mobile_notify_service": "Wähle einen Benachrichtigungsdienst aus oder lass das Feld leer, um Benachrichtigungen zu deaktivieren.",
-              "notif_click_url": "Optionale URL, die beim Antippen der Benachrichtigung geöffnet wird. Für das Standardverhalten leer lassen."
+              "notif_click_url": "Optionale URL, die beim Antippen der Benachrichtigung geöffnet wird. Für das Standardverhalten leer lassen.",
+              "notification_priority": "Android only. High asks the mobile app to deliver immediately even while the device is asleep; Normal may be delayed until it wakes. iOS ignores this.",
+              "notification_ttl": "Optional. Android only. How long delivery keeps being retried before the notification is dropped as stale. Leave empty for the platform default of 28 days; 0 discards anything that cannot be delivered right away. A good value is shorter than how often the chore recurs, so a retry can never arrive looking like the next occurrence - for a daily chore, around 20 hours. iOS ignores this."
             }
           },
           "section_system_usage": {
@@ -194,6 +198,8 @@
               "auto_approve": "✅ Übernahmen automatisch genehmigen?",
               "overdue_handling_type": "⏰ Verhalten bei Überfälligkeit",
               "chore_due_reminder_offset": "🔔 Fälligkeitserinnerung: Erinnerung vor Fälligkeit",
+              "chore_notification_channel": "🔔 Notification Channel",
+              "chore_notification_importance": "🔔 Notification Importance",
               "chore_notifications": "🔔 Benachrichtigungen",
               "show_on_calendar": "📅 Im Kalender anzeigen?",
               "chore_labels": "📋 Schlagwörter"
@@ -204,6 +210,8 @@
               "auto_approve": "Wenn diese Funktion aktiviert ist, werden Anträge sofort und ohne Genehmigungsprüfung freigegeben.",
               "overdue_handling_type": "Verhalten nach Ablauf der Fälligkeit: Überfälligkeit ausblenden, bis zur Übernahme beibehalten oder beim nächsten Genehmigungszyklus auf „Ausstehend“ zurücksetzen.",
               "chore_due_reminder_offset": "Legt fest, wann die Erinnerung an die Fälligkeit gesendet wird. Format: „1d 6h 30m“ oder einfach „30“ für Minuten. Standard: „30m“ (30 Minuten vor der Fälligkeit). Geben Sie „0“ ein, um Erinnerungen zu deaktivieren.",
+              "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+              "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
               "chore_notifications": "Legt fest, wann Benachrichtigungen gesendet werden: bei Übernahme, Genehmigung, Ablehnung oder einer beliebigen Kombination.",
               "show_on_calendar": "Diese Aufgabe in der Kalenderansicht anzeigen.",
               "chore_labels": "Schlagwörter zur Organisation von Aufgaben (z. B. „Küche“, „Garten“). Felder leer lassen, falls nicht benötigt."
@@ -230,6 +238,8 @@
           "due_date": "📅 Zeitplan: Fälligkeitsdatum (optional)",
           "chore_due_window_offset": "⏱️ Fälligkeitszeitraum: Versatz vor dem Fälligkeitsdatum",
           "chore_due_reminder_offset": "🔔 Fälligkeitserinnerung: Verrechnung vor dem Fälligkeitsdatum",
+          "chore_notification_channel": "🔔 Notification Channel",
+          "chore_notification_importance": "🔔 Notification Importance",
           "show_on_calendar": "📅 Im Kalender anzeigen?",
           "chore_notifications": "🔔 Benachrichtigungsereignisse (optional)",
           "standby_claim_mode": "🔑 Standby-Modus für Aufgabenübernahme"
@@ -254,6 +264,8 @@
           "due_date": "Optionale Frist. Kann mit wiederkehrenden Zeitplänen kombiniert werden.",
           "chore_due_window_offset": "Wann sich der Status der Aufgabe von „Ausstehend“ auf „Fällig“ ändert. Format: „1d 6h 30m“ oder einfach „30“ für Minuten. Geben Sie „0“ ein, um die Funktion zu deaktivieren. Beispiel: „1d“ bedeutet, dass die Aufgabe einen Tag vor dem Fälligkeitstermin als „Fällig“ angezeigt wird.",
           "chore_due_reminder_offset": "Wann die Erinnerungsbenachrichtigung versendet werden soll. Format: „1d 6h 30m“ oder einfach „30“ für Minuten. Standard: 30m (30 Minuten vor Fälligkeit). Gib „0“ ein, um die Benachrichtigung zu deaktivieren.",
+          "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+          "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
           "show_on_calendar": "Diese Aufgabe in der Kalenderansicht anzeigen.",
           "chore_notifications": "Wann Benachrichtigungen versendet werden sollen: Bei Anspruch, bei Genehmigung, bei Ablehnung oder in beliebiger Kombination.",
           "standby_claim_mode": "Legt fest, wann Bereitschaftspersonen diese Aufgabe übernehmen können (jederzeit, bei Überfälligkeit oder nur manuell). Gilt nur für das Abschlusskriterium „Primär & Bereitschaft“."
@@ -437,8 +449,8 @@
       "error_award_points_minimum": "Die Punktzahl muss größer als null sein",
       "error_award_invalid_multiplier": "Der Punktemultiplikator muss größer als null sein",
       "invalid_award_item_selected": "Mindestens eine ausgewählte Belohnung ist ungültig",
-      "error_award_points_requires_item": "Select 'Points' in Award items to grant points, or set points to zero",
-      "error_award_multiplier_requires_item": "Select 'Points multiplier' in Award items, or clear the multiplier",
+      "error_award_points_requires_item": "Wählen Sie unter „Vergabe“ die Option „Punkte“ aus, um Punkte zu vergeben, oder setzen Sie die Punkte auf null",
+      "error_award_multiplier_requires_item": "Wählen Sie unter „Vergabe“ die Option „Punktemultiplikator“ aus, oder entfernen Sie den Multiplikator",
       "start_date_required": "Ein Startdatum ist erforderlich",
       "end_date_required": "Ein Enddatum ist erforderlich",
       "end_date_before_start_date": "Das Enddatum muss nach dem Startdatum liegen",
@@ -585,14 +597,18 @@
               "ha_user_id": "Home Assistant Benutzer",
               "dashboard_language": "Sprache",
               "mobile_notify_service": "Benachrichtigungen",
-              "notif_click_url": "URL beim Antippen der Benachrichtigung"
+              "notif_click_url": "URL beim Antippen der Benachrichtigung",
+              "notification_priority": "Delivery priority",
+              "notification_ttl": "Notification lifetime (seconds)"
             },
             "data_description": {
               "name": "Eindeutiger Name für dieses Benutzerprofil.",
               "ha_user_id": "Optional: Verknüpfen Sie dieses Profil mit einem Home Assistant-Benutzer. Wenn der Kioskmodus deaktiviert ist, werden die Funktionen „Übernehmen“ und „Belohnung einlösen“ auf gemeinsam genutzten Geräten über diese Verknüpfung bereitgestellt.",
               "dashboard_language": "Sprache für Dashboard-Inhalte und Benachrichtigungen.",
               "mobile_notify_service": "Wählen Sie einen Benachrichtigungsdienst aus oder lassen Sie das Feld leer, um Benachrichtigungen zu deaktivieren.",
-              "notif_click_url": "Optionale URL, die beim Antippen der Benachrichtigung geöffnet wird. Lassen Sie das Feld leer, um das Standardverhalten zu verwenden."
+              "notif_click_url": "Optionale URL, die beim Antippen der Benachrichtigung geöffnet wird. Lassen Sie das Feld leer, um das Standardverhalten zu verwenden.",
+              "notification_priority": "Android only. High asks the mobile app to deliver immediately even while the device is asleep; Normal may be delayed until it wakes. iOS ignores this.",
+              "notification_ttl": "Optional. Android only. How long delivery keeps being retried before the notification is dropped as stale. Leave empty for the platform default of 28 days; 0 discards anything that cannot be delivered right away. A good value is shorter than how often the chore recurs, so a retry can never arrive looking like the next occurrence - for a daily chore, around 20 hours. iOS ignores this."
             }
           },
           "section_system_usage": {
@@ -690,6 +706,8 @@
               "auto_approve": "✅ Übernahmen automatisch genehmigen?",
               "overdue_handling_type": "⏰ Überfällig: Vorgehensweise",
               "chore_due_reminder_offset": "🔔 Fälligkeitserinnerung: Versatz vor dem Fälligkeitstermin",
+              "chore_notification_channel": "🔔 Notification Channel",
+              "chore_notification_importance": "🔔 Notification Importance",
               "chore_notifications": "🔔 Benachrichtigungsereignisse (optional)",
               "show_on_calendar": "📅 Im Kalender anzeigen?",
               "chore_labels": "📋 Schlagwörter (optional)"
@@ -700,6 +718,8 @@
               "auto_approve": "Wenn diese Option aktiviert ist, werden Übernahmen sofort genehmigt, ohne dass eine Genehmigung durch eine berechtigte Person erforderlich ist.",
               "overdue_handling_type": "Legt fest, was nach Ablauf des Fälligkeitstermins geschieht und wie überfällige Aufgaben bei der Genehmigungsrücksetzung behandelt werden.",
               "chore_due_reminder_offset": "Legt fest, wann die Fälligkeitserinnerung gesendet wird. Format: „1d 6h 30m“ oder nur „30“ für Minuten. Standard: „30m“ (30 Minuten vor dem Fälligkeitstermin). Geben Sie „0“ ein, um die Funktion zu deaktivieren.",
+              "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+              "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
               "chore_notifications": "Legt fest, wann Benachrichtigungen gesendet werden: bei Übernahme, Genehmigung, Ablehnung oder einer beliebigen Kombination.",
               "show_on_calendar": "Diese Aufgabe in der Kalenderansicht anzeigen.",
               "chore_labels": "Schlagwörter zum Organisieren von Aufgaben (z. B. „Küche“ oder „Garten“). Leer lassen, wenn nicht benötigt."
@@ -727,6 +747,8 @@
           "clear_due_date": "🗑️ Fälligkeitstermin entfernen",
           "chore_due_window_offset": "⏱️ Fälligkeitsfenster: Versatz vor dem Fälligkeitstermin",
           "chore_due_reminder_offset": "🔔 Fälligkeitserinnerung: Versatz vor dem Fälligkeitstermin",
+          "chore_notification_channel": "🔔 Notification Channel",
+          "chore_notification_importance": "🔔 Notification Importance",
           "show_on_calendar": "📅 Im Kalender anzeigen?",
           "chore_notifications": "🔔 Benachrichtigungsereignisse (optional)",
           "standby_claim_mode": "🔑 Standby-Übernahmemodus"
@@ -752,6 +774,8 @@
           "clear_due_date": "Aktivieren Sie dieses Kontrollkästchen, um den Fälligkeitstermin dieser Aufgabe zu entfernen.",
           "chore_due_window_offset": "Wenn der Status der Aufgabe von „Ausstehend“ zu „Fällig“ wechselt. Format: „1d 6h 30m“ oder nur „30“ für Minuten. Geben Sie „0“ ein, um die Funktion zu deaktivieren. Beispiel: „1d“ bedeutet, dass die Aufgabe einen Tag vor dem Fälligkeitstermin als „Fällig“ angezeigt wird.",
           "chore_due_reminder_offset": "Legt fest, wann die Fälligkeitserinnerung gesendet wird. Format: „1d 6h 30m“ oder nur „30“ für Minuten. Standard: „30m“ (30 Minuten vor dem Fälligkeitstermin). Geben Sie „0“ ein, um die Funktion zu deaktivieren.",
+          "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+          "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
           "show_on_calendar": "Diese Aufgabe in der Kalenderansicht anzeigen.",
           "chore_notifications": "Legt fest, wann Benachrichtigungen gesendet werden: bei Übernahme, Genehmigung, Ablehnung oder einer beliebigen Kombination.",
           "standby_claim_mode": "Steuert, wann Bereitschaftsserver diese Aufgabe übernehmen können (jederzeit, bei Überschreitung der Fälligkeit, nur manuell). Gilt nur für die Abschlusskriterien von primären und Bereitschaftsservern."
@@ -1037,14 +1061,18 @@
               "ha_user_id": "Home Assistant-Benutzer",
               "dashboard_language": "Sprache",
               "mobile_notify_service": "Benachrichtigungen",
-              "notif_click_url": "URL beim Antippen der Benachrichtigung"
+              "notif_click_url": "URL beim Antippen der Benachrichtigung",
+              "notification_priority": "Delivery priority",
+              "notification_ttl": "Notification lifetime (seconds)"
             },
             "data_description": {
               "name": "Eindeutiger Name für dieses Benutzerprofil.",
               "ha_user_id": "Optional: Verknüpfen Sie dieses Profil mit einem Home Assistant-Benutzer. Wenn der Kioskmodus deaktiviert ist, werden die Funktionen „Übernehmen“ und „Belohnung einlösen“ auf gemeinsam genutzten Geräten über diese Verknüpfung bereitgestellt.",
               "dashboard_language": "Sprache für Dashboard-Inhalte und Benachrichtigungen.",
               "mobile_notify_service": "Wählen Sie einen Benachrichtigungsdienst aus oder lassen Sie das Feld leer, um Benachrichtigungen zu deaktivieren.",
-              "notif_click_url": "Optionale URL, die beim Antippen der Benachrichtigung geöffnet wird. Lassen Sie das Feld leer, um das Standardverhalten zu verwenden."
+              "notif_click_url": "Optionale URL, die beim Antippen der Benachrichtigung geöffnet wird. Lassen Sie das Feld leer, um das Standardverhalten zu verwenden.",
+              "notification_priority": "Android only. High asks the mobile app to deliver immediately even while the device is asleep; Normal may be delayed until it wakes. iOS ignores this.",
+              "notification_ttl": "Optional. Android only. How long delivery keeps being retried before the notification is dropped as stale. Leave empty for the platform default of 28 days; 0 discards anything that cannot be delivered right away. A good value is shorter than how often the chore recurs, so a retry can never arrive looking like the next occurrence - for a daily chore, around 20 hours. iOS ignores this."
             }
           },
           "section_system_usage": {
@@ -1142,6 +1170,8 @@
               "auto_approve": "✅ Übernahmen automatisch genehmigen?",
               "overdue_handling_type": "⏰ Überfällig: Verarbeitung",
               "chore_due_reminder_offset": "🔔 Fälligkeitserinnerung: Versatz vor dem Fälligkeitstermin",
+              "chore_notification_channel": "🔔 Notification Channel",
+              "chore_notification_importance": "🔔 Notification Importance",
               "chore_notifications": "🔔 Benachrichtigungsereignisse (optional)",
               "show_on_calendar": "📅 Im Kalender anzeigen?",
               "chore_labels": "📋 Schlagwörter (optional)"
@@ -1152,6 +1182,8 @@
               "auto_approve": "Wenn diese Option aktiviert ist, werden Übernahmen sofort genehmigt, ohne dass sie von einer genehmigungsberechtigten Person geprüft werden.",
               "overdue_handling_type": "Legt fest, was nach Ablauf des Fälligkeitstermins geschieht und wie überfällige Aufgaben bei der Genehmigungsrücksetzung behandelt werden.",
               "chore_due_reminder_offset": "Legt fest, wann die Fälligkeitserinnerung gesendet wird. Format: „1d 6h 30m“ oder nur „30“ für Minuten. Standard: „30m“ (30 Minuten vor dem Fälligkeitstermin). Geben Sie „0“ ein, um die Funktion zu deaktivieren.",
+              "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+              "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
               "chore_notifications": "Legt fest, wann Benachrichtigungen gesendet werden: bei Übernahme, Genehmigung, Ablehnung oder einer beliebigen Kombination.",
               "show_on_calendar": "Diese Aufgabe in der Kalenderansicht anzeigen.",
               "chore_labels": "Schlagwörter zum Organisieren von Aufgaben (z. B. „Küche“ oder „Garten“). Leer lassen, wenn nicht benötigt."
@@ -1180,6 +1212,8 @@
           "clear_due_date": "🗑️ Fälligkeitstermin entfernen",
           "chore_due_window_offset": "⏱️ Fälligkeitsfenster: Versatz vor dem Fälligkeitstermin",
           "chore_due_reminder_offset": "🔔 Fälligkeitserinnerung: Versatz vor dem Fälligkeitstermin",
+          "chore_notification_channel": "🔔 Notification Channel",
+          "chore_notification_importance": "🔔 Notification Importance",
           "show_on_calendar": "📅 Im Kalender anzeigen?",
           "chore_notifications": "🔔 Benachrichtigungsereignisse (optional)",
           "standby_claim_mode": "🔑 Standby-Übernahmemodus"
@@ -1205,6 +1239,8 @@
           "clear_due_date": "Aktivieren Sie dieses Kontrollkästchen, um den Fälligkeitstermin dieser Aufgabe zu entfernen.",
           "chore_due_window_offset": "Wenn der Status der Aufgabe von „Ausstehend“ zu „Fällig“ wechselt. Format: „1d 6h 30m“ oder nur „30“ für Minuten. Geben Sie „0“ ein, um die Funktion zu deaktivieren. Beispiel: „1d“ bedeutet, dass die Aufgabe einen Tag vor dem Fälligkeitstermin als „Fällig“ angezeigt wird.",
           "chore_due_reminder_offset": "Legt fest, wann die Fälligkeitserinnerung gesendet wird. Format: „1d 6h 30m“ oder nur „30“ für Minuten. Standard: „30m“ (30 Minuten vor dem Fälligkeitstermin). Geben Sie „0“ ein, um die Funktion zu deaktivieren.",
+          "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+          "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
           "show_on_calendar": "Diese Aufgabe in der Kalenderansicht anzeigen.",
           "chore_notifications": "Legt fest, wann Benachrichtigungen gesendet werden: bei Übernahme, Genehmigung, Ablehnung oder einer beliebigen Kombination.",
           "standby_claim_mode": "Legt fest, wann Bereitschaftspersonen diese Aufgabe übernehmen können (jederzeit, bei Überfälligkeit oder nur manuell). Gilt nur für das Abschlusskriterium „Primär & Bereitschaft“."
@@ -1824,8 +1860,8 @@
       "error_award_points_minimum": "Die Punktzahl muss größer als null sein",
       "error_award_invalid_multiplier": "Der Punktemultiplikator muss größer als null sein",
       "invalid_award_item_selected": "Mindestens eine ausgewählte Auszeichnung ist ungültig",
-      "error_award_points_requires_item": "Select 'Points' in Award items to grant points, or set points to zero",
-      "error_award_multiplier_requires_item": "Select 'Points multiplier' in Award items, or clear the multiplier",
+      "error_award_points_requires_item": "Wählen Sie unter „Vergabe“ die Option „Punkte“ aus, um Punkte zu vergeben, oder setzen Sie die Punkte auf null",
+      "error_award_multiplier_requires_item": "Wählen Sie unter „Vergabe“ die Option „Punktemultiplikator“ aus, oder entfernen Sie den Multiplikator",
       "start_date_required": "Ein Startdatum ist erforderlich",
       "end_date_required": "Ein Enddatum ist erforderlich",
       "end_date_before_start_date": "Das Enddatum muss nach dem Startdatum liegen",
@@ -2082,6 +2118,12 @@
         "custom_1_month": "Benutzerdefiniert: 1 Monat"
       }
     },
+    "notification_priority": {
+      "options": {
+        "normal": "Normal (may be delayed while the device is asleep)",
+        "high": "High (deliver immediately, even while the device is asleep)"
+      }
+    },
     "completion_criteria": {
       "options": {
         "shared_all": "Gemeinsam (Alle zugewiesenen Personen müssen die Aufgabe gemeinsam abschließen)",
@@ -2207,6 +2249,15 @@
         "current_active": "📂 Aktuelle aktive Datendatei verwenden",
         "migrate_from_kidschores": "🔄 Migration von KidsChores (nicht-destruktive Kopie)",
         "paste_json": "📋 JSON aus der Datendatei oder den Diagnosedaten einfügen"
+      }
+    },
+    "notification_importance": {
+      "options": {
+        "min": "Minimum (no sound, collapsed)",
+        "low": "Low (no sound)",
+        "default": "Default (makes a sound)",
+        "high": "High (pops on screen and makes a sound)",
+        "max": "Maximum (pops on screen, most urgent)"
       }
     }
   },
@@ -2762,6 +2813,14 @@
           "description": "Zeitraum vor dem Fälligkeitstermin, zu dem eine Erinnerung gesendet werden soll. Format: „30m“, „1h“, „1d 6h 30m“ usw. Verwenden Sie „0“, um Erinnerungen zu deaktivieren.",
           "example": "30m"
         },
+        "notification_channel": {
+          "name": "Notification Channel",
+          "description": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately from other chores. Leave empty to use the app default. iOS ignores this."
+        },
+        "notification_importance": {
+          "name": "Notification Importance",
+          "description": "Optional. Android only. How prominently this chore's notifications alert (min, low, default, high, max). Requires notification_channel. Note: sets the channel's INITIAL state the first time a device sees that channel name. The integration cannot change it afterwards; the person still can, in Android settings. iOS ignores this."
+        },
         "standby_claim_mode": {
           "name": "Bereitschaftsmodus für Übernahmen",
           "description": "Legt fest, wann Bereitschaftspersonen diese Aufgabe übernehmen können (jederzeit, bei Überfälligkeit oder nur manuell). Gilt nur für das Abschlusskriterium „Primär & Bereitschaft“."
@@ -2911,6 +2970,14 @@
           "name": "Versatz der Fälligkeitserinnerung",
           "description": "Neuer Versatz der Fälligkeitserinnerung. Zeitraum vor dem Fälligkeitstermin, zu dem eine Erinnerung gesendet werden soll. Format: „30m“, „1h“, „1d 6h 30m“ usw. Verwenden Sie „0“, um Erinnerungen zu deaktivieren.",
           "example": "30m"
+        },
+        "notification_channel": {
+          "name": "Notification Channel",
+          "description": "New notification channel. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately from other chores. Leave empty to use the app default. iOS ignores this."
+        },
+        "notification_importance": {
+          "name": "Notification Importance",
+          "description": "Optional. Android only. How prominently this chore's notifications alert (min, low, default, high, max). Requires notification_channel. Note: sets the channel's INITIAL state the first time a device sees that channel name. The integration cannot change it afterwards; the person still can, in Android settings. iOS ignores this."
         },
         "assignment_action": {
           "name": "Aktion für Zuweisung",

@@ -82,14 +82,18 @@
               "ha_user_id": "Home Assistant 用户",
               "dashboard_language": "语言",
               "mobile_notify_service": "通知",
-              "notif_click_url": "通知点击 URL"
+              "notif_click_url": "通知点击 URL",
+              "notification_priority": "Delivery priority",
+              "notification_ttl": "Notification lifetime (seconds)"
             },
             "data_description": {
               "name": "此用户个人资料的唯一名称。",
               "ha_user_id": "可选：将此资料关联到 Home Assistant 用户。如果禁用服务终端模式，共享设备上的认领和兑换操作将依赖此关联。",
               "dashboard_language": "用于仪表盘内容和通知的语言。",
               "mobile_notify_service": "选择通知服务，或留空以禁用通知。",
-              "notif_click_url": "点击通知时要打开的网址（可选）。留空则使用默认行为。"
+              "notif_click_url": "点击通知时要打开的网址（可选）。留空则使用默认行为。",
+              "notification_priority": "Android only. High asks the mobile app to deliver immediately even while the device is asleep; Normal may be delayed until it wakes. iOS ignores this.",
+              "notification_ttl": "Optional. Android only. How long delivery keeps being retried before the notification is dropped as stale. Leave empty for the platform default of 28 days; 0 discards anything that cannot be delivered right away. A good value is shorter than how often the chore recurs, so a retry can never arrive looking like the next occurrence - for a daily chore, around 20 hours. iOS ignores this."
             }
           },
           "section_system_usage": {
@@ -194,6 +198,8 @@
               "auto_approve": "✅ 自动批准认领？",
               "overdue_handling_type": "⏰ 逾期：处理",
               "chore_due_reminder_offset": "🔔 到期提醒：到期前偏移量",
+              "chore_notification_channel": "🔔 Notification Channel",
+              "chore_notification_importance": "🔔 Notification Importance",
               "chore_notifications": "🔔 通知事件（可选）",
               "show_on_calendar": "📅 在日历上显示？",
               "chore_labels": "📋 标签（可选）"
@@ -204,6 +210,8 @@
               "auto_approve": "启用后，认领申请无需审批人审核即可立即批准。",
               "overdue_handling_type": "到期后的操作：隐藏逾期状态、保持逾期状态直至被认领，或在下一个审批周期重置为待开始状态。",
               "chore_due_reminder_offset": "到期前发送提醒通知的偏移量。格式：‘1d 6h 30m’或‘30’（分钟）。默认值：30 分钟（到期前 30 分钟）。输入‘0’可禁用此功能。",
+              "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+              "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
               "chore_notifications": "通知发送时机：认领时、批准时、退回时，或以上任意组合。",
               "show_on_calendar": "在日历视图中显示此家务。",
               "chore_labels": "用于整理家务的标签（例如，“厨房”、“户外”）。如果不需要，请留空。"
@@ -230,6 +238,8 @@
           "due_date": "📅 日程安排：截止日期（可选）",
           "chore_due_window_offset": "⏱️ 到期前认领窗口：到期前偏移量",
           "chore_due_reminder_offset": "🔔 到期提醒：到期前偏移量",
+          "chore_notification_channel": "🔔 Notification Channel",
+          "chore_notification_importance": "🔔 Notification Importance",
           "show_on_calendar": "📅 在日历上显示？",
           "chore_notifications": "🔔 通知事件（可选）",
           "standby_claim_mode": "🔑 备用执行人认领方式"
@@ -254,6 +264,8 @@
           "due_date": "可选截止日期。可与周期性安排结合使用。",
           "chore_due_window_offset": "到期前认领窗口的偏移量。格式为“1d 6h 30m”或仅输入“30”（表示分钟）。输入“0”可禁用此功能。例如：“1d”表示在截止日期前 1 天开放认领窗口。",
           "chore_due_reminder_offset": "到期前发送提醒通知的偏移量。格式：‘1d 6h 30m’或‘30’（分钟）。默认值：30 分钟（到期前 30 分钟）。输入‘0’可禁用此功能。",
+          "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+          "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
           "show_on_calendar": "在日历视图中显示此家务。",
           "chore_notifications": "通知发送时机：认领时、批准时、退回时，或以上任意组合。",
           "standby_claim_mode": "控制备用执行人何时可以认领此家务（anytime、on_overdue、manual_only）。仅适用于“主执行人和备用执行人”完成方式。"
@@ -585,14 +597,18 @@
               "ha_user_id": "Home Assistant 用户",
               "dashboard_language": "语言",
               "mobile_notify_service": "通知",
-              "notif_click_url": "通知点击 URL"
+              "notif_click_url": "通知点击 URL",
+              "notification_priority": "Delivery priority",
+              "notification_ttl": "Notification lifetime (seconds)"
             },
             "data_description": {
               "name": "此用户个人资料的唯一名称。",
               "ha_user_id": "可选：将此资料关联到 Home Assistant 用户。如果禁用服务终端模式，共享设备上的认领和兑换操作将依赖此关联。",
               "dashboard_language": "用于仪表盘内容和通知的语言。",
               "mobile_notify_service": "选择通知服务，或留空以禁用通知。",
-              "notif_click_url": "点击通知时要打开的网址（可选）。留空则使用默认行为。"
+              "notif_click_url": "点击通知时要打开的网址（可选）。留空则使用默认行为。",
+              "notification_priority": "Android only. High asks the mobile app to deliver immediately even while the device is asleep; Normal may be delayed until it wakes. iOS ignores this.",
+              "notification_ttl": "Optional. Android only. How long delivery keeps being retried before the notification is dropped as stale. Leave empty for the platform default of 28 days; 0 discards anything that cannot be delivered right away. A good value is shorter than how often the chore recurs, so a retry can never arrive looking like the next occurrence - for a daily chore, around 20 hours. iOS ignores this."
             }
           },
           "section_system_usage": {
@@ -690,6 +706,8 @@
               "auto_approve": "✅ 自动批准认领？",
               "overdue_handling_type": "⏰ 逾期：处理",
               "chore_due_reminder_offset": "🔔 到期提醒：到期前偏移量",
+              "chore_notification_channel": "🔔 Notification Channel",
+              "chore_notification_importance": "🔔 Notification Importance",
               "chore_notifications": "🔔 通知事件（可选）",
               "show_on_calendar": "📅 在日历上显示？",
               "chore_labels": "📋 标签（可选）"
@@ -700,6 +718,8 @@
               "auto_approve": "启用后，认领申请无需审批人审核即可立即批准。",
               "overdue_handling_type": "控制到期日过后会发生什么，以及在审批重置边界处逾期家务会发生什么。",
               "chore_due_reminder_offset": "到期前发送提醒通知的偏移量。格式：‘1d 6h 30m’或‘30’（分钟）。默认值：30 分钟（到期前 30 分钟）。输入‘0’可禁用此功能。",
+              "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+              "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
               "chore_notifications": "通知发送时机：认领时、批准时、退回时，或以上任意组合。",
               "show_on_calendar": "在日历视图中显示此家务。",
               "chore_labels": "用于整理家务的标签（例如，“厨房”、“户外”）。如果不需要，请留空。"
@@ -727,6 +747,8 @@
           "clear_due_date": "🗑️ 清除截止日期",
           "chore_due_window_offset": "⏱️ 到期前认领窗口：到期前偏移量",
           "chore_due_reminder_offset": "🔔 到期提醒：到期前偏移量",
+          "chore_notification_channel": "🔔 Notification Channel",
+          "chore_notification_importance": "🔔 Notification Importance",
           "show_on_calendar": "📅 在日历上显示？",
           "chore_notifications": "🔔 通知事件（可选）",
           "standby_claim_mode": "🔑 备用执行人认领方式"
@@ -752,6 +774,8 @@
           "clear_due_date": "选中此框可移除此家务的截止日期。",
           "chore_due_window_offset": "到期前认领窗口的偏移量。格式为“1d 6h 30m”或仅输入“30”（表示分钟）。输入“0”可禁用此功能。例如：“1d”表示在截止日期前 1 天开放认领窗口。",
           "chore_due_reminder_offset": "到期前发送提醒通知的偏移量。格式：‘1d 6h 30m’或‘30’（分钟）。默认值：30 分钟（到期前 30 分钟）。输入‘0’可禁用此功能。",
+          "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+          "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
           "show_on_calendar": "在日历视图中显示此家务。",
           "chore_notifications": "通知发送时机：认领时、批准时、退回时，或以上任意组合。",
           "standby_claim_mode": "控制备用执行人何时可以认领此家务（anytime、on_overdue、manual_only）。仅适用于“主执行人和备用执行人”完成方式。"
@@ -1037,14 +1061,18 @@
               "ha_user_id": "Home Assistant 用户",
               "dashboard_language": "语言",
               "mobile_notify_service": "通知",
-              "notif_click_url": "通知点击 URL"
+              "notif_click_url": "通知点击 URL",
+              "notification_priority": "Delivery priority",
+              "notification_ttl": "Notification lifetime (seconds)"
             },
             "data_description": {
               "name": "此用户个人资料的唯一名称。",
               "ha_user_id": "可选：将此资料关联到 Home Assistant 用户。如果禁用服务终端模式，共享设备上的认领和兑换操作将依赖此关联。",
               "dashboard_language": "用于仪表盘内容和通知的语言。",
               "mobile_notify_service": "选择通知服务，或留空以禁用通知。",
-              "notif_click_url": "点击通知时要打开的网址（可选）。留空则使用默认行为。"
+              "notif_click_url": "点击通知时要打开的网址（可选）。留空则使用默认行为。",
+              "notification_priority": "Android only. High asks the mobile app to deliver immediately even while the device is asleep; Normal may be delayed until it wakes. iOS ignores this.",
+              "notification_ttl": "Optional. Android only. How long delivery keeps being retried before the notification is dropped as stale. Leave empty for the platform default of 28 days; 0 discards anything that cannot be delivered right away. A good value is shorter than how often the chore recurs, so a retry can never arrive looking like the next occurrence - for a daily chore, around 20 hours. iOS ignores this."
             }
           },
           "section_system_usage": {
@@ -1142,6 +1170,8 @@
               "auto_approve": "✅ 自动批准认领？",
               "overdue_handling_type": "⏰ 逾期：处理",
               "chore_due_reminder_offset": "🔔 到期提醒：到期前偏移量",
+              "chore_notification_channel": "🔔 Notification Channel",
+              "chore_notification_importance": "🔔 Notification Importance",
               "chore_notifications": "🔔 通知事件（可选）",
               "show_on_calendar": "📅 在日历上显示？",
               "chore_labels": "📋 标签（可选）"
@@ -1152,6 +1182,8 @@
               "auto_approve": "启用后，认领申请无需审批人审核即可立即批准。",
               "overdue_handling_type": "控制到期日过后会发生什么，以及在审批重置边界处逾期家务会发生什么。",
               "chore_due_reminder_offset": "到期前发送提醒通知的偏移量。格式：‘1d 6h 30m’或‘30’（分钟）。默认值：30 分钟（到期前 30 分钟）。输入‘0’可禁用此功能。",
+              "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+              "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
               "chore_notifications": "通知发送时机：认领时、批准时、退回时，或以上任意组合。",
               "show_on_calendar": "在日历视图中显示此家务。",
               "chore_labels": "用于整理家务的标签（例如，“厨房”、“户外”）。如果不需要，请留空。"
@@ -1180,6 +1212,8 @@
           "clear_due_date": "🗑️ 清除截止日期",
           "chore_due_window_offset": "⏱️ 到期前认领窗口：到期前偏移量",
           "chore_due_reminder_offset": "🔔 到期提醒：到期前偏移量",
+          "chore_notification_channel": "🔔 Notification Channel",
+          "chore_notification_importance": "🔔 Notification Importance",
           "show_on_calendar": "📅 在日历上显示？",
           "chore_notifications": "🔔 通知事件（可选）",
           "standby_claim_mode": "🔑 备用执行人认领方式"
@@ -1205,6 +1239,8 @@
           "clear_due_date": "选中此框可移除此家务的截止日期。",
           "chore_due_window_offset": "到期前认领窗口的偏移量。格式为“1d 6h 30m”或仅输入“30”（表示分钟）。输入“0”可禁用此功能。例如：“1d”表示在截止日期前 1 天开放认领窗口。",
           "chore_due_reminder_offset": "到期前发送提醒通知的偏移量。格式：‘1d 6h 30m’或‘30’（分钟）。默认值：30 分钟（到期前 30 分钟）。输入‘0’可禁用此功能。",
+          "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+          "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
           "show_on_calendar": "在日历视图中显示此家务。",
           "chore_notifications": "通知发送时机：认领时、批准时、退回时，或以上任意组合。",
           "standby_claim_mode": "控制备用执行人何时可以认领此家务（anytime、on_overdue、manual_only）。仅适用于“主执行人和备用执行人”完成方式。"
@@ -2082,6 +2118,12 @@
         "custom_1_month": "自定义：1 个月期限"
       }
     },
+    "notification_priority": {
+      "options": {
+        "normal": "Normal (may be delayed while the device is asleep)",
+        "high": "High (deliver immediately, even while the device is asleep)"
+      }
+    },
     "completion_criteria": {
       "options": {
         "shared_all": "共享全部（所有执行人必须一起完成）",
@@ -2207,6 +2249,15 @@
         "current_active": "📂 使用当前活动数据文件",
         "migrate_from_kidschores": "🔄 从 KidsChores 迁移（非破坏性复制）",
         "paste_json": "📋 从数据文件或诊断信息中粘贴 JSON 数据"
+      }
+    },
+    "notification_importance": {
+      "options": {
+        "min": "Minimum (no sound, collapsed)",
+        "low": "Low (no sound)",
+        "default": "Default (makes a sound)",
+        "high": "High (pops on screen and makes a sound)",
+        "max": "Maximum (pops on screen, most urgent)"
       }
     }
   },
@@ -2762,6 +2813,14 @@
           "description": "发送提醒通知的截止日期前剩余时间。格式：‘30 分钟’、‘1 小时’、‘1d 6h 30m’等。使用‘0’可禁用提醒。",
           "example": "30m"
         },
+        "notification_channel": {
+          "name": "Notification Channel",
+          "description": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately from other chores. Leave empty to use the app default. iOS ignores this."
+        },
+        "notification_importance": {
+          "name": "Notification Importance",
+          "description": "Optional. Android only. How prominently this chore's notifications alert (min, low, default, high, max). Requires notification_channel. Note: sets the channel's INITIAL state the first time a device sees that channel name. The integration cannot change it afterwards; the person still can, in Android settings. iOS ignores this."
+        },
         "standby_claim_mode": {
           "name": "备用执行人认领方式",
           "description": "控制备用执行人何时可以认领此家务（anytime、on_overdue、manual_only）。仅适用于“主执行人和备用执行人”完成方式。"
@@ -2911,6 +2970,14 @@
           "name": "到期提醒偏移量",
           "description": "新的到期提醒偏移量。发送提醒通知的到期日前持续时间。格式：‘30m’、‘1h’、‘1d 6h 30m’等。使用‘0’可禁用此功能。",
           "example": "30m"
+        },
+        "notification_channel": {
+          "name": "Notification Channel",
+          "description": "New notification channel. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately from other chores. Leave empty to use the app default. iOS ignores this."
+        },
+        "notification_importance": {
+          "name": "Notification Importance",
+          "description": "Optional. Android only. How prominently this chore's notifications alert (min, low, default, high, max). Requires notification_channel. Note: sets the channel's INITIAL state the first time a device sees that channel name. The integration cannot change it afterwards; the person still can, in Android settings. iOS ignores this."
         },
         "assignment_action": {
           "name": "分配操作",

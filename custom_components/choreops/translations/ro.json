@@ -82,14 +82,18 @@
               "ha_user_id": "Utilizator Asistent Acasă",
               "dashboard_language": "Limbă",
               "mobile_notify_service": "Notificări",
-              "notif_click_url": "Adresa URL pentru atingerea notificării"
+              "notif_click_url": "Adresa URL pentru atingerea notificării",
+              "notification_priority": "Delivery priority",
+              "notification_ttl": "Notification lifetime (seconds)"
             },
             "data_description": {
               "name": "Nume unic pentru acest profil de utilizator.",
               "ha_user_id": "Opțional: Conectați acest profil la un utilizator Home Assistant. Dacă modul chioșc este dezactivat, acțiunile de revendicare și valorificare a dispozitivelor partajate se bazează pe această legătură.",
               "dashboard_language": "Limba utilizată pentru conținutul tabloului de bord și notificări.",
               "mobile_notify_service": "Selectați serviciul de notificări sau lăsați câmpul gol pentru a dezactiva notificările.",
-              "notif_click_url": "Adresă URL opțională de deschis când se atinge notificarea. Se lasă necompletată pentru comportamentul implicit."
+              "notif_click_url": "Adresă URL opțională de deschis când se atinge notificarea. Se lasă necompletată pentru comportamentul implicit.",
+              "notification_priority": "Android only. High asks the mobile app to deliver immediately even while the device is asleep; Normal may be delayed until it wakes. iOS ignores this.",
+              "notification_ttl": "Optional. Android only. How long delivery keeps being retried before the notification is dropped as stale. Leave empty for the platform default of 28 days; 0 discards anything that cannot be delivered right away. A good value is shorter than how often the chore recurs, so a retry can never arrive looking like the next occurrence - for a daily chore, around 20 hours. iOS ignores this."
             }
           },
           "section_system_usage": {
@@ -194,6 +198,8 @@
               "auto_approve": "✅ Aprobare automată a cererilor?",
               "overdue_handling_type": "⏰ Restanță: Manipulare",
               "chore_due_reminder_offset": "🔔 Memento scadență: Compensare înainte de data scadenței",
+              "chore_notification_channel": "🔔 Notification Channel",
+              "chore_notification_importance": "🔔 Notification Importance",
               "chore_notifications": "🔔 Evenimente de notificare (opțional)",
               "show_on_calendar": "📅 Afișați în Calendar?",
               "chore_labels": "📋 Etichete (opțional)"
@@ -204,6 +210,8 @@
               "auto_approve": "Când este activată, revendicările sunt aprobate instantaneu, fără a fi revizuite de către aprobator.",
               "overdue_handling_type": "Acțiune după data scadenței: Ascundeți starea de depășire, mențineți depășirea până la revendicare sau resetați la în așteptare la următorul ciclu de aprobare.",
               "chore_due_reminder_offset": "Când se trimite notificarea de reamintire a scadenței. Format: „1d 6h 30m” sau doar „30” pentru minute. Implicit: 30m (cu 30 de minute înainte de scadență). Introduceți „0” pentru a dezactiva.",
+              "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+              "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
               "chore_notifications": "Când se trimit notificări: La revendicare, la aprobare, la respingere sau orice combinație a acestora.",
               "show_on_calendar": "Afișează această sarcină în vizualizarea calendarului.",
               "chore_labels": "Etichete pentru organizarea treburilor casnice (de exemplu, „bucătărie”, „exterior”). Lăsați necompletat dacă nu este necesar."
@@ -230,6 +238,8 @@
           "due_date": "📅 Program: Data scadenței (opțional)",
           "chore_due_window_offset": "⏱️ Interval scadență: Compensare înainte de data scadenței",
           "chore_due_reminder_offset": "🔔 Memento scadență: Compensare înainte de data scadenței",
+          "chore_notification_channel": "🔔 Notification Channel",
+          "chore_notification_importance": "🔔 Notification Importance",
           "show_on_calendar": "📅 Afișați în Calendar?",
           "chore_notifications": "🔔 Evenimente de notificare (opțional)",
           "standby_claim_mode": "🔑 Mod de revendicare în așteptare"
@@ -254,6 +264,8 @@
           "due_date": "Termen limită opțional. Poate fi combinat cu programe recurente.",
           "chore_due_window_offset": "Când starea sarcinii se schimbă din În așteptare în Scadentă. Format: „1z 6h 30m” sau doar „30” pentru minute. Introduceți „0” pentru dezactivare. Exemplu: „1z” înseamnă că sarcina apare ca „Scadentă” cu 1 zi înainte de termenul limită.",
           "chore_due_reminder_offset": "Când se trimite notificarea de reamintire a scadenței. Format: „1d 6h 30m” sau doar „30” pentru minute. Implicit: 30m (cu 30 de minute înainte de scadență). Introduceți „0” pentru a dezactiva.",
+          "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+          "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
           "show_on_calendar": "Afișează această sarcină în vizualizarea calendarului.",
           "chore_notifications": "Când se trimit notificări: La revendicare, la aprobare, la respingere sau orice combinație a acestora.",
           "standby_claim_mode": "Controlează când sarcinile de rezervă pot revendica această sarcină (oricând, la depășire, doar manual). Se aplică numai criteriilor de finalizare principale și de rezervă."
@@ -585,14 +597,18 @@
               "ha_user_id": "Utilizator Asistent Acasă",
               "dashboard_language": "Limbă",
               "mobile_notify_service": "Notificări",
-              "notif_click_url": "Adresa URL pentru atingerea notificării"
+              "notif_click_url": "Adresa URL pentru atingerea notificării",
+              "notification_priority": "Delivery priority",
+              "notification_ttl": "Notification lifetime (seconds)"
             },
             "data_description": {
               "name": "Nume unic pentru acest profil de utilizator.",
               "ha_user_id": "Opțional: Conectați acest profil la un utilizator Home Assistant. Dacă modul chioșc este dezactivat, acțiunile de revendicare și valorificare a dispozitivelor partajate se bazează pe această legătură.",
               "dashboard_language": "Limba utilizată pentru conținutul tabloului de bord și notificări.",
               "mobile_notify_service": "Selectați serviciul de notificări sau lăsați câmpul gol pentru a dezactiva notificările.",
-              "notif_click_url": "Adresă URL opțională de deschis când se atinge notificarea. Se lasă necompletată pentru comportamentul implicit."
+              "notif_click_url": "Adresă URL opțională de deschis când se atinge notificarea. Se lasă necompletată pentru comportamentul implicit.",
+              "notification_priority": "Android only. High asks the mobile app to deliver immediately even while the device is asleep; Normal may be delayed until it wakes. iOS ignores this.",
+              "notification_ttl": "Optional. Android only. How long delivery keeps being retried before the notification is dropped as stale. Leave empty for the platform default of 28 days; 0 discards anything that cannot be delivered right away. A good value is shorter than how often the chore recurs, so a retry can never arrive looking like the next occurrence - for a daily chore, around 20 hours. iOS ignores this."
             }
           },
           "section_system_usage": {
@@ -690,6 +706,8 @@
               "auto_approve": "✅ Aprobare automată a cererilor?",
               "overdue_handling_type": "⏰ Restanță: Manipulare",
               "chore_due_reminder_offset": "🔔 Memento scadență: Compensare înainte de data scadenței",
+              "chore_notification_channel": "🔔 Notification Channel",
+              "chore_notification_importance": "🔔 Notification Importance",
               "chore_notifications": "🔔 Evenimente de notificare (opțional)",
               "show_on_calendar": "📅 Afișați în Calendar?",
               "chore_labels": "📋 Etichete (opțional)"
@@ -700,6 +718,8 @@
               "auto_approve": "Când este activată, revendicările sunt aprobate instantaneu, fără a fi revizuite de către aprobator.",
               "overdue_handling_type": "Controlează ce se întâmplă când trece data scadenței și ce se întâmplă cu sarcinile restante la limita de resetare a aprobării.",
               "chore_due_reminder_offset": "Când se trimite notificarea de reamintire a scadenței. Format: „1d 6h 30m” sau doar „30” pentru minute. Implicit: 30m (cu 30 de minute înainte de scadență). Introduceți „0” pentru a dezactiva.",
+              "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+              "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
               "chore_notifications": "Când se trimit notificări: La revendicare, la aprobare, la respingere sau orice combinație a acestora.",
               "show_on_calendar": "Afișează această sarcină în vizualizarea calendarului.",
               "chore_labels": "Etichete pentru organizarea treburilor casnice (de exemplu, „bucătărie”, „exterior”). Lăsați necompletat dacă nu este necesar."
@@ -727,6 +747,8 @@
           "clear_due_date": "🗑️ Data scadenței clare",
           "chore_due_window_offset": "⏱️ Interval scadență: Compensare înainte de data scadenței",
           "chore_due_reminder_offset": "🔔 Memento scadență: Compensare înainte de data scadenței",
+          "chore_notification_channel": "🔔 Notification Channel",
+          "chore_notification_importance": "🔔 Notification Importance",
           "show_on_calendar": "📅 Afișați în Calendar?",
           "chore_notifications": "🔔 Evenimente de notificare (opțional)",
           "standby_claim_mode": "🔑 Mod de revendicare în așteptare"
@@ -752,6 +774,8 @@
           "clear_due_date": "Bifați această casetă pentru a elimina data scadentă pentru această sarcină.",
           "chore_due_window_offset": "Când starea sarcinii se schimbă din În așteptare în Scadentă. Format: „1z 6h 30m” sau doar „30” pentru minute. Introduceți „0” pentru dezactivare. Exemplu: „1z” înseamnă că sarcina apare ca „Scadentă” cu 1 zi înainte de termenul limită.",
           "chore_due_reminder_offset": "Când se trimite notificarea de reamintire a scadenței. Format: „1d 6h 30m” sau doar „30” pentru minute. Implicit: 30m (cu 30 de minute înainte de scadență). Introduceți „0” pentru a dezactiva.",
+          "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+          "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
           "show_on_calendar": "Afișează această sarcină în vizualizarea calendarului.",
           "chore_notifications": "Când se trimit notificări: La revendicare, la aprobare, la respingere sau orice combinație a acestora.",
           "standby_claim_mode": "Controlează când sarcinile de rezervă pot revendica această sarcină (oricând, la depășire, doar manual). Se aplică numai criteriilor de finalizare principale și de rezervă."
@@ -1037,14 +1061,18 @@
               "ha_user_id": "Utilizator Asistent Acasă",
               "dashboard_language": "Limbă",
               "mobile_notify_service": "Notificări",
-              "notif_click_url": "Adresa URL pentru atingerea notificării"
+              "notif_click_url": "Adresa URL pentru atingerea notificării",
+              "notification_priority": "Delivery priority",
+              "notification_ttl": "Notification lifetime (seconds)"
             },
             "data_description": {
               "name": "Nume unic pentru acest profil de utilizator.",
               "ha_user_id": "Opțional: Conectați acest profil la un utilizator Home Assistant. Dacă modul chioșc este dezactivat, acțiunile de revendicare și valorificare a dispozitivelor partajate se bazează pe această legătură.",
               "dashboard_language": "Limba utilizată pentru conținutul tabloului de bord și notificări.",
               "mobile_notify_service": "Selectați serviciul de notificări sau lăsați câmpul gol pentru a dezactiva notificările.",
-              "notif_click_url": "Adresă URL opțională de deschis când se atinge notificarea. Se lasă necompletată pentru comportamentul implicit."
+              "notif_click_url": "Adresă URL opțională de deschis când se atinge notificarea. Se lasă necompletată pentru comportamentul implicit.",
+              "notification_priority": "Android only. High asks the mobile app to deliver immediately even while the device is asleep; Normal may be delayed until it wakes. iOS ignores this.",
+              "notification_ttl": "Optional. Android only. How long delivery keeps being retried before the notification is dropped as stale. Leave empty for the platform default of 28 days; 0 discards anything that cannot be delivered right away. A good value is shorter than how often the chore recurs, so a retry can never arrive looking like the next occurrence - for a daily chore, around 20 hours. iOS ignores this."
             }
           },
           "section_system_usage": {
@@ -1142,6 +1170,8 @@
               "auto_approve": "✅ Aprobare automată a cererilor?",
               "overdue_handling_type": "⏰ Restanță: Manipulare",
               "chore_due_reminder_offset": "🔔 Memento scadență: Compensare înainte de data scadenței",
+              "chore_notification_channel": "🔔 Notification Channel",
+              "chore_notification_importance": "🔔 Notification Importance",
               "chore_notifications": "🔔 Evenimente de notificare (opțional)",
               "show_on_calendar": "📅 Afișați în Calendar?",
               "chore_labels": "📋 Etichete (opțional)"
@@ -1152,6 +1182,8 @@
               "auto_approve": "Când este activată, revendicările sunt aprobate instantaneu, fără a fi revizuite de către aprobator.",
               "overdue_handling_type": "Controlează ce se întâmplă când trece data scadenței și ce se întâmplă cu sarcinile restante la limita de resetare a aprobării.",
               "chore_due_reminder_offset": "Când se trimite notificarea de reamintire a scadenței. Format: „1d 6h 30m” sau doar „30” pentru minute. Implicit: 30m (cu 30 de minute înainte de scadență). Introduceți „0” pentru a dezactiva.",
+              "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+              "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
               "chore_notifications": "Când se trimit notificări: La revendicare, la aprobare, la respingere sau orice combinație a acestora.",
               "show_on_calendar": "Afișează această sarcină în vizualizarea calendarului.",
               "chore_labels": "Etichete pentru organizarea treburilor casnice (de exemplu, „bucătărie”, „exterior”). Lăsați necompletat dacă nu este necesar."
@@ -1180,6 +1212,8 @@
           "clear_due_date": "🗑️ Data scadenței clare",
           "chore_due_window_offset": "⏱️ Interval scadență: Compensare înainte de data scadenței",
           "chore_due_reminder_offset": "🔔 Memento scadență: Compensare înainte de data scadenței",
+          "chore_notification_channel": "🔔 Notification Channel",
+          "chore_notification_importance": "🔔 Notification Importance",
           "show_on_calendar": "📅 Afișați în Calendar?",
           "chore_notifications": "🔔 Evenimente de notificare (opțional)",
           "standby_claim_mode": "🔑 Mod de revendicare în așteptare"
@@ -1205,6 +1239,8 @@
           "clear_due_date": "Bifați această casetă pentru a elimina data scadentă pentru această sarcină.",
           "chore_due_window_offset": "Când starea sarcinii se schimbă din În așteptare în Scadentă. Format: „1z 6h 30m” sau doar „30” pentru minute. Introduceți „0” pentru dezactivare. Exemplu: „1z” înseamnă că sarcina apare ca „Scadentă” cu 1 zi înainte de termenul limită.",
           "chore_due_reminder_offset": "Când se trimite notificarea de reamintire a scadenței. Format: „1d 6h 30m” sau doar „30” pentru minute. Implicit: 30m (cu 30 de minute înainte de scadență). Introduceți „0” pentru a dezactiva.",
+          "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+          "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
           "show_on_calendar": "Afișează această sarcină în vizualizarea calendarului.",
           "chore_notifications": "Când se trimit notificări: La revendicare, la aprobare, la respingere sau orice combinație a acestora.",
           "standby_claim_mode": "Controlează când sarcinile de rezervă pot revendica această sarcină (oricând, la depășire, doar manual). Se aplică numai criteriilor de finalizare principale și de rezervă."
@@ -2082,6 +2118,12 @@
         "custom_1_month": "Personalizat: Perioadă de 1 lună"
       }
     },
+    "notification_priority": {
+      "options": {
+        "normal": "Normal (may be delayed while the device is asleep)",
+        "high": "High (deliver immediately, even while the device is asleep)"
+      }
+    },
     "completion_criteria": {
       "options": {
         "shared_all": "Partajat pe toți (Toți participanții trebuie să completeze împreună)",
@@ -2207,6 +2249,15 @@
         "current_active": "📂 Folosește fișierul de date activ curent",
         "migrate_from_kidschores": "🔄 Migrare din KidsChores (copie nedistructivă)",
         "paste_json": "📋 Lipiți JSON din fișierul de date sau din diagnosticare"
+      }
+    },
+    "notification_importance": {
+      "options": {
+        "min": "Minimum (no sound, collapsed)",
+        "low": "Low (no sound)",
+        "default": "Default (makes a sound)",
+        "high": "High (pops on screen and makes a sound)",
+        "max": "Maximum (pops on screen, most urgent)"
       }
     }
   },
@@ -2762,6 +2813,14 @@
           "description": "Durata înainte de data scadentă pentru trimiterea notificării de memento. Format: „30 min”, „1 oră”, „1 zi 6 ore 30 minute” etc. Folosiți „0” pentru a dezactiva mementourile.",
           "example": "30 de metri"
         },
+        "notification_channel": {
+          "name": "Notification Channel",
+          "description": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately from other chores. Leave empty to use the app default. iOS ignores this."
+        },
+        "notification_importance": {
+          "name": "Notification Importance",
+          "description": "Optional. Android only. How prominently this chore's notifications alert (min, low, default, high, max). Requires notification_channel. Note: sets the channel's INITIAL state the first time a device sees that channel name. The integration cannot change it afterwards; the person still can, in Android settings. iOS ignores this."
+        },
         "standby_claim_mode": {
           "name": "Mod de revendicare în așteptare",
           "description": "Controlează când sarcinile de rezervă pot revendica această sarcină (oricând, la depășire, doar manual). Se aplică numai criteriilor de finalizare principale și de rezervă."
@@ -2911,6 +2970,14 @@
           "name": "Compensare pentru memento scadent",
           "description": "Decalaj pentru noua notificare de reamintire scadentă. Durata înainte de data scadenței pentru trimiterea notificării de reamintire. Format: „30 min”, „1 oră”, „1 zi 6 ore 30 minute” etc. Folosiți „0” pentru a dezactiva.",
           "example": "30 de metri"
+        },
+        "notification_channel": {
+          "name": "Notification Channel",
+          "description": "New notification channel. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately from other chores. Leave empty to use the app default. iOS ignores this."
+        },
+        "notification_importance": {
+          "name": "Notification Importance",
+          "description": "Optional. Android only. How prominently this chore's notifications alert (min, low, default, high, max). Requires notification_channel. Note: sets the channel's INITIAL state the first time a device sees that channel name. The integration cannot change it afterwards; the person still can, in Android settings. iOS ignores this."
         },
         "assignment_action": {
           "name": "Acțiune de atribuire",

@@ -82,14 +82,18 @@
               "ha_user_id": "Home Assistant-gebruiker",
               "dashboard_language": "Taal",
               "mobile_notify_service": "Meldingen",
-              "notif_click_url": "Meldingstabblad-URL"
+              "notif_click_url": "Meldingstabblad-URL",
+              "notification_priority": "Delivery priority",
+              "notification_ttl": "Notification lifetime (seconds)"
             },
             "data_description": {
               "name": "Unieke naam voor dit gebruikersprofiel.",
               "ha_user_id": "Optioneel: Koppel dit profiel aan een Home Assistant-gebruiker. Als de kioskmodus is uitgeschakeld, zijn het claimen en inwisselen van gedeelde apparaten afhankelijk van deze koppeling.",
               "dashboard_language": "De taal die wordt gebruikt voor de inhoud van het dashboard en meldingen.",
               "mobile_notify_service": "Selecteer de notificatieservice of laat het veld leeg om notificaties uit te schakelen.",
-              "notif_click_url": "Optionele URL die wordt geopend wanneer op de melding wordt getikt. Laat dit veld leeg voor de standaardinstelling."
+              "notif_click_url": "Optionele URL die wordt geopend wanneer op de melding wordt getikt. Laat dit veld leeg voor de standaardinstelling.",
+              "notification_priority": "Android only. High asks the mobile app to deliver immediately even while the device is asleep; Normal may be delayed until it wakes. iOS ignores this.",
+              "notification_ttl": "Optional. Android only. How long delivery keeps being retried before the notification is dropped as stale. Leave empty for the platform default of 28 days; 0 discards anything that cannot be delivered right away. A good value is shorter than how often the chore recurs, so a retry can never arrive looking like the next occurrence - for a daily chore, around 20 hours. iOS ignores this."
             }
           },
           "section_system_usage": {
@@ -194,6 +198,8 @@
               "auto_approve": "✅ Claims automatisch goedkeuren?",
               "overdue_handling_type": "⏰ Te laat: Afhandeling",
               "chore_due_reminder_offset": "🔔 Herinnering: Betaal vóór de vervaldatum",
+              "chore_notification_channel": "🔔 Notification Channel",
+              "chore_notification_importance": "🔔 Notification Importance",
               "chore_notifications": "🔔 Meldingen (optioneel)",
               "show_on_calendar": "📅 Weergeven op de kalender?",
               "chore_labels": "📋 Etiketten (optioneel)"
@@ -204,6 +210,8 @@
               "auto_approve": "Indien ingeschakeld, worden aanvragen direct goedgekeurd zonder beoordeling door een goedkeurder.",
               "overdue_handling_type": "Actie na de vervaldatum: De status 'te laat' verbergen, 'te laat' laten staan totdat het item is opgeëist, of de status terugzetten naar 'in behandeling' tijdens de volgende goedkeuringsronde.",
               "chore_due_reminder_offset": "Wanneer moet de herinneringsmelding worden verzonden? Formaat: '1d 6h 30m' of gewoon '30' voor minuten. Standaard: 30m (30 minuten voor de vervaldatum). Voer '0' in om uit te schakelen.",
+              "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+              "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
               "chore_notifications": "Wanneer moeten meldingen worden verzonden: Bij een aanvraag, bij goedkeuring, bij afwijzing, of een combinatie hiervan.",
               "show_on_calendar": "Toon deze taak in de kalenderweergave.",
               "chore_labels": "Labels om klusjes te organiseren (bijv. 'keuken', 'buiten'). Laat leeg als dit niet nodig is."
@@ -230,6 +238,8 @@
           "due_date": "📅 Planning: Uiterste inleverdatum (optioneel)",
           "chore_due_window_offset": "⏱️ Uiterste betaaldatum: Betaal vóór de uiterste betaaldatum",
           "chore_due_reminder_offset": "🔔 Herinnering: Betaal vóór de vervaldatum",
+          "chore_notification_channel": "🔔 Notification Channel",
+          "chore_notification_importance": "🔔 Notification Importance",
           "show_on_calendar": "📅 Weergeven op de kalender?",
           "chore_notifications": "🔔 Meldingen (optioneel)",
           "standby_claim_mode": "🔑 Standby-claimmodus"
@@ -254,6 +264,8 @@
           "due_date": "Optionele deadline. Kan gecombineerd worden met terugkerende schema's.",
           "chore_due_window_offset": "Wanneer de status van een taak verandert van 'In behandeling' naar 'Verschuldigd'. Formaat: '1d 6u 30m' of gewoon '30' voor minuten. Voer '0' in om uit te schakelen. Voorbeeld: '1d' betekent dat de taak 1 dag voor de deadline als 'Verschuldigd' wordt weergegeven.",
           "chore_due_reminder_offset": "Wanneer moet de herinneringsmelding worden verzonden? Formaat: '1d 6h 30m' of gewoon '30' voor minuten. Standaard: 30m (30 minuten voor de vervaldatum). Voer '0' in om uit te schakelen.",
+          "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+          "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
           "show_on_calendar": "Toon deze taak in de kalenderweergave.",
           "chore_notifications": "Wanneer moeten meldingen worden verzonden: Bij een aanvraag, bij goedkeuring, bij afwijzing, of een combinatie hiervan.",
           "standby_claim_mode": "Hiermee wordt bepaald wanneer standbys deze taak kunnen overnemen (altijd, bij achterstallige status, alleen handmatig). Dit geldt alleen voor de voltooiingscriteria van de primaire en standby-systemen."
@@ -585,14 +597,18 @@
               "ha_user_id": "Home Assistant-gebruiker",
               "dashboard_language": "Taal",
               "mobile_notify_service": "Meldingen",
-              "notif_click_url": "Meldingstabblad-URL"
+              "notif_click_url": "Meldingstabblad-URL",
+              "notification_priority": "Delivery priority",
+              "notification_ttl": "Notification lifetime (seconds)"
             },
             "data_description": {
               "name": "Unieke naam voor dit gebruikersprofiel.",
               "ha_user_id": "Optioneel: Koppel dit profiel aan een Home Assistant-gebruiker. Als de kioskmodus is uitgeschakeld, zijn het claimen en inwisselen van gedeelde apparaten afhankelijk van deze koppeling.",
               "dashboard_language": "De taal die wordt gebruikt voor de inhoud van het dashboard en meldingen.",
               "mobile_notify_service": "Selecteer de notificatieservice of laat het veld leeg om notificaties uit te schakelen.",
-              "notif_click_url": "Optionele URL die wordt geopend wanneer op de melding wordt getikt. Laat dit veld leeg voor de standaardinstelling."
+              "notif_click_url": "Optionele URL die wordt geopend wanneer op de melding wordt getikt. Laat dit veld leeg voor de standaardinstelling.",
+              "notification_priority": "Android only. High asks the mobile app to deliver immediately even while the device is asleep; Normal may be delayed until it wakes. iOS ignores this.",
+              "notification_ttl": "Optional. Android only. How long delivery keeps being retried before the notification is dropped as stale. Leave empty for the platform default of 28 days; 0 discards anything that cannot be delivered right away. A good value is shorter than how often the chore recurs, so a retry can never arrive looking like the next occurrence - for a daily chore, around 20 hours. iOS ignores this."
             }
           },
           "section_system_usage": {
@@ -690,6 +706,8 @@
               "auto_approve": "✅ Claims automatisch goedkeuren?",
               "overdue_handling_type": "⏰ Te laat: Afhandeling",
               "chore_due_reminder_offset": "🔔 Herinnering: Betaal vóór de vervaldatum",
+              "chore_notification_channel": "🔔 Notification Channel",
+              "chore_notification_importance": "🔔 Notification Importance",
               "chore_notifications": "🔔 Meldingen (optioneel)",
               "show_on_calendar": "📅 Weergeven op de kalender?",
               "chore_labels": "📋 Etiketten (optioneel)"
@@ -700,6 +718,8 @@
               "auto_approve": "Indien ingeschakeld, worden aanvragen direct goedgekeurd zonder beoordeling door een goedkeurder.",
               "overdue_handling_type": "Hiermee wordt bepaald wat er gebeurt wanneer de deadline verstrijkt en wat er gebeurt met achterstallige taken bij het opnieuw instellen van de goedkeuring.",
               "chore_due_reminder_offset": "Wanneer moet de herinneringsmelding worden verzonden? Formaat: '1d 6h 30m' of gewoon '30' voor minuten. Standaard: 30m (30 minuten voor de vervaldatum). Voer '0' in om uit te schakelen.",
+              "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+              "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
               "chore_notifications": "Wanneer moeten meldingen worden verzonden: Bij een aanvraag, bij goedkeuring, bij afwijzing, of een combinatie hiervan.",
               "show_on_calendar": "Toon deze taak in de kalenderweergave.",
               "chore_labels": "Labels om klusjes te organiseren (bijv. 'keuken', 'buiten'). Laat leeg als dit niet nodig is."
@@ -727,6 +747,8 @@
           "clear_due_date": "🗑️ Duidelijke vervaldatum",
           "chore_due_window_offset": "⏱️ Uiterste betaaldatum: Betaal vóór de uiterste betaaldatum",
           "chore_due_reminder_offset": "🔔 Herinnering: Betaal vóór de vervaldatum",
+          "chore_notification_channel": "🔔 Notification Channel",
+          "chore_notification_importance": "🔔 Notification Importance",
           "show_on_calendar": "📅 Weergeven op de kalender?",
           "chore_notifications": "🔔 Meldingen (optioneel)",
           "standby_claim_mode": "🔑 Standby-claimmodus"
@@ -752,6 +774,8 @@
           "clear_due_date": "Vink dit vakje aan om de deadline voor deze taak te verwijderen.",
           "chore_due_window_offset": "Wanneer de status van een taak verandert van 'In behandeling' naar 'Verschuldigd'. Formaat: '1d 6u 30m' of gewoon '30' voor minuten. Voer '0' in om uit te schakelen. Voorbeeld: '1d' betekent dat de taak 1 dag voor de deadline als 'Verschuldigd' wordt weergegeven.",
           "chore_due_reminder_offset": "Wanneer moet de herinneringsmelding worden verzonden? Formaat: '1d 6h 30m' of gewoon '30' voor minuten. Standaard: 30m (30 minuten voor de vervaldatum). Voer '0' in om uit te schakelen.",
+          "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+          "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
           "show_on_calendar": "Toon deze taak in de kalenderweergave.",
           "chore_notifications": "Wanneer moeten meldingen worden verzonden: Bij een aanvraag, bij goedkeuring, bij afwijzing, of een combinatie hiervan.",
           "standby_claim_mode": "Hiermee wordt bepaald wanneer standbys deze taak kunnen overnemen (altijd, bij achterstallige status, alleen handmatig). Dit geldt alleen voor de voltooiingscriteria van de primaire en standby-systemen."
@@ -1037,14 +1061,18 @@
               "ha_user_id": "Home Assistant-gebruiker",
               "dashboard_language": "Taal",
               "mobile_notify_service": "Meldingen",
-              "notif_click_url": "Meldingstabblad-URL"
+              "notif_click_url": "Meldingstabblad-URL",
+              "notification_priority": "Delivery priority",
+              "notification_ttl": "Notification lifetime (seconds)"
             },
             "data_description": {
               "name": "Unieke naam voor dit gebruikersprofiel.",
               "ha_user_id": "Optioneel: Koppel dit profiel aan een Home Assistant-gebruiker. Als de kioskmodus is uitgeschakeld, zijn het claimen en inwisselen van gedeelde apparaten afhankelijk van deze koppeling.",
               "dashboard_language": "De taal die wordt gebruikt voor de inhoud van het dashboard en meldingen.",
               "mobile_notify_service": "Selecteer de notificatieservice of laat het veld leeg om notificaties uit te schakelen.",
-              "notif_click_url": "Optionele URL die wordt geopend wanneer op de melding wordt getikt. Laat dit veld leeg voor de standaardinstelling."
+              "notif_click_url": "Optionele URL die wordt geopend wanneer op de melding wordt getikt. Laat dit veld leeg voor de standaardinstelling.",
+              "notification_priority": "Android only. High asks the mobile app to deliver immediately even while the device is asleep; Normal may be delayed until it wakes. iOS ignores this.",
+              "notification_ttl": "Optional. Android only. How long delivery keeps being retried before the notification is dropped as stale. Leave empty for the platform default of 28 days; 0 discards anything that cannot be delivered right away. A good value is shorter than how often the chore recurs, so a retry can never arrive looking like the next occurrence - for a daily chore, around 20 hours. iOS ignores this."
             }
           },
           "section_system_usage": {
@@ -1142,6 +1170,8 @@
               "auto_approve": "✅ Claims automatisch goedkeuren?",
               "overdue_handling_type": "⏰ Te laat: Afhandeling",
               "chore_due_reminder_offset": "🔔 Herinnering: Betaal vóór de vervaldatum",
+              "chore_notification_channel": "🔔 Notification Channel",
+              "chore_notification_importance": "🔔 Notification Importance",
               "chore_notifications": "🔔 Meldingen (optioneel)",
               "show_on_calendar": "📅 Weergeven op de kalender?",
               "chore_labels": "📋 Etiketten (optioneel)"
@@ -1152,6 +1182,8 @@
               "auto_approve": "Indien ingeschakeld, worden aanvragen direct goedgekeurd zonder beoordeling door een goedkeurder.",
               "overdue_handling_type": "Hiermee wordt bepaald wat er gebeurt wanneer de deadline verstrijkt en wat er gebeurt met achterstallige taken bij het opnieuw instellen van de goedkeuring.",
               "chore_due_reminder_offset": "Wanneer moet de herinneringsmelding worden verzonden? Formaat: '1d 6h 30m' of gewoon '30' voor minuten. Standaard: 30m (30 minuten voor de vervaldatum). Voer '0' in om uit te schakelen.",
+              "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+              "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
               "chore_notifications": "Wanneer moeten meldingen worden verzonden: Bij een aanvraag, bij goedkeuring, bij afwijzing, of een combinatie hiervan.",
               "show_on_calendar": "Toon deze taak in de kalenderweergave.",
               "chore_labels": "Labels om klusjes te organiseren (bijv. 'keuken', 'buiten'). Laat leeg als dit niet nodig is."
@@ -1180,6 +1212,8 @@
           "clear_due_date": "🗑️ Duidelijke vervaldatum",
           "chore_due_window_offset": "⏱️ Uiterste betaaldatum: Betaal vóór de uiterste betaaldatum",
           "chore_due_reminder_offset": "🔔 Herinnering: Betaal vóór de vervaldatum",
+          "chore_notification_channel": "🔔 Notification Channel",
+          "chore_notification_importance": "🔔 Notification Importance",
           "show_on_calendar": "📅 Weergeven op de kalender?",
           "chore_notifications": "🔔 Meldingen (optioneel)",
           "standby_claim_mode": "🔑 Standby-claimmodus"
@@ -1205,6 +1239,8 @@
           "clear_due_date": "Vink dit vakje aan om de deadline voor deze taak te verwijderen.",
           "chore_due_window_offset": "Wanneer de status van een taak verandert van 'In behandeling' naar 'Verschuldigd'. Formaat: '1d 6u 30m' of gewoon '30' voor minuten. Voer '0' in om uit te schakelen. Voorbeeld: '1d' betekent dat de taak 1 dag voor de deadline als 'Verschuldigd' wordt weergegeven.",
           "chore_due_reminder_offset": "Wanneer moet de herinneringsmelding worden verzonden? Formaat: '1d 6h 30m' of gewoon '30' voor minuten. Standaard: 30m (30 minuten voor de vervaldatum). Voer '0' in om uit te schakelen.",
+          "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+          "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
           "show_on_calendar": "Toon deze taak in de kalenderweergave.",
           "chore_notifications": "Wanneer moeten meldingen worden verzonden: Bij een aanvraag, bij goedkeuring, bij afwijzing, of een combinatie hiervan.",
           "standby_claim_mode": "Hiermee wordt bepaald wanneer standbys deze taak kunnen overnemen (altijd, bij achterstallige status, alleen handmatig). Dit geldt alleen voor de voltooiingscriteria van de primaire en standby-systemen."
@@ -2082,6 +2118,12 @@
         "custom_1_month": "Aangepast: periode van 1 maand"
       }
     },
+    "notification_priority": {
+      "options": {
+        "normal": "Normal (may be delayed while the device is asleep)",
+        "high": "High (deliver immediately, even while the device is asleep)"
+      }
+    },
     "completion_criteria": {
       "options": {
         "shared_all": "Gezamenlijk invullen (Alle toegewezen personen moeten dit samen doen)",
@@ -2207,6 +2249,15 @@
         "current_active": "📂 Gebruik het huidige actieve gegevensbestand",
         "migrate_from_kidschores": "🔄 Migreer vanuit KidsChores (niet-destructieve kopie)",
         "paste_json": "📋 Plak JSON uit een gegevensbestand of diagnostische gegevens"
+      }
+    },
+    "notification_importance": {
+      "options": {
+        "min": "Minimum (no sound, collapsed)",
+        "low": "Low (no sound)",
+        "default": "Default (makes a sound)",
+        "high": "High (pops on screen and makes a sound)",
+        "max": "Maximum (pops on screen, most urgent)"
       }
     }
   },
@@ -2762,6 +2813,14 @@
           "description": "De tijd tot de vervaldatum waarop de herinneringsmelding moet worden verzonden. Formaat: '30m', '1h', '1d 6h 30m', enz. Gebruik '0' om herinneringen uit te schakelen.",
           "example": "30m"
         },
+        "notification_channel": {
+          "name": "Notification Channel",
+          "description": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately from other chores. Leave empty to use the app default. iOS ignores this."
+        },
+        "notification_importance": {
+          "name": "Notification Importance",
+          "description": "Optional. Android only. How prominently this chore's notifications alert (min, low, default, high, max). Requires notification_channel. Note: sets the channel's INITIAL state the first time a device sees that channel name. The integration cannot change it afterwards; the person still can, in Android settings. iOS ignores this."
+        },
         "standby_claim_mode": {
           "name": "Standby-claimmodus",
           "description": "Hiermee wordt bepaald wanneer standbys deze taak kunnen overnemen (altijd, bij achterstallige status, alleen handmatig). Dit geldt alleen voor de voltooiingscriteria van de primaire en standby-systemen."
@@ -2911,6 +2970,14 @@
           "name": "Vervaldatum herinnering verrekening",
           "description": "Nieuwe herinneringsvertraging. De tijdsduur vóór de vervaldatum waarop de herinneringsmelding moet worden verzonden. Formaat: '30m', '1h', '1d 6h 30m', enz. Gebruik '0' om uit te schakelen.",
           "example": "30m"
+        },
+        "notification_channel": {
+          "name": "Notification Channel",
+          "description": "New notification channel. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately from other chores. Leave empty to use the app default. iOS ignores this."
+        },
+        "notification_importance": {
+          "name": "Notification Importance",
+          "description": "Optional. Android only. How prominently this chore's notifications alert (min, low, default, high, max). Requires notification_channel. Note: sets the channel's INITIAL state the first time a device sees that channel name. The integration cannot change it afterwards; the person still can, in Android settings. iOS ignores this."
         },
         "assignment_action": {
           "name": "Toewijzingsactie",
