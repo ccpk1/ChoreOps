@@ -437,6 +437,8 @@
       "error_award_points_minimum": "Die Punktzahl muss größer als null sein",
       "error_award_invalid_multiplier": "Der Punktemultiplikator muss größer als null sein",
       "invalid_award_item_selected": "Mindestens eine ausgewählte Belohnung ist ungültig",
+      "error_award_points_requires_item": "Select 'Points' in Award items to grant points, or set points to zero",
+      "error_award_multiplier_requires_item": "Select 'Points multiplier' in Award items, or clear the multiplier",
       "start_date_required": "Ein Startdatum ist erforderlich",
       "end_date_required": "Ein Enddatum ist erforderlich",
       "end_date_before_start_date": "Das Enddatum muss nach dem Startdatum liegen",
@@ -1822,6 +1824,8 @@
       "error_award_points_minimum": "Die Punktzahl muss größer als null sein",
       "error_award_invalid_multiplier": "Der Punktemultiplikator muss größer als null sein",
       "invalid_award_item_selected": "Mindestens eine ausgewählte Auszeichnung ist ungültig",
+      "error_award_points_requires_item": "Select 'Points' in Award items to grant points, or set points to zero",
+      "error_award_multiplier_requires_item": "Select 'Points multiplier' in Award items, or clear the multiplier",
       "start_date_required": "Ein Startdatum ist erforderlich",
       "end_date_required": "Ein Enddatum ist erforderlich",
       "end_date_before_start_date": "Das Enddatum muss nach dem Startdatum liegen",
@@ -3431,12 +3435,12 @@
       }
     },
     "repair_badge_streak": {
-      "name": "Repair Badge Streak",
-      "description": "Restore a broken badge streak. Intended for undoing a genuinely missed day - illness, travel, a family event - without editing storage by hand. Pass badge_streak_count to set a specific value, or omit it to restore the highest value retained in the last few days of history. The badge must currently track a streak, and restores beyond the retained history are not possible. No cap is applied: an admin may set any value, including onto a live streak. Restoring above the badge's threshold re-awards it on the next evaluation. Fires a choreops_badge_streak_repaired event. This service is response-first and returns JSON when called with return_response: true, including the retained history.",
+      "name": "Abzeichenserie reparieren",
+      "description": "Stellt eine unterbrochene Abzeichenserie wieder her. Dies ist dafür vorgesehen, einen tatsächlich verpassten Tag – beispielsweise wegen Krankheit, einer Reise oder eines Familienereignisses – rückgängig zu machen, ohne die gespeicherten Daten manuell bearbeiten zu müssen. Geben Sie badge_streak_count an, um einen bestimmten Wert festzulegen, oder lassen Sie den Wert weg, um den höchsten Wert wiederherzustellen, der im Verlauf der letzten Tage gespeichert wurde. Das Abzeichen muss aktuell eine Serie erfassen. Eine Wiederherstellung über den gespeicherten Verlauf hinaus ist nicht möglich. Es gibt keine Obergrenze: Ein Administrator kann einen beliebigen Wert festlegen, auch für eine laufende Serie. Wird ein Wert oberhalb des Schwellenwerts des Abzeichens wiederhergestellt, wird das Abzeichen bei der nächsten Auswertung erneut vergeben. Löst das Ereignis choreops_badge_streak_repaired aus. Dieser Dienst gibt bei einem Aufruf mit return_response: true eine JSON-Antwort einschließlich des gespeicherten Verlaufs zurück.",
       "fields": {
         "config_entry_id": {
           "name": "Name des Konfigurationseintrags (optional)",
-          "description": "Verwenden Sie diese Option, wenn Sie mehrere ChoreOps-Instanzen haben. Sie richtet sich an eine bestimmte Instanz.\n",
+          "description": "Verwenden Sie diese Option, wenn Sie mehrere ChoreOps-Instanzen haben. Sie richtet sich an eine bestimmte Instanz.",
           "example": "abc123def456"
         },
         "config_entry_title": {
@@ -3446,27 +3450,27 @@
         },
         "user_name": {
           "name": "Benutzername",
-          "description": "The user whose badge streak should be repaired.",
+          "description": "Der Benutzer, dessen Abzeichenserie repariert werden soll.",
           "example": "Bob"
         },
         "badge_name": {
           "name": "Name des Abzeichens",
-          "description": "The name of the badge whose streak should be repaired.",
+          "description": "Der Name des Abzeichens, dessen Serie repariert werden soll.",
           "example": "Wildfire Bronze"
         },
         "badge_streak_count": {
-          "name": "Streak Count (Optional)",
-          "description": "The streak value to restore. Omit to use the highest value retained in history.",
+          "name": "Serienstand (optional)",
+          "description": "Der wiederherzustellende Serienstand. Weglassen, um den höchsten im Verlauf gespeicherten Wert zu verwenden.",
           "example": "42"
         },
         "reason": {
           "name": "Grund",
-          "description": "Why the streak is being repaired. Recorded in the log and the event.",
-          "example": "Home sick Monday"
+          "description": "Grund für die Reparatur der Serie. Wird im Protokoll und im Ereignis gespeichert.",
+          "example": "Montag krank zu Hause"
         },
         "approver_name": {
           "name": "Name des Genehmigers (optional)",
-          "description": "Who authorised the repair. Recorded in the log and the event.",
+          "description": "Wer die Reparatur autorisiert hat. Wird im Protokoll und im Ereignis gespeichert.",
           "example": "John"
         }
       }
@@ -3894,7 +3898,7 @@
         }
       },
       "system_chore_approvals_weekly_sensor": {
-        "name": "{kid_name} - Erledigte Aufgaben  (wöchentlich)",
+        "name": "Erledigte Aufgaben - wöchentlich",
         "state_attributes": {
           "purpose": {
             "name": "Zweck",
@@ -5711,13 +5715,13 @@
       "message": "Die Aufgabenverarbeitung ist für diese Person derzeit pausiert"
     },
     "badge_not_streak": {
-      "message": "Badge {name} does not track a consecutive streak, so there is no streak to repair. Days-type badges instead add up the days that qualify, so a missed day reduces nothing and there is no streak to restore."
+      "message": "Das Abzeichen {name} erfasst keine fortlaufende Serie. Daher gibt es keine Serie, die repariert werden kann. Abzeichen vom Typ „Tage“ zählen stattdessen die Tage zusammen, an denen die Bedingungen erfüllt sind. Ein verpasster Tag verringert daher keinen Wert und es gibt keine Serie, die wiederhergestellt werden kann."
     },
     "badge_streak_nothing_to_restore": {
-      "message": "Badge {name} has no retained streak history to restore from. Its recent streak values may predate this feature, or have already aged out."
+      "message": "Für das Abzeichen {name} ist kein gespeicherter Serienverlauf verfügbar, aus dem eine Wiederherstellung erfolgen kann. Die letzten Serienwerte stammen aus der Zeit vor Einführung dieser Funktion oder sind bereits aus dem Verlauf entfernt worden."
     },
     "badge_streak_no_overdue": {
-      "message": "Badge {name} is a no-overdue badge, which resets its whole cycle on any slip by design. A repaired value would be reset again on the next evaluation. Use a streak target without the 'No Overdue' option if you want a streak that can be repaired."
+      "message": "Das Abzeichen {name} verwendet die Option „Nicht überfällig“, bei der bei einem Versäumnis grundsätzlich der gesamte Zyklus zurückgesetzt wird. Ein reparierter Wert würde daher bei der nächsten Auswertung erneut zurückgesetzt. Verwenden Sie ein Serienziel ohne die Option „Nicht überfällig“, wenn die Serie repariert werden können soll."
     }
   }
 }
