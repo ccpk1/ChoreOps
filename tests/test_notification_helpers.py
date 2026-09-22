@@ -20,7 +20,14 @@ These tests do NOT duplicate test_workflow_notifications.py which tests the
 full notification WORKFLOW (sending notifications, action button presses, etc.).
 """
 
+from types import SimpleNamespace
+from typing import Any
+
+import pytest
+
 from custom_components.choreops import const
+from custom_components.choreops.data_builders import build_chore, build_user_profile
+from custom_components.choreops.helpers import translation_helpers as th
 from custom_components.choreops.managers import NotificationManager
 from custom_components.choreops.notification_action_handler import (
     ParsedAction,
@@ -48,6 +55,9 @@ build_chore_actions = NotificationManager.build_chore_actions
 build_reward_actions = NotificationManager.build_reward_actions
 build_extra_data = NotificationManager.build_extra_data
 build_notification_tag = NotificationManager.build_notification_tag
+apply_recipient_notification_options = (
+    NotificationManager._apply_recipient_notification_options
+)
 
 
 class TestConvertNotificationKey:
@@ -593,3 +603,587 @@ class TestBuildNotificationTag:
         assert "shared-c" in tag1  # First 8 chars of "shared-chore"
         assert "assignee-alic" in tag1  # First 8 chars of "assignee-alice"
         assert "assignee-bob" in tag2
+
+
+class TestApplyRecipientNotificationOptions:
+    """Tests for per-user notification delivery options.
+
+    These keys are read by the mobile app from the payload's ``data`` block.
+    The defaults matter more than the features: an existing user who has set
+    nothing must produce byte-identical payloads to before.
+    """
+
+    def test_unset_adds_nothing(self) -> None:
+        """A profile with no notification settings changes the payload not at all."""
+        extra: dict[str, object] = {}
+        apply_recipient_notification_options(extra, {}, const.DATA_USER_NOTIF_CLICK_URL)
+
+        assert extra == {}
+
+    def test_click_url_still_sets_both_platform_keys(self) -> None:
+        """clickAction is Android, url is iOS - the pre-existing behaviour."""
+        extra: dict[str, object] = {}
+        apply_recipient_notification_options(
+            extra,
+            {const.DATA_USER_NOTIF_CLICK_URL: "/lovelace/chores"},
+            const.DATA_USER_NOTIF_CLICK_URL,
+        )
+
+        assert extra["clickAction"] == "/lovelace/chores"
+        assert extra["url"] == "/lovelace/chores"
+
+    def test_approver_key_is_honoured(self) -> None:
+        """Approvers store their own click URL, so the key is a parameter."""
+        extra: dict[str, object] = {}
+        profile = {
+            const.DATA_USER_NOTIF_CLICK_URL: "/assignee",
+            const.DATA_USER_NOTIF_APPROVE_CLICK_URL: "/approver",
+        }
+        apply_recipient_notification_options(
+            extra, profile, const.DATA_USER_NOTIF_APPROVE_CLICK_URL
+        )
+
+        assert extra["clickAction"] == "/approver"
+
+    def test_high_priority_is_passed_through(self) -> None:
+        """The setting that lets a push wake a sleeping device."""
+        extra: dict[str, object] = {}
+        apply_recipient_notification_options(
+            extra,
+            {const.DATA_USER_NOTIFICATION_PRIORITY: const.NOTIFY_PRIORITY_HIGH},
+            const.DATA_USER_NOTIF_CLICK_URL,
+        )
+
+        assert extra[const.NOTIFY_PRIORITY] == const.NOTIFY_PRIORITY_HIGH
+
+
+class TestSettingsSurviveTheDataBuilders:
+    """Round-trip coverage for the canonical data builders.
+
+    CLOSED DICT LITERALS: build_user_profile() and build_chore() return an
+    explicit field list, so any key they do not name is dropped on write. A
+    setting can therefore be read correctly everywhere and still never persist.
+
+    The other tests in this module call the notification helpers against
+    hand-built dicts, which cannot detect that. These assert all four settings
+    survive a build, and survive an unrelated edit - update replaces the stored
+    record wholesale rather than merging into it.
+    """
+
+    def test_user_priority_and_ttl_survive_build(self) -> None:
+        """Both must appear in the built profile, like notif_click_url does."""
+        built = build_user_profile(
+            user_input={
+                const.CFOF_USERS_INPUT_NAME: "Test",
+                const.CFOF_USERS_INPUT_NOTIFICATION_PRIORITY: const.NOTIFY_PRIORITY_HIGH,
+                const.CFOF_USERS_INPUT_NOTIFICATION_TTL: "3600",
+            },
+            existing=None,
+        )
+
+        assert (
+            built[const.DATA_USER_NOTIFICATION_PRIORITY] == const.NOTIFY_PRIORITY_HIGH
+        )
+        assert built[const.DATA_USER_NOTIFICATION_TTL] == "3600"
+
+    def test_user_settings_survive_an_unrelated_edit(self) -> None:
+        """user_manager replaces the record wholesale, so an omitted key is lost."""
+        first = build_user_profile(
+            user_input={
+                const.CFOF_USERS_INPUT_NAME: "Test",
+                const.CFOF_USERS_INPUT_NOTIFICATION_PRIORITY: const.NOTIFY_PRIORITY_HIGH,
+            },
+            existing=None,
+        )
+        second = build_user_profile(
+            user_input={const.CFOF_USERS_INPUT_NAME: "Renamed"},
+            existing=first,
+        )
+
+        assert (
+            second[const.DATA_USER_NOTIFICATION_PRIORITY] == const.NOTIFY_PRIORITY_HIGH
+        )
+
+    def test_chore_channel_survives_build(self) -> None:
+        built = build_chore(
+            user_input={
+                const.DATA_CHORE_NAME: "Medicine",
+                const.DATA_CHORE_NOTIFICATION_CHANNEL: "Medicine",
+            },
+            existing=None,
+        )
+
+        assert built[const.DATA_CHORE_NOTIFICATION_CHANNEL] == "Medicine"
+
+    def test_chore_importance_survives_build(self) -> None:
+        """Fourth setting, same closed-dict-literal trap as the other three."""
+        built = build_chore(
+            user_input={
+                const.DATA_CHORE_NAME: "Medicine",
+                const.DATA_CHORE_NOTIFICATION_CHANNEL: "Medicine",
+                const.DATA_CHORE_NOTIFICATION_IMPORTANCE: "high",
+            },
+            existing=None,
+        )
+
+        assert built[const.DATA_CHORE_NOTIFICATION_IMPORTANCE] == "high"
+
+    @pytest.mark.parametrize("stored", ["min", "low", "default", "high", "max", ""])
+    def test_every_importance_member_round_trips(self, stored: str) -> None:
+        """Each member of the closed set survives the builder unchanged.
+
+        The narrowing is a ladder of explicit comparisons, so a member with no
+        branch of its own would silently become something else. Only a sweep of
+        the whole set catches that; testing one value hits one branch.
+        """
+        built = build_chore(
+            user_input={
+                const.DATA_CHORE_NAME: "Medicine",
+                const.DATA_CHORE_NOTIFICATION_CHANNEL: "Medicine",
+                const.DATA_CHORE_NOTIFICATION_IMPORTANCE: stored,
+            },
+            existing=None,
+        )
+
+        assert built[const.DATA_CHORE_NOTIFICATION_IMPORTANCE] == stored
+
+    @pytest.mark.parametrize("stored", ["urgent", "HIGH", "1", "none", "maximum"])
+    def test_unrecognised_importance_becomes_unset_not_verbatim(
+        self, stored: str
+    ) -> None:
+        """A value from a hand-edited backup is dropped, never written back.
+
+        🔑 `"maximum"` is the case that matters: an earlier version gated on
+        membership in NOTIFY_IMPORTANCE_OPTIONS and fell through to `return
+        "max"`, so a near-miss - or any option added to that tuple without a
+        branch - became the LOUDEST setting rather than unset.
+        """
+        built = build_chore(
+            user_input={
+                const.DATA_CHORE_NAME: "Medicine",
+                const.DATA_CHORE_NOTIFICATION_CHANNEL: "Medicine",
+                const.DATA_CHORE_NOTIFICATION_IMPORTANCE: stored,
+            },
+            existing=None,
+        )
+
+        assert built[const.DATA_CHORE_NOTIFICATION_IMPORTANCE] == ""
+
+    def test_every_importance_option_has_its_own_branch(self) -> None:
+        """Pins the const tuple to the narrowing ladder.
+
+        Four places have to agree: NOTIFY_IMPORTANCE_OPTIONS, the Literal in
+        type_defs, the builder's ladder, and the manager's guard. Nothing else
+        holds them together, so adding an option to the tuple without a branch
+        fails here rather than silently unsetting it in production.
+        """
+        for option in const.NOTIFY_IMPORTANCE_OPTIONS:
+            built = build_chore(
+                user_input={
+                    const.DATA_CHORE_NAME: "Medicine",
+                    const.DATA_CHORE_NOTIFICATION_CHANNEL: "Medicine",
+                    const.DATA_CHORE_NOTIFICATION_IMPORTANCE: option,
+                },
+                existing=None,
+            )
+            assert built[const.DATA_CHORE_NOTIFICATION_IMPORTANCE] == option, (
+                f"{option!r} is in NOTIFY_IMPORTANCE_OPTIONS but has no branch "
+                "in _narrow_notification_importance"
+            )
+
+    def test_chore_channel_survives_an_unrelated_edit(self) -> None:
+        first = build_chore(
+            user_input={
+                const.DATA_CHORE_NAME: "Medicine",
+                const.DATA_CHORE_NOTIFICATION_CHANNEL: "Medicine",
+            },
+            existing=None,
+        )
+        second = build_chore(
+            user_input={
+                const.DATA_CHORE_NAME: "Medicine",
+                const.DATA_CHORE_DEFAULT_POINTS: 2,
+            },
+            existing=first,
+        )
+
+        assert second[const.DATA_CHORE_NOTIFICATION_CHANNEL] == "Medicine"
+
+    def test_unknown_priority_is_ignored(self) -> None:
+        """Only the documented values are forwarded - never arbitrary strings."""
+        extra: dict[str, object] = {}
+        apply_recipient_notification_options(
+            extra,
+            {const.DATA_USER_NOTIFICATION_PRIORITY: "URGENT!!"},
+            const.DATA_USER_NOTIF_CLICK_URL,
+        )
+
+        assert const.NOTIFY_PRIORITY not in extra
+
+    def test_normal_priority_emits_nothing(self) -> None:
+        """'normal' is the platform default, so it must not touch the payload.
+
+        The form's default is "normal", so emitting it would mean every user who
+        opens and saves a profile silently starts sending a priority key forever.
+        """
+        extra: dict[str, object] = {}
+        apply_recipient_notification_options(
+            extra,
+            {const.DATA_USER_NOTIFICATION_PRIORITY: const.NOTIFY_PRIORITY_NORMAL},
+            const.DATA_USER_NOTIF_CLICK_URL,
+        )
+
+        assert extra == {}
+
+    def test_none_ttl_does_not_warn_or_emit(self) -> None:
+        """A stored None must not stringify to "None" and warn on every send."""
+        extra: dict[str, object] = {}
+        apply_recipient_notification_options(
+            extra,
+            {const.DATA_USER_NOTIFICATION_TTL: None},
+            const.DATA_USER_NOTIF_CLICK_URL,
+        )
+
+        assert const.NOTIFY_TTL not in extra
+
+    def test_negative_ttl_is_rejected(self) -> None:
+        """A negative lifetime is meaningless and must not reach the payload."""
+        extra: dict[str, object] = {}
+        apply_recipient_notification_options(
+            extra,
+            {const.DATA_USER_NOTIFICATION_TTL: "-5"},
+            const.DATA_USER_NOTIF_CLICK_URL,
+        )
+
+        assert const.NOTIFY_TTL not in extra
+
+    def test_ttl_is_sent_as_an_integer(self) -> None:
+        """Stored as text by the form; the payload wants a number."""
+        extra: dict[str, object] = {}
+        apply_recipient_notification_options(
+            extra,
+            {const.DATA_USER_NOTIFICATION_TTL: "3600"},
+            const.DATA_USER_NOTIF_CLICK_URL,
+        )
+
+        assert extra[const.NOTIFY_TTL] == 3600
+        assert isinstance(extra[const.NOTIFY_TTL], int)
+
+    def test_ttl_zero_is_preserved(self) -> None:
+        """0 means 'discard if undeliverable now' - a real setting, not 'unset'.
+
+        The obvious falsy check would silently drop it.
+        """
+        extra: dict[str, object] = {}
+        apply_recipient_notification_options(
+            extra,
+            {const.DATA_USER_NOTIFICATION_TTL: "0"},
+            const.DATA_USER_NOTIF_CLICK_URL,
+        )
+
+        assert extra[const.NOTIFY_TTL] == 0
+
+    def test_non_numeric_ttl_is_dropped_not_raised(self) -> None:
+        """A typo must not break every notification for that user."""
+        extra: dict[str, object] = {}
+        apply_recipient_notification_options(
+            extra,
+            {const.DATA_USER_NOTIFICATION_TTL: "soon"},
+            const.DATA_USER_NOTIF_CLICK_URL,
+        )
+
+        assert const.NOTIFY_TTL not in extra
+
+    @pytest.mark.parametrize("raw", ["1e400", "inf", "-inf", "Infinity"])
+    def test_infinite_ttl_is_dropped_not_raised(self, raw: str) -> None:
+        """An unbounded literal must not silence the user's notifications.
+
+        ``float()`` does NOT raise on any of these - it returns ``inf``, and the
+        ``OverflowError`` comes from ``int(inf)``. Since the parse catches only
+        ``ValueError``, that escapes the dispatcher callback and the send never
+        happens. Every recipient path calls this helper, so one bad profile field
+        silently stops all of that user's pushes.
+
+        ``"nan"`` is deliberately absent: it raises ``ValueError``, which the
+        existing handler already catches. Pinning it would suggest the guard is
+        doing work it is not.
+        """
+        extra: dict[str, object] = {}
+        apply_recipient_notification_options(
+            extra,
+            {const.DATA_USER_NOTIFICATION_TTL: raw},
+            const.DATA_USER_NOTIF_CLICK_URL,
+        )
+
+        assert const.NOTIFY_TTL not in extra
+
+    @pytest.mark.parametrize("raw", ["1e308", "2419201", "99999999999"])
+    def test_ttl_beyond_the_fcm_ceiling_is_dropped(self, raw: str) -> None:
+        """Out-of-range is as fatal as a crash, and it raises nothing at all.
+
+        🔑 THIS IS THE CASE A ``ValueError, OverflowError`` CATCH DOES NOT FIX.
+        ``1e308`` parses cleanly, clears the ``parsed < 0`` guard, and puts a
+        309-digit integer in the payload. FCM accepts 0..2,419,200 seconds and
+        answers anything else with ``InvalidTtl`` - the message is not sent. Same
+        user-visible outcome as the escaping exception above, reached without any
+        exception to catch, so the fix has to be a BOUND and not a wider except.
+        """
+        extra: dict[str, object] = {}
+        apply_recipient_notification_options(
+            extra,
+            {const.DATA_USER_NOTIFICATION_TTL: raw},
+            const.DATA_USER_NOTIF_CLICK_URL,
+        )
+
+        assert const.NOTIFY_TTL not in extra
+
+    def test_ttl_at_the_fcm_ceiling_is_kept(self) -> None:
+        """The boundary itself is valid - 28 days is FCM's documented maximum.
+
+        Guards the off-by-one in the other direction: a bound written ``<`` would
+        drop a legitimate setting.
+        """
+        extra: dict[str, object] = {}
+        apply_recipient_notification_options(
+            extra,
+            {const.DATA_USER_NOTIFICATION_TTL: "2419200"},
+            const.DATA_USER_NOTIF_CLICK_URL,
+        )
+
+        assert extra[const.NOTIFY_TTL] == 2419200
+
+    def test_existing_payload_keys_are_preserved(self) -> None:
+        """The helper merges into a payload that already carries tags/actions."""
+        extra: dict[str, object] = {const.NOTIFY_TAG: "choreops_status_x"}
+        apply_recipient_notification_options(
+            extra,
+            {const.DATA_USER_NOTIFICATION_PRIORITY: const.NOTIFY_PRIORITY_HIGH},
+            const.DATA_USER_NOTIF_CLICK_URL,
+        )
+
+        assert extra[const.NOTIFY_TAG] == "choreops_status_x"
+        assert extra[const.NOTIFY_PRIORITY] == const.NOTIFY_PRIORITY_HIGH
+
+
+class TestApplySubjectNotificationOptions:
+    """Tests for the per-chore notification channel.
+
+    This axis is the SUBJECT of a notification rather than its recipient, which
+    is why it is resolved from an explicit chore_id and not from the profile.
+    """
+
+    @staticmethod
+    def _manager(chores: dict[str, dict[str, object]]) -> NotificationManager:
+        """A NotificationManager with nothing but the chore lookup wired."""
+        manager = object.__new__(NotificationManager)
+        manager.coordinator = SimpleNamespace(chores_data=chores)  # type: ignore[assignment]
+        return manager
+
+    def test_channel_is_applied(self) -> None:
+        """The whole point: one chore's notifications get their own channel."""
+        manager = self._manager(
+            {"chore-1": {const.DATA_CHORE_NOTIFICATION_CHANNEL: "Medicine"}}
+        )
+        extra: dict[str, object] = {}
+        manager._apply_subject_notification_options(extra, "chore-1")
+
+        assert extra[const.NOTIFY_CHANNEL] == "Medicine"
+
+    def test_no_chore_id_adds_nothing(self) -> None:
+        """Notifications that are not about a chore are untouched."""
+        manager = self._manager({})
+        extra: dict[str, object] = {}
+        manager._apply_subject_notification_options(extra, None)
+
+        assert extra == {}
+
+    def test_unknown_chore_id_adds_nothing(self) -> None:
+        """A deleted chore must not raise while its notification drains."""
+        manager = self._manager({})
+        extra: dict[str, object] = {}
+        manager._apply_subject_notification_options(extra, "gone")
+
+        assert extra == {}
+
+    def test_unset_channel_adds_nothing(self) -> None:
+        """Default state for every existing chore - payload unchanged."""
+        manager = self._manager({"chore-1": {}})
+        extra: dict[str, object] = {}
+        manager._apply_subject_notification_options(extra, "chore-1")
+
+        assert const.NOTIFY_CHANNEL not in extra
+
+    def test_whitespace_only_channel_is_ignored(self) -> None:
+        """The integration cannot alter a channel once a device has it; blanks must not create one."""
+        manager = self._manager(
+            {"chore-1": {const.DATA_CHORE_NOTIFICATION_CHANNEL: "   "}}
+        )
+        extra: dict[str, object] = {}
+        manager._apply_subject_notification_options(extra, "chore-1")
+
+        assert const.NOTIFY_CHANNEL not in extra
+
+    def test_reward_id_does_not_resolve_a_channel(self) -> None:
+        """A reward id must not resolve a chore channel.
+
+        Two call sites pass ``tag_identifiers=(reward_id, assignee_id)``, so
+        inferring the subject from that tuple's first element would look up a
+        reward id in the chore table. Resolving from an explicit chore_id means a
+        reward notification simply carries no channel.
+        """
+        manager = self._manager(
+            {"chore-1": {const.DATA_CHORE_NOTIFICATION_CHANNEL: "Medicine"}}
+        )
+        extra: dict[str, object] = {}
+        manager._apply_subject_notification_options(extra, "reward-1")
+
+        assert const.NOTIFY_CHANNEL not in extra
+
+    def test_importance_accompanies_the_channel(self) -> None:
+        """Importance decides whether the alert pops on screen or arrives quietly.
+
+        A channel created without it is born at "default" - makes a sound, does
+        not intrude - so a high-priority push into that channel is delivered
+        promptly and then alerts quietly.
+        """
+        manager = self._manager(
+            {
+                "chore-1": {
+                    const.DATA_CHORE_NOTIFICATION_CHANNEL: "Medicine",
+                    const.DATA_CHORE_NOTIFICATION_IMPORTANCE: "high",
+                }
+            }
+        )
+        extra: dict[str, object] = {}
+        manager._apply_subject_notification_options(extra, "chore-1")
+
+        assert extra[const.NOTIFY_CHANNEL] == "Medicine"
+        assert extra[const.NOTIFY_IMPORTANCE] == "high"
+
+    def test_importance_without_a_channel_is_not_sent(self) -> None:
+        """Android attaches importance to a channel, so it is meaningless alone."""
+        manager = self._manager(
+            {"chore-1": {const.DATA_CHORE_NOTIFICATION_IMPORTANCE: "high"}}
+        )
+        extra: dict[str, object] = {}
+        manager._apply_subject_notification_options(extra, "chore-1")
+
+        assert extra == {}
+
+    def test_unknown_importance_is_ignored(self) -> None:
+        """Only the documented levels reach the payload."""
+        manager = self._manager(
+            {
+                "chore-1": {
+                    const.DATA_CHORE_NOTIFICATION_CHANNEL: "Medicine",
+                    const.DATA_CHORE_NOTIFICATION_IMPORTANCE: "URGENT!!",
+                }
+            }
+        )
+        extra: dict[str, object] = {}
+        manager._apply_subject_notification_options(extra, "chore-1")
+
+        assert extra[const.NOTIFY_CHANNEL] == "Medicine"
+        assert const.NOTIFY_IMPORTANCE not in extra
+
+    def test_channel_without_importance_still_works(self) -> None:
+        """The pre-importance shape stays valid - channel alone is legitimate."""
+        manager = self._manager(
+            {"chore-1": {const.DATA_CHORE_NOTIFICATION_CHANNEL: "Medicine"}}
+        )
+        extra: dict[str, object] = {}
+        manager._apply_subject_notification_options(extra, "chore-1")
+
+        assert extra[const.NOTIFY_CHANNEL] == "Medicine"
+        assert const.NOTIFY_IMPORTANCE not in extra
+
+
+class TestBroadcastAppliesRecipientOptions:
+    """Coverage for the system-announcement delivery path.
+
+    Every test of the data-reset service patches ``broadcast_to_all_approvers``
+    out, so its body is the one delivery path the suite never executes. The
+    options are applied synchronously before the send coroutine is built, and
+    the gather that follows uses ``return_exceptions=True`` - so a failure here
+    would abort the whole broadcast rather than being logged per-approver.
+    """
+
+    @staticmethod
+    def _manager(approvers: dict[str, dict[str, object]]) -> NotificationManager:
+        """A NotificationManager with only what the broadcast loop reads."""
+        manager = object.__new__(NotificationManager)
+        manager.hass = SimpleNamespace(  # type: ignore[assignment]
+            config=SimpleNamespace(language="en")
+        )
+        manager.coordinator = SimpleNamespace(  # type: ignore[assignment]
+            approvers_data=approvers,
+            config_entry=SimpleNamespace(options={}),
+        )
+        return manager
+
+    async def test_broadcast_carries_user_delivery_options(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """An approver's priority and TTL reach a system announcement too."""
+        manager = self._manager(
+            {
+                "approver-1": {
+                    const.DATA_USER_MOBILE_NOTIFY_SERVICE: "notify.mobile_app_x",
+                    const.DATA_USER_NOTIFICATION_PRIORITY: const.NOTIFY_PRIORITY_HIGH,
+                    const.DATA_USER_NOTIFICATION_TTL: "72000",
+                }
+            }
+        )
+        sent: list[dict[str, Any]] = []
+
+        async def _capture(
+            service: str,
+            title: str,
+            message: str,
+            extra_data: dict[str, Any] | None = None,
+        ) -> None:
+            sent.append({"service": service, "extra_data": extra_data})
+
+        async def _no_translations(*_args: object, **_kwargs: object) -> dict[str, Any]:
+            return {}
+
+        monkeypatch.setattr(manager, "_send_notification", _capture)
+        monkeypatch.setattr(th, "load_notification_translation", _no_translations)
+
+        await manager.broadcast_to_all_approvers("title_key", "message_key")
+
+        assert len(sent) == 1
+        extra = sent[0]["extra_data"]
+        assert extra[const.NOTIFY_PRIORITY] == const.NOTIFY_PRIORITY_HIGH
+        assert extra[const.NOTIFY_TTL] == 72000
+
+    async def test_broadcast_without_options_sends_no_extra_data(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """An approver who set nothing gets the payload they got before."""
+        manager = self._manager(
+            {
+                "approver-1": {
+                    const.DATA_USER_MOBILE_NOTIFY_SERVICE: "notify.mobile_app_x",
+                }
+            }
+        )
+        sent: list[dict[str, Any]] = []
+
+        async def _capture(
+            service: str,
+            title: str,
+            message: str,
+            extra_data: dict[str, Any] | None = None,
+        ) -> None:
+            sent.append({"service": service, "extra_data": extra_data})
+
+        async def _no_translations(*_args: object, **_kwargs: object) -> dict[str, Any]:
+            return {}
+
+        monkeypatch.setattr(manager, "_send_notification", _capture)
+        monkeypatch.setattr(th, "load_notification_translation", _no_translations)
+
+        await manager.broadcast_to_all_approvers("title_key", "message_key")
+
+        assert sent[0]["extra_data"] is None

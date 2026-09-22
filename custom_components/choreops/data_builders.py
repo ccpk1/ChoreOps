@@ -46,7 +46,7 @@ See Also:
 from __future__ import annotations
 
 import datetime
-from typing import Any, cast
+from typing import Any, Literal, cast
 import uuid
 
 from . import const
@@ -121,6 +121,61 @@ def _resolve_user_input_field(
     if existing is not None:
         return existing.get(data_key, default)
     return default
+
+
+def _narrow_notification_priority(value: Any) -> Literal["", "normal", "high"]:
+    """Coerce a stored notification priority to the closed set.
+
+    The field is a closed enum, so the builder should not write back whatever it
+    happened to read. A stored value can come from a hand-edited backup or an
+    option renamed in a past version; anything unrecognised is treated as unset
+    rather than persisted verbatim.
+
+    ``""`` is a real member, not a failure case - it is what a profile that has
+    never touched this setting stores, and the payload helper reads it as "leave
+    delivery alone".
+    """
+    if value == const.NOTIFY_PRIORITY_HIGH:
+        return const.NOTIFY_PRIORITY_HIGH
+    if value == const.NOTIFY_PRIORITY_NORMAL:
+        return const.NOTIFY_PRIORITY_NORMAL
+    return ""
+
+
+def _narrow_notification_importance(
+    value: Any,
+) -> Literal["", "min", "low", "default", "high", "max"]:
+    """Coerce a stored notification importance to the closed set.
+
+    The chore builder returns through ``cast("ChoreData", ...)``, so mypy cannot
+    check this field against its ``Literal`` on its own. Narrowing here means an
+    unrecognised stored value - a hand-edited backup, an option renamed in a past
+    version - becomes unset rather than being written back verbatim.
+
+    ``""`` is a real member: it is what a chore that has never set an importance
+    stores, and the payload helper reads it as "send no importance key".
+
+    ⚠️ This does NOT make the manager's runtime check redundant. ``build_chore``
+    runs on create and update, so a chore already sitting in ``.storage`` is
+    loaded without passing through here - which is exactly the hand-edited-backup
+    case - until something next saves it.
+    """
+    # 🔑 EXPLICIT COMPARISONS, NOT A MEMBERSHIP TEST WITH A FALLTHROUGH.
+    # An earlier version gated on `value in NOTIFY_IMPORTANCE_OPTIONS` and ended
+    # `return "max"`, so adding a sixth option to that tuple would have silently
+    # mapped it to the LOUDEST setting, with mypy green because "max" is a valid
+    # member. Spelling each one out means a new option falls to "" instead.
+    if value == "min":
+        return "min"
+    if value == "low":
+        return "low"
+    if value == const.NOTIFY_IMPORTANCE_DEFAULT:
+        return "default"
+    if value == "high":
+        return "high"
+    if value == "max":
+        return "max"
+    return ""
 
 
 def _normalize_user_select_value(value: Any) -> str:
@@ -896,6 +951,27 @@ def build_user_assignment_profile(
                 "",
             )
         ),
+        # Narrowed to the closed set rather than str()'d, so an unrecognised
+        # stored value (hand-edited backup, renamed option) becomes "unset"
+        # instead of being written back verbatim and typed as something it is not.
+        const.DATA_USER_NOTIFICATION_PRIORITY: _narrow_notification_priority(
+            _resolve_user_input_field(
+                user_input,
+                existing_data,
+                const.CFOF_USERS_INPUT_NOTIFICATION_PRIORITY,
+                const.DATA_USER_NOTIFICATION_PRIORITY,
+                "",
+            )
+        ),
+        const.DATA_USER_NOTIFICATION_TTL: str(
+            _resolve_user_input_field(
+                user_input,
+                existing_data,
+                const.CFOF_USERS_INPUT_NOTIFICATION_TTL,
+                const.DATA_USER_NOTIFICATION_TTL,
+                "",
+            )
+        ),
         const.DATA_USER_UI_PREFERENCES: _normalize_dict_field(
             _resolve_user_input_field(
                 user_input,
@@ -1232,6 +1308,27 @@ def build_user_profile(
                 existing_data,
                 const.CFOF_USERS_INPUT_NOTIF_APPROVE_CLICK_URL,
                 const.DATA_USER_NOTIF_APPROVE_CLICK_URL,
+                "",
+            )
+        ),
+        # Narrowed to the closed set rather than str()'d, so an unrecognised
+        # stored value (hand-edited backup, renamed option) becomes "unset"
+        # instead of being written back verbatim and typed as something it is not.
+        const.DATA_USER_NOTIFICATION_PRIORITY: _narrow_notification_priority(
+            _resolve_user_input_field(
+                user_input,
+                existing_data,
+                const.CFOF_USERS_INPUT_NOTIFICATION_PRIORITY,
+                const.DATA_USER_NOTIFICATION_PRIORITY,
+                "",
+            )
+        ),
+        const.DATA_USER_NOTIFICATION_TTL: str(
+            _resolve_user_input_field(
+                user_input,
+                existing_data,
+                const.CFOF_USERS_INPUT_NOTIFICATION_TTL,
+                const.DATA_USER_NOTIFICATION_TTL,
                 "",
             )
         ),
@@ -1813,6 +1910,12 @@ def build_chore(
             ),
             const.DATA_CHORE_DUE_REMINDER_OFFSET: get_field(
                 const.DATA_CHORE_DUE_REMINDER_OFFSET, const.DEFAULT_DUE_REMINDER_OFFSET
+            ),
+            const.DATA_CHORE_NOTIFICATION_CHANNEL: str(
+                get_field(const.DATA_CHORE_NOTIFICATION_CHANNEL, "") or ""
+            ),
+            const.DATA_CHORE_NOTIFICATION_IMPORTANCE: _narrow_notification_importance(
+                get_field(const.DATA_CHORE_NOTIFICATION_IMPORTANCE, "") or ""
             ),
             # Runtime tracking (preserve existing values on update)
             const.DATA_CHORE_LAST_COMPLETED: get_field(
