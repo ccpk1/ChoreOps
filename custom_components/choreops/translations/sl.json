@@ -82,14 +82,18 @@
               "ha_user_id": "Home Assistant uporabnik",
               "dashboard_language": "Jezik",
               "mobile_notify_service": "Obvestila",
-              "notif_click_url": "URL za obvestila z dotikom"
+              "notif_click_url": "URL za obvestila z dotikom",
+              "notification_priority": "Delivery priority",
+              "notification_ttl": "Notification lifetime (seconds)"
             },
             "data_description": {
               "name": "Edinstveno ime za ta uporabniški profil.",
               "ha_user_id": "Izbirno: Povežite ta profil z uporabnikom storitve Home Assistant. Če je način kioska onemogočen, so dejanja prevzema in unovčenja v skupni napravi odvisna od te povezave.",
               "dashboard_language": "Jezik, ki se uporablja za vsebino in obvestila nadzorne plošče.",
               "mobile_notify_service": "Izberite storitev obveščanja ali pustite prazno, da obvestila onemogočite.",
-              "notif_click_url": "Neobvezen URL, ki se odpre ob dotiku obvestila. Za privzeto delovanje pustite polje prazno."
+              "notif_click_url": "Neobvezen URL, ki se odpre ob dotiku obvestila. Za privzeto delovanje pustite polje prazno.",
+              "notification_priority": "Android only. High asks the mobile app to deliver immediately even while the device is asleep; Normal may be delayed until it wakes. iOS ignores this.",
+              "notification_ttl": "Optional. Android only. How long delivery keeps being retried before the notification is dropped as stale. Leave empty for the platform default of 28 days; 0 discards anything that cannot be delivered right away. A good value is shorter than how often the chore recurs, so a retry can never arrive looking like the next occurrence - for a daily chore, around 20 hours. iOS ignores this."
             }
           },
           "section_system_usage": {
@@ -194,6 +198,8 @@
               "auto_approve": "✅ Samodejno odobritev zahtevkov?",
               "overdue_handling_type": "⏰ Zamuda: Ravnanje",
               "chore_due_reminder_offset": "🔔 Opomnik za zapadlost: Poravnava pred rokom",
+              "chore_notification_channel": "🔔 Notification Channel",
+              "chore_notification_importance": "🔔 Notification Importance",
               "chore_notifications": "🔔 Obvestila o dogodkih (neobvezno)",
               "show_on_calendar": "📅 Prikaži v koledarju?",
               "chore_labels": "📋 Oznake (neobvezno)"
@@ -204,6 +210,8 @@
               "auto_approve": "Ko je omogočeno, se zahtevki takoj odobrijo brez pregleda odobritelja.",
               "overdue_handling_type": "Dejanje po datumu zapadlosti: Skrij status zapadlosti, pusti zapadlost do uveljavljanja ali ponastavi na čakanje v naslednjem ciklu odobritve.",
               "chore_due_reminder_offset": "Kdaj poslati opomnik o zapadlosti. Oblika: »1d 6h 30m« ali samo »30« za minute. Privzeto: 30m (30 minut pred zapadlostjo). Za onemogočanje vnesite »0«.",
+              "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+              "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
               "chore_notifications": "Kdaj poslati obvestila: Ob zahtevku, ob odobritvi, ob zavrnitvi ali kateri koli kombinaciji.",
               "show_on_calendar": "Prikaži to opravilo v pogledu koledarja.",
               "chore_labels": "Oznake za organizacijo opravil (npr. »kuhinja«, »na prostem«). Če niso potrebne, pustite prazno."
@@ -230,6 +238,8 @@
           "due_date": "📅 Razpored: Datum oddaje (neobvezno)",
           "chore_due_window_offset": "⏱️ Rok: Poravnava pred rokom",
           "chore_due_reminder_offset": "🔔 Opomnik za zapadlost: Poravnava pred rokom",
+          "chore_notification_channel": "🔔 Notification Channel",
+          "chore_notification_importance": "🔔 Notification Importance",
           "show_on_calendar": "📅 Prikaži v koledarju?",
           "chore_notifications": "🔔 Obvestila o dogodkih (neobvezno)",
           "standby_claim_mode": "🔑 Način zahtevka v stanju pripravljenosti"
@@ -254,6 +264,8 @@
           "due_date": "Neobvezen rok. Lahko se kombinira s ponavljajočimi se urniki.",
           "chore_due_window_offset": "Ko se stanje opravila spremeni iz »V teku« v »Zakonito«. Oblika: »1d 6h 30m« ali samo »30« za minute. Za onemogočanje vnesite »0«. Primer: »1d« pomeni, da se opravilo prikaže kot »Zakonito« 1 dan pred rokom.",
           "chore_due_reminder_offset": "Kdaj poslati opomnik o zapadlosti. Oblika: »1d 6h 30m« ali samo »30« za minute. Privzeto: 30m (30 minut pred zapadlostjo). Za onemogočanje vnesite »0«.",
+          "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+          "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
           "show_on_calendar": "Prikaži to opravilo v pogledu koledarja.",
           "chore_notifications": "Kdaj poslati obvestila: Ob zahtevku, ob odobritvi, ob zavrnitvi ali kateri koli kombinaciji.",
           "standby_claim_mode": "Določa, kdaj lahko rezervni deli zahtevajo to opravilo (kadarkoli, ob_preteku_roka, samo_ročno). Velja samo za merila za dokončanje primarnega in rezervnega dela."
@@ -585,14 +597,18 @@
               "ha_user_id": "Home Assistant uporabnik",
               "dashboard_language": "Jezik",
               "mobile_notify_service": "Obvestila",
-              "notif_click_url": "URL za obvestila z dotikom"
+              "notif_click_url": "URL za obvestila z dotikom",
+              "notification_priority": "Delivery priority",
+              "notification_ttl": "Notification lifetime (seconds)"
             },
             "data_description": {
               "name": "Edinstveno ime za ta uporabniški profil.",
               "ha_user_id": "Izbirno: Povežite ta profil z uporabnikom storitve Home Assistant. Če je način kioska onemogočen, so dejanja prevzema in unovčenja v skupni napravi odvisna od te povezave.",
               "dashboard_language": "Jezik, ki se uporablja za vsebino in obvestila nadzorne plošče.",
               "mobile_notify_service": "Izberite storitev obveščanja ali pustite prazno, da obvestila onemogočite.",
-              "notif_click_url": "Neobvezen URL, ki se odpre ob dotiku obvestila. Za privzeto delovanje pustite polje prazno."
+              "notif_click_url": "Neobvezen URL, ki se odpre ob dotiku obvestila. Za privzeto delovanje pustite polje prazno.",
+              "notification_priority": "Android only. High asks the mobile app to deliver immediately even while the device is asleep; Normal may be delayed until it wakes. iOS ignores this.",
+              "notification_ttl": "Optional. Android only. How long delivery keeps being retried before the notification is dropped as stale. Leave empty for the platform default of 28 days; 0 discards anything that cannot be delivered right away. A good value is shorter than how often the chore recurs, so a retry can never arrive looking like the next occurrence - for a daily chore, around 20 hours. iOS ignores this."
             }
           },
           "section_system_usage": {
@@ -690,6 +706,8 @@
               "auto_approve": "✅ Samodejno odobritev zahtevkov?",
               "overdue_handling_type": "⏰ Zamuda: Ravnanje",
               "chore_due_reminder_offset": "🔔 Opomnik za zapadlost: Poravnava pred rokom",
+              "chore_notification_channel": "🔔 Notification Channel",
+              "chore_notification_importance": "🔔 Notification Importance",
               "chore_notifications": "🔔 Obvestila o dogodkih (neobvezno)",
               "show_on_calendar": "📅 Prikaži v koledarju?",
               "chore_labels": "📋 Oznake (neobvezno)"
@@ -700,6 +718,8 @@
               "auto_approve": "Ko je omogočeno, se zahtevki takoj odobrijo brez pregleda odobritelja.",
               "overdue_handling_type": "Nadzira, kaj se zgodi, ko rok poteče, in kaj se zgodi z zamujenimi opravili na meji ponastavitve odobritve.",
               "chore_due_reminder_offset": "Kdaj poslati opomnik o zapadlosti. Oblika: »1d 6h 30m« ali samo »30« za minute. Privzeto: 30m (30 minut pred zapadlostjo). Za onemogočanje vnesite »0«.",
+              "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+              "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
               "chore_notifications": "Kdaj poslati obvestila: Ob zahtevku, ob odobritvi, ob zavrnitvi ali kateri koli kombinaciji.",
               "show_on_calendar": "Prikaži to opravilo v pogledu koledarja.",
               "chore_labels": "Oznake za organizacijo opravil (npr. »kuhinja«, »na prostem«). Če niso potrebne, pustite prazno."
@@ -727,6 +747,8 @@
           "clear_due_date": "🗑️ Počisti rok zapadlosti",
           "chore_due_window_offset": "⏱️ Rok: Poravnava pred rokom",
           "chore_due_reminder_offset": "🔔 Opomnik za zapadlost: Poravnava pred rokom",
+          "chore_notification_channel": "🔔 Notification Channel",
+          "chore_notification_importance": "🔔 Notification Importance",
           "show_on_calendar": "📅 Prikaži v koledarju?",
           "chore_notifications": "🔔 Obvestila o dogodkih (neobvezno)",
           "standby_claim_mode": "🔑 Način zahtevka v stanju pripravljenosti"
@@ -752,6 +774,8 @@
           "clear_due_date": "Označite to polje, če želite odstraniti rok za to opravilo.",
           "chore_due_window_offset": "Ko se stanje opravila spremeni iz »V teku« v »Zakonito«. Oblika: »1d 6h 30m« ali samo »30« za minute. Za onemogočanje vnesite »0«. Primer: »1d« pomeni, da se opravilo prikaže kot »Zakonito« 1 dan pred rokom.",
           "chore_due_reminder_offset": "Kdaj poslati opomnik o zapadlosti. Oblika: »1d 6h 30m« ali samo »30« za minute. Privzeto: 30m (30 minut pred zapadlostjo). Za onemogočanje vnesite »0«.",
+          "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+          "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
           "show_on_calendar": "Prikaži to opravilo v pogledu koledarja.",
           "chore_notifications": "Kdaj poslati obvestila: Ob zahtevku, ob odobritvi, ob zavrnitvi ali kateri koli kombinaciji.",
           "standby_claim_mode": "Določa, kdaj lahko rezervni deli zahtevajo to opravilo (kadarkoli, ob_preteku_roka, samo_ročno). Velja samo za merila za dokončanje primarnega in rezervnega dela."
@@ -1037,14 +1061,18 @@
               "ha_user_id": "Home Assistant uporabnik",
               "dashboard_language": "Jezik",
               "mobile_notify_service": "Obvestila",
-              "notif_click_url": "URL za obvestila z dotikom"
+              "notif_click_url": "URL za obvestila z dotikom",
+              "notification_priority": "Delivery priority",
+              "notification_ttl": "Notification lifetime (seconds)"
             },
             "data_description": {
               "name": "Edinstveno ime za ta uporabniški profil.",
               "ha_user_id": "Izbirno: Povežite ta profil z uporabnikom storitve Home Assistant. Če je način kioska onemogočen, so dejanja prevzema in unovčenja v skupni napravi odvisna od te povezave.",
               "dashboard_language": "Jezik, ki se uporablja za vsebino in obvestila nadzorne plošče.",
               "mobile_notify_service": "Izberite storitev obveščanja ali pustite prazno, da obvestila onemogočite.",
-              "notif_click_url": "Neobvezen URL, ki se odpre ob dotiku obvestila. Za privzeto delovanje pustite polje prazno."
+              "notif_click_url": "Neobvezen URL, ki se odpre ob dotiku obvestila. Za privzeto delovanje pustite polje prazno.",
+              "notification_priority": "Android only. High asks the mobile app to deliver immediately even while the device is asleep; Normal may be delayed until it wakes. iOS ignores this.",
+              "notification_ttl": "Optional. Android only. How long delivery keeps being retried before the notification is dropped as stale. Leave empty for the platform default of 28 days; 0 discards anything that cannot be delivered right away. A good value is shorter than how often the chore recurs, so a retry can never arrive looking like the next occurrence - for a daily chore, around 20 hours. iOS ignores this."
             }
           },
           "section_system_usage": {
@@ -1142,6 +1170,8 @@
               "auto_approve": "✅ Samodejno odobritev zahtevkov?",
               "overdue_handling_type": "⏰ Zamuda: Ravnanje",
               "chore_due_reminder_offset": "🔔 Opomnik za zapadlost: Poravnava pred rokom",
+              "chore_notification_channel": "🔔 Notification Channel",
+              "chore_notification_importance": "🔔 Notification Importance",
               "chore_notifications": "🔔 Obvestila o dogodkih (neobvezno)",
               "show_on_calendar": "📅 Prikaži v koledarju?",
               "chore_labels": "📋 Oznake (neobvezno)"
@@ -1152,6 +1182,8 @@
               "auto_approve": "Ko je omogočeno, se zahtevki takoj odobrijo brez pregleda odobritelja.",
               "overdue_handling_type": "Nadzira, kaj se zgodi, ko rok poteče, in kaj se zgodi z zamujenimi opravili na meji ponastavitve odobritve.",
               "chore_due_reminder_offset": "Kdaj poslati opomnik o zapadlosti. Oblika: »1d 6h 30m« ali samo »30« za minute. Privzeto: 30m (30 minut pred zapadlostjo). Za onemogočanje vnesite »0«.",
+              "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+              "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
               "chore_notifications": "Kdaj poslati obvestila: Ob zahtevku, ob odobritvi, ob zavrnitvi ali kateri koli kombinaciji.",
               "show_on_calendar": "Prikaži to opravilo v pogledu koledarja.",
               "chore_labels": "Oznake za organizacijo opravil (npr. »kuhinja«, »na prostem«). Če niso potrebne, pustite prazno."
@@ -1180,6 +1212,8 @@
           "clear_due_date": "🗑️ Počisti rok zapadlosti",
           "chore_due_window_offset": "⏱️ Rok: Poravnava pred rokom",
           "chore_due_reminder_offset": "🔔 Opomnik za zapadlost: Poravnava pred rokom",
+          "chore_notification_channel": "🔔 Notification Channel",
+          "chore_notification_importance": "🔔 Notification Importance",
           "show_on_calendar": "📅 Prikaži v koledarju?",
           "chore_notifications": "🔔 Obvestila o dogodkih (neobvezno)",
           "standby_claim_mode": "🔑 Način zahtevka v stanju pripravljenosti"
@@ -1205,6 +1239,8 @@
           "clear_due_date": "Označite to polje, če želite odstraniti rok za to opravilo.",
           "chore_due_window_offset": "Ko se stanje opravila spremeni iz »V teku« v »Zakonito«. Oblika: »1d 6h 30m« ali samo »30« za minute. Za onemogočanje vnesite »0«. Primer: »1d« pomeni, da se opravilo prikaže kot »Zakonito« 1 dan pred rokom.",
           "chore_due_reminder_offset": "Kdaj poslati opomnik o zapadlosti. Oblika: »1d 6h 30m« ali samo »30« za minute. Privzeto: 30m (30 minut pred zapadlostjo). Za onemogočanje vnesite »0«.",
+          "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+          "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
           "show_on_calendar": "Prikaži to opravilo v pogledu koledarja.",
           "chore_notifications": "Kdaj poslati obvestila: Ob zahtevku, ob odobritvi, ob zavrnitvi ali kateri koli kombinaciji.",
           "standby_claim_mode": "Določa, kdaj lahko rezervni deli zahtevajo to opravilo (kadarkoli, ob_preteku_roka, samo_ročno). Velja samo za merila za dokončanje primarnega in rezervnega dela."
@@ -2082,6 +2118,12 @@
         "custom_1_month": "Po meri: 1-mesečno obdobje"
       }
     },
+    "notification_priority": {
+      "options": {
+        "normal": "Normal (may be delayed while the device is asleep)",
+        "high": "High (deliver immediately, even while the device is asleep)"
+      }
+    },
     "completion_criteria": {
       "options": {
         "shared_all": "Deljeno z vsemi (vsi dodeljevalci morajo izpolniti skupaj)",
@@ -2207,6 +2249,15 @@
         "current_active": "📂 Uporabi trenutno aktivno podatkovno datoteko",
         "migrate_from_kidschores": "🔄 Selitev iz KidsChores (nedestruktivna kopija)",
         "paste_json": "📋 Prilepi JSON iz podatkovne datoteke ali diagnostike"
+      }
+    },
+    "notification_importance": {
+      "options": {
+        "min": "Minimum (no sound, collapsed)",
+        "low": "Low (no sound)",
+        "default": "Default (makes a sound)",
+        "high": "High (pops on screen and makes a sound)",
+        "max": "Maximum (pops on screen, most urgent)"
       }
     }
   },
@@ -2762,6 +2813,14 @@
           "description": "Trajanje pred datumom zapadlosti za pošiljanje opomnika. Oblika: '30 min', '1 ura', '1 dan 6 ur 30 min' itd. Za onemogočanje opomnikov uporabite '0'.",
           "example": "30 m"
         },
+        "notification_channel": {
+          "name": "Notification Channel",
+          "description": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately from other chores. Leave empty to use the app default. iOS ignores this."
+        },
+        "notification_importance": {
+          "name": "Notification Importance",
+          "description": "Optional. Android only. How prominently this chore's notifications alert (min, low, default, high, max). Requires notification_channel. Note: sets the channel's INITIAL state the first time a device sees that channel name. The integration cannot change it afterwards; the person still can, in Android settings. iOS ignores this."
+        },
         "standby_claim_mode": {
           "name": "Način zahtevka v stanju pripravljenosti",
           "description": "Določa, kdaj lahko rezervni deli zahtevajo to opravilo (kadarkoli, ob_preteku_roka, samo_ročno). Velja samo za merila za dokončanje primarnega in rezervnega dela."
@@ -2911,6 +2970,14 @@
           "name": "Zamik opomnika za zapadlost",
           "description": "Nov odmik opomnika za zapadlost. Trajanje pred datumom zapadlosti za pošiljanje obvestila o opomniku. Oblika: '30 min', '1 ura', '1 dan 6 ur 30 min' itd. Za onemogočanje uporabite '0'.",
           "example": "30 m"
+        },
+        "notification_channel": {
+          "name": "Notification Channel",
+          "description": "New notification channel. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately from other chores. Leave empty to use the app default. iOS ignores this."
+        },
+        "notification_importance": {
+          "name": "Notification Importance",
+          "description": "Optional. Android only. How prominently this chore's notifications alert (min, low, default, high, max). Requires notification_channel. Note: sets the channel's INITIAL state the first time a device sees that channel name. The integration cannot change it afterwards; the person still can, in Android settings. iOS ignores this."
         },
         "assignment_action": {
           "name": "Dejanje dodelitve",

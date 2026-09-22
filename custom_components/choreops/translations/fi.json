@@ -82,14 +82,18 @@
               "ha_user_id": "Kotiavustaja-käyttäjä",
               "dashboard_language": "Kieli",
               "mobile_notify_service": "Ilmoitukset",
-              "notif_click_url": "Ilmoitusnapautuksen URL-osoite"
+              "notif_click_url": "Ilmoitusnapautuksen URL-osoite",
+              "notification_priority": "Delivery priority",
+              "notification_ttl": "Notification lifetime (seconds)"
             },
             "data_description": {
               "name": "Tämän käyttäjäprofiilin yksilöllinen nimi.",
               "ha_user_id": "Valinnainen: Linkitä tämä profiili Home Assistant -käyttäjään. Jos kioskitila on poistettu käytöstä, jaetun laitteen lunastustoiminnot edellyttävät tätä linkkiä.",
               "dashboard_language": "Kojelaudan sisällössä ja ilmoituksissa käytetty kieli.",
               "mobile_notify_service": "Valitse ilmoituspalvelu tai jätä tyhjäksi poistaaksesi ilmoitukset käytöstä.",
-              "notif_click_url": "Valinnainen URL-osoite, joka avataan ilmoitusta napautettaessa. Jätä tyhjäksi oletusarvoista toimintaa varten."
+              "notif_click_url": "Valinnainen URL-osoite, joka avataan ilmoitusta napautettaessa. Jätä tyhjäksi oletusarvoista toimintaa varten.",
+              "notification_priority": "Android only. High asks the mobile app to deliver immediately even while the device is asleep; Normal may be delayed until it wakes. iOS ignores this.",
+              "notification_ttl": "Optional. Android only. How long delivery keeps being retried before the notification is dropped as stale. Leave empty for the platform default of 28 days; 0 discards anything that cannot be delivered right away. A good value is shorter than how often the chore recurs, so a retry can never arrive looking like the next occurrence - for a daily chore, around 20 hours. iOS ignores this."
             }
           },
           "section_system_usage": {
@@ -194,6 +198,8 @@
               "auto_approve": "✅ Hyväksytäänkö korvaushakemukset automaattisesti?",
               "overdue_handling_type": "⏰ Myöhässä: Käsittely",
               "chore_due_reminder_offset": "🔔 Eräpäivämuistutus: Kuittaa ennen eräpäivää",
+              "chore_notification_channel": "🔔 Notification Channel",
+              "chore_notification_importance": "🔔 Notification Importance",
               "chore_notifications": "🔔 Ilmoitustapahtumat (valinnainen)",
               "show_on_calendar": "📅 Näytetäänkö kalenterissa?",
               "chore_labels": "📋 Tunnisteet (valinnainen)"
@@ -204,6 +210,8 @@
               "auto_approve": "Kun tämä on käytössä, hakemukset hyväksytään välittömästi ilman hyväksyjän tarkistusta.",
               "overdue_handling_type": "Toimenpiteet eräpäivän jälkeen: Piilota myöhästymistila, pidä myöhässä, kunnes maksu vaaditaan, tai palauta odottavaan tilaan seuraavalla hyväksymisjaksolla.",
               "chore_due_reminder_offset": "Milloin lähetetään muistutus eräpäivästä. Muoto: '1pv 6t 30m' tai vain '30' minuuteille. Oletusarvo: 30m (30 minuuttia ennen eräpäivää). Syötä '0' poistaaksesi ilmoituksen käytöstä.",
+              "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+              "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
               "chore_notifications": "Milloin ilmoituksia lähetetään: Vaatimuksen, hyväksynnän, hylkäämisen tai minkä tahansa näiden yhdistelmän yhteydessä.",
               "show_on_calendar": "Näytä tämä tehtävä kalenterinäkymässä.",
               "chore_labels": "Tagit askareiden järjestämiseen (esim. 'keittiö', 'ulkona'). Jätä tyhjäksi, jos et tarvitse."
@@ -230,6 +238,8 @@
           "due_date": "📅 Aikataulu: Määräpäivä (valinnainen)",
           "chore_due_window_offset": "⏱️ Eräikkuna: Kuittaa ennen eräpäivää",
           "chore_due_reminder_offset": "🔔 Eräpäivämuistutus: Kuittaa ennen eräpäivää",
+          "chore_notification_channel": "🔔 Notification Channel",
+          "chore_notification_importance": "🔔 Notification Importance",
           "show_on_calendar": "📅 Näytetäänkö kalenterissa?",
           "chore_notifications": "🔔 Ilmoitustapahtumat (valinnainen)",
           "standby_claim_mode": "🔑 Valmiustilavaatimustila"
@@ -254,6 +264,8 @@
           "due_date": "Valinnainen määräaika. Voidaan yhdistää toistuviin aikatauluihin.",
           "chore_due_window_offset": "Kun työn tila muuttuu Odottaa-tilasta Määräpäivä-tilaan. Muoto: '1pv 6h 30m' tai vain '30' minuuteille. Syötä '0' poistaaksesi tilan käytöstä. Esimerkki: '1pv' tarkoittaa, että työ näkyy Erääntymistilassa 1 päivä ennen määräaikaa.",
           "chore_due_reminder_offset": "Milloin lähetetään muistutus eräpäivästä. Muoto: '1pv 6t 30m' tai vain '30' minuuteille. Oletusarvo: 30m (30 minuuttia ennen eräpäivää). Syötä '0' poistaaksesi ilmoituksen käytöstä.",
+          "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+          "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
           "show_on_calendar": "Näytä tämä tehtävä kalenterinäkymässä.",
           "chore_notifications": "Milloin ilmoituksia lähetetään: Vaatimuksen, hyväksynnän, hylkäämisen tai minkä tahansa näiden yhdistelmän yhteydessä.",
           "standby_claim_mode": "Määrittää, milloin valmiustilassa olevat voivat lunastaa tämän tehtävän (milloin tahansa, on_overdue, manual_only). Koskee vain ensisijaisia ja valmiustilassa olevien suorituskriteerejä."
@@ -585,14 +597,18 @@
               "ha_user_id": "Kotiavustaja-käyttäjä",
               "dashboard_language": "Kieli",
               "mobile_notify_service": "Ilmoitukset",
-              "notif_click_url": "Ilmoitusnapautuksen URL-osoite"
+              "notif_click_url": "Ilmoitusnapautuksen URL-osoite",
+              "notification_priority": "Delivery priority",
+              "notification_ttl": "Notification lifetime (seconds)"
             },
             "data_description": {
               "name": "Tämän käyttäjäprofiilin yksilöllinen nimi.",
               "ha_user_id": "Valinnainen: Linkitä tämä profiili Home Assistant -käyttäjään. Jos kioskitila on poistettu käytöstä, jaetun laitteen lunastustoiminnot edellyttävät tätä linkkiä.",
               "dashboard_language": "Kojelaudan sisällössä ja ilmoituksissa käytetty kieli.",
               "mobile_notify_service": "Valitse ilmoituspalvelu tai jätä tyhjäksi poistaaksesi ilmoitukset käytöstä.",
-              "notif_click_url": "Valinnainen URL-osoite, joka avataan ilmoitusta napautettaessa. Jätä tyhjäksi oletusarvoista toimintaa varten."
+              "notif_click_url": "Valinnainen URL-osoite, joka avataan ilmoitusta napautettaessa. Jätä tyhjäksi oletusarvoista toimintaa varten.",
+              "notification_priority": "Android only. High asks the mobile app to deliver immediately even while the device is asleep; Normal may be delayed until it wakes. iOS ignores this.",
+              "notification_ttl": "Optional. Android only. How long delivery keeps being retried before the notification is dropped as stale. Leave empty for the platform default of 28 days; 0 discards anything that cannot be delivered right away. A good value is shorter than how often the chore recurs, so a retry can never arrive looking like the next occurrence - for a daily chore, around 20 hours. iOS ignores this."
             }
           },
           "section_system_usage": {
@@ -690,6 +706,8 @@
               "auto_approve": "✅ Hyväksytäänkö korvaushakemukset automaattisesti?",
               "overdue_handling_type": "⏰ Myöhässä: Käsittely",
               "chore_due_reminder_offset": "🔔 Eräpäivämuistutus: Kuittaa ennen eräpäivää",
+              "chore_notification_channel": "🔔 Notification Channel",
+              "chore_notification_importance": "🔔 Notification Importance",
               "chore_notifications": "🔔 Ilmoitustapahtumat (valinnainen)",
               "show_on_calendar": "📅 Näytetäänkö kalenterissa?",
               "chore_labels": "📋 Tunnisteet (valinnainen)"
@@ -700,6 +718,8 @@
               "auto_approve": "Kun tämä on käytössä, hakemukset hyväksytään välittömästi ilman hyväksyjän tarkistusta.",
               "overdue_handling_type": "Ohjaa, mitä tapahtuu, kun eräpäivä umpeutuu, ja mitä erääntyneille tehtäville tapahtuu hyväksynnän nollausrajalla.",
               "chore_due_reminder_offset": "Milloin lähetetään muistutus eräpäivästä. Muoto: '1pv 6t 30m' tai vain '30' minuuteille. Oletusarvo: 30m (30 minuuttia ennen eräpäivää). Syötä '0' poistaaksesi ilmoituksen käytöstä.",
+              "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+              "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
               "chore_notifications": "Milloin ilmoituksia lähetetään: Vaatimuksen, hyväksynnän, hylkäämisen tai minkä tahansa näiden yhdistelmän yhteydessä.",
               "show_on_calendar": "Näytä tämä tehtävä kalenterinäkymässä.",
               "chore_labels": "Tagit askareiden järjestämiseen (esim. 'keittiö', 'ulkona'). Jätä tyhjäksi, jos et tarvitse."
@@ -727,6 +747,8 @@
           "clear_due_date": "🗑️ Selkeä eräpäivä",
           "chore_due_window_offset": "⏱️ Eräikkuna: Kuittaa ennen eräpäivää",
           "chore_due_reminder_offset": "🔔 Eräpäivämuistutus: Kuittaa ennen eräpäivää",
+          "chore_notification_channel": "🔔 Notification Channel",
+          "chore_notification_importance": "🔔 Notification Importance",
           "show_on_calendar": "📅 Näytetäänkö kalenterissa?",
           "chore_notifications": "🔔 Ilmoitustapahtumat (valinnainen)",
           "standby_claim_mode": "🔑 Valmiustilavaatimustila"
@@ -752,6 +774,8 @@
           "clear_due_date": "Valitse tämä ruutu poistaaksesi määräpäivän tästä tehtävästä.",
           "chore_due_window_offset": "Kun työn tila muuttuu Odottaa-tilasta Määräpäivä-tilaan. Muoto: '1pv 6h 30m' tai vain '30' minuuteille. Syötä '0' poistaaksesi tilan käytöstä. Esimerkki: '1pv' tarkoittaa, että työ näkyy Erääntymistilassa 1 päivä ennen määräaikaa.",
           "chore_due_reminder_offset": "Milloin lähetetään muistutus eräpäivästä. Muoto: '1pv 6t 30m' tai vain '30' minuuteille. Oletusarvo: 30m (30 minuuttia ennen eräpäivää). Syötä '0' poistaaksesi ilmoituksen käytöstä.",
+          "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+          "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
           "show_on_calendar": "Näytä tämä tehtävä kalenterinäkymässä.",
           "chore_notifications": "Milloin ilmoituksia lähetetään: Vaatimuksen, hyväksynnän, hylkäämisen tai minkä tahansa näiden yhdistelmän yhteydessä.",
           "standby_claim_mode": "Määrittää, milloin valmiustilassa olevat voivat lunastaa tämän tehtävän (milloin tahansa, on_overdue, manual_only). Koskee vain ensisijaisia ja valmiustilassa olevien suorituskriteerejä."
@@ -1037,14 +1061,18 @@
               "ha_user_id": "Kotiavustaja-käyttäjä",
               "dashboard_language": "Kieli",
               "mobile_notify_service": "Ilmoitukset",
-              "notif_click_url": "Ilmoitusnapautuksen URL-osoite"
+              "notif_click_url": "Ilmoitusnapautuksen URL-osoite",
+              "notification_priority": "Delivery priority",
+              "notification_ttl": "Notification lifetime (seconds)"
             },
             "data_description": {
               "name": "Tämän käyttäjäprofiilin yksilöllinen nimi.",
               "ha_user_id": "Valinnainen: Linkitä tämä profiili Home Assistant -käyttäjään. Jos kioskitila on poistettu käytöstä, jaetun laitteen lunastustoiminnot edellyttävät tätä linkkiä.",
               "dashboard_language": "Kojelaudan sisällössä ja ilmoituksissa käytetty kieli.",
               "mobile_notify_service": "Valitse ilmoituspalvelu tai jätä tyhjäksi poistaaksesi ilmoitukset käytöstä.",
-              "notif_click_url": "Valinnainen URL-osoite, joka avataan ilmoitusta napautettaessa. Jätä tyhjäksi oletusarvoista toimintaa varten."
+              "notif_click_url": "Valinnainen URL-osoite, joka avataan ilmoitusta napautettaessa. Jätä tyhjäksi oletusarvoista toimintaa varten.",
+              "notification_priority": "Android only. High asks the mobile app to deliver immediately even while the device is asleep; Normal may be delayed until it wakes. iOS ignores this.",
+              "notification_ttl": "Optional. Android only. How long delivery keeps being retried before the notification is dropped as stale. Leave empty for the platform default of 28 days; 0 discards anything that cannot be delivered right away. A good value is shorter than how often the chore recurs, so a retry can never arrive looking like the next occurrence - for a daily chore, around 20 hours. iOS ignores this."
             }
           },
           "section_system_usage": {
@@ -1142,6 +1170,8 @@
               "auto_approve": "✅ Hyväksytäänkö korvaushakemukset automaattisesti?",
               "overdue_handling_type": "⏰ Myöhässä: Käsittely",
               "chore_due_reminder_offset": "🔔 Eräpäivämuistutus: Kuittaa ennen eräpäivää",
+              "chore_notification_channel": "🔔 Notification Channel",
+              "chore_notification_importance": "🔔 Notification Importance",
               "chore_notifications": "🔔 Ilmoitustapahtumat (valinnainen)",
               "show_on_calendar": "📅 Näytetäänkö kalenterissa?",
               "chore_labels": "📋 Tunnisteet (valinnainen)"
@@ -1152,6 +1182,8 @@
               "auto_approve": "Kun tämä on käytössä, hakemukset hyväksytään välittömästi ilman hyväksyjän tarkistusta.",
               "overdue_handling_type": "Ohjaa, mitä tapahtuu, kun eräpäivä umpeutuu, ja mitä erääntyneille tehtäville tapahtuu hyväksynnän nollausrajalla.",
               "chore_due_reminder_offset": "Milloin lähetetään muistutus eräpäivästä. Muoto: '1pv 6t 30m' tai vain '30' minuuteille. Oletusarvo: 30m (30 minuuttia ennen eräpäivää). Syötä '0' poistaaksesi ilmoituksen käytöstä.",
+              "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+              "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
               "chore_notifications": "Milloin ilmoituksia lähetetään: Vaatimuksen, hyväksynnän, hylkäämisen tai minkä tahansa näiden yhdistelmän yhteydessä.",
               "show_on_calendar": "Näytä tämä tehtävä kalenterinäkymässä.",
               "chore_labels": "Tagit askareiden järjestämiseen (esim. 'keittiö', 'ulkona'). Jätä tyhjäksi, jos et tarvitse."
@@ -1180,6 +1212,8 @@
           "clear_due_date": "🗑️ Selkeä eräpäivä",
           "chore_due_window_offset": "⏱️ Eräikkuna: Kuittaa ennen eräpäivää",
           "chore_due_reminder_offset": "🔔 Eräpäivämuistutus: Kuittaa ennen eräpäivää",
+          "chore_notification_channel": "🔔 Notification Channel",
+          "chore_notification_importance": "🔔 Notification Importance",
           "show_on_calendar": "📅 Näytetäänkö kalenterissa?",
           "chore_notifications": "🔔 Ilmoitustapahtumat (valinnainen)",
           "standby_claim_mode": "🔑 Valmiustilavaatimustila"
@@ -1205,6 +1239,8 @@
           "clear_due_date": "Valitse tämä ruutu poistaaksesi määräpäivän tästä tehtävästä.",
           "chore_due_window_offset": "Kun työn tila muuttuu Odottaa-tilasta Määräpäivä-tilaan. Muoto: '1pv 6h 30m' tai vain '30' minuuteille. Syötä '0' poistaaksesi tilan käytöstä. Esimerkki: '1pv' tarkoittaa, että työ näkyy Erääntymistilassa 1 päivä ennen määräaikaa.",
           "chore_due_reminder_offset": "Milloin lähetetään muistutus eräpäivästä. Muoto: '1pv 6t 30m' tai vain '30' minuuteille. Oletusarvo: 30m (30 minuuttia ennen eräpäivää). Syötä '0' poistaaksesi ilmoituksen käytöstä.",
+          "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+          "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
           "show_on_calendar": "Näytä tämä tehtävä kalenterinäkymässä.",
           "chore_notifications": "Milloin ilmoituksia lähetetään: Vaatimuksen, hyväksynnän, hylkäämisen tai minkä tahansa näiden yhdistelmän yhteydessä.",
           "standby_claim_mode": "Määrittää, milloin valmiustilassa olevat voivat lunastaa tämän tehtävän (milloin tahansa, on_overdue, manual_only). Koskee vain ensisijaisia ja valmiustilassa olevien suorituskriteerejä."
@@ -2082,6 +2118,12 @@
         "custom_1_month": "Mukautettu: 1 kuukauden jakso"
       }
     },
+    "notification_priority": {
+      "options": {
+        "normal": "Normal (may be delayed while the device is asleep)",
+        "high": "High (deliver immediately, even while the device is asleep)"
+      }
+    },
     "completion_criteria": {
       "options": {
         "shared_all": "Jaettu kaikille (Kaikkien vastuuhenkilöiden on täytettävä yhdessä)",
@@ -2207,6 +2249,15 @@
         "current_active": "📂 Käytä nykyistä aktiivista datatiedostoa",
         "migrate_from_kidschores": "🔄 Siirto KidsChoresista (tuhoamaton kopio)",
         "paste_json": "📋 Liitä JSON-tiedosto datatiedostosta tai diagnostiikasta"
+      }
+    },
+    "notification_importance": {
+      "options": {
+        "min": "Minimum (no sound, collapsed)",
+        "low": "Low (no sound)",
+        "default": "Default (makes a sound)",
+        "high": "High (pops on screen and makes a sound)",
+        "max": "Maximum (pops on screen, most urgent)"
       }
     }
   },
@@ -2762,6 +2813,14 @@
           "description": "Muistutuksen lähettämisen aika ennen määräpäivää. Muoto: '30 min', '1 h', '1 pv 6 h 30 min' jne. Käytä '0' poistaaksesi muistutukset käytöstä.",
           "example": "30 metriä"
         },
+        "notification_channel": {
+          "name": "Notification Channel",
+          "description": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately from other chores. Leave empty to use the app default. iOS ignores this."
+        },
+        "notification_importance": {
+          "name": "Notification Importance",
+          "description": "Optional. Android only. How prominently this chore's notifications alert (min, low, default, high, max). Requires notification_channel. Note: sets the channel's INITIAL state the first time a device sees that channel name. The integration cannot change it afterwards; the person still can, in Android settings. iOS ignores this."
+        },
         "standby_claim_mode": {
           "name": "Valmiustilavaatimustila",
           "description": "Määrittää, milloin valmiustilassa olevat voivat lunastaa tämän tehtävän (milloin tahansa, on_overdue, manual_only). Koskee vain ensisijaisia ja valmiustilassa olevien suorituskriteerejä."
@@ -2911,6 +2970,14 @@
           "name": "Eräpäivämuistutuksen siirtymä",
           "description": "Uusi eräpäivän muistutusviive. Aika ennen eräpäivää, jolloin muistutus lähetetään. Muoto: '30 min', '1 h', '1 pv 6 h 30 min' jne. Käytä '0' poistaaksesi sen käytöstä.",
           "example": "30 metriä"
+        },
+        "notification_channel": {
+          "name": "Notification Channel",
+          "description": "New notification channel. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately from other chores. Leave empty to use the app default. iOS ignores this."
+        },
+        "notification_importance": {
+          "name": "Notification Importance",
+          "description": "Optional. Android only. How prominently this chore's notifications alert (min, low, default, high, max). Requires notification_channel. Note: sets the channel's INITIAL state the first time a device sees that channel name. The integration cannot change it afterwards; the person still can, in Android settings. iOS ignores this."
         },
         "assignment_action": {
           "name": "Tehtävätoiminto",

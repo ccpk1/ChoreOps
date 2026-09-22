@@ -82,14 +82,18 @@
               "ha_user_id": "Hjemmeassistentbruker",
               "dashboard_language": "Språk",
               "mobile_notify_service": "Varsler",
-              "notif_click_url": "URL for varseltrykk"
+              "notif_click_url": "URL for varseltrykk",
+              "notification_priority": "Delivery priority",
+              "notification_ttl": "Notification lifetime (seconds)"
             },
             "data_description": {
               "name": "Unikt navn for denne brukerprofilen.",
               "ha_user_id": "Valgfritt: Koble denne profilen til en Home Assistant-bruker. Hvis kioskmodus er deaktivert, er krav på og innløsning av delte enheter avhengig av denne lenken.",
               "dashboard_language": "Språk som brukes for innhold og varsler på dashbordet.",
               "mobile_notify_service": "Velg varslingstjeneste eller la feltet stå tomt for å deaktivere varsler.",
-              "notif_click_url": "Valgfri URL som skal åpnes når et varsel trykkes på. La stå tomt for standardvirkemåte."
+              "notif_click_url": "Valgfri URL som skal åpnes når et varsel trykkes på. La stå tomt for standardvirkemåte.",
+              "notification_priority": "Android only. High asks the mobile app to deliver immediately even while the device is asleep; Normal may be delayed until it wakes. iOS ignores this.",
+              "notification_ttl": "Optional. Android only. How long delivery keeps being retried before the notification is dropped as stale. Leave empty for the platform default of 28 days; 0 discards anything that cannot be delivered right away. A good value is shorter than how often the chore recurs, so a retry can never arrive looking like the next occurrence - for a daily chore, around 20 hours. iOS ignores this."
             }
           },
           "section_system_usage": {
@@ -194,6 +198,8 @@
               "auto_approve": "✅ Automatisk godkjenning av krav?",
               "overdue_handling_type": "⏰ Forfalt: Håndtering",
               "chore_due_reminder_offset": "🔔 Forfallspåminnelse: Forskyvning før forfallsdato",
+              "chore_notification_channel": "🔔 Notification Channel",
+              "chore_notification_importance": "🔔 Notification Importance",
               "chore_notifications": "🔔 Varslingshendelser (valgfritt)",
               "show_on_calendar": "📅 Vis i kalenderen?",
               "chore_labels": "📋 Etiketter (valgfritt)"
@@ -204,6 +210,8 @@
               "auto_approve": "Når det er aktivert, godkjennes krav umiddelbart uten gjennomgang fra godkjenner.",
               "overdue_handling_type": "Handling etter forfallsdato: Skjul forfalt status, forbli forfalt til det kreves på, eller tilbakestill til venter ved neste godkjenningssyklus.",
               "chore_due_reminder_offset": "Når påminnelse om forfall skal sendes. Format: '1d 6t 30m' eller bare '30' for minutter. Standard: 30m (30 minutter før forfall). Skriv inn '0' for å deaktivere.",
+              "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+              "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
               "chore_notifications": "Når varsler skal sendes: Ved krav, ved godkjenning, ved avslag eller en hvilken som helst kombinasjon.",
               "show_on_calendar": "Vis denne gjøremålet i kalendervisningen.",
               "chore_labels": "Tagger for å organisere gjøremål (f.eks. «kjøkken», «ute»). La stå tomt hvis det ikke er nødvendig."
@@ -230,6 +238,8 @@
           "due_date": "📅 Tidsplan: Forfallsdato (valgfritt)",
           "chore_due_window_offset": "⏱️ Forfallsvindu: Forskyvning før forfallsdato",
           "chore_due_reminder_offset": "🔔 Forfallspåminnelse: Forskyvning før forfallsdato",
+          "chore_notification_channel": "🔔 Notification Channel",
+          "chore_notification_importance": "🔔 Notification Importance",
           "show_on_calendar": "📅 Vis i kalenderen?",
           "chore_notifications": "🔔 Varslingshendelser (valgfritt)",
           "standby_claim_mode": "🔑 Standby-kravmodus"
@@ -254,6 +264,8 @@
           "due_date": "Valgfri tidsfrist. Kan kombineres med gjentakende timeplaner.",
           "chore_due_window_offset": "Når gjøremålets status endres fra Venter til Forfaller. Format: '1d 6t 30m' eller bare '30' for minutter. Skriv inn '0' for å deaktivere. Eksempel: '1d' betyr at gjøremålet vises som 'Forfaller' 1 dag før fristen.",
           "chore_due_reminder_offset": "Når påminnelse om forfall skal sendes. Format: '1d 6t 30m' eller bare '30' for minutter. Standard: 30m (30 minutter før forfall). Skriv inn '0' for å deaktivere.",
+          "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+          "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
           "show_on_calendar": "Vis denne gjøremålet i kalendervisningen.",
           "chore_notifications": "Når varsler skal sendes: Ved krav, ved godkjenning, ved avslag eller en hvilken som helst kombinasjon.",
           "standby_claim_mode": "Styrer når standby-medlemmer kan gjøre krav på denne gjøremålet (når som helst, on_forfalle, manual_only). Gjelder kun for primære og standby-fullføringskriterier."
@@ -585,14 +597,18 @@
               "ha_user_id": "Hjemmeassistentbruker",
               "dashboard_language": "Språk",
               "mobile_notify_service": "Varsler",
-              "notif_click_url": "URL for varseltrykk"
+              "notif_click_url": "URL for varseltrykk",
+              "notification_priority": "Delivery priority",
+              "notification_ttl": "Notification lifetime (seconds)"
             },
             "data_description": {
               "name": "Unikt navn for denne brukerprofilen.",
               "ha_user_id": "Valgfritt: Koble denne profilen til en Home Assistant-bruker. Hvis kioskmodus er deaktivert, er krav på og innløsning av delte enheter avhengig av denne lenken.",
               "dashboard_language": "Språk som brukes for innhold og varsler på dashbordet.",
               "mobile_notify_service": "Velg varslingstjeneste eller la feltet stå tomt for å deaktivere varsler.",
-              "notif_click_url": "Valgfri URL som skal åpnes når et varsel trykkes på. La stå tomt for standardvirkemåte."
+              "notif_click_url": "Valgfri URL som skal åpnes når et varsel trykkes på. La stå tomt for standardvirkemåte.",
+              "notification_priority": "Android only. High asks the mobile app to deliver immediately even while the device is asleep; Normal may be delayed until it wakes. iOS ignores this.",
+              "notification_ttl": "Optional. Android only. How long delivery keeps being retried before the notification is dropped as stale. Leave empty for the platform default of 28 days; 0 discards anything that cannot be delivered right away. A good value is shorter than how often the chore recurs, so a retry can never arrive looking like the next occurrence - for a daily chore, around 20 hours. iOS ignores this."
             }
           },
           "section_system_usage": {
@@ -690,6 +706,8 @@
               "auto_approve": "✅ Automatisk godkjenning av krav?",
               "overdue_handling_type": "⏰ Forfalt: Håndtering",
               "chore_due_reminder_offset": "🔔 Forfallspåminnelse: Forskyvning før forfallsdato",
+              "chore_notification_channel": "🔔 Notification Channel",
+              "chore_notification_importance": "🔔 Notification Importance",
               "chore_notifications": "🔔 Varslingshendelser (valgfritt)",
               "show_on_calendar": "📅 Vis i kalenderen?",
               "chore_labels": "📋 Etiketter (valgfritt)"
@@ -700,6 +718,8 @@
               "auto_approve": "Når det er aktivert, godkjennes krav umiddelbart uten gjennomgang fra godkjenner.",
               "overdue_handling_type": "Kontrollerer hva som skjer når forfallsdatoen er over, og hva som skjer med forsinkede gjøremål ved grensen for tilbakestilling av godkjenning.",
               "chore_due_reminder_offset": "Når påminnelse om forfall skal sendes. Format: '1d 6t 30m' eller bare '30' for minutter. Standard: 30m (30 minutter før forfall). Skriv inn '0' for å deaktivere.",
+              "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+              "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
               "chore_notifications": "Når varsler skal sendes: Ved krav, ved godkjenning, ved avslag eller en hvilken som helst kombinasjon.",
               "show_on_calendar": "Vis denne gjøremålet i kalendervisningen.",
               "chore_labels": "Tagger for å organisere gjøremål (f.eks. «kjøkken», «ute»). La stå tomt hvis det ikke er nødvendig."
@@ -727,6 +747,8 @@
           "clear_due_date": "🗑️ Fjern forfallsdato",
           "chore_due_window_offset": "⏱️ Forfallsvindu: Forskyvning før forfallsdato",
           "chore_due_reminder_offset": "🔔 Forfallspåminnelse: Forskyvning før forfallsdato",
+          "chore_notification_channel": "🔔 Notification Channel",
+          "chore_notification_importance": "🔔 Notification Importance",
           "show_on_calendar": "📅 Vis i kalenderen?",
           "chore_notifications": "🔔 Varslingshendelser (valgfritt)",
           "standby_claim_mode": "🔑 Standby-kravmodus"
@@ -752,6 +774,8 @@
           "clear_due_date": "Kryss av i denne boksen for å fjerne forfallsdatoen fra denne gjøremålet.",
           "chore_due_window_offset": "Når gjøremålets status endres fra Venter til Forfaller. Format: '1d 6t 30m' eller bare '30' for minutter. Skriv inn '0' for å deaktivere. Eksempel: '1d' betyr at gjøremålet vises som 'Forfaller' 1 dag før fristen.",
           "chore_due_reminder_offset": "Når påminnelse om forfall skal sendes. Format: '1d 6t 30m' eller bare '30' for minutter. Standard: 30m (30 minutter før forfall). Skriv inn '0' for å deaktivere.",
+          "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+          "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
           "show_on_calendar": "Vis denne gjøremålet i kalendervisningen.",
           "chore_notifications": "Når varsler skal sendes: Ved krav, ved godkjenning, ved avslag eller en hvilken som helst kombinasjon.",
           "standby_claim_mode": "Styrer når standby-medlemmer kan gjøre krav på denne gjøremålet (når som helst, on_forfalle, manual_only). Gjelder kun for primære og standby-fullføringskriterier."
@@ -1037,14 +1061,18 @@
               "ha_user_id": "Hjemmeassistentbruker",
               "dashboard_language": "Språk",
               "mobile_notify_service": "Varsler",
-              "notif_click_url": "URL for varseltrykk"
+              "notif_click_url": "URL for varseltrykk",
+              "notification_priority": "Delivery priority",
+              "notification_ttl": "Notification lifetime (seconds)"
             },
             "data_description": {
               "name": "Unikt navn for denne brukerprofilen.",
               "ha_user_id": "Valgfritt: Koble denne profilen til en Home Assistant-bruker. Hvis kioskmodus er deaktivert, er krav på og innløsning av delte enheter avhengig av denne lenken.",
               "dashboard_language": "Språk som brukes for innhold og varsler på dashbordet.",
               "mobile_notify_service": "Velg varslingstjeneste eller la feltet stå tomt for å deaktivere varsler.",
-              "notif_click_url": "Valgfri URL som skal åpnes når et varsel trykkes på. La stå tomt for standardvirkemåte."
+              "notif_click_url": "Valgfri URL som skal åpnes når et varsel trykkes på. La stå tomt for standardvirkemåte.",
+              "notification_priority": "Android only. High asks the mobile app to deliver immediately even while the device is asleep; Normal may be delayed until it wakes. iOS ignores this.",
+              "notification_ttl": "Optional. Android only. How long delivery keeps being retried before the notification is dropped as stale. Leave empty for the platform default of 28 days; 0 discards anything that cannot be delivered right away. A good value is shorter than how often the chore recurs, so a retry can never arrive looking like the next occurrence - for a daily chore, around 20 hours. iOS ignores this."
             }
           },
           "section_system_usage": {
@@ -1142,6 +1170,8 @@
               "auto_approve": "✅ Automatisk godkjenning av krav?",
               "overdue_handling_type": "⏰ Forfalt: Håndtering",
               "chore_due_reminder_offset": "🔔 Forfallspåminnelse: Forskyvning før forfallsdato",
+              "chore_notification_channel": "🔔 Notification Channel",
+              "chore_notification_importance": "🔔 Notification Importance",
               "chore_notifications": "🔔 Varslingshendelser (valgfritt)",
               "show_on_calendar": "📅 Vis i kalenderen?",
               "chore_labels": "📋 Etiketter (valgfritt)"
@@ -1152,6 +1182,8 @@
               "auto_approve": "Når det er aktivert, godkjennes krav umiddelbart uten gjennomgang fra godkjenner.",
               "overdue_handling_type": "Kontrollerer hva som skjer når forfallsdatoen er over, og hva som skjer med forsinkede gjøremål ved grensen for tilbakestilling av godkjenning.",
               "chore_due_reminder_offset": "Når påminnelse om forfall skal sendes. Format: '1d 6t 30m' eller bare '30' for minutter. Standard: 30m (30 minutter før forfall). Skriv inn '0' for å deaktivere.",
+              "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+              "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
               "chore_notifications": "Når varsler skal sendes: Ved krav, ved godkjenning, ved avslag eller en hvilken som helst kombinasjon.",
               "show_on_calendar": "Vis denne gjøremålet i kalendervisningen.",
               "chore_labels": "Tagger for å organisere gjøremål (f.eks. «kjøkken», «ute»). La stå tomt hvis det ikke er nødvendig."
@@ -1180,6 +1212,8 @@
           "clear_due_date": "🗑️ Fjern forfallsdato",
           "chore_due_window_offset": "⏱️ Forfallsvindu: Forskyvning før forfallsdato",
           "chore_due_reminder_offset": "🔔 Forfallspåminnelse: Forskyvning før forfallsdato",
+          "chore_notification_channel": "🔔 Notification Channel",
+          "chore_notification_importance": "🔔 Notification Importance",
           "show_on_calendar": "📅 Vis i kalenderen?",
           "chore_notifications": "🔔 Varslingshendelser (valgfritt)",
           "standby_claim_mode": "🔑 Standby-kravmodus"
@@ -1205,6 +1239,8 @@
           "clear_due_date": "Kryss av i denne boksen for å fjerne forfallsdatoen fra denne gjøremålet.",
           "chore_due_window_offset": "Når gjøremålets status endres fra Venter til Forfaller. Format: '1d 6t 30m' eller bare '30' for minutter. Skriv inn '0' for å deaktivere. Eksempel: '1d' betyr at gjøremålet vises som 'Forfaller' 1 dag før fristen.",
           "chore_due_reminder_offset": "Når påminnelse om forfall skal sendes. Format: '1d 6t 30m' eller bare '30' for minutter. Standard: 30m (30 minutter før forfall). Skriv inn '0' for å deaktivere.",
+          "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
+          "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
           "show_on_calendar": "Vis denne gjøremålet i kalendervisningen.",
           "chore_notifications": "Når varsler skal sendes: Ved krav, ved godkjenning, ved avslag eller en hvilken som helst kombinasjon.",
           "standby_claim_mode": "Styrer når standby-medlemmer kan gjøre krav på denne gjøremålet (når som helst, on_forfalle, manual_only). Gjelder kun for primære og standby-fullføringskriterier."
@@ -2082,6 +2118,12 @@
         "custom_1_month": "Tilpasset: 1-måneders periode"
       }
     },
+    "notification_priority": {
+      "options": {
+        "normal": "Normal (may be delayed while the device is asleep)",
+        "high": "High (deliver immediately, even while the device is asleep)"
+      }
+    },
     "completion_criteria": {
       "options": {
         "shared_all": "Delt alle (alle tildelere må fullføre sammen)",
@@ -2207,6 +2249,15 @@
         "current_active": "📂 Bruk gjeldende aktive datafil",
         "migrate_from_kidschores": "🔄 Migrer fra KidsChores (ikke-destruktiv kopi)",
         "paste_json": "📋 Lim inn JSON fra datafil eller diagnostikk"
+      }
+    },
+    "notification_importance": {
+      "options": {
+        "min": "Minimum (no sound, collapsed)",
+        "low": "Low (no sound)",
+        "default": "Default (makes a sound)",
+        "high": "High (pops on screen and makes a sound)",
+        "max": "Maximum (pops on screen, most urgent)"
       }
     }
   },
@@ -2762,6 +2813,14 @@
           "description": "Varighet før forfallsdato for å sende påminnelsesvarsling. Format: '30m', '1t', '1d 6t 30m' osv. Bruk '0' for å deaktivere påminnelser.",
           "example": "30m"
         },
+        "notification_channel": {
+          "name": "Notification Channel",
+          "description": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately from other chores. Leave empty to use the app default. iOS ignores this."
+        },
+        "notification_importance": {
+          "name": "Notification Importance",
+          "description": "Optional. Android only. How prominently this chore's notifications alert (min, low, default, high, max). Requires notification_channel. Note: sets the channel's INITIAL state the first time a device sees that channel name. The integration cannot change it afterwards; the person still can, in Android settings. iOS ignores this."
+        },
         "standby_claim_mode": {
           "name": "Standby-kravmodus",
           "description": "Styrer når standby-medlemmer kan gjøre krav på denne gjøremålet (når som helst, on_forfalle, manual_only). Gjelder kun for primære og standby-fullføringskriterier."
@@ -2911,6 +2970,14 @@
           "name": "Forskyvning av påminnelse",
           "description": "Ny forskyvning for forfallspåminnelse. Varighet før forfallsdato for å sende påminnelsesvarsel. Format: '30m', '1t', '1d 6t 30m' osv. Bruk '0' for å deaktivere.",
           "example": "30m"
+        },
+        "notification_channel": {
+          "name": "Notification Channel",
+          "description": "New notification channel. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately from other chores. Leave empty to use the app default. iOS ignores this."
+        },
+        "notification_importance": {
+          "name": "Notification Importance",
+          "description": "Optional. Android only. How prominently this chore's notifications alert (min, low, default, high, max). Requires notification_channel. Note: sets the channel's INITIAL state the first time a device sees that channel name. The integration cannot change it afterwards; the person still can, in Android settings. iOS ignores this."
         },
         "assignment_action": {
           "name": "Tildelingshandling",
