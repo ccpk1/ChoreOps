@@ -1101,7 +1101,8 @@ class NotificationManager(BaseManager):
         # PRESENTATION; a must-not-miss chore needs both.
         importance = str(
             chore_info.get(
-                const.DATA_CHORE_NOTIFICATION_IMPORTANCE, const.SENTINEL_EMPTY
+                const.DATA_CHORE_NOTIFICATION_IMPORTANCE,
+                const.NOTIFY_IMPORTANCE_NONE,
             )
         ).strip()
         if importance in const.NOTIFY_IMPORTANCE_OPTIONS:

@@ -4154,6 +4154,19 @@ NOTIFY_CHANNEL = "channel"
 NOTIFY_IMPORTANCE = "importance"
 NOTIFY_IMPORTANCE_DEFAULT: Final = "default"
 NOTIFY_IMPORTANCE_OPTIONS: Final = ("min", "low", "default", "high", "max")
+# "Not set" is a member of the STORED set, not just a form option. update_chore()
+# merges its payload without running build_chore(), so a form-only sentinel would
+# round-trip back into the form as something the dropdown cannot display - which is
+# how an untouched importance came to fail validation on every edit. Mirrors
+# FREQUENCY_NONE, where "off" is a first-class member rather than an empty string.
+NOTIFY_IMPORTANCE_NONE: Final = "none"
+# What the form and the services accept: the unset choice plus the real levels.
+# NOTIFY_IMPORTANCE_OPTIONS stays the five SENDABLE levels - the payload guard
+# reads it, and "none" must never reach FCM.
+NOTIFY_IMPORTANCE_FORM_OPTIONS: Final = (
+    NOTIFY_IMPORTANCE_NONE,
+    *NOTIFY_IMPORTANCE_OPTIONS,
+)
 # Final so these narrow to Literal["normal"] / Literal["high"] rather than str,
 # which is what lets the builders assign them to the typed fields without a cast.
 NOTIFY_PRIORITY_NORMAL: Final = "normal"

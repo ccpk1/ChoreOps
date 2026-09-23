@@ -976,8 +976,9 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             const.CFOF_USERS_INPUT_NOTIF_APPROVE_CLICK_URL: user_profile.get(
                 const.DATA_USER_NOTIF_APPROVE_CLICK_URL, ""
             ),
-            const.CFOF_USERS_INPUT_NOTIFICATION_PRIORITY: user_profile.get(
-                const.DATA_USER_NOTIFICATION_PRIORITY, const.NOTIFY_PRIORITY_NORMAL
+            const.CFOF_USERS_INPUT_NOTIFICATION_PRIORITY: (
+                user_profile.get(const.DATA_USER_NOTIFICATION_PRIORITY)
+                or const.NOTIFY_PRIORITY_NORMAL
             ),
             const.CFOF_USERS_INPUT_NOTIFICATION_TTL: user_profile.get(
                 const.DATA_USER_NOTIFICATION_TTL, ""
@@ -1810,8 +1811,9 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             const.CFOF_CHORES_INPUT_NOTIFICATION_CHANNEL: chore_data.get(
                 const.DATA_CHORE_NOTIFICATION_CHANNEL, ""
             ),
-            const.CFOF_CHORES_INPUT_NOTIFICATION_IMPORTANCE: chore_data.get(
-                const.DATA_CHORE_NOTIFICATION_IMPORTANCE, ""
+            const.CFOF_CHORES_INPUT_NOTIFICATION_IMPORTANCE: (
+                chore_data.get(const.DATA_CHORE_NOTIFICATION_IMPORTANCE)
+                or const.NOTIFY_IMPORTANCE_NONE
             ),
             # Calendar and features
             const.CFOF_CHORES_INPUT_SHOW_ON_CALENDAR: chore_data.get(

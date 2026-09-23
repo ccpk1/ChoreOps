@@ -2253,6 +2253,7 @@
     },
     "notification_importance": {
       "options": {
+        "none": "Not set (app decides)",
         "min": "Minimum (no sound, collapsed)",
         "low": "Low (no sound)",
         "default": "Default (makes a sound)",
