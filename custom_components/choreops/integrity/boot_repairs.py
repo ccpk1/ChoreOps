@@ -42,13 +42,24 @@ def _is_due_date_future(due_date_raw: Any) -> bool:
     return due_dt > dt_util.utcnow()
 
 
+def _overdue_state_is_possible(due_date_raw: Any) -> bool:
+    """Return True when overdue/missed can be legitimate for a due date value.
+
+    Requires a due date that is not strictly in the future. An unparseable due
+    date conservatively keeps the state; never destroy data on parse failure.
+    """
+    return bool(due_date_raw) and not _is_due_date_future(due_date_raw)
+
+
 def repair_impossible_due_state_residue(data: dict[str, Any]) -> dict[str, int]:
     """Clear impossible overdue residue when the due date is absent or in the future.
 
     Invariant: a per-assignee state of `overdue`/`missed` is only legitimate when
-    the chore's due date is in the past. If the due date is absent or in the future,
-    those states are impossible residue (e.g. left over from a prior cycle after the
-    due date was rescheduled forward) and are normalized to `pending`.
+    that assignee's applicable due date (chore-level or per-assignee) is in the
+    past. If the due date is absent or in the future, those states are impossible
+    residue (e.g. left over from a prior cycle after the due date was rescheduled
+    forward) and are normalized to `pending`. A global `overdue`/`missed` state is
+    normalized only when the chore cannot be past due for any assignee.
 
     Issue #248: the prior guard only normalized residue when there was NO active due
     date, skipping chores WITH a future due date — exactly the reported bug scenario.
@@ -92,35 +103,21 @@ def repair_impossible_due_state_residue(data: dict[str, Any]) -> dict[str, int]:
                 summary["stale_due_dates_cleared"] += cleared_count
                 chore_changed = True
 
-        has_active_due_date = (
-            bool(due_date_raw)
-            if uses_chore_level_due_date
-            else any(
-                due_date for due_date in per_assignee_due_dates.values() if due_date
-            )
-        )
-        # Resolve the applicable due date for past/future determination.
-        applicable_due_date_raw = (
-            due_date_raw
-            if uses_chore_level_due_date
-            else next(
-                (due_date for due_date in per_assignee_due_dates.values() if due_date),
-                None,
-            )
-        )
-        # Skip normalization only when a due date exists AND is in the PAST
-        # (where overdue/missed is legitimate). Absent or future due dates mean
-        # overdue/missed is impossible residue and must be normalized.
-        due_date_is_past = has_active_due_date and not _is_due_date_future(
-            applicable_due_date_raw
-        )
-        if due_date_is_past:
-            if chore_changed:
-                summary["chores_sanitized"] += 1
-            continue
-
         assignee_ids_raw = chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
         assignee_ids = assignee_ids_raw if isinstance(assignee_ids_raw, list) else []
+        # Overdue/missed is legitimate only past its applicable due date; with
+        # per-assignee due dates each assignee is judged against their own date,
+        # so a chore-wide verdict must aggregate, never pick one arbitrary date.
+        chore_overdue_possible = (
+            _overdue_state_is_possible(due_date_raw)
+            if uses_chore_level_due_date
+            else any(
+                _overdue_state_is_possible(
+                    ChoreEngine.get_due_date_for_assignee(chore_data, assignee_id)
+                )
+                for assignee_id in assignee_ids
+            )
+        )
         assignee_states: dict[str, str] = {}
 
         for assignee_id in assignee_ids:
@@ -142,9 +139,16 @@ def repair_impossible_due_state_residue(data: dict[str, Any]) -> dict[str, int]:
                 const.DATA_USER_CHORE_DATA_STATE,
                 const.CHORE_STATE_PENDING,
             )
-            if current_state in (
-                const.CHORE_STATE_OVERDUE,
-                const.CHORE_STATE_MISSED,
+            assignee_overdue_possible = _overdue_state_is_possible(
+                ChoreEngine.get_due_date_for_assignee(chore_data, assignee_id)
+            )
+            if (
+                current_state
+                in (
+                    const.CHORE_STATE_OVERDUE,
+                    const.CHORE_STATE_MISSED,
+                )
+                and not assignee_overdue_possible
             ):
                 assignee_chore_data[const.DATA_USER_CHORE_DATA_STATE] = (
                     const.CHORE_STATE_PENDING
@@ -164,7 +168,7 @@ def repair_impossible_due_state_residue(data: dict[str, Any]) -> dict[str, int]:
             )
 
         current_global_state = chore_data.get(const.DATA_CHORE_STATE)
-        if current_global_state in (
+        if not chore_overdue_possible and current_global_state in (
             const.CHORE_STATE_OVERDUE,
             const.CHORE_STATE_MISSED,
         ):

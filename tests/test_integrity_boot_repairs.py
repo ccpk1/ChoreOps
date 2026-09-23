@@ -240,6 +240,273 @@ async def test_preserves_genuine_overdue_with_past_due_date(
     assert chore_data[const.DATA_CHORE_STATE] == const.CHORE_STATE_OVERDUE
 
 
+_PAST_DUE = "2020-01-15T08:00:00+00:00"
+_FUTURE_DUE = "2099-01-15T08:00:00+00:00"
+
+
+def _build_independent_chore_data(
+    assignee_due_dates: dict[str, str | None],
+    assignee_states: dict[str, str],
+    *,
+    assigned_ids: list[str] | None = None,
+    global_state: str = const.CHORE_STATE_OVERDUE,
+) -> dict[str, Any]:
+    """Build storage data for an INDEPENDENT chore with per-assignee due dates.
+
+    ``assignee_due_dates`` insertion order is preserved to reproduce
+    dict-order-sensitive scenarios.
+    """
+    chore_id = "chore-1"
+    ids = assigned_ids if assigned_ids is not None else list(assignee_due_dates)
+    users = {
+        assignee_id: {
+            const.DATA_USER_CHORE_DATA: {
+                chore_id: {
+                    const.DATA_USER_CHORE_DATA_STATE: assignee_states.get(
+                        assignee_id, const.CHORE_STATE_PENDING
+                    )
+                }
+            }
+        }
+        for assignee_id in ids
+    }
+    return {
+        const.DATA_USERS: users,
+        const.DATA_CHORES: {
+            chore_id: {
+                const.DATA_CHORE_INTERNAL_ID: chore_id,
+                const.DATA_CHORE_ASSIGNED_USER_IDS: ids,
+                const.DATA_CHORE_COMPLETION_CRITERIA: (
+                    const.COMPLETION_CRITERIA_INDEPENDENT
+                ),
+                const.DATA_CHORE_RECURRING_FREQUENCY: const.FREQUENCY_DAILY,
+                const.DATA_CHORE_DUE_DATE: None,
+                const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES: dict(assignee_due_dates),
+                const.DATA_CHORE_STATE: global_state,
+            }
+        },
+    }
+
+
+def _assignee_state(data: dict[str, Any], assignee_id: str) -> Any:
+    """Return the persisted state of an assignee on the test chore."""
+    return data[const.DATA_USERS][assignee_id][const.DATA_USER_CHORE_DATA]["chore-1"][
+        const.DATA_USER_CHORE_DATA_STATE
+    ]
+
+
+def _no_change_summary() -> dict[str, int]:
+    """Return the all-zero summary of a repair run that changed nothing."""
+    return {
+        "chores_sanitized": 0,
+        "stale_due_dates_cleared": 0,
+        "assignee_states_normalized": 0,
+        "global_states_normalized": 0,
+    }
+
+
+@pytest.mark.parametrize(
+    "assignee_due_dates",
+    [
+        pytest.param(
+            {
+                "child-1": _FUTURE_DUE,
+                "child-2": _FUTURE_DUE,
+                "child-3": _PAST_DUE,
+                "child-4": _FUTURE_DUE,
+                "child-5": _PAST_DUE,
+            },
+            id="future-dates-first",
+        ),
+        pytest.param(
+            {
+                "child-3": _PAST_DUE,
+                "child-5": _PAST_DUE,
+                "child-1": _FUTURE_DUE,
+                "child-2": _FUTURE_DUE,
+                "child-4": _FUTURE_DUE,
+            },
+            id="past-dates-first",
+        ),
+    ],
+)
+def test_preserves_per_assignee_overdue_with_own_past_due_date(
+    assignee_due_dates: dict[str, str | None],
+) -> None:
+    """A valid overdue is judged against its own due date, not dict order.
+
+    Issue #318: with divergent per-assignee due dates the repair must not
+    reset an assignee whose own due date is already in the past, regardless
+    of which due date appears first in the chore's mapping.
+    """
+    data = _build_independent_chore_data(
+        assignee_due_dates,
+        {"child-3": const.CHORE_STATE_OVERDUE},
+    )
+
+    summary = repair_impossible_due_state_residue(data)
+
+    assert summary == _no_change_summary()
+    assert _assignee_state(data, "child-3") == const.CHORE_STATE_OVERDUE
+
+
+@pytest.mark.parametrize(
+    "assignee_due_dates",
+    [
+        pytest.param(
+            {
+                "child-1": _FUTURE_DUE,
+                "child-2": None,
+                "child-3": _PAST_DUE,
+            },
+            id="future-dates-first",
+        ),
+        pytest.param(
+            {
+                "child-3": _PAST_DUE,
+                "child-2": None,
+                "child-1": _FUTURE_DUE,
+            },
+            id="past-dates-first",
+        ),
+    ],
+)
+def test_normalizes_only_assignees_whose_own_due_date_is_not_past(
+    assignee_due_dates: dict[str, str | None],
+) -> None:
+    """Residue is cleared per assignee while a genuine overdue survives.
+
+    Issue #318 mirror case: an assignee whose own due date is future or
+    missing holds impossible residue and must be normalized even when another
+    assignee on the same chore is legitimately overdue.
+    """
+    data = _build_independent_chore_data(
+        assignee_due_dates,
+        {
+            "child-1": const.CHORE_STATE_OVERDUE,
+            "child-2": const.CHORE_STATE_MISSED,
+            "child-3": const.CHORE_STATE_OVERDUE,
+        },
+    )
+    data[const.DATA_USERS]["child-1"][const.DATA_USER_CHORE_DATA]["chore-1"][
+        const.DATA_USER_CHORE_DATA_OVERDUE_STARTED_AT
+    ] = "2020-01-15T08:00:00+00:00"
+
+    summary = repair_impossible_due_state_residue(data)
+
+    assert summary == {
+        "chores_sanitized": 1,
+        "stale_due_dates_cleared": 0,
+        "assignee_states_normalized": 2,
+        "global_states_normalized": 0,
+    }
+    assert _assignee_state(data, "child-1") == const.CHORE_STATE_PENDING
+    assert _assignee_state(data, "child-2") == const.CHORE_STATE_PENDING
+    assert _assignee_state(data, "child-3") == const.CHORE_STATE_OVERDUE
+    assert (
+        const.DATA_USER_CHORE_DATA_OVERDUE_STARTED_AT
+        not in data[const.DATA_USERS]["child-1"][const.DATA_USER_CHORE_DATA]["chore-1"]
+    )
+    # Genuine overdue on child-3 keeps the chore-level state legitimate.
+    assert (
+        data[const.DATA_CHORES]["chore-1"][const.DATA_CHORE_STATE]
+        == const.CHORE_STATE_OVERDUE
+    )
+
+
+def test_preserves_missed_state_with_past_per_assignee_due_date() -> None:
+    """A missed state shares the past-due-date legitimacy rule."""
+    data = _build_independent_chore_data(
+        {"child-1": _PAST_DUE},
+        {"child-1": const.CHORE_STATE_MISSED},
+        global_state=const.CHORE_STATE_MISSED,
+    )
+
+    summary = repair_impossible_due_state_residue(data)
+
+    assert summary == _no_change_summary()
+    assert _assignee_state(data, "child-1") == const.CHORE_STATE_MISSED
+    assert (
+        data[const.DATA_CHORES]["chore-1"][const.DATA_CHORE_STATE]
+        == const.CHORE_STATE_MISSED
+    )
+
+
+def test_normalizes_residue_when_no_assignee_due_date_is_past() -> None:
+    """Issue #248 residue cleanup still fires per assignee for INDEPENDENT chores."""
+    data = _build_independent_chore_data(
+        {"child-1": _FUTURE_DUE, "child-2": None},
+        {
+            "child-1": const.CHORE_STATE_OVERDUE,
+            "child-2": const.CHORE_STATE_OVERDUE,
+        },
+    )
+
+    summary = repair_impossible_due_state_residue(data)
+
+    assert summary == {
+        "chores_sanitized": 1,
+        "stale_due_dates_cleared": 0,
+        "assignee_states_normalized": 2,
+        "global_states_normalized": 1,
+    }
+    assert _assignee_state(data, "child-1") == const.CHORE_STATE_PENDING
+    assert _assignee_state(data, "child-2") == const.CHORE_STATE_PENDING
+    assert (
+        data[const.DATA_CHORES]["chore-1"][const.DATA_CHORE_STATE]
+        == const.CHORE_STATE_PENDING
+    )
+
+
+def test_normalizes_global_residue_without_assigned_users() -> None:
+    """A chore nobody is assigned to cannot be overdue for anyone.
+
+    Lingering per-assignee due dates of removed users must not legitimize an
+    impossible global overdue residue.
+    """
+    data = _build_independent_chore_data(
+        {"child-1": _PAST_DUE},
+        {},
+        assigned_ids=[],
+    )
+
+    summary = repair_impossible_due_state_residue(data)
+
+    assert summary == {
+        "chores_sanitized": 1,
+        "stale_due_dates_cleared": 0,
+        "assignee_states_normalized": 0,
+        "global_states_normalized": 1,
+    }
+    assert (
+        data[const.DATA_CHORES]["chore-1"][const.DATA_CHORE_STATE]
+        == const.CHORE_STATE_PENDING
+    )
+
+
+def test_per_assignee_repair_is_idempotent() -> None:
+    """A second run over repaired data reports all zeros and changes nothing."""
+    data = _build_independent_chore_data(
+        {
+            "child-1": _FUTURE_DUE,
+            "child-2": None,
+            "child-3": _PAST_DUE,
+        },
+        {
+            "child-1": const.CHORE_STATE_OVERDUE,
+            "child-2": const.CHORE_STATE_MISSED,
+            "child-3": const.CHORE_STATE_OVERDUE,
+        },
+    )
+
+    repair_impossible_due_state_residue(data)
+    snapshot = deepcopy(data)
+    second_summary = repair_impossible_due_state_residue(data)
+
+    assert second_summary == _no_change_summary()
+    assert data == snapshot
+
+
 _EMPTY_LEDGER_SUMMARY = {
     "assignees_repaired": 0,
     "ledger_gaps_folded": 0,
