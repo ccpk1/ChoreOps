@@ -244,17 +244,20 @@ _PAST_DUE = "2020-01-15T08:00:00+00:00"
 _FUTURE_DUE = "2099-01-15T08:00:00+00:00"
 
 
-def _build_independent_chore_data(
+def _build_chore_data(
     assignee_due_dates: dict[str, str | None],
     assignee_states: dict[str, str],
     *,
+    completion_criteria: str | None = const.COMPLETION_CRITERIA_INDEPENDENT,
+    chore_level_due_date: str | None = None,
     assigned_ids: list[str] | None = None,
     global_state: str = const.CHORE_STATE_OVERDUE,
 ) -> dict[str, Any]:
-    """Build storage data for an INDEPENDENT chore with per-assignee due dates.
+    """Build storage data for one chore with per-assignee due dates.
 
     ``assignee_due_dates`` insertion order is preserved to reproduce
-    dict-order-sensitive scenarios.
+    dict-order-sensitive scenarios. ``completion_criteria=None`` omits the key
+    so default-resolution behavior can be exercised.
     """
     chore_id = "chore-1"
     ids = assigned_ids if assigned_ids is not None else list(assignee_due_dates)
@@ -270,22 +273,36 @@ def _build_independent_chore_data(
         }
         for assignee_id in ids
     }
+    chore: dict[str, Any] = {
+        const.DATA_CHORE_INTERNAL_ID: chore_id,
+        const.DATA_CHORE_ASSIGNED_USER_IDS: ids,
+        const.DATA_CHORE_RECURRING_FREQUENCY: const.FREQUENCY_DAILY,
+        const.DATA_CHORE_DUE_DATE: chore_level_due_date,
+        const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES: dict(assignee_due_dates),
+        const.DATA_CHORE_STATE: global_state,
+    }
+    if completion_criteria is not None:
+        chore[const.DATA_CHORE_COMPLETION_CRITERIA] = completion_criteria
     return {
         const.DATA_USERS: users,
-        const.DATA_CHORES: {
-            chore_id: {
-                const.DATA_CHORE_INTERNAL_ID: chore_id,
-                const.DATA_CHORE_ASSIGNED_USER_IDS: ids,
-                const.DATA_CHORE_COMPLETION_CRITERIA: (
-                    const.COMPLETION_CRITERIA_INDEPENDENT
-                ),
-                const.DATA_CHORE_RECURRING_FREQUENCY: const.FREQUENCY_DAILY,
-                const.DATA_CHORE_DUE_DATE: None,
-                const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES: dict(assignee_due_dates),
-                const.DATA_CHORE_STATE: global_state,
-            }
-        },
+        const.DATA_CHORES: {chore_id: chore},
     }
+
+
+def _build_independent_chore_data(
+    assignee_due_dates: dict[str, str | None],
+    assignee_states: dict[str, str],
+    *,
+    assigned_ids: list[str] | None = None,
+    global_state: str = const.CHORE_STATE_OVERDUE,
+) -> dict[str, Any]:
+    """Build storage data for an INDEPENDENT chore with per-assignee due dates."""
+    return _build_chore_data(
+        assignee_due_dates,
+        assignee_states,
+        assigned_ids=assigned_ids,
+        global_state=global_state,
+    )
 
 
 def _assignee_state(data: dict[str, Any], assignee_id: str) -> Any:
@@ -505,6 +522,114 @@ def test_per_assignee_repair_is_idempotent() -> None:
 
     assert second_summary == _no_change_summary()
     assert data == snapshot
+
+
+_CHORE_LEVEL_CRITERIA = [
+    pytest.param(const.COMPLETION_CRITERIA_SHARED, id="shared-all"),
+    pytest.param(const.COMPLETION_CRITERIA_SHARED_FIRST, id="shared-first"),
+    pytest.param(const.COMPLETION_CRITERIA_ROTATION_SIMPLE, id="rotation-simple"),
+    pytest.param(const.COMPLETION_CRITERIA_ROTATION_SMART, id="rotation-smart"),
+    pytest.param(
+        const.COMPLETION_CRITERIA_ROTATION_PRIMARY_STANDBY,
+        id="rotation-primary-standby",
+    ),
+    pytest.param(
+        const.COMPLETION_CRITERIA_ROTATION_SIMPLE_FROM_TURN_HOLDER,
+        id="rotation-from-turn-holder",
+    ),
+]
+
+
+def _assert_residue_gate(
+    completion_criteria: str | None,
+    *,
+    genuine_chore_level_due: str | None,
+    genuine_assignee_due: str | None,
+    residue_chore_level_due: str | None,
+    residue_assignee_due: str | None,
+) -> None:
+    """Assert overdue is kept only past its applicable due date.
+
+    The unused due-date source (chore-level vs per-assignee map) carries the
+    opposite verdict and must never leak into the decision.
+    """
+    kept = _build_chore_data(
+        {"child-1": genuine_assignee_due},
+        {"child-1": const.CHORE_STATE_OVERDUE},
+        completion_criteria=completion_criteria,
+        chore_level_due_date=genuine_chore_level_due,
+    )
+    assert repair_impossible_due_state_residue(kept) == _no_change_summary()
+    assert _assignee_state(kept, "child-1") == const.CHORE_STATE_OVERDUE
+
+    residue = _build_chore_data(
+        {"child-1": residue_assignee_due},
+        {"child-1": const.CHORE_STATE_OVERDUE},
+        completion_criteria=completion_criteria,
+        chore_level_due_date=residue_chore_level_due,
+    )
+    assert repair_impossible_due_state_residue(residue) == {
+        "chores_sanitized": 1,
+        "stale_due_dates_cleared": 0,
+        "assignee_states_normalized": 1,
+        "global_states_normalized": 1,
+    }
+    assert _assignee_state(residue, "child-1") == const.CHORE_STATE_PENDING
+
+
+@pytest.mark.parametrize("completion_criteria", _CHORE_LEVEL_CRITERIA)
+def test_chore_level_types_ignore_divergent_per_assignee_due_dates(
+    completion_criteria: str,
+) -> None:
+    """Shared/rotation types judge overdue only against the chore-level due date.
+
+    Covers all six chore-level completion criteria: a lingering per-assignee
+    due-date map must never legitimize or invalidate their overdue states.
+    """
+    _assert_residue_gate(
+        completion_criteria,
+        genuine_chore_level_due=_PAST_DUE,
+        genuine_assignee_due=_FUTURE_DUE,
+        residue_chore_level_due=_FUTURE_DUE,
+        residue_assignee_due=_PAST_DUE,
+    )
+
+
+def test_independent_ignores_chore_level_due_date() -> None:
+    """INDEPENDENT judges each assignee only against their own map entry."""
+    _assert_residue_gate(
+        const.COMPLETION_CRITERIA_INDEPENDENT,
+        genuine_chore_level_due=_FUTURE_DUE,
+        genuine_assignee_due=_PAST_DUE,
+        residue_chore_level_due=_PAST_DUE,
+        residue_assignee_due=_FUTURE_DUE,
+    )
+
+
+def test_missing_completion_criteria_uses_per_assignee_due_dates() -> None:
+    """A chore without a completion criteria key resolves like INDEPENDENT."""
+    _assert_residue_gate(
+        None,
+        genuine_chore_level_due=_FUTURE_DUE,
+        genuine_assignee_due=_PAST_DUE,
+        residue_chore_level_due=_PAST_DUE,
+        residue_assignee_due=_FUTURE_DUE,
+    )
+
+
+def test_unknown_completion_criteria_uses_chore_level_due_date() -> None:
+    """An unrecognized completion criteria resolves by the chore-level due date.
+
+    Matches ChoreEngine.get_due_date_for_assignee, which falls back to the
+    chore-level date for anything except INDEPENDENT.
+    """
+    _assert_residue_gate(
+        "legacy_custom",
+        genuine_chore_level_due=_PAST_DUE,
+        genuine_assignee_due=_FUTURE_DUE,
+        residue_chore_level_due=_FUTURE_DUE,
+        residue_assignee_due=_PAST_DUE,
+    )
 
 
 _EMPTY_LEDGER_SUMMARY = {

@@ -105,17 +105,19 @@ def repair_impossible_due_state_residue(data: dict[str, Any]) -> dict[str, int]:
 
         assignee_ids_raw = chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
         assignee_ids = assignee_ids_raw if isinstance(assignee_ids_raw, list) else []
-        # Overdue/missed is legitimate only past its applicable due date; with
-        # per-assignee due dates each assignee is judged against their own date,
-        # so a chore-wide verdict must aggregate, never pick one arbitrary date.
+        # Overdue/missed is legitimate only past its applicable due date, resolved
+        # through the engine so every completion type matches the runtime scanner
+        # and FSM. With nobody assigned, the chore-level date decides.
         chore_overdue_possible = (
-            _overdue_state_is_possible(due_date_raw)
-            if uses_chore_level_due_date
-            else any(
+            any(
                 _overdue_state_is_possible(
                     ChoreEngine.get_due_date_for_assignee(chore_data, assignee_id)
                 )
                 for assignee_id in assignee_ids
+            )
+            if assignee_ids
+            else _overdue_state_is_possible(
+                ChoreEngine.get_due_date_for_assignee(chore_data, None)
             )
         )
         assignee_states: dict[str, str] = {}
