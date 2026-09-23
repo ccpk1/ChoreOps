@@ -1490,12 +1490,13 @@ create_chore:
         text:
     notification_importance:
       name: "Notification Importance"
-      description: "Optional. Android only. How prominently this chore's notifications alert (min, low, default, high, max). Requires notification_channel. Note: sets the channel's INITIAL state the first time a device sees that channel name. The integration cannot change it afterwards; the person still can, in Android settings. iOS ignores this."
+      description: "Optional. Android only. How prominently this chore's notifications alert (min, low, default, high, max), or none to leave it unset. Requires notification_channel. Note: sets the channel's INITIAL state the first time a device sees that channel name. The integration cannot change it afterwards; the person still can, in Android settings. iOS ignores this."
       example: "high"
       required: false
       selector:
         select:
           options:
+            - "none"
             - "min"
             - "low"
             - "default"
@@ -1789,12 +1790,13 @@ update_chore:
         text:
     notification_importance:
       name: "Notification Importance"
-      description: "Optional. Android only. How prominently this chore's notifications alert (min, low, default, high, max). Requires notification_channel. Note: sets the channel's INITIAL state the first time a device sees that channel name. The integration cannot change it afterwards; the person still can, in Android settings. iOS ignores this."
+      description: "New notification importance. Android only. How prominently this chore's notifications alert (min, low, default, high, max), or none to leave it unset. Requires notification_channel. Note: sets the channel's INITIAL state the first time a device sees that channel name. The integration cannot change it afterwards; the person still can, in Android settings. iOS ignores this."
       example: "high"
       required: false
       selector:
         select:
           options:
+            - "none"
             - "min"
             - "low"
             - "default"

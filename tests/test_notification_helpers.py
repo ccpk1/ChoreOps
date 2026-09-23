@@ -27,7 +27,10 @@ import pytest
 
 from custom_components.choreops import const
 from custom_components.choreops.data_builders import build_chore, build_user_profile
-from custom_components.choreops.helpers import translation_helpers as th
+from custom_components.choreops.helpers import (
+    flow_helpers as fh,
+    translation_helpers as th,
+)
 from custom_components.choreops.managers import NotificationManager
 from custom_components.choreops.notification_action_handler import (
     ParsedAction,
@@ -728,7 +731,7 @@ class TestSettingsSurviveTheDataBuilders:
 
         assert built[const.DATA_CHORE_NOTIFICATION_IMPORTANCE] == "high"
 
-    @pytest.mark.parametrize("stored", ["min", "low", "default", "high", "max", ""])
+    @pytest.mark.parametrize("stored", ["min", "low", "default", "high", "max", "none"])
     def test_every_importance_member_round_trips(self, stored: str) -> None:
         """Each member of the closed set survives the builder unchanged.
 
@@ -747,7 +750,7 @@ class TestSettingsSurviveTheDataBuilders:
 
         assert built[const.DATA_CHORE_NOTIFICATION_IMPORTANCE] == stored
 
-    @pytest.mark.parametrize("stored", ["urgent", "HIGH", "1", "none", "maximum"])
+    @pytest.mark.parametrize("stored", ["urgent", "HIGH", "1", "maximum", ""])
     def test_unrecognised_importance_becomes_unset_not_verbatim(
         self, stored: str
     ) -> None:
@@ -757,6 +760,9 @@ class TestSettingsSurviveTheDataBuilders:
         membership in NOTIFY_IMPORTANCE_OPTIONS and fell through to `return
         "max"`, so a near-miss - or any option added to that tuple without a
         branch - became the LOUDEST setting rather than unset.
+
+        `""` is a record written before the form had an unset option; it
+        normalises to "none" so old and new records share one representation.
         """
         built = build_chore(
             user_input={
@@ -767,7 +773,9 @@ class TestSettingsSurviveTheDataBuilders:
             existing=None,
         )
 
-        assert built[const.DATA_CHORE_NOTIFICATION_IMPORTANCE] == ""
+        assert built[const.DATA_CHORE_NOTIFICATION_IMPORTANCE] == (
+            const.NOTIFY_IMPORTANCE_NONE
+        )
 
     def test_every_importance_option_has_its_own_branch(self) -> None:
         """Pins the const tuple to the narrowing ladder.
@@ -1187,3 +1195,103 @@ class TestBroadcastAppliesRecipientOptions:
         await manager.broadcast_to_all_approvers("title_key", "message_key")
 
         assert sent[0]["extra_data"] is None
+
+
+class TestNotificationSettingFormsAcceptUnset:
+    """The form must accept the value it pre-fills.
+
+    ``notification_importance`` is a closed ``SelectSelector`` whose stored
+    unset value used to be ``""`` - a value no option list contains. Every
+    untouched create and edit therefore failed with ``value must be one of
+    [...]`` at ``section_advanced_configurations.chore_notification_importance``.
+
+    The form schema and the payload builders are separate contracts: every
+    round-trip test above goes through ``build_chore()``, and none of them
+    submits a form, which is why the suite stayed green while the flow was
+    broken. These tests close that gap by validating through the schema.
+    """
+
+    ASSIGNEES: dict[str, str] = {"Alice": "uuid-1"}
+
+    @staticmethod
+    def _payload() -> dict[str, Any]:
+        """A minimal create/edit submission that never touches Importance."""
+        return {
+            const.CFOF_CHORES_INPUT_NAME: "Medicine",
+            const.CFOF_CHORES_INPUT_DEFAULT_POINTS: 5,
+            const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: ["Alice"],
+            fh.CHORE_SECTION_ADVANCED_CONFIGURATIONS: {},
+        }
+
+    @staticmethod
+    def _submitted_importance(submitted: dict[str, Any]) -> Any:
+        return submitted[fh.CHORE_SECTION_ADVANCED_CONFIGURATIONS].get(
+            const.CFOF_CHORES_INPUT_NOTIFICATION_IMPORTANCE
+        )
+
+    def test_untouched_importance_validates(self) -> None:
+        """A form that never touched Importance must submit successfully."""
+        schema = fh.build_chore_schema(self.ASSIGNEES)
+
+        submitted = schema(self._payload())
+
+        assert self._submitted_importance(submitted) == (const.NOTIFY_IMPORTANCE_NONE)
+
+    def test_legacy_empty_importance_validates(self) -> None:
+        """A record stored before the field had an unset option still opens.
+
+        The schema default is ``or NOTIFY_IMPORTANCE_NONE``, so a stored ``""``
+        falls through to a value the dropdown can display instead of failing
+        validation the moment the form is submitted.
+        """
+        schema = fh.build_chore_schema(
+            self.ASSIGNEES,
+            default={const.CFOF_CHORES_INPUT_NOTIFICATION_IMPORTANCE: ""},
+        )
+
+        submitted = schema(self._payload())
+
+        assert self._submitted_importance(submitted) == (const.NOTIFY_IMPORTANCE_NONE)
+
+    def test_importance_dropdown_offers_the_unset_choice(self) -> None:
+        """The form option list must contain the value the form submits.
+
+        Without ``none`` in the selector options, a submitted ``none`` is
+        rejected by ``vol.In`` even though the default produced it.
+        """
+        schema = fh.build_chore_schema(self.ASSIGNEES)
+        section = schema.schema[fh.CHORE_SECTION_ADVANCED_CONFIGURATIONS]
+
+        importance_key = next(
+            key
+            for key in section.schema.schema
+            if getattr(key, "schema", None)
+            == const.CFOF_CHORES_INPUT_NOTIFICATION_IMPORTANCE
+        )
+        options = section.schema.schema[importance_key].config["options"]
+
+        assert const.NOTIFY_IMPORTANCE_NONE in options
+        for level in const.NOTIFY_IMPORTANCE_OPTIONS:
+            assert level in options
+
+        # The payload guard reads NOTIFY_IMPORTANCE_OPTIONS to decide what reaches
+        # FCM. If "none" ever joined that tuple, an unset chore would push an
+        # invalid importance instead of omitting the key.
+        assert const.NOTIFY_IMPORTANCE_NONE not in const.NOTIFY_IMPORTANCE_OPTIONS
+
+    def test_legacy_empty_priority_is_suggested_as_normal(self) -> None:
+        """A stored ``""`` priority must not be pre-filled into the dropdown.
+
+        ``normal`` is identical to ``""`` for the payload - neither emits a
+        ``priority`` key - so normalising here changes no behaviour and keeps
+        the submission inside the option list.
+        """
+        suggested = fh.build_user_section_suggested_values(
+            {const.CFOF_USERS_INPUT_NOTIFICATION_PRIORITY: ""}
+        )
+
+        profile = suggested[fh.USER_SECTION_IDENTITY_PROFILE]
+
+        assert profile[const.CFOF_USERS_INPUT_NOTIFICATION_PRIORITY] == (
+            const.NOTIFY_PRIORITY_NORMAL
+        )

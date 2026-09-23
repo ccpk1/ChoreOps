@@ -925,9 +925,12 @@ CREATE_CHORE_SCHEMA = vol.Schema(
             vol.Optional(
                 const.SERVICE_FIELD_CHORE_CRUD_NOTIFICATION_CHANNEL
             ): cv.string,
+            # FORM_OPTIONS, not NOTIFY_IMPORTANCE_OPTIONS: the form can submit the
+            # "Not set" choice, so the service must accept it too or an automation
+            # could set an importance but never clear one.
             vol.Optional(
                 const.SERVICE_FIELD_CHORE_CRUD_NOTIFICATION_IMPORTANCE
-            ): vol.In(const.NOTIFY_IMPORTANCE_OPTIONS),
+            ): vol.In(const.NOTIFY_IMPORTANCE_FORM_OPTIONS),
             # Notification preferences: omit any field to keep its stored value.
             # Never add `default=` here; a defaulted key would overwrite storage.
             vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_CLAIM): cv.boolean,
@@ -1023,9 +1026,12 @@ UPDATE_CHORE_SCHEMA = vol.Schema(
             vol.Optional(
                 const.SERVICE_FIELD_CHORE_CRUD_NOTIFICATION_CHANNEL
             ): cv.string,
+            # FORM_OPTIONS, not NOTIFY_IMPORTANCE_OPTIONS: the form can submit the
+            # "Not set" choice, so the service must accept it too or an automation
+            # could set an importance but never clear one.
             vol.Optional(
                 const.SERVICE_FIELD_CHORE_CRUD_NOTIFICATION_IMPORTANCE
-            ): vol.In(const.NOTIFY_IMPORTANCE_OPTIONS),
+            ): vol.In(const.NOTIFY_IMPORTANCE_FORM_OPTIONS),
             # Notification preferences: omit any field to keep its stored value.
             # Never add `default=` here; a defaulted key would overwrite storage.
             vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_NOTIFY_ON_CLAIM): cv.boolean,

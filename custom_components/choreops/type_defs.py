@@ -238,10 +238,12 @@ class ChoreData(TypedDict):
     notification_channel: NotRequired[str]  # Android notification channel name
     # Closed set, validated at runtime against NOTIFY_IMPORTANCE_OPTIONS. Typing
     # it as the literal union lets mypy enforce it statically instead.
-    # "" is a member for the same reason as notification_priority below: the
-    # builder stores it for a chore that has never set one.
+    # "none" ("Not set" in the form) is a real member: it is what a chore that has
+    # never set one stores, and the payload helper reads it as "send no importance
+    # key". It lives in storage rather than only in the form because update_chore()
+    # merges without narrowing - see NOTIFY_IMPORTANCE_NONE in const.py.
     notification_importance: NotRequired[
-        Literal["", "min", "low", "default", "high", "max"]
+        Literal["none", "min", "low", "default", "high", "max"]
     ]
 
     # Runtime tracking (set during chore lifecycle)
@@ -648,12 +650,11 @@ class AssigneeData(TypedDict):
     # Closed set, validated at runtime against NOTIFY_PRIORITY_OPTIONS - see the
     # note on notification_importance above.
     #
-    # ⚠️ "" IS A MEMBER, and leaving it out would be a lie that mypy enforces.
-    # The builder writes "" for a profile that has never set this, so the runtime
-    # `== NOTIFY_PRIORITY_HIGH` check is genuinely doing work rather than being
-    # redundant. Typing it as just normal|high type-checks and then misdescribes
-    # every existing user.
-    notification_priority: NotRequired[Literal["", "normal", "high"]]
+    # "normal" doubles as unset: the payload helper only ever emits `high`, so a
+    # profile that never chose still produces byte-identical payloads. The builder
+    # narrows to it rather than to "" because "" is not a member of the form's
+    # dropdown, so a pre-filled "" is rejected the moment the profile is saved.
+    notification_priority: NotRequired[Literal["normal", "high"]]
     # Deliberately str, not int | None: this is the form-native value, and the
     # options flow stores "" for unset. Moving it to int | None would mean
     # choosing how "unset" is represented and touching the builder, the
