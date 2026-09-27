@@ -1669,6 +1669,12 @@ CHORE_APPROVAL_ORIGIN_MANUAL: Final = "manual"
 CHORE_APPROVAL_ORIGIN_AUTO_APPROVE: Final = "auto_approve"
 CHORE_APPROVAL_ORIGIN_AUTO_RESET: Final = "auto_reset"
 
+# Reward approval origin values (event payload metadata)
+REWARD_APPROVAL_ORIGIN_MANUAL: Final = "manual"
+REWARD_APPROVAL_ORIGIN_NOTIFICATION: Final = "notification"
+REWARD_APPROVAL_ORIGIN_BUTTON: Final = "button"
+REWARD_APPROVAL_ORIGIN_BADGE: Final = "badge"
+
 # Chore overdue notification routing (event payload metadata)
 CHORE_OVERDUE_EVENT_MESSAGE_TYPE: Final = "overdue_message_type"
 CHORE_OVERDUE_NOTIFICATION_TYPE_DEFAULT: Final = "default"

@@ -1292,8 +1292,9 @@ class RewardApprovedEvent(TypedDict, total=False):
     user_id: str  # Required
     reward_id: str  # Required
     reward_name: str  # Required
-    points_spent: float  # Required
-    approver_name: str  # Required
+    cost: float  # Required: points deducted (0 for free grants)
+    approver_name: NotRequired[str]  # Not currently emitted; kept for consumers
+    approval_origin: str  # Optional origin hint (manual, notification, button, badge)
 
 
 class RewardDisapprovedEvent(TypedDict, total=False):

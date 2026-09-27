@@ -26,6 +26,7 @@ from custom_components.choreops.const import (
     DATA_REWARD_COST,
     DATA_USER_POINTS,
     DATA_USER_REWARD_DATA,
+    DATA_USER_REWARD_DATA_LAST_APPROVED,
     DATA_USER_REWARD_DATA_PENDING_COUNT,
     NOTIFY_ACTION,
     NOTIFY_NOTIFICATION_ID,
@@ -634,3 +635,110 @@ class TestAuthorizationAcceptance:
                 blocking=True,
                 context=actor_context,
             )
+
+
+# ============================================================================
+# DUPLICATE APPROVAL GUARD (Discussion #320)
+# ============================================================================
+
+
+class TestDuplicateApprovalGuard:
+    """Duplicate redemption-confirming approvals must not re-deduct points.
+
+    A companion-app retry can fire the same APPROVE_REWARD notification action
+    twice. The first payload consumes the pending claim; the second must no-op
+    instead of falling through to the force-grant branch (discussion #320).
+    """
+
+    @pytest.mark.asyncio
+    async def test_duplicate_notification_action_does_not_double_deduct(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """Replaying the same APPROVE_REWARD action deducts points only once."""
+        coordinator = scenario_full.coordinator
+        entry_id = scenario_full.config_entry.entry_id
+        assignee_id = scenario_full.assignee_ids["Zoë"]
+        reward_id = scenario_full.reward_ids["Extra Screen Time"]
+        coordinator.assignees_data[assignee_id][DATA_USER_POINTS] = 100.0
+
+        action = (
+            f"{ACTION_APPROVE_REWARD}|{entry_id[:8]}|{assignee_id}|{reward_id}|notif-1"
+        )
+
+        with (
+            patch.object(
+                coordinator.notification_manager, "notify_assignee", new=AsyncMock()
+            ),
+            patch.object(
+                coordinator.notification_manager,
+                "notify_approvers_translated",
+                new=AsyncMock(),
+            ),
+        ):
+            # Claim first so a pending approval exists
+            await coordinator.reward_manager.redeem(
+                approver_name="Zoë",
+                assignee_id=assignee_id,
+                reward_id=reward_id,
+            )
+            await hass.async_block_till_done()
+
+            # First payload: legitimate approval, deducts the 50-point cost
+            hass.bus.async_fire(
+                const.NOTIFICATION_EVENT,
+                {
+                    const.NOTIFY_ACTION: action,
+                    const.NOTIFY_APPROVER_NAME: "Môm Astrid Stârblüm",
+                },
+            )
+            await hass.async_block_till_done()
+
+            assert get_assignee_points(coordinator, assignee_id) == 50.0
+            assert get_pending_reward_count(coordinator, assignee_id, reward_id) == 0
+
+            # Duplicate payload: must be a no-op, not a force-grant re-deduction
+            hass.bus.async_fire(
+                const.NOTIFICATION_EVENT,
+                {
+                    const.NOTIFY_ACTION: action,
+                    const.NOTIFY_APPROVER_NAME: "Môm Astrid Stârblüm",
+                },
+            )
+            await hass.async_block_till_done()
+
+        assert get_assignee_points(coordinator, assignee_id) == 50.0
+        assert get_pending_reward_count(coordinator, assignee_id, reward_id) == 0
+
+    @pytest.mark.asyncio
+    async def test_service_free_grant_without_pending_still_works(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """The approve_reward service keeps its documented force-grant path."""
+        coordinator = scenario_full.coordinator
+        assignee_id = scenario_full.assignee_ids["Zoë"]
+        reward_id = scenario_full.reward_ids["Extra Screen Time"]
+        coordinator.assignees_data[assignee_id][DATA_USER_POINTS] = 100.0
+
+        await hass.services.async_call(
+            const.DOMAIN,
+            const.SERVICE_APPROVE_REWARD,
+            {
+                const.SERVICE_FIELD_APPROVER_NAME: "Dad",
+                const.SERVICE_FIELD_USER_NAME: "Zoë",
+                const.SERVICE_FIELD_REWARD_NAME: "Extra Screen Time",
+                const.SERVICE_FIELD_REWARD_COST_OVERRIDE: 0,
+            },
+            blocking=True,
+        )
+        await hass.async_block_till_done()
+
+        # Free grant: no deduction, but the grant must still be recorded
+        assert get_assignee_points(coordinator, assignee_id) == 100.0
+        reward_entry = coordinator.assignees_data[assignee_id][DATA_USER_REWARD_DATA][
+            reward_id
+        ]
+        assert reward_entry[DATA_USER_REWARD_DATA_LAST_APPROVED]

@@ -2976,6 +2976,7 @@ def async_setup_services(hass: HomeAssistant):
                 assignee_id=assignee_id,
                 reward_id=reward_id,
                 cost_override=cost_override,
+                approval_origin=const.REWARD_APPROVAL_ORIGIN_MANUAL,
             )
             const.LOGGER.info(
                 "Reward '%s' approved for assignee '%s' by approver '%s'%s",

@@ -287,6 +287,7 @@ async def async_handle_notification_action(hass: HomeAssistant, event: Event) ->
                 assignee_id=parsed.user_id,
                 reward_id=parsed.entity_id,
                 notif_id=parsed.notif_id,
+                approval_origin=const.REWARD_APPROVAL_ORIGIN_NOTIFICATION,
             )
         elif parsed.action_type == const.ACTION_DISAPPROVE_REWARD:
             # Async method with lock protection
