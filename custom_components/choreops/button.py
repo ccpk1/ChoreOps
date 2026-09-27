@@ -1261,6 +1261,7 @@ class ApproverRewardApproveButton(ChoreOpsCoordinatorEntity, ButtonEntity):
                 approver_name=approver_name,
                 assignee_id=self._assignee_id,
                 reward_id=self._reward_id,
+                approval_origin=const.REWARD_APPROVAL_ORIGIN_BUTTON,
             )
 
             const.LOGGER.info(

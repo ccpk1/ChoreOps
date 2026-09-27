@@ -405,6 +405,7 @@ class RewardManager(BaseManager):
         reward_id: str,
         notif_id: str | None = None,
         cost_override: float | None = None,
+        approval_origin: str = const.REWARD_APPROVAL_ORIGIN_MANUAL,
     ) -> None:
         """Approver approves the reward => deduct points via EconomyManager.
 
@@ -418,11 +419,18 @@ class RewardManager(BaseManager):
             notif_id: Optional notification ID to clear.
             cost_override: Optional cost to charge instead of the reward's stored cost.
                 If None, uses reward's configured cost. Set to 0 for free grants.
+            approval_origin: Source of approval (manual, notification, button, badge).
+                Notification and button origins require a pending claim.
         """
         lock = self._get_lock("approve", assignee_id, reward_id)
         async with lock:
             await self._approve_locked(
-                approver_name, assignee_id, reward_id, notif_id, cost_override
+                approver_name,
+                assignee_id,
+                reward_id,
+                notif_id,
+                cost_override,
+                approval_origin,
             )
 
     async def _approve_locked(
@@ -432,8 +440,14 @@ class RewardManager(BaseManager):
         reward_id: str,
         notif_id: str | None = None,
         cost_override: float | None = None,
+        approval_origin: str = const.REWARD_APPROVAL_ORIGIN_MANUAL,
     ) -> None:
-        """Internal approval logic executed under lock protection."""
+        """Internal approval logic executed under lock protection.
+
+        Args:
+            approval_origin: Source of approval. Notification and button origins
+                confirm an existing claim and are rejected when none is pending.
+        """
         # Landlord genesis - ensure reward_periods and per-reward periods exist
         self._ensure_assignee_structures(assignee_id, reward_id)
 
@@ -476,6 +490,21 @@ class RewardManager(BaseManager):
         # Determine if this is a pending claim approval
         is_pending = pending_count > 0
 
+        # Redemption-confirming origins only exist while a claim is pending; a
+        # consumed pending_count means it was already processed (e.g. duplicate
+        # companion-app payload). Mirrors ChoreEngine.can_approve_chore: idempotent
+        # no-op, never a force-grant re-deduction (discussion #320).
+        if not is_pending and approval_origin in (
+            const.REWARD_APPROVAL_ORIGIN_NOTIFICATION,
+            const.REWARD_APPROVAL_ORIGIN_BUTTON,
+        ):
+            const.LOGGER.info(
+                "Race condition prevented: reward '%s' for assignee '%s' already processed",
+                reward_info.get(const.DATA_REWARD_NAME),
+                assignee_info.get(const.DATA_USER_NAME),
+            )
+            return
+
         # Validate sufficient points
         if assignee_info[const.DATA_USER_POINTS] < cost:
             raise HomeAssistantError(
@@ -513,6 +542,7 @@ class RewardManager(BaseManager):
             reward_id=reward_id,
             reward_name=reward_info[const.DATA_REWARD_NAME],
             cost=cost,  # Reward cost approved/deducted
+            approval_origin=approval_origin,
         )
 
     def _grant_to_assignee(
