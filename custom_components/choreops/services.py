@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse
-from homeassistant.exceptions import HomeAssistantError
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import config_validation as cv, entity_registry as er
 from homeassistant.util import dt as dt_util
 import voluptuous as vol
@@ -4077,6 +4077,14 @@ def async_setup_services(hass: HomeAssistant):
         user_name = call.data.get(const.SERVICE_FIELD_USER_NAME)
         paused = call.data.get(const.SERVICE_FIELD_CHORES_PAUSED, True)
         paused_until_raw = call.data.get(const.SERVICE_FIELD_CHORES_PAUSED_UNTIL)
+
+        # D8: reject before any mutation - a return time on a resume call has
+        # no valid meaning (future resumes cannot be scheduled).
+        if not paused and paused_until_raw is not None:
+            raise ServiceValidationError(
+                translation_domain=const.DOMAIN,
+                translation_key=const.TRANS_KEY_ERROR_UNTIL_ON_RESUME,
+            )
 
         # Resolve user_name to internal ID
         assignee_id = get_item_id_or_raise(

@@ -34,6 +34,7 @@ from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
 from homeassistant.core import Context, HomeAssistant
+from homeassistant.exceptions import ServiceValidationError
 from homeassistant.util import dt as dt_util
 import pytest
 
@@ -1160,45 +1161,6 @@ class TestUnpauseActionChaining:
         assert users[zoe_id].get(const.DATA_USER_CHORES_PAUSED) is True
         assert users[zoe_id].get(const.DATA_USER_CHORES_PAUSED_UNTIL) is None
 
-    async def test_resume_with_until_param_never_stores_it(
-        self,
-        hass: HomeAssistant,
-        scenario_minimal: SetupResult,
-        zoe_context: Context,
-    ) -> None:
-        """A until passed with paused=false is never stored (D2 defect (b))."""
-        coordinator = scenario_minimal.coordinator
-        zoe_id = scenario_minimal.assignee_ids["Zoë"]
-        users = coordinator._data[const.DATA_USERS]
-
-        await call_pause_service(
-            hass,
-            scenario_minimal,
-            zoe_context,
-            paused=True,
-            **{
-                const.SERVICE_FIELD_CHORES_PAUSED_UNTIL: (
-                    dt_now_utc() + timedelta(days=1)
-                ).isoformat()
-            },
-        )
-        assert users[zoe_id].get(const.DATA_USER_CHORES_PAUSED_UNTIL) is not None
-
-        await call_pause_service(
-            hass,
-            scenario_minimal,
-            zoe_context,
-            paused=False,
-            **{
-                const.SERVICE_FIELD_CHORES_PAUSED_UNTIL: (
-                    dt_now_utc() + timedelta(days=2)
-                ).isoformat()
-            },
-        )
-
-        assert users[zoe_id].get(const.DATA_USER_CHORES_PAUSED) is False
-        assert users[zoe_id].get(const.DATA_USER_CHORES_PAUSED_UNTIL) is None
-
     async def test_re_pause_without_action_clears_intent(
         self,
         hass: HomeAssistant,
@@ -1391,3 +1353,41 @@ class TestUnpauseActionChaining:
         assert (
             built[const.DATA_USER_CHORES_PAUSED_UNPAUSE_ACTION] == "unpause_shift_all"
         )
+
+    async def test_resume_with_until_rejected_before_mutation(
+        self,
+        hass: HomeAssistant,
+        scenario_minimal: SetupResult,
+        zoe_context: Context,
+    ) -> None:
+        """D8: paused=false with paused_until raises before any mutation."""
+        coordinator = scenario_minimal.coordinator
+        zoe_id = scenario_minimal.assignee_ids["Zoë"]
+        users = coordinator._data[const.DATA_USERS]
+        future_until = (dt_now_utc() + timedelta(days=1)).isoformat()
+
+        await call_pause_service(
+            hass,
+            scenario_minimal,
+            zoe_context,
+            paused=True,
+            **{const.SERVICE_FIELD_CHORES_PAUSED_UNTIL: future_until},
+        )
+        assert users[zoe_id].get(const.DATA_USER_CHORES_PAUSED) is True
+
+        with pytest.raises(ServiceValidationError):
+            await call_pause_service(
+                hass,
+                scenario_minimal,
+                zoe_context,
+                paused=False,
+                **{
+                    const.SERVICE_FIELD_CHORES_PAUSED_UNTIL: (
+                        dt_now_utc() + timedelta(days=2)
+                    ).isoformat()
+                },
+            )
+
+        # Rejected before mutation: the pause contract is untouched
+        assert users[zoe_id].get(const.DATA_USER_CHORES_PAUSED) is True
+        assert users[zoe_id].get(const.DATA_USER_CHORES_PAUSED_UNTIL) == future_until

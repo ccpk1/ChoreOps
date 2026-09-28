@@ -3492,6 +3492,9 @@ TRANS_KEY_ERROR_SHARED_CHORE_ASSIGNEE: Final = (
 TRANS_KEY_ERROR_INVALID_DATE_FORMAT: Final = (
     "invalid_date_format"  # Invalid date format
 )
+TRANS_KEY_ERROR_UNTIL_ON_RESUME: Final = (
+    "until_on_resume"  # paused_until can only be set while pausing
+)
 TRANS_KEY_ERROR_DATE_IN_PAST: Final = "date_in_past"  # Due date cannot be in the past
 TRANS_KEY_ERROR_FUTURE_DUE_DATE_REQUIRED: Final = (
     "future_due_date_required"  # The requested changes require a future due date

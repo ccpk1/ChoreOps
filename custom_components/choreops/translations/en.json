@@ -2382,7 +2382,7 @@
         },
         "paused_until": {
           "name": "Paused Until",
-          "description": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net).",
+          "description": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net). Only valid while pausing (paused: true) - omit it when resuming.",
           "example": "2026-06-10T00:00:00+00:00"
         },
         "unpause_action": {
@@ -5706,6 +5706,9 @@
     },
     "invalid_date_format": {
       "message": "Invalid date format. Please provide a valid date string (e.g., YYYY-MM-DD or ISO 8601 datetime)."
+    },
+    "until_on_resume": {
+      "message": "Paused Until can only be set while pausing (paused: true). Omit it when resuming."
     },
     "date_in_past": {
       "message": "Due date cannot be in the past. Please provide a future date."
