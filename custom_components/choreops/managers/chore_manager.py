@@ -464,8 +464,10 @@ class ChoreManager(BaseManager):
 
         Delegates to set_user_chores_paused(paused=False) so auto-resume uses
         the same canonical write path as a manual resume (persist, USER_UPDATED
-        signal, rotation snap-back). No shift is applied - moving past-due
-        chores stays an explicit unpause_action decision.
+        signal, rotation snap-back). The call is bare: stored resume intent
+        (chores_paused_unpause_action), when present, is resolved and applied
+        by the canonical method (D7); a pause without intent resumes with no
+        shift.
 
         Args:
             now_utc: Current UTC time.
@@ -6499,7 +6501,7 @@ class ChoreManager(BaseManager):
         assignee_id: str,
         paused: bool,
         paused_until: str | None = None,
-        unpause_action: str = "unpause",
+        unpause_action: str | None = None,
     ) -> None:
         """Set chore pause flag and advance rotation if pausing.
 
@@ -6508,15 +6510,22 @@ class ChoreManager(BaseManager):
         and advances the turn to the next available non-paused assignee
         in real time (not waiting for midnight).
 
-        If UNPAUSING with an unpause_action other than 'unpause', also
-        reschedules past-due chores to prevent immediate overdue transitions.
+        If UNPAUSING, the resolved action (explicit parameter, else stored
+        resume intent, else 'unpause') shifts past-due chores at the resume
+        instant, atomically with the flag clear (D7).
+
+        Pause-time omission clears (D2/D3): a pause call without paused_until
+        or unpause_action removes any previously stored values, so nothing
+        leaks into a later pause cycle. Any unpause consumes both fields.
 
         Args:
             assignee_id: Internal ID of the user to pause/unpause
             paused: True to pause, False to unpause
-            paused_until: Optional UTC ISO datetime for auto-unpause
-            unpause_action: 'unpause', 'unpause_shift_independent',
-                'unpause_shift_all_primary', or 'unpause_shift_all'
+            paused_until: Optional UTC ISO datetime; stored only while pausing
+            unpause_action: None (bare call), 'unpause',
+                'unpause_shift_independent', 'unpause_shift_all_primary', or
+                'unpause_shift_all'; stored as resume intent at pause time,
+                applied at resume time
         """
         user_data = self._coordinator._data.get(const.DATA_USERS, {}).get(assignee_id)
         if user_data is None:
@@ -6525,11 +6534,28 @@ class ChoreManager(BaseManager):
                 translation_key=const.TRANS_KEY_ERROR_CHORE_NOT_FOUND,
             )
 
+        stored_action = user_data.get(const.DATA_USER_CHORES_PAUSED_UNPAUSE_ACTION)
+        resolved_action = (
+            unpause_action or stored_action or const.UNPAUSE_ACTION_UNPAUSE
+        )
+
         user_data[const.DATA_USER_CHORES_PAUSED] = paused
-        if paused_until is not None:
-            user_data[const.DATA_USER_CHORES_PAUSED_UNTIL] = paused_until
-        elif not paused:
+        if paused:
+            # D3: on pause, omission clears - a re-pause rewrites the whole
+            # pause contract instead of inheriting stale values.
+            if paused_until is not None:
+                user_data[const.DATA_USER_CHORES_PAUSED_UNTIL] = paused_until
+            else:
+                user_data.pop(const.DATA_USER_CHORES_PAUSED_UNTIL, None)
+            if unpause_action is not None:
+                user_data[const.DATA_USER_CHORES_PAUSED_UNPAUSE_ACTION] = unpause_action
+            else:
+                user_data.pop(const.DATA_USER_CHORES_PAUSED_UNPAUSE_ACTION, None)
+        else:
+            # Any unpause consumes both fields; a provided until is never
+            # stored while unpaused (stale-until defect fixed here).
             user_data.pop(const.DATA_USER_CHORES_PAUSED_UNTIL, None)
+            user_data.pop(const.DATA_USER_CHORES_PAUSED_UNPAUSE_ACTION, None)
 
         # If pausing: advance rotation past this user in real time
         # If unpausing: snap primary-standby chores back to primary (G-5)
@@ -6538,8 +6564,9 @@ class ChoreManager(BaseManager):
         else:
             self._snap_rotation_back_to_primary(assignee_id)
 
-        # Smart unpause: reschedule past-due chores if requested
-        if not paused and unpause_action != "unpause":
+        # Smart unpause: the shift past "now" runs at the unpause (D7), using
+        # the resolved action (explicit > stored intent > 'unpause')
+        if not paused and resolved_action != "unpause":
             unpause_map = {
                 "unpause_shift_independent": {
                     "reschedule_independent": True,
@@ -6557,7 +6584,7 @@ class ChoreManager(BaseManager):
                     "reschedule_shared": True,
                 },
             }
-            flags = unpause_map.get(unpause_action)
+            flags = unpause_map.get(resolved_action)
             if flags:
                 await self.reschedule_chores_after(
                     dt_util.utcnow(),

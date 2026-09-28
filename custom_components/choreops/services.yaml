@@ -158,7 +158,7 @@ pause_user_chores:
         text:
     paused:
       name: "Paused"
-      description: "True to pause chores, False to resume."
+      description: "True to pause chores, False to resume. See Unpause Action for shift-on-resume behavior."
       required: false
       default: true
       selector:
@@ -169,6 +169,21 @@ pause_user_chores:
       required: false
       selector:
         datetime:
+    unpause_action:
+      name: "Unpause Action"
+      description: "On resume: applies this shift to past-due chores at the resume moment. On pause: remembers it as the resume action for this pause, applied at manual or automatic resume. Pass 'unpause' on a resume call to skip a remembered action; omit both this and Paused Until when re-pausing to clear them."
+      required: false
+      selector:
+        select:
+          options:
+            - label: "No shift (resume only)"
+              value: "unpause"
+            - label: "Shift independent chores to now"
+              value: "unpause_shift_independent"
+            - label: "Shift independent + primary/standby to now"
+              value: "unpause_shift_all_primary"
+            - label: "Shift all past-due chores to now"
+              value: "unpause_shift_all"
 
 redeem_reward:
   name: "Redeem Reward"

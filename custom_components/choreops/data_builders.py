@@ -1418,6 +1418,13 @@ def build_user_profile(
             None,
         ),
     }
+
+    # D3 form rows: a resolved unpause consumes the pause contract whatever
+    # the payload carried - an until submitted while unpaused is never stored.
+    if not user_profile_data[const.DATA_USER_CHORES_PAUSED]:
+        user_profile_data[const.DATA_USER_CHORES_PAUSED_UNTIL] = None
+        user_profile_data[const.DATA_USER_CHORES_PAUSED_UNPAUSE_ACTION] = None
+
     return cast("UserData", user_profile_data)
 
 

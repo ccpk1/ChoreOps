@@ -707,10 +707,11 @@ PAUSE_USER_CHORES_SCHEMA = vol.Schema(
             vol.Optional(const.SERVICE_FIELD_CHORES_PAUSED_UNTIL): vol.Any(
                 cv.datetime, None
             ),
-            vol.Optional(
-                const.SERVICE_FIELD_UNPAUSE_ACTION,
-                default=const.UNPAUSE_ACTION_UNPAUSE,
-            ): vol.In(const.UNPAUSE_ACTION_VALUES),
+            # No default: an absent field must stay distinguishable from an
+            # explicit 'unpause' so a bare resume can apply stored intent (D2).
+            vol.Optional(const.SERVICE_FIELD_UNPAUSE_ACTION): vol.In(
+                const.UNPAUSE_ACTION_VALUES
+            ),
         }
     )
 )
@@ -4089,25 +4090,23 @@ def async_setup_services(hass: HomeAssistant):
         # (HA service UI convention), offset-aware input keeps its instant.
         paused_until = dt_to_utc_iso(paused_until_raw)
 
+        # None means the field was absent (bare call) - never default it here;
+        # the manager resolves explicit > stored intent > 'unpause' (D2, L2 trap).
+        unpause_action = call.data.get(const.SERVICE_FIELD_UNPAUSE_ACTION)
+
         # Delegate to ChoreManager
         await coordinator.chore_manager.set_user_chores_paused(
             assignee_id=assignee_id,
             paused=paused,
             paused_until=paused_until,
-            unpause_action=call.data.get(
-                const.SERVICE_FIELD_UNPAUSE_ACTION,
-                const.UNPAUSE_ACTION_UNPAUSE,
-            ),
+            unpause_action=unpause_action,
         )
 
         const.LOGGER.info(
             "Pause User Chores: user=%s paused=%s unpause_action=%s",
             user_name,
             paused,
-            call.data.get(
-                const.SERVICE_FIELD_UNPAUSE_ACTION,
-                const.UNPAUSE_ACTION_UNPAUSE,
-            ),
+            unpause_action,
         )
 
         await coordinator.async_request_refresh()

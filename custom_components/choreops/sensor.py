@@ -5410,6 +5410,9 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
             "chores_paused_until": assignee_info.get(
                 const.DATA_USER_CHORES_PAUSED_UNTIL
             ),
+            "chores_paused_unpause_action": assignee_info.get(
+                const.DATA_USER_CHORES_PAUSED_UNPAUSE_ACTION
+            ),
             const.ATTR_SHARD_RUNTIME: shard_runtime,
         }
 
