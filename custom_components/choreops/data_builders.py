@@ -1408,6 +1408,15 @@ def build_user_profile(
                 None,
             )
         ),
+        # Listed so the closed-dict rebuild keeps the key on every user-record
+        # write (update replaces wholesale); the form has no field until D4.
+        const.DATA_USER_CHORES_PAUSED_UNPAUSE_ACTION: _resolve_user_input_field(
+            user_input,
+            existing_data,
+            const.CFOF_USERS_INPUT_CHORES_PAUSED_UNPAUSE_ACTION,
+            const.DATA_USER_CHORES_PAUSED_UNPAUSE_ACTION,
+            None,
+        ),
     }
     return cast("UserData", user_profile_data)
 
@@ -1432,6 +1441,7 @@ _USER_MANAGER_PROFILE_PRESERVE_FIELDS: frozenset[str] = frozenset(
         const.DATA_USER_UI_PREFERENCES,
         const.DATA_USER_CHORES_PAUSED,
         const.DATA_USER_CHORES_PAUSED_UNTIL,
+        const.DATA_USER_CHORES_PAUSED_UNPAUSE_ACTION,
     }
 )
 

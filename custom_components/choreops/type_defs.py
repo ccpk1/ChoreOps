@@ -705,10 +705,13 @@ class UserData(AssigneeData):
     Pause chore fields:
         chores_paused: bool - True if chore processing is paused for this user
         chores_paused_until: str | None - UTC ISO datetime when pause auto-clears
+        chores_paused_unpause_action: str | None - Unpause action remembered from
+            the pause call, applied on resume; None when not set
     """
 
     chores_paused: NotRequired[bool]
     chores_paused_until: NotRequired[str | None]
+    chores_paused_unpause_action: NotRequired[str | None]
 
 
 AssigneeDataAlias = UserData
