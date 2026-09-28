@@ -133,7 +133,7 @@ disapprove_chore:
 
 pause_user_chores:
   name: "Pause User's Chores"
-  description: "Pause or resume chore processing for a user. While paused, no overdue or missed stats accumulate and rotation advances past this user."
+  description: "Pause or resume chore processing for a user. While paused, no overdue or missed stats accumulate and rotation advances past this user. When resuming, Unpause Action decides whether dates missed while paused are skipped."
   fields:
     config_entry_id:
       name: "Config Entry ID (Optional)"
@@ -158,7 +158,7 @@ pause_user_chores:
         text:
     paused:
       name: "Paused"
-      description: "True to pause chores, False to resume. See Unpause Action for shift-on-resume behavior."
+      description: "True to pause chores, False to resume. See Unpause Action for what happens to dates missed while paused."
       required: false
       default: true
       selector:
@@ -171,18 +171,18 @@ pause_user_chores:
         datetime:
     unpause_action:
       name: "Unpause Action"
-      description: "On resume: applies this shift to past-due chores at the resume moment. On pause: remembers it as the resume action for this pause, applied at manual or automatic resume. Pass 'unpause' on a resume call to skip a remembered action; omit both this and Paused Until when re-pausing to clear them."
+      description: "On resume: decides what happens to due dates that passed while the user was paused - keep them as they are (they may show as overdue), or skip the missed dates so chores continue from the next occurrence. When pausing: remembers this choice and applies it at the next manual or automatic resume. Pass 'unpause' on a resume call to ignore a remembered choice; omit this field when re-pausing to clear it."
       required: false
       selector:
         select:
           options:
-            - label: "No shift (resume only)"
+            - label: "No change (keep dates as they are)"
               value: "unpause"
-            - label: "Shift independent chores to now"
+            - label: "Skip missed dates - independent chores"
               value: "unpause_shift_independent"
-            - label: "Shift independent + primary/standby to now"
+            - label: "Skip missed dates - independent and primary/standby chores"
               value: "unpause_shift_all_primary"
-            - label: "Shift all past-due chores to now"
+            - label: "Skip missed dates - all chores (including shared)"
               value: "unpause_shift_all"
 
 redeem_reward:
