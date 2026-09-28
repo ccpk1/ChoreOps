@@ -51,7 +51,7 @@ import uuid
 
 from . import const
 from .type_defs import AssigneeData, BadgeData, ChoreData, RewardData, UserData
-from .utils.dt_utils import dt_now_utc, dt_parse
+from .utils.dt_utils import dt_now_utc, dt_parse, dt_to_utc_iso
 from .utils.math_utils import parse_points_value
 
 # ==============================================================================
@@ -1399,12 +1399,14 @@ def build_user_profile(
                 False,
             )
         ),
-        const.DATA_USER_CHORES_PAUSED_UNTIL: _resolve_user_input_field(
-            user_input,
-            existing_data,
-            const.CFOF_USERS_INPUT_CHORES_PAUSED_UNTIL,
-            const.DATA_USER_CHORES_PAUSED_UNTIL,
-            None,
+        const.DATA_USER_CHORES_PAUSED_UNTIL: dt_to_utc_iso(
+            _resolve_user_input_field(
+                user_input,
+                existing_data,
+                const.CFOF_USERS_INPUT_CHORES_PAUSED_UNTIL,
+                const.DATA_USER_CHORES_PAUSED_UNTIL,
+                None,
+            )
         ),
     }
     return cast("UserData", user_profile_data)

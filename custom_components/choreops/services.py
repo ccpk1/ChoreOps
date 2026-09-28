@@ -27,7 +27,7 @@ from .helpers.auth_helpers import (
     is_user_authorized_for_action,
 )
 from .helpers.entity_helpers import get_item_id_by_name, get_item_id_or_raise
-from .utils.dt_utils import dt_parse
+from .utils.dt_utils import dt_parse, dt_to_utc_iso
 from .utils.math_utils import parse_points_value
 
 if TYPE_CHECKING:
@@ -4085,13 +4085,9 @@ def async_setup_services(hass: HomeAssistant):
             role=const.ROLE_ASSIGNEE,
         )
 
-        # Convert datetime to ISO string if provided
-        paused_until: str | None = None
-        if paused_until_raw is not None:
-            if isinstance(paused_until_raw, datetime):
-                paused_until = paused_until_raw.isoformat()
-            else:
-                paused_until = str(paused_until_raw)
+        # Store UTC ISO per storage standards; naive input is local time
+        # (HA service UI convention), offset-aware input keeps its instant.
+        paused_until = dt_to_utc_iso(paused_until_raw)
 
         # Delegate to ChoreManager
         await coordinator.chore_manager.set_user_chores_paused(

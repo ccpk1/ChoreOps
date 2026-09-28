@@ -13,6 +13,7 @@ Functions:
     - dt_now_local: Get current datetime in local timezone
     - dt_now_iso: Get current datetime as ISO string
     - dt_to_utc: Parse and convert to UTC
+    - dt_to_utc_iso: Normalize datetime input to a UTC ISO string
     - dt_parse_duration: Parse human-readable duration strings
     - dt_format_duration: Format timedelta to human-readable string
     - dt_time_until: Calculate time remaining until target
@@ -410,6 +411,30 @@ def dt_to_utc(dt_str: str | None) -> datetime | None:
         return_type=HELPER_RETURN_DATETIME_UTC,
     )
     return cast("datetime | None", result)
+
+
+def dt_to_utc_iso(dt_input: str | datetime | None) -> str | None:
+    """Normalize a datetime-ish value to a UTC ISO string for storage.
+
+    Naive input is interpreted as local time; offset-aware input keeps its
+    instant. None, empty, or unparseable input returns None.
+
+    Args:
+        dt_input: String, datetime, or None to normalize
+
+    Returns:
+        UTC ISO string ("...+00:00") or None if there is nothing to parse.
+
+    Example:
+        "2025-04-07T14:30:00" (local, UTC+2) → "2025-04-07T12:30:00+00:00"
+    """
+    if dt_input is None:
+        return None
+    raw = dt_input.isoformat() if isinstance(dt_input, datetime) else str(dt_input)
+    if not raw.strip():
+        return None
+    parsed = dt_to_utc(raw)
+    return parsed.isoformat() if parsed else None
 
 
 def dt_local_date_iso(timestamp: str | None) -> str | None:

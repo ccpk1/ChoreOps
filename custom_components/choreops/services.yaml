@@ -165,7 +165,7 @@ pause_user_chores:
         boolean:
     paused_until:
       name: "Paused Until"
-      description: "Optional return date. If set, chores auto-resume at midnight after this date."
+      description: "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
       required: false
       selector:
         datetime:

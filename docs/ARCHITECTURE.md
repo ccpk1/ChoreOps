@@ -526,6 +526,15 @@ delegates to `reschedule_chores_after` with chore-type filter flags
 (`reschedule_independent`, `reschedule_primary_standby`, `reschedule_shared`),
 bringing past-due chores current as part of the unpause.
 
+**Auto-resume**: `chores_paused_until` is stored as a UTC ISO string (naive
+input is local time; offset-aware input keeps its instant). Expiry compares
+parsed UTC instants, never raw strings, in
+`ChoreManager._auto_unpause_expired_users()` - called on every
+`PERIODIC_UPDATE` poll (resume lands within one poll cycle of the configured
+time) and again by the midnight rollover as a safety net. Auto-resume goes
+through the canonical `set_user_chores_paused(paused=False)` path with the
+default `unpause` action, so it never shifts dates.
+
 Interaction lane contract (hard fork v1):
 
 - Display lane stays in `state` and `global_state` for visual lifecycle projection.

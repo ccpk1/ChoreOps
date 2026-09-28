@@ -432,23 +432,10 @@ class ChoreManager(BaseManager):
                         )
                         break
 
-            # Phase D: Auto-unpause expired pauses (runs after reset + overdue)
-            now_iso = now_utc.isoformat()
-            users_data = self._coordinator._data.get(const.DATA_USERS, {})
-            unpaused_count = 0
-            for _user_id, user_data_inner in users_data.items():
-                if not user_data_inner.get(const.DATA_USER_CHORES_PAUSED):
-                    continue
-                until_str = user_data_inner.get(const.DATA_USER_CHORES_PAUSED_UNTIL)
-                if until_str and until_str < now_iso:
-                    user_data_inner[const.DATA_USER_CHORES_PAUSED] = False
-                    user_data_inner.pop(const.DATA_USER_CHORES_PAUSED_UNTIL, None)
-                    unpaused_count += 1
+            # Phase D: Auto-unpause expired pauses (safety net for missed polls)
+            unpaused_count = await self._auto_unpause_expired_users(now_utc)
             if unpaused_count > 0:
                 state_modified = True
-                const.LOGGER.info(
-                    "Auto-unpaused %d user(s) at midnight", unpaused_count
-                )
 
             return reset_count
         except Exception:
@@ -466,6 +453,42 @@ class ChoreManager(BaseManager):
                     const.LOGGER.exception(
                         "ChoreManager: Critical - failed to persist midnight changes"
                     )
+
+    async def _auto_unpause_expired_users(self, now_utc: datetime) -> int:
+        """Auto-resume users whose paused_until time has passed.
+
+        Primary trigger is the periodic update, so a resume lands within one
+        poll cycle of the configured time; the midnight rollover repeats this
+        as a safety net for missed polls, backup restores, and direct data
+        writes (same dual-layer pattern as the rotation Phase C safety net).
+
+        Delegates to set_user_chores_paused(paused=False) so auto-resume uses
+        the same canonical write path as a manual resume (persist, USER_UPDATED
+        signal, rotation snap-back). No shift is applied - moving past-due
+        chores stays an explicit unpause_action decision.
+
+        Args:
+            now_utc: Current UTC time.
+
+        Returns:
+            Number of users auto-unpaused.
+        """
+        users_data = self._coordinator._data.get(const.DATA_USERS, {})
+        unpaused_count = 0
+        for user_id, user_data_inner in users_data.items():
+            if not user_data_inner.get(const.DATA_USER_CHORES_PAUSED):
+                continue
+            until_str = user_data_inner.get(const.DATA_USER_CHORES_PAUSED_UNTIL)
+            if not until_str:
+                continue
+            until_utc = dt_to_utc(until_str)
+            if until_utc is None or until_utc > now_utc:
+                continue
+            await self.set_user_chores_paused(assignee_id=user_id, paused=False)
+            unpaused_count += 1
+        if unpaused_count > 0:
+            const.LOGGER.info("Auto-unpaused %d user(s)", unpaused_count)
+        return unpaused_count
 
     async def _on_periodic_update(
         self,
@@ -507,6 +530,10 @@ class ChoreManager(BaseManager):
             if now_utc is None:
                 now_utc = dt_util.utcnow()
 
+            # Auto-unpause before the scan so this cycle sees current pause
+            # flags; the midnight rollover repeats this as a safety net.
+            unpaused_count = await self._auto_unpause_expired_users(now_utc)
+
             # Single-pass scan categorizes ALL actionable items
             scan = self.process_time_checks(now_utc, trigger=trigger)
 
@@ -514,7 +541,7 @@ class ChoreManager(BaseManager):
             reset_count, reset_pairs = await self._process_approval_reset_entries(
                 scan, now_utc, trigger, persist=False
             )
-            state_modified = reset_count > 0
+            state_modified = reset_count > 0 or unpaused_count > 0
 
             # Phase B: Overdue, EXCLUDING anything just reset
             filtered_overdue = [

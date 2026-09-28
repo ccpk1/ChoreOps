@@ -17,6 +17,7 @@ Test Organization:
 - TestPauseRotationSkip: Rotation advances past paused user
 - TestCanClaimGuard: can_claim returns False for paused user
 - TestUnpauseLifecycle: Full pause → unpause cycle
+- TestAutoUnpause: Auto-resume timing, UTC storage, midnight fallback
 """
 
 # pylint: disable=redefined-outer-name
@@ -25,15 +26,21 @@ Test Organization:
 
 from __future__ import annotations
 
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any
 from unittest.mock import patch
+from zoneinfo import ZoneInfo
 
 from homeassistant.core import Context, HomeAssistant
 from homeassistant.util import dt as dt_util
 import pytest
 
 from custom_components.choreops import const
+from custom_components.choreops.data_builders import build_user_profile
+from custom_components.choreops.utils.dt_utils import (
+    get_default_timezone,
+    set_default_timezone,
+)
 from tests.helpers import (
     ATTR_CAN_APPROVE,
     ATTR_CAN_CLAIM,
@@ -41,6 +48,7 @@ from tests.helpers import (
     CHORE_STATE_PAUSED,
     CHORE_STATE_PENDING,
     SERVICE_FIELD_CHORES_PAUSED,
+    SERVICE_FIELD_CHORES_PAUSED_UNTIL,
     SERVICE_PAUSE_USER_CHORES,
 )
 from tests.helpers.setup import SetupResult, setup_from_yaml
@@ -488,3 +496,220 @@ class TestUnpauseLifecycle:
         assert state == CHORE_STATE_PENDING, (
             f"Expected pending after unpause, got {state}"
         )
+
+
+# =============================================================================
+# TEST: Auto-unpause (UTC storage + poll/midnight evaluation)
+# =============================================================================
+
+
+class TestAutoUnpause:
+    """Test auto-resume: UTC storage, parsed-instant expiry, safety net."""
+
+    @pytest.mark.parametrize(
+        ("stored_until", "expected_utc"),
+        [
+            pytest.param(
+                "2026-09-29T10:00:00",
+                "2026-09-29T08:00:00+00:00",
+                id="naive_local_treated_as_local",
+            ),
+            pytest.param(
+                "2026-09-29T10:00:00+02:00",
+                "2026-09-29T08:00:00+00:00",
+                id="offset_instant_preserved_as_utc",
+            ),
+        ],
+    )
+    async def test_service_stores_paused_until_as_utc(
+        self,
+        hass: HomeAssistant,
+        scenario_minimal: SetupResult,
+        zoe_context: Context,
+        stored_until: str,
+        expected_utc: str,
+    ) -> None:
+        """Service stores UTC ISO: naive input is local, offset input is kept."""
+        original_tz = get_default_timezone()
+        set_default_timezone(ZoneInfo("Europe/Berlin"))
+        try:
+            await hass.services.async_call(
+                const.DOMAIN,
+                SERVICE_PAUSE_USER_CHORES,
+                {
+                    "config_entry_id": scenario_minimal.config_entry.entry_id,
+                    SERVICE_FIELD_CHORES_PAUSED: True,
+                    SERVICE_FIELD_CHORES_PAUSED_UNTIL: stored_until,
+                    "user_name": "Zoë",
+                },
+                blocking=True,
+                context=zoe_context,
+            )
+            await hass.async_block_till_done()
+
+            zoe_id = scenario_minimal.assignee_ids["Zoë"]
+            user_data = scenario_minimal.coordinator._data[const.DATA_USERS][zoe_id]
+            assert user_data[const.DATA_USER_CHORES_PAUSED_UNTIL] == expected_utc
+        finally:
+            set_default_timezone(original_tz)
+
+    def test_build_user_profile_stores_utc(self) -> None:
+        """User-form path normalizes the DateTimeSelector string to UTC ISO."""
+        original_tz = get_default_timezone()
+        set_default_timezone(ZoneInfo("Europe/Berlin"))
+        try:
+            profile = build_user_profile(
+                {
+                    const.CFOF_USERS_INPUT_NAME: "Zoë",
+                    const.CFOF_USERS_INPUT_CHORES_PAUSED: True,
+                    const.CFOF_USERS_INPUT_CHORES_PAUSED_UNTIL: "2026-09-29 10:00:00",
+                }
+            )
+            assert (
+                profile[const.DATA_USER_CHORES_PAUSED_UNTIL]
+                == "2026-09-29T08:00:00+00:00"
+            )
+        finally:
+            set_default_timezone(original_tz)
+
+    @pytest.mark.parametrize(
+        "stored_until",
+        [
+            pytest.param(
+                "2026-09-28T13:00:00",
+                id="naive_local_wall_after_utc_now",
+            ),
+            pytest.param(
+                "2026-09-28T13:30:00+02:00",
+                id="offset_wall_after_utc_now",
+            ),
+            pytest.param("2026-09-27 23:00:00", id="space_separated_legacy"),
+        ],
+    )
+    async def test_auto_unpause_fires_on_periodic_update(
+        self,
+        hass: HomeAssistant,
+        scenario_minimal: SetupResult,
+        stored_until: str,
+    ) -> None:
+        """Expired pauses resume on the poll via parsed instants, not strings.
+
+        The naive and offset variants have wall-clock digits that sort AFTER
+        the UTC now string, so the legacy string comparison would leave the
+        user paused for an extra day (issue #322).
+        """
+        original_tz = get_default_timezone()
+        set_default_timezone(ZoneInfo("Europe/Berlin"))
+        zoe_id = scenario_minimal.assignee_ids["Zoë"]
+        users = scenario_minimal.coordinator._data[const.DATA_USERS]
+        users[zoe_id][const.DATA_USER_CHORES_PAUSED] = True
+        users[zoe_id][const.DATA_USER_CHORES_PAUSED_UNTIL] = stored_until
+        try:
+            fixed_now = datetime(2026, 9, 28, 12, 0, tzinfo=UTC)
+            await scenario_minimal.coordinator.chore_manager._on_periodic_update(
+                now_utc=fixed_now
+            )
+            await hass.async_block_till_done()
+
+            assert users[zoe_id][const.DATA_USER_CHORES_PAUSED] is False
+            assert const.DATA_USER_CHORES_PAUSED_UNTIL not in users[zoe_id]
+        finally:
+            set_default_timezone(original_tz)
+
+    async def test_auto_unpause_falls_back_to_midnight_rollover(
+        self,
+        hass: HomeAssistant,
+        scenario_minimal: SetupResult,
+    ) -> None:
+        """The midnight pass still resumes expired pauses (safety net)."""
+        zoe_id = scenario_minimal.assignee_ids["Zoë"]
+        users = scenario_minimal.coordinator._data[const.DATA_USERS]
+        users[zoe_id][const.DATA_USER_CHORES_PAUSED] = True
+        users[zoe_id][const.DATA_USER_CHORES_PAUSED_UNTIL] = "2026-09-27T00:00:00+00:00"
+
+        await scenario_minimal.coordinator.chore_manager._on_midnight_rollover(
+            now_utc=datetime(2026, 9, 28, 12, 0, tzinfo=UTC)
+        )
+        await hass.async_block_till_done()
+
+        assert users[zoe_id][const.DATA_USER_CHORES_PAUSED] is False
+        assert const.DATA_USER_CHORES_PAUSED_UNTIL not in users[zoe_id]
+
+    async def test_future_until_stays_paused_on_periodic(
+        self,
+        hass: HomeAssistant,
+        scenario_minimal: SetupResult,
+    ) -> None:
+        """A return date in the future keeps the pause active."""
+        zoe_id = scenario_minimal.assignee_ids["Zoë"]
+        users = scenario_minimal.coordinator._data[const.DATA_USERS]
+        users[zoe_id][const.DATA_USER_CHORES_PAUSED] = True
+        users[zoe_id][const.DATA_USER_CHORES_PAUSED_UNTIL] = "2026-09-29T00:00:00+00:00"
+
+        await scenario_minimal.coordinator.chore_manager._on_periodic_update(
+            now_utc=datetime(2026, 9, 28, 12, 0, tzinfo=UTC)
+        )
+        await hass.async_block_till_done()
+
+        assert users[zoe_id][const.DATA_USER_CHORES_PAUSED] is True
+        assert (
+            users[zoe_id][const.DATA_USER_CHORES_PAUSED_UNTIL]
+            == "2026-09-29T00:00:00+00:00"
+        )
+
+    async def test_pause_without_until_never_auto_unpauses(
+        self,
+        hass: HomeAssistant,
+        scenario_minimal: SetupResult,
+    ) -> None:
+        """No return date means an indefinite pause (documented behavior)."""
+        zoe_id = scenario_minimal.assignee_ids["Zoë"]
+        users = scenario_minimal.coordinator._data[const.DATA_USERS]
+        users[zoe_id][const.DATA_USER_CHORES_PAUSED] = True
+
+        await scenario_minimal.coordinator.chore_manager._on_periodic_update(
+            now_utc=datetime(2026, 9, 28, 12, 0, tzinfo=UTC)
+        )
+        await scenario_minimal.coordinator.chore_manager._on_midnight_rollover(
+            now_utc=datetime(2026, 9, 28, 23, 59, tzinfo=UTC)
+        )
+        await hass.async_block_till_done()
+
+        assert users[zoe_id][const.DATA_USER_CHORES_PAUSED] is True
+        assert not users[zoe_id].get(const.DATA_USER_CHORES_PAUSED_UNTIL)
+
+    async def test_auto_unpause_does_not_shift_dates(
+        self,
+        hass: HomeAssistant,
+        scenario_minimal: SetupResult,
+        zoe_context: Context,
+    ) -> None:
+        """Auto-resume never shifts schedules: reschedule stays opt-in."""
+        coordinator = scenario_minimal.coordinator
+        with patch.object(
+            coordinator.chore_manager, "reschedule_chores_after"
+        ) as reschedule_mock:
+            await hass.services.async_call(
+                const.DOMAIN,
+                SERVICE_PAUSE_USER_CHORES,
+                {
+                    "config_entry_id": scenario_minimal.config_entry.entry_id,
+                    SERVICE_FIELD_CHORES_PAUSED: True,
+                    SERVICE_FIELD_CHORES_PAUSED_UNTIL: "2026-09-27T00:00:00+00:00",
+                    "user_name": "Zoë",
+                },
+                blocking=True,
+                context=zoe_context,
+            )
+            await hass.async_block_till_done()
+
+            await coordinator.chore_manager._on_periodic_update(
+                now_utc=datetime(2026, 9, 28, 12, 0, tzinfo=UTC)
+            )
+            await hass.async_block_till_done()
+
+            reschedule_mock.assert_not_awaited()
+
+        zoe_id = scenario_minimal.assignee_ids["Zoë"]
+        user_data = coordinator._data[const.DATA_USERS][zoe_id]
+        assert user_data[const.DATA_USER_CHORES_PAUSED] is False
