@@ -532,8 +532,12 @@ parsed UTC instants, never raw strings, in
 `ChoreManager._auto_unpause_expired_users()` - called on every
 `PERIODIC_UPDATE` poll (resume lands within one poll cycle of the configured
 time) and again by the midnight rollover as a safety net. Auto-resume goes
-through the canonical `set_user_chores_paused(paused=False)` path with the
-default `unpause` action, so it never shifts dates.
+through the canonical `set_user_chores_paused(paused=False)` path as a bare
+call: a remembered `chores_paused_unpause_action` (stored when the pause was
+set with an `unpause_action`) is resolved and applied at the resume instant,
+before persist/emit and before the same-tick scan; a pause without intent
+resumes with no shift. Any resume consumes both pause fields, and pause-time
+omission clears them (D2/D3 lifecycle).
 
 Interaction lane contract (hard fork v1):
 
