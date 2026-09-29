@@ -214,11 +214,24 @@ class TestDailyMultiDueDateServices:
         self,
         hass: HomeAssistant,
         setup_enhanced_frequencies: SetupResult,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Repeated DAILY_MULTI skips should continue advancing slot by slot."""
         coordinator = setup_enhanced_frequencies.coordinator
         zoe_id = setup_enhanced_frequencies.assignee_ids["Zoë"]
         chore_id = setup_enhanced_frequencies.chore_ids["Daily Multi Single Assignee"]
+
+        # Skip advances from max(due, now) since #300 (a stale slot must never
+        # come back immediately overdue), so these slot-order assertions only
+        # held while the second slot was still in the future - they failed from
+        # 21:00 local onward. Freeze mid-day: 10:00 sits between both slot pairs
+        # on any day, making the test time-of-day independent.
+        frozen_utc = (
+            dt_util.as_local(datetime.now(UTC))
+            .replace(hour=10, minute=0, second=0, microsecond=0)
+            .astimezone(UTC)
+        )
+        monkeypatch.setattr(dt_util, "utcnow", lambda: frozen_utc)
 
         local_now = dt_util.as_local(dt_util.utcnow())
         first_slot_local = local_now.replace(hour=9, minute=0, second=0, microsecond=0)
@@ -332,10 +345,23 @@ class TestDailyMultiDueDateServices:
         self,
         hass: HomeAssistant,
         setup_enhanced_frequencies: SetupResult,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Repeated DAILY_MULTI skips should continue advancing shared slots."""
         coordinator = setup_enhanced_frequencies.coordinator
         chore_id = setup_enhanced_frequencies.chore_ids["Daily Multi Morning Evening"]
+
+        # Skip advances from max(due, now) since #300 (a stale slot must never
+        # come back immediately overdue), so these slot-order assertions only
+        # held while the second slot was still in the future - they failed from
+        # 18:00 local onward. Freeze mid-day: 10:00 sits between both slot pairs
+        # on any day, making the test time-of-day independent.
+        frozen_utc = (
+            dt_util.as_local(datetime.now(UTC))
+            .replace(hour=10, minute=0, second=0, microsecond=0)
+            .astimezone(UTC)
+        )
+        monkeypatch.setattr(dt_util, "utcnow", lambda: frozen_utc)
 
         local_now = dt_util.as_local(dt_util.utcnow())
         first_slot_local = local_now.replace(hour=7, minute=0, second=0, microsecond=0)
