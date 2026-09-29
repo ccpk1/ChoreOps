@@ -1729,9 +1729,9 @@ views:
                     {%- if completion_type_key == 'rotation_primary_standby' -%}
                       {%- set standby_claim_mode_key = chore_attrs.get('standby_claim_mode', 'anytime') -%}
                       {%- set standby_claim_mode_map = {
-                        'anytime': ui.get('anytime', 'Anytime'),
-                        'on_overdue': ui.get('on_overdue', 'On overdue'),
-                        'manual_only': ui.get('manual_only', 'Manual only')
+                        'anytime': ui.get('anytime', 'err-anytime'),
+                        'on_overdue': ui.get('on_overdue', 'err-on_overdue'),
+                        'manual_only': ui.get('manual_only', 'err-manual_only')
                       } -%}
                       {%- set section_label = ui.get('rotation_primary_standby', 'err-rotation_primary_standby') -%}
                       {%- set detail_grid = detail_grid ~ "<div style='grid-column:1 / -1;text-align:center;padding-top:2px;border-top:1px solid color-mix(in srgb, var(--divider-color) 78%, transparent);'><div style='font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--secondary-text-color);text-align:center;'>" ~ section_label ~ "</div><div style='margin-top:3px;font-size:13px;font-weight:600;line-height:1.35;color:var(--primary-text-color);text-align:center;'>" ~ (assignee_order_ns.items | join('  ·  ')) ~ "</div></div>" -%}
@@ -2278,9 +2278,9 @@ views:
                     {%- if completion_type_key == 'rotation_primary_standby' -%}
                       {%- set standby_claim_mode_key = chore_attrs.get('standby_claim_mode', 'anytime') -%}
                       {%- set standby_claim_mode_map = {
-                        'anytime': ui.get('anytime', 'Anytime'),
-                        'on_overdue': ui.get('on_overdue', 'On overdue'),
-                        'manual_only': ui.get('manual_only', 'Manual only')
+                        'anytime': ui.get('anytime', 'err-anytime'),
+                        'on_overdue': ui.get('on_overdue', 'err-on_overdue'),
+                        'manual_only': ui.get('manual_only', 'err-manual_only')
                       } -%}
                       {%- set cycle_override_active = chore_attrs.get('rotation_cycle_override') == True -%}
                       {%- set standby_mode_line = "<div style='text-align:center;font-size:11px;color:var(--secondary-text-color);margin:4px 0 2px 0;'><strong>" ~ ui.get('standby_mode', 'err-standby_mode') ~ ":</strong> " ~ (standby_claim_mode_map.get(standby_claim_mode_key, standby_claim_mode_key | replace('_', ' ') | title)) ~ ("<span style='color:var(--warning-color)'> — " ~ ui.get('all_standby_active', 'All standby users active') ~ "</span>" if cycle_override_active else '') ~ "</div>" -%}
