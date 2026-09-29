@@ -127,7 +127,7 @@
               "associated_user_ids": "Users this approver/admin supervises for approval actions.",
               "notif_approve_click_url": "Optional URL for approval notifications. Overrides the general notification tap URL when approving chores or rewards.",
               "chores_paused": "Pauses chore processing. No overdue or missed stats accumulate.",
-              "chores_paused_until": "Optional return date. If set, chores auto-resume at midnight after this date."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -642,7 +642,7 @@
               "associated_user_ids": "Users this approver/admin supervises for approval actions.",
               "notif_approve_click_url": "Optional URL for approval notifications. Overrides the general notification tap URL when approving chores or rewards.",
               "chores_paused": "Pauses chore processing. No overdue or missed stats accumulate.",
-              "chores_paused_until": "Optional return date. If set, chores auto-resume at midnight after this date."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -1106,7 +1106,7 @@
               "associated_user_ids": "Users this approver/admin supervises for approval actions.",
               "notif_approve_click_url": "Optional URL for approval notifications. Overrides the general notification tap URL when approving chores or rewards.",
               "chores_paused": "Pauses chore processing. No overdue or missed stats accumulate.",
-              "chores_paused_until": "Optional return date. If set, chores auto-resume at midnight after this date."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -2358,7 +2358,7 @@
     },
     "pause_user_chores": {
       "name": "Pause User's Chores",
-      "description": "Pause or unpause chore processing for a user. When unpausing, unpause_action controls whether past-due chores are rescheduled to prevent immediate overdue transitions.",
+      "description": "Pause or resume chore processing for a user. While paused, no overdue or missed stats accumulate and rotation advances past this user. When resuming, Unpause Action decides whether dates missed while paused are shifted forward.",
       "fields": {
         "config_entry_id": {
           "name": "Config Entry ID (Optional)",
@@ -2377,17 +2377,17 @@
         },
         "paused": {
           "name": "Paused",
-          "description": "True to pause chores, False to resume.",
+          "description": "True to pause chores, False to resume. See Unpause Action for what happens to dates missed while paused.",
           "example": "true"
         },
         "paused_until": {
           "name": "Paused Until",
-          "description": "Optional return date. If set, chores auto-resume at midnight after this date.",
+          "description": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net). Only valid while pausing (paused: true) - omit it when resuming.",
           "example": "2026-06-10T00:00:00+00:00"
         },
         "unpause_action": {
           "name": "Unpause Action",
-          "description": "Only applies when paused=false. Controls whether past-due chores are rescheduled during unpause. Default: unpause (no reschedule).",
+          "description": "On resume: decides what happens to due dates that passed while the user was paused - keep them as they are (they may show as overdue), or shift them forward so chores continue from the next occurrence. When pausing: remembers this choice and applies it at the next manual or automatic resume. Pass 'unpause' on a resume call to ignore a remembered choice; omit this field when re-pausing to clear it.",
           "example": "unpause_shift_independent"
         }
       }
@@ -5706,6 +5706,9 @@
     },
     "invalid_date_format": {
       "message": "Invalid date format. Please provide a valid date string (e.g., YYYY-MM-DD or ISO 8601 datetime)."
+    },
+    "until_on_resume": {
+      "message": "Paused Until can only be set while pausing (paused: true). Omit it when resuming."
     },
     "date_in_past": {
       "message": "Due date cannot be in the past. Please provide a future date."

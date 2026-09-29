@@ -51,7 +51,7 @@ import uuid
 
 from . import const
 from .type_defs import AssigneeData, BadgeData, ChoreData, RewardData, UserData
-from .utils.dt_utils import dt_now_utc, dt_parse
+from .utils.dt_utils import dt_now_utc, dt_parse, dt_to_utc_iso
 from .utils.math_utils import parse_points_value
 
 # ==============================================================================
@@ -1399,14 +1399,32 @@ def build_user_profile(
                 False,
             )
         ),
-        const.DATA_USER_CHORES_PAUSED_UNTIL: _resolve_user_input_field(
+        const.DATA_USER_CHORES_PAUSED_UNTIL: dt_to_utc_iso(
+            _resolve_user_input_field(
+                user_input,
+                existing_data,
+                const.CFOF_USERS_INPUT_CHORES_PAUSED_UNTIL,
+                const.DATA_USER_CHORES_PAUSED_UNTIL,
+                None,
+            )
+        ),
+        # Listed so the closed-dict rebuild keeps the key on every user-record
+        # write (update replaces wholesale); the form has no field until D4.
+        const.DATA_USER_CHORES_PAUSED_UNPAUSE_ACTION: _resolve_user_input_field(
             user_input,
             existing_data,
-            const.CFOF_USERS_INPUT_CHORES_PAUSED_UNTIL,
-            const.DATA_USER_CHORES_PAUSED_UNTIL,
+            const.CFOF_USERS_INPUT_CHORES_PAUSED_UNPAUSE_ACTION,
+            const.DATA_USER_CHORES_PAUSED_UNPAUSE_ACTION,
             None,
         ),
     }
+
+    # D3 form rows: a resolved unpause consumes the pause contract whatever
+    # the payload carried - an until submitted while unpaused is never stored.
+    if not user_profile_data[const.DATA_USER_CHORES_PAUSED]:
+        user_profile_data[const.DATA_USER_CHORES_PAUSED_UNTIL] = None
+        user_profile_data[const.DATA_USER_CHORES_PAUSED_UNPAUSE_ACTION] = None
+
     return cast("UserData", user_profile_data)
 
 
@@ -1430,6 +1448,7 @@ _USER_MANAGER_PROFILE_PRESERVE_FIELDS: frozenset[str] = frozenset(
         const.DATA_USER_UI_PREFERENCES,
         const.DATA_USER_CHORES_PAUSED,
         const.DATA_USER_CHORES_PAUSED_UNTIL,
+        const.DATA_USER_CHORES_PAUSED_UNPAUSE_ACTION,
     }
 )
 

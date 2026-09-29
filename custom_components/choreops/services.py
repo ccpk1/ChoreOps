@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse
-from homeassistant.exceptions import HomeAssistantError
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import config_validation as cv, entity_registry as er
 from homeassistant.util import dt as dt_util
 import voluptuous as vol
@@ -27,7 +27,7 @@ from .helpers.auth_helpers import (
     is_user_authorized_for_action,
 )
 from .helpers.entity_helpers import get_item_id_by_name, get_item_id_or_raise
-from .utils.dt_utils import dt_parse
+from .utils.dt_utils import dt_parse, dt_to_utc_iso
 from .utils.math_utils import parse_points_value
 
 if TYPE_CHECKING:
@@ -707,10 +707,11 @@ PAUSE_USER_CHORES_SCHEMA = vol.Schema(
             vol.Optional(const.SERVICE_FIELD_CHORES_PAUSED_UNTIL): vol.Any(
                 cv.datetime, None
             ),
-            vol.Optional(
-                const.SERVICE_FIELD_UNPAUSE_ACTION,
-                default=const.UNPAUSE_ACTION_UNPAUSE,
-            ): vol.In(const.UNPAUSE_ACTION_VALUES),
+            # No default: an absent field must stay distinguishable from an
+            # explicit 'unpause' so a bare resume can apply stored intent (D2).
+            vol.Optional(const.SERVICE_FIELD_UNPAUSE_ACTION): vol.In(
+                const.UNPAUSE_ACTION_VALUES
+            ),
         }
     )
 )
@@ -4077,6 +4078,14 @@ def async_setup_services(hass: HomeAssistant):
         paused = call.data.get(const.SERVICE_FIELD_CHORES_PAUSED, True)
         paused_until_raw = call.data.get(const.SERVICE_FIELD_CHORES_PAUSED_UNTIL)
 
+        # D8: reject before any mutation - a return time on a resume call has
+        # no valid meaning (future resumes cannot be scheduled).
+        if not paused and paused_until_raw is not None:
+            raise ServiceValidationError(
+                translation_domain=const.DOMAIN,
+                translation_key=const.TRANS_KEY_ERROR_UNTIL_ON_RESUME,
+            )
+
         # Resolve user_name to internal ID
         assignee_id = get_item_id_or_raise(
             coordinator,
@@ -4085,33 +4094,27 @@ def async_setup_services(hass: HomeAssistant):
             role=const.ROLE_ASSIGNEE,
         )
 
-        # Convert datetime to ISO string if provided
-        paused_until: str | None = None
-        if paused_until_raw is not None:
-            if isinstance(paused_until_raw, datetime):
-                paused_until = paused_until_raw.isoformat()
-            else:
-                paused_until = str(paused_until_raw)
+        # Store UTC ISO per storage standards; naive input is local time
+        # (HA service UI convention), offset-aware input keeps its instant.
+        paused_until = dt_to_utc_iso(paused_until_raw)
+
+        # None means the field was absent (bare call) - never default it here;
+        # the manager resolves explicit > stored intent > 'unpause' (D2, L2 trap).
+        unpause_action = call.data.get(const.SERVICE_FIELD_UNPAUSE_ACTION)
 
         # Delegate to ChoreManager
         await coordinator.chore_manager.set_user_chores_paused(
             assignee_id=assignee_id,
             paused=paused,
             paused_until=paused_until,
-            unpause_action=call.data.get(
-                const.SERVICE_FIELD_UNPAUSE_ACTION,
-                const.UNPAUSE_ACTION_UNPAUSE,
-            ),
+            unpause_action=unpause_action,
         )
 
         const.LOGGER.info(
             "Pause User Chores: user=%s paused=%s unpause_action=%s",
             user_name,
             paused,
-            call.data.get(
-                const.SERVICE_FIELD_UNPAUSE_ACTION,
-                const.UNPAUSE_ACTION_UNPAUSE,
-            ),
+            unpause_action,
         )
 
         await coordinator.async_request_refresh()

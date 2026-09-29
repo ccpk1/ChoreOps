@@ -432,23 +432,10 @@ class ChoreManager(BaseManager):
                         )
                         break
 
-            # Phase D: Auto-unpause expired pauses (runs after reset + overdue)
-            now_iso = now_utc.isoformat()
-            users_data = self._coordinator._data.get(const.DATA_USERS, {})
-            unpaused_count = 0
-            for _user_id, user_data_inner in users_data.items():
-                if not user_data_inner.get(const.DATA_USER_CHORES_PAUSED):
-                    continue
-                until_str = user_data_inner.get(const.DATA_USER_CHORES_PAUSED_UNTIL)
-                if until_str and until_str < now_iso:
-                    user_data_inner[const.DATA_USER_CHORES_PAUSED] = False
-                    user_data_inner.pop(const.DATA_USER_CHORES_PAUSED_UNTIL, None)
-                    unpaused_count += 1
+            # Phase D: Auto-unpause expired pauses (safety net for missed polls)
+            unpaused_count = await self._auto_unpause_expired_users(now_utc)
             if unpaused_count > 0:
                 state_modified = True
-                const.LOGGER.info(
-                    "Auto-unpaused %d user(s) at midnight", unpaused_count
-                )
 
             return reset_count
         except Exception:
@@ -466,6 +453,44 @@ class ChoreManager(BaseManager):
                     const.LOGGER.exception(
                         "ChoreManager: Critical - failed to persist midnight changes"
                     )
+
+    async def _auto_unpause_expired_users(self, now_utc: datetime) -> int:
+        """Auto-resume users whose paused_until time has passed.
+
+        Primary trigger is the periodic update, so a resume lands within one
+        poll cycle of the configured time; the midnight rollover repeats this
+        as a safety net for missed polls, backup restores, and direct data
+        writes (same dual-layer pattern as the rotation Phase C safety net).
+
+        Delegates to set_user_chores_paused(paused=False) so auto-resume uses
+        the same canonical write path as a manual resume (persist, USER_UPDATED
+        signal, rotation snap-back). The call is bare: stored resume intent
+        (chores_paused_unpause_action), when present, is resolved and applied
+        by the canonical method (D7); a pause without intent resumes with no
+        shift.
+
+        Args:
+            now_utc: Current UTC time.
+
+        Returns:
+            Number of users auto-unpaused.
+        """
+        users_data = self._coordinator._data.get(const.DATA_USERS, {})
+        unpaused_count = 0
+        for user_id, user_data_inner in users_data.items():
+            if not user_data_inner.get(const.DATA_USER_CHORES_PAUSED):
+                continue
+            until_str = user_data_inner.get(const.DATA_USER_CHORES_PAUSED_UNTIL)
+            if not until_str:
+                continue
+            until_utc = dt_to_utc(until_str)
+            if until_utc is None or until_utc > now_utc:
+                continue
+            await self.set_user_chores_paused(assignee_id=user_id, paused=False)
+            unpaused_count += 1
+        if unpaused_count > 0:
+            const.LOGGER.info("Auto-unpaused %d user(s)", unpaused_count)
+        return unpaused_count
 
     async def _on_periodic_update(
         self,
@@ -507,6 +532,10 @@ class ChoreManager(BaseManager):
             if now_utc is None:
                 now_utc = dt_util.utcnow()
 
+            # Auto-unpause before the scan so this cycle sees current pause
+            # flags; the midnight rollover repeats this as a safety net.
+            unpaused_count = await self._auto_unpause_expired_users(now_utc)
+
             # Single-pass scan categorizes ALL actionable items
             scan = self.process_time_checks(now_utc, trigger=trigger)
 
@@ -514,7 +543,7 @@ class ChoreManager(BaseManager):
             reset_count, reset_pairs = await self._process_approval_reset_entries(
                 scan, now_utc, trigger, persist=False
             )
-            state_modified = reset_count > 0
+            state_modified = reset_count > 0 or unpaused_count > 0
 
             # Phase B: Overdue, EXCLUDING anything just reset
             filtered_overdue = [
@@ -6472,7 +6501,7 @@ class ChoreManager(BaseManager):
         assignee_id: str,
         paused: bool,
         paused_until: str | None = None,
-        unpause_action: str = "unpause",
+        unpause_action: str | None = None,
     ) -> None:
         """Set chore pause flag and advance rotation if pausing.
 
@@ -6481,15 +6510,22 @@ class ChoreManager(BaseManager):
         and advances the turn to the next available non-paused assignee
         in real time (not waiting for midnight).
 
-        If UNPAUSING with an unpause_action other than 'unpause', also
-        reschedules past-due chores to prevent immediate overdue transitions.
+        If UNPAUSING, the resolved action (explicit parameter, else stored
+        resume intent, else 'unpause') shifts past-due chores at the resume
+        instant, atomically with the flag clear (D7).
+
+        Pause-time omission clears (D2/D3): a pause call without paused_until
+        or unpause_action removes any previously stored values, so nothing
+        leaks into a later pause cycle. Any unpause consumes both fields.
 
         Args:
             assignee_id: Internal ID of the user to pause/unpause
             paused: True to pause, False to unpause
-            paused_until: Optional UTC ISO datetime for auto-unpause
-            unpause_action: 'unpause', 'unpause_shift_independent',
-                'unpause_shift_all_primary', or 'unpause_shift_all'
+            paused_until: Optional UTC ISO datetime; stored only while pausing
+            unpause_action: None (bare call), 'unpause',
+                'unpause_shift_independent', 'unpause_shift_all_primary', or
+                'unpause_shift_all'; stored as resume intent at pause time,
+                applied at resume time
         """
         user_data = self._coordinator._data.get(const.DATA_USERS, {}).get(assignee_id)
         if user_data is None:
@@ -6498,11 +6534,28 @@ class ChoreManager(BaseManager):
                 translation_key=const.TRANS_KEY_ERROR_CHORE_NOT_FOUND,
             )
 
+        stored_action = user_data.get(const.DATA_USER_CHORES_PAUSED_UNPAUSE_ACTION)
+        resolved_action = (
+            unpause_action or stored_action or const.UNPAUSE_ACTION_UNPAUSE
+        )
+
         user_data[const.DATA_USER_CHORES_PAUSED] = paused
-        if paused_until is not None:
-            user_data[const.DATA_USER_CHORES_PAUSED_UNTIL] = paused_until
-        elif not paused:
+        if paused:
+            # D3: on pause, omission clears - a re-pause rewrites the whole
+            # pause contract instead of inheriting stale values.
+            if paused_until is not None:
+                user_data[const.DATA_USER_CHORES_PAUSED_UNTIL] = paused_until
+            else:
+                user_data.pop(const.DATA_USER_CHORES_PAUSED_UNTIL, None)
+            if unpause_action is not None:
+                user_data[const.DATA_USER_CHORES_PAUSED_UNPAUSE_ACTION] = unpause_action
+            else:
+                user_data.pop(const.DATA_USER_CHORES_PAUSED_UNPAUSE_ACTION, None)
+        else:
+            # Any unpause consumes both fields; a provided until is never
+            # stored while unpaused (stale-until defect fixed here).
             user_data.pop(const.DATA_USER_CHORES_PAUSED_UNTIL, None)
+            user_data.pop(const.DATA_USER_CHORES_PAUSED_UNPAUSE_ACTION, None)
 
         # If pausing: advance rotation past this user in real time
         # If unpausing: snap primary-standby chores back to primary (G-5)
@@ -6511,8 +6564,9 @@ class ChoreManager(BaseManager):
         else:
             self._snap_rotation_back_to_primary(assignee_id)
 
-        # Smart unpause: reschedule past-due chores if requested
-        if not paused and unpause_action != "unpause":
+        # Smart unpause: the shift past "now" runs at the unpause (D7), using
+        # the resolved action (explicit > stored intent > 'unpause')
+        if not paused and resolved_action != "unpause":
             unpause_map = {
                 "unpause_shift_independent": {
                     "reschedule_independent": True,
@@ -6530,7 +6584,7 @@ class ChoreManager(BaseManager):
                     "reschedule_shared": True,
                 },
             }
-            flags = unpause_map.get(unpause_action)
+            flags = unpause_map.get(resolved_action)
             if flags:
                 await self.reschedule_chores_after(
                     dt_util.utcnow(),

@@ -353,7 +353,8 @@ SCHEMA_VERSION_BETA5: Final = 45  # Legacy schema45 checkpoint.
 SCHEMA_VERSION_1_0_0: Final = 100  # First GA schema checkpoint.
 SCHEMA_VERSION_1_5_0: Final = 150  # Release 1.5.0 schema checkpoint.
 SCHEMA_VERSION_1_5_3: Final = 153  # Release 1.5.3: badge streak_history added.
-SCHEMA_VERSION_CURRENT: Final = SCHEMA_VERSION_1_5_3
+SCHEMA_VERSION_1_6_0: Final = 160  # Release 1.6.0: pause resume-intent added.
+SCHEMA_VERSION_CURRENT: Final = SCHEMA_VERSION_1_6_0
 
 # Float precision for stored numeric values (points, chore stats, etc.)
 # Prevents Python float arithmetic drift (e.g., 27.499999999999996 → 27.5)
@@ -649,6 +650,7 @@ CFOF_USERS_INPUT_CAN_APPROVE: Final = "can_approve"
 CFOF_USERS_INPUT_CAN_MANAGE: Final = "can_manage"
 CFOF_USERS_INPUT_CHORES_PAUSED: Final = "chores_paused"
 CFOF_USERS_INPUT_CHORES_PAUSED_UNTIL: Final = "chores_paused_until"
+CFOF_USERS_INPUT_CHORES_PAUSED_UNPAUSE_ACTION: Final = "chores_paused_unpause_action"
 
 # CHORES
 CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: Final = "approval_reset_type"
@@ -1272,6 +1274,7 @@ DATA_USER_CAN_MANAGE: Final = "can_manage"
 DATA_USER_CAN_BE_ASSIGNED: Final = "can_be_assigned"
 DATA_USER_CHORES_PAUSED: Final = "chores_paused"
 DATA_USER_CHORES_PAUSED_UNTIL: Final = "chores_paused_until"
+DATA_USER_CHORES_PAUSED_UNPAUSE_ACTION: Final = "chores_paused_unpause_action"
 DATA_USER_ENABLE_CHORE_WORKFLOW: Final = "enable_chore_workflow"
 DATA_USER_ENABLE_GAMIFICATION: Final = "enable_gamification"
 
@@ -3488,6 +3491,9 @@ TRANS_KEY_ERROR_SHARED_CHORE_ASSIGNEE: Final = (
 )
 TRANS_KEY_ERROR_INVALID_DATE_FORMAT: Final = (
     "invalid_date_format"  # Invalid date format
+)
+TRANS_KEY_ERROR_UNTIL_ON_RESUME: Final = (
+    "until_on_resume"  # paused_until can only be set while pausing
 )
 TRANS_KEY_ERROR_DATE_IN_PAST: Final = "date_in_past"  # Due date cannot be in the past
 TRANS_KEY_ERROR_FUTURE_DUE_DATE_REQUIRED: Final = (
