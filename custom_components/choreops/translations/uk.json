@@ -127,7 +127,7 @@
               "associated_user_ids": "Користувачі, яких цей затверджувач/адміністратор контролює для дій зі затвердження.",
               "notif_approve_click_url": "Додаткова URL-адреса для сповіщень про схвалення. Замінює загальну URL-адресу сповіщень під час схвалення завдань або винагород.",
               "chores_paused": "Призупиняє обробку завдань. Прострочені або пропущені статистичні дані не накопичуються.",
-              "chores_paused_until": "Дата повернення (необов’язкова). Якщо встановлено, домашні справи автоматично відновлюються опівночі після цієї дати."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -642,7 +642,7 @@
               "associated_user_ids": "Користувачі, яких цей затверджувач/адміністратор контролює для дій зі затвердження.",
               "notif_approve_click_url": "Додаткова URL-адреса для сповіщень про схвалення. Замінює загальну URL-адресу сповіщень під час схвалення завдань або винагород.",
               "chores_paused": "Призупиняє обробку завдань. Прострочені або пропущені статистичні дані не накопичуються.",
-              "chores_paused_until": "Дата повернення (необов’язкова). Якщо встановлено, домашні справи автоматично відновлюються опівночі після цієї дати."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -1106,7 +1106,7 @@
               "associated_user_ids": "Користувачі, яких цей затверджувач/адміністратор контролює для дій зі затвердження.",
               "notif_approve_click_url": "Додаткова URL-адреса для сповіщень про схвалення. Замінює загальну URL-адресу сповіщень під час схвалення завдань або винагород.",
               "chores_paused": "Призупиняє обробку завдань. Прострочені або пропущені статистичні дані не накопичуються.",
-              "chores_paused_until": "Дата повернення (необов’язкова). Якщо встановлено, домашні справи автоматично відновлюються опівночі після цієї дати."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -2358,7 +2358,7 @@
     },
     "pause_user_chores": {
       "name": "Призупинити виконання завдань користувача",
-      "description": "Призупинити або відновити обробку завдань для користувача. Під час відновлення паузи unpause_action контролює, чи переплановуються прострочені завдання, щоб запобігти негайним простроченим переходам.",
+      "description": "Pause or resume chore processing for a user. While paused, no overdue or missed stats accumulate and rotation advances past this user. When resuming, Unpause Action decides whether dates missed while paused are shifted forward.",
       "fields": {
         "config_entry_id": {
           "name": "Ідентифікатор запису конфігурації (необов'язково)",
@@ -2377,17 +2377,17 @@
         },
         "paused": {
           "name": "Призупинено",
-          "description": "True для призупинення завдань, False для їх відновлення.",
+          "description": "True to pause chores, False to resume. See Unpause Action for what happens to dates missed while paused.",
           "example": "правда"
         },
         "paused_until": {
           "name": "Призупинено до",
-          "description": "Дата повернення (необов’язкова). Якщо встановлено, домашні справи автоматично відновлюються опівночі після цієї дати.",
+          "description": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net). Only valid while pausing (paused: true) - omit it when resuming.",
           "example": "2026-06-10T00:00:00+00:00"
         },
         "unpause_action": {
           "name": "Відновити дію",
-          "description": "Застосовується лише тоді, коли paused=false. Визначає, чи переплановуються прострочені завдання під час розпаузи. За замовчуванням: розпауза (без перепланування).",
+          "description": "On resume: decides what happens to due dates that passed while the user was paused - keep them as they are (they may show as overdue), or shift them forward so chores continue from the next occurrence. When pausing: remembers this choice and applies it at the next manual or automatic resume. Pass 'unpause' on a resume call to ignore a remembered choice; omit this field when re-pausing to clear it.",
           "example": "unpause_shift_independent"
         }
       }
@@ -5706,6 +5706,9 @@
     },
     "invalid_date_format": {
       "message": "Недійсний формат дати. Будь ласка, надайте дійсний рядок дати (наприклад, РРРР-ММ-ДД або дата й час за стандартом ISO 8601)."
+    },
+    "until_on_resume": {
+      "message": "Paused Until can only be set while pausing (paused: true). Omit it when resuming."
     },
     "date_in_past": {
       "message": "Дата виконання не може бути в минулому. Будь ласка, вкажіть майбутню дату."

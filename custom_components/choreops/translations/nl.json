@@ -127,7 +127,7 @@
               "associated_user_ids": "Gebruikers die onder toezicht staan van deze goedkeurder/beheerder voor goedkeuringsacties.",
               "notif_approve_click_url": "Optionele URL voor goedkeuringsmeldingen. Deze overschrijft de algemene meldings-URL bij het goedkeuren van taken of beloningen.",
               "chores_paused": "Pauzeert de verwerking van taken. Er worden geen achterstallige of gemiste statistieken bijgehouden.",
-              "chores_paused_until": "Optionele terugkeerdatum. Indien ingesteld, worden de klusjes na deze datum automatisch hervat om middernacht."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -642,7 +642,7 @@
               "associated_user_ids": "Gebruikers die onder toezicht staan van deze goedkeurder/beheerder voor goedkeuringsacties.",
               "notif_approve_click_url": "Optionele URL voor goedkeuringsmeldingen. Deze overschrijft de algemene meldings-URL bij het goedkeuren van taken of beloningen.",
               "chores_paused": "Pauzeert de verwerking van taken. Er worden geen achterstallige of gemiste statistieken bijgehouden.",
-              "chores_paused_until": "Optionele terugkeerdatum. Indien ingesteld, worden de klusjes na deze datum automatisch hervat om middernacht."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -1106,7 +1106,7 @@
               "associated_user_ids": "Gebruikers die onder toezicht staan van deze goedkeurder/beheerder voor goedkeuringsacties.",
               "notif_approve_click_url": "Optionele URL voor goedkeuringsmeldingen. Deze overschrijft de algemene meldings-URL bij het goedkeuren van taken of beloningen.",
               "chores_paused": "Pauzeert de verwerking van taken. Er worden geen achterstallige of gemiste statistieken bijgehouden.",
-              "chores_paused_until": "Optionele terugkeerdatum. Indien ingesteld, worden de klusjes na deze datum automatisch hervat om middernacht."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -2358,7 +2358,7 @@
     },
     "pause_user_chores": {
       "name": "Pauzeer de taken van de gebruiker",
-      "description": "Pauzeer of hervat de verwerking van taken voor een gebruiker. Bij het hervatten van de verwerking bepaalt unpause_action of achterstallige taken opnieuw worden ingepland om te voorkomen dat er direct overgangen naar achterstallige taken plaatsvinden.",
+      "description": "Pause or resume chore processing for a user. While paused, no overdue or missed stats accumulate and rotation advances past this user. When resuming, Unpause Action decides whether dates missed while paused are shifted forward.",
       "fields": {
         "config_entry_id": {
           "name": "Configuratie-item-ID (optioneel)",
@@ -2377,17 +2377,17 @@
         },
         "paused": {
           "name": "Gepauzeerd",
-          "description": "Het is waar om klusjes te pauzeren, onwaar om ze te hervatten.",
+          "description": "True to pause chores, False to resume. See Unpause Action for what happens to dates missed while paused.",
           "example": "WAAR"
         },
         "paused_until": {
           "name": "Gepauzeerd tot",
-          "description": "Optionele terugkeerdatum. Indien ingesteld, worden de klusjes na deze datum automatisch hervat om middernacht.",
+          "description": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net). Only valid while pausing (paused: true) - omit it when resuming.",
           "example": "2026-06-10T00:00:00+00:00"
         },
         "unpause_action": {
           "name": "Actie hervatten",
-          "description": "Geldt alleen wanneer paused=false. Bepaalt of achterstallige taken opnieuw worden ingepland wanneer de pauze wordt opgeheven. Standaard: pauze wordt opgeheven (niet opnieuw inplannen).",
+          "description": "On resume: decides what happens to due dates that passed while the user was paused - keep them as they are (they may show as overdue), or shift them forward so chores continue from the next occurrence. When pausing: remembers this choice and applies it at the next manual or automatic resume. Pass 'unpause' on a resume call to ignore a remembered choice; omit this field when re-pausing to clear it.",
           "example": "unpause_shift_independent"
         }
       }
@@ -5706,6 +5706,9 @@
     },
     "invalid_date_format": {
       "message": "Ongeldig datumformaat. Geef een geldige datumstring op (bijv. JJJJ-MM-DD of ISO 8601 datum en tijd)."
+    },
+    "until_on_resume": {
+      "message": "Paused Until can only be set while pausing (paused: true). Omit it when resuming."
     },
     "date_in_past": {
       "message": "De uiterste inleverdatum mag niet in het verleden liggen. Geef een datum in de toekomst op."

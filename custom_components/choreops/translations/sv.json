@@ -127,7 +127,7 @@
               "associated_user_ids": "Användare som denna godkännare/administratör övervakar för godkännandeåtgärder.",
               "notif_approve_click_url": "Valfri URL för godkännandemeddelanden. Åsidosätter den allmänna URL:en för aviseringar vid godkännande av sysslor eller belöningar.",
               "chores_paused": "Pausar sysslobearbetningen. Ingen statistik för försenade eller missade uppgifter ackumuleras.",
-              "chores_paused_until": "Valfritt återlämningsdatum. Om det är inställt återupptas sysslor automatiskt vid midnatt efter detta datum."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -642,7 +642,7 @@
               "associated_user_ids": "Användare som denna godkännare/administratör övervakar för godkännandeåtgärder.",
               "notif_approve_click_url": "Valfri URL för godkännandemeddelanden. Åsidosätter den allmänna URL:en för aviseringar vid godkännande av sysslor eller belöningar.",
               "chores_paused": "Pausar sysslobearbetningen. Ingen statistik för försenade eller missade uppgifter ackumuleras.",
-              "chores_paused_until": "Valfritt återlämningsdatum. Om det är inställt återupptas sysslor automatiskt vid midnatt efter detta datum."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -1106,7 +1106,7 @@
               "associated_user_ids": "Användare som denna godkännare/administratör övervakar för godkännandeåtgärder.",
               "notif_approve_click_url": "Valfri URL för godkännandemeddelanden. Åsidosätter den allmänna URL:en för aviseringar vid godkännande av sysslor eller belöningar.",
               "chores_paused": "Pausar sysslobearbetningen. Ingen statistik för försenade eller missade uppgifter ackumuleras.",
-              "chores_paused_until": "Valfritt återlämningsdatum. Om det är inställt återupptas sysslor automatiskt vid midnatt efter detta datum."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -2358,7 +2358,7 @@
     },
     "pause_user_chores": {
       "name": "Pausa användarens sysslor",
-      "description": "Pausa eller återuppta sysslobearbetning för en användare. Vid återupptagning styr unpause_action om förfallna sysslor schemaläggs om för att förhindra omedelbara försenade övergångar.",
+      "description": "Pause or resume chore processing for a user. While paused, no overdue or missed stats accumulate and rotation advances past this user. When resuming, Unpause Action decides whether dates missed while paused are shifted forward.",
       "fields": {
         "config_entry_id": {
           "name": "Konfigurationspost-ID (valfritt)",
@@ -2377,17 +2377,17 @@
         },
         "paused": {
           "name": "Pausad",
-          "description": "Sant för att pausa sysslor, Falskt för att återuppta.",
+          "description": "True to pause chores, False to resume. See Unpause Action for what happens to dates missed while paused.",
           "example": "sann"
         },
         "paused_until": {
           "name": "Pausad tills",
-          "description": "Valfritt återlämningsdatum. Om det är inställt återupptas sysslor automatiskt vid midnatt efter detta datum.",
+          "description": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net). Only valid while pausing (paused: true) - omit it when resuming.",
           "example": "2026-06-10T00:00:00+00:00"
         },
         "unpause_action": {
           "name": "Återuppta åtgärden",
-          "description": "Gäller endast när paused=false. Styr om förfallna sysslor schemaläggs om under återuppta paus. Standard: återuppta paus (ingen omplanering).",
+          "description": "On resume: decides what happens to due dates that passed while the user was paused - keep them as they are (they may show as overdue), or shift them forward so chores continue from the next occurrence. When pausing: remembers this choice and applies it at the next manual or automatic resume. Pass 'unpause' on a resume call to ignore a remembered choice; omit this field when re-pausing to clear it.",
           "example": "unpause_shift_oberoende"
         }
       }
@@ -5706,6 +5706,9 @@
     },
     "invalid_date_format": {
       "message": "Ogiltigt datumformat. Ange en giltig datumsträng (t.ex. ÅÅÅÅ-MM-DD eller ISO 8601 datum/tid)."
+    },
+    "until_on_resume": {
+      "message": "Paused Until can only be set while pausing (paused: true). Omit it when resuming."
     },
     "date_in_past": {
       "message": "Förfallodatumet får inte vara i det förflutna. Ange ett framtida datum."

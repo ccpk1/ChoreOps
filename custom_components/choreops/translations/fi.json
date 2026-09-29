@@ -127,7 +127,7 @@
               "associated_user_ids": "Käyttäjät, joita tämä hyväksyjä/ylläpitäjä valvoo hyväksyntätoimien osalta.",
               "notif_approve_click_url": "Valinnainen URL-osoite hyväksymisilmoituksille. Korvaa yleisen ilmoitusnapautuksen URL-osoitteen, kun hyväksytään askareita tai palkintoja.",
               "chores_paused": "Keskeyttää tehtävien käsittelyn. Myöhässä olevia tai puuttuvia tilastoja ei kerry.",
-              "chores_paused_until": "Valinnainen palautuspäivämäärä. Jos asetettu, tehtävät jatkuvat automaattisesti keskiyöllä tämän päivämäärän jälkeen."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -642,7 +642,7 @@
               "associated_user_ids": "Käyttäjät, joita tämä hyväksyjä/ylläpitäjä valvoo hyväksyntätoimien osalta.",
               "notif_approve_click_url": "Valinnainen URL-osoite hyväksymisilmoituksille. Korvaa yleisen ilmoitusnapautuksen URL-osoitteen, kun hyväksytään askareita tai palkintoja.",
               "chores_paused": "Keskeyttää tehtävien käsittelyn. Myöhässä olevia tai puuttuvia tilastoja ei kerry.",
-              "chores_paused_until": "Valinnainen palautuspäivämäärä. Jos asetettu, tehtävät jatkuvat automaattisesti keskiyöllä tämän päivämäärän jälkeen."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -1106,7 +1106,7 @@
               "associated_user_ids": "Käyttäjät, joita tämä hyväksyjä/ylläpitäjä valvoo hyväksyntätoimien osalta.",
               "notif_approve_click_url": "Valinnainen URL-osoite hyväksymisilmoituksille. Korvaa yleisen ilmoitusnapautuksen URL-osoitteen, kun hyväksytään askareita tai palkintoja.",
               "chores_paused": "Keskeyttää tehtävien käsittelyn. Myöhässä olevia tai puuttuvia tilastoja ei kerry.",
-              "chores_paused_until": "Valinnainen palautuspäivämäärä. Jos asetettu, tehtävät jatkuvat automaattisesti keskiyöllä tämän päivämäärän jälkeen."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -2358,7 +2358,7 @@
     },
     "pause_user_chores": {
       "name": "Keskeytä käyttäjän askareita",
-      "description": "Keskeytä tai jatka käyttäjän tehtävien käsittelyä. Kun keskeytystä jatketaan, unpause_action-funktio määrittää, ajoitetaanko myöhässä olevat tehtävät uudelleen välittömien myöhässä olevien siirtymien estämiseksi.",
+      "description": "Pause or resume chore processing for a user. While paused, no overdue or missed stats accumulate and rotation advances past this user. When resuming, Unpause Action decides whether dates missed while paused are shifted forward.",
       "fields": {
         "config_entry_id": {
           "name": "Konfiguraatiomerkinnän tunnus (valinnainen)",
@@ -2377,17 +2377,17 @@
         },
         "paused": {
           "name": "Keskeytetty",
-          "description": "Tosi keskeyttääksesi askareita, Epätosi jatkaaksesi.",
+          "description": "True to pause chores, False to resume. See Unpause Action for what happens to dates missed while paused.",
           "example": "totta"
         },
         "paused_until": {
           "name": "Keskeytetty, kunnes",
-          "description": "Valinnainen palautuspäivämäärä. Jos asetettu, tehtävät jatkuvat automaattisesti keskiyöllä tämän päivämäärän jälkeen.",
+          "description": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net). Only valid while pausing (paused: true) - omit it when resuming.",
           "example": "2026-06-10T00:00:00+00:00"
         },
         "unpause_action": {
           "name": "Toiminnon jatkaminen",
-          "description": "Koskee vain, kun paused=false. Määrittää, ajoitetaanko erääntyneet tehtävät uudelleen tauon purkamisen aikana. Oletusarvo: peruuta tauko (ei uudelleenajoitusta).",
+          "description": "On resume: decides what happens to due dates that passed while the user was paused - keep them as they are (they may show as overdue), or shift them forward so chores continue from the next occurrence. When pausing: remembers this choice and applies it at the next manual or automatic resume. Pass 'unpause' on a resume call to ignore a remembered choice; omit this field when re-pausing to clear it.",
           "example": "keskeytä_siirto_riippumaton"
         }
       }
@@ -5706,6 +5706,9 @@
     },
     "invalid_date_format": {
       "message": "Virheellinen päivämäärän muoto. Anna kelvollinen päivämäärämerkkijono (esim. VVVV-KK-PP tai ISO 8601 -päivämäärä ja -kellonaika)."
+    },
+    "until_on_resume": {
+      "message": "Paused Until can only be set while pausing (paused: true). Omit it when resuming."
     },
     "date_in_past": {
       "message": "Määräpäivä ei voi olla menneisyydessä. Anna päivämäärä tulevaisuudessa."

@@ -127,7 +127,7 @@
               "associated_user_ids": "Utilisateurs supervisés par cet approbateur/administrateur pour les actions d'approbation.",
               "notif_approve_click_url": "URL facultative pour les notifications d'approbation. Remplace l'URL de notification générale lors de l'approbation de tâches ou de récompenses.",
               "chores_paused": "Suspend le traitement des tâches. Aucune statistique de retard ou d'oubli ne s'accumule.",
-              "chores_paused_until": "Date de retour facultative. Si cette date est définie, les tâches reprennent automatiquement à minuit après cette date."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -642,7 +642,7 @@
               "associated_user_ids": "Utilisateurs supervisés par cet approbateur/administrateur pour les actions d'approbation.",
               "notif_approve_click_url": "URL facultative pour les notifications d'approbation. Remplace l'URL de notification générale lors de l'approbation de tâches ou de récompenses.",
               "chores_paused": "Suspend le traitement des tâches. Aucune statistique de retard ou d'oubli ne s'accumule.",
-              "chores_paused_until": "Date de retour facultative. Si cette date est définie, les tâches reprennent automatiquement à minuit après cette date."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -1106,7 +1106,7 @@
               "associated_user_ids": "Utilisateurs supervisés par cet approbateur/administrateur pour les actions d'approbation.",
               "notif_approve_click_url": "URL facultative pour les notifications d'approbation. Remplace l'URL de notification générale lors de l'approbation de tâches ou de récompenses.",
               "chores_paused": "Suspend le traitement des tâches. Aucune statistique de retard ou d'oubli ne s'accumule.",
-              "chores_paused_until": "Date de retour facultative. Si cette date est définie, les tâches reprennent automatiquement à minuit après cette date."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -2358,7 +2358,7 @@
     },
     "pause_user_chores": {
       "name": "Mettre en pause les tâches de l'utilisateur",
-      "description": "Suspendre ou reprendre le traitement des tâches pour un utilisateur. Lors de la reprise, l'option `unpause_action` détermine si les tâches en retard sont reprogrammées afin d'éviter les transitions immédiates vers les tâches en retard.",
+      "description": "Pause or resume chore processing for a user. While paused, no overdue or missed stats accumulate and rotation advances past this user. When resuming, Unpause Action decides whether dates missed while paused are shifted forward.",
       "fields": {
         "config_entry_id": {
           "name": "ID de l'entrée de configuration (facultatif)",
@@ -2377,17 +2377,17 @@
         },
         "paused": {
           "name": "En pause",
-          "description": "Vrai pour interrompre les tâches, faux pour les reprendre.",
+          "description": "True to pause chores, False to resume. See Unpause Action for what happens to dates missed while paused.",
           "example": "vrai"
         },
         "paused_until": {
           "name": "En pause jusqu'à",
-          "description": "Date de retour facultative. Si cette date est définie, les tâches reprennent automatiquement à minuit après cette date.",
+          "description": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net). Only valid while pausing (paused: true) - omit it when resuming.",
           "example": "2026-06-10T00:00:00+00:00"
         },
         "unpause_action": {
           "name": "Reprendre l'action",
-          "description": "S'applique uniquement lorsque paused=false. Détermine si les tâches en retard sont reprogrammées lors de la reprise. Par défaut : reprise (pas de reprogrammation).",
+          "description": "On resume: decides what happens to due dates that passed while the user was paused - keep them as they are (they may show as overdue), or shift them forward so chores continue from the next occurrence. When pausing: remembers this choice and applies it at the next manual or automatic resume. Pass 'unpause' on a resume call to ignore a remembered choice; omit this field when re-pausing to clear it.",
           "example": "dépause_shift_indépendant"
         }
       }
@@ -5706,6 +5706,9 @@
     },
     "invalid_date_format": {
       "message": "Format de date invalide. Veuillez fournir une chaîne de date valide (par exemple, AAAA-MM-JJ ou date/heure au format ISO 8601)."
+    },
+    "until_on_resume": {
+      "message": "Paused Until can only be set while pausing (paused: true). Omit it when resuming."
     },
     "date_in_past": {
       "message": "La date d'échéance ne peut pas être passée. Veuillez indiquer une date future."

@@ -127,7 +127,7 @@
               "associated_user_ids": "Používatelia, ktorých tento schvaľovateľ/správca dohliada na schvaľovacie akcie.",
               "notif_approve_click_url": "Voliteľná URL adresa pre oznámenia o schválení. Prepíše všeobecnú URL adresu oznámenia pri schvaľovaní domácich úloh alebo odmien.",
               "chores_paused": "Pozastaví spracovanie úloh. Nezhromažďujú sa žiadne oneskorené ani zmeškané štatistiky.",
-              "chores_paused_until": "Voliteľný dátum návratu. Ak je nastavený, domáce práce sa automaticky obnovia o polnoci po tomto dátume."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -642,7 +642,7 @@
               "associated_user_ids": "Používatelia, ktorých tento schvaľovateľ/správca dohliada na schvaľovacie akcie.",
               "notif_approve_click_url": "Voliteľná URL adresa pre oznámenia o schválení. Prepíše všeobecnú URL adresu oznámenia pri schvaľovaní domácich úloh alebo odmien.",
               "chores_paused": "Pozastaví spracovanie úloh. Nezhromažďujú sa žiadne oneskorené ani zmeškané štatistiky.",
-              "chores_paused_until": "Voliteľný dátum návratu. Ak je nastavený, domáce práce sa automaticky obnovia o polnoci po tomto dátume."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -1106,7 +1106,7 @@
               "associated_user_ids": "Používatelia, ktorých tento schvaľovateľ/správca dohliada na schvaľovacie akcie.",
               "notif_approve_click_url": "Voliteľná URL adresa pre oznámenia o schválení. Prepíše všeobecnú URL adresu oznámenia pri schvaľovaní domácich úloh alebo odmien.",
               "chores_paused": "Pozastaví spracovanie úloh. Nezhromažďujú sa žiadne oneskorené ani zmeškané štatistiky.",
-              "chores_paused_until": "Voliteľný dátum návratu. Ak je nastavený, domáce práce sa automaticky obnovia o polnoci po tomto dátume."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -2358,7 +2358,7 @@
     },
     "pause_user_chores": {
       "name": "Pozastaviť domáce úlohy používateľa",
-      "description": "Pozastavenie alebo obnovenie spracovania úloh pre používateľa. Pri obnovení pozastavenia unpause_action riadi, či sa úlohy po termíne preplánujú, aby sa predišlo okamžitým prechodom po termíne.",
+      "description": "Pause or resume chore processing for a user. While paused, no overdue or missed stats accumulate and rotation advances past this user. When resuming, Unpause Action decides whether dates missed while paused are shifted forward.",
       "fields": {
         "config_entry_id": {
           "name": "ID konfiguračnej položky (voliteľné)",
@@ -2377,17 +2377,17 @@
         },
         "paused": {
           "name": "Pozastavené",
-          "description": "Pravda pre pozastavenie domácich úloh, Nepravda pre obnovenie.",
+          "description": "True to pause chores, False to resume. See Unpause Action for what happens to dates missed while paused.",
           "example": "pravda"
         },
         "paused_until": {
           "name": "Pozastavené do",
-          "description": "Voliteľný dátum návratu. Ak je nastavený, domáce práce sa automaticky obnovia o polnoci po tomto dátume.",
+          "description": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net). Only valid while pausing (paused: true) - omit it when resuming.",
           "example": "2026-06-10T00:00:00+00:00"
         },
         "unpause_action": {
           "name": "Zrušiť pozastavenie akcie",
-          "description": "Platí iba vtedy, keď je paused=false. Určuje, či sa oneskorené úlohy počas zrušenia pozastavenia preplánujú. Predvolené: zrušiť pozastavenie (bez preplánovania).",
+          "description": "On resume: decides what happens to due dates that passed while the user was paused - keep them as they are (they may show as overdue), or shift them forward so chores continue from the next occurrence. When pausing: remembers this choice and applies it at the next manual or automatic resume. Pass 'unpause' on a resume call to ignore a remembered choice; omit this field when re-pausing to clear it.",
           "example": "unpause_shift_independent"
         }
       }
@@ -5706,6 +5706,9 @@
     },
     "invalid_date_format": {
       "message": "Neplatný formát dátumu. Zadajte platný reťazec dátumu (napr. RRRR-MM-DD alebo dátum a čas podľa normy ISO 8601)."
+    },
+    "until_on_resume": {
+      "message": "Paused Until can only be set while pausing (paused: true). Omit it when resuming."
     },
     "date_in_past": {
       "message": "Dátum splatnosti nemôže byť v minulosti. Zadajte dátum v budúcnosti."
