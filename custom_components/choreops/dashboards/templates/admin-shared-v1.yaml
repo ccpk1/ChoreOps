@@ -2546,8 +2546,11 @@ views:
                     {%- set pause_style_mod = {'card': [{'height': '48px'}, {'padding': '6px 12px'}, {'border-radius': '10px'}, {'box-shadow': 'none'}, {'border': '1px solid color-mix(in srgb, var(--error-color) 18%, var(--divider-color))'}, {'background-color': 'color-mix(in srgb, var(--error-color) 8%, var(--card-background-color))'}], 'grid': [{'grid-template-areas': '"i n" "i l"'}, {'grid-template-columns': '24px 1fr'}, {'grid-template-rows': '1fr auto'}, {'column-gap': '8px'}, {'row-gap': '1px'}, {'align-items': 'center'}], 'icon': [{'width': '20px'}, {'height': '20px'}, {'color': 'var(--error-color)'}], 'name': [{'justify-self': 'start'}, {'text-align': 'left'}, {'font-size': '12px'}, {'font-weight': '600'}, {'line-height': '1.2'}], 'label': [{'justify-self': 'start'}, {'font-size': '10px'}, {'color': 'var(--secondary-text-color)'}]} -%}
                     {%- set all_chores_pause_card = {'card': {'type': 'custom:button-card', 'show_name': True, 'show_icon': True, 'show_label': False, 'show_state': False, 'icon': 'mdi:pause-circle', 'name': ui.get('pause', 'err-pause'), 'tap_action': {'action': 'call-service', 'service': 'choreops.pause_user_chores', 'data': {'config_entry_id': integration_entry_id, 'user_name': selected_user_name, 'paused': 'true'}}, 'styles': pause_style_mod}} -%}
                     {%- set all_chores_until_card = {'card': {'type': 'custom:button-card', 'show_name': True, 'show_icon': True, 'show_label': True, 'show_state': False, 'icon': 'mdi:calendar-clock', 'name': ui.get('pause_until', 'err-pause_until'), 'label': all_chores_arrow_date_label, 'tap_action': ({'action': 'call-service', 'service': 'choreops.pause_user_chores', 'data': {'config_entry_id': integration_entry_id, 'user_name': selected_user_name, 'paused': 'true', 'paused_until': all_chores_date_val}}) if all_chores_has_date else {'action': 'none'}, 'styles': pause_style_mod}} -%}
-                    {%- set all_chores_grid_template = '"i n l controls" "div_pause div_pause div_pause div_pause" "pause_btn pause_btn until_btn until_btn" "div_sched div_sched div_sched div_sched" "push_btn push_btn push_primary_btn push_primary_btn" "push_all_btn push_all_btn push_all_btn push_all_btn"' -%}
-                    {%- set all_chores_grid_rows = 'min-content auto auto auto auto auto' -%}
+                    {%- set all_chores_until_shift_independent_card = {'card': {'type': 'custom:button-card', 'show_name': True, 'show_icon': True, 'show_label': True, 'show_state': False, 'icon': 'mdi:calendar-sync-outline', 'name': ui.get('pause_until_shift_independent', 'err-pause_until_shift_independent'), 'label': all_chores_arrow_date_label, 'tap_action': ({'action': 'call-service', 'service': 'choreops.pause_user_chores', 'data': {'config_entry_id': integration_entry_id, 'user_name': selected_user_name, 'paused': 'true', 'paused_until': all_chores_date_val, 'unpause_action': 'unpause_shift_independent'}}) if all_chores_has_date else {'action': 'none'}, 'styles': pause_style_mod}} -%}
+                    {%- set all_chores_until_shift_primary_card = {'card': {'type': 'custom:button-card', 'show_name': True, 'show_icon': True, 'show_label': True, 'show_state': False, 'icon': 'mdi:calendar-sync-outline', 'name': ui.get('pause_until_shift_primary', 'err-pause_until_shift_primary'), 'label': all_chores_arrow_date_label, 'tap_action': ({'action': 'call-service', 'service': 'choreops.pause_user_chores', 'data': {'config_entry_id': integration_entry_id, 'user_name': selected_user_name, 'paused': 'true', 'paused_until': all_chores_date_val, 'unpause_action': 'unpause_shift_all_primary'}}) if all_chores_has_date else {'action': 'none'}, 'styles': pause_style_mod}} -%}
+                    {%- set all_chores_until_shift_all_card = {'card': {'type': 'custom:button-card', 'show_name': True, 'show_icon': True, 'show_label': True, 'show_state': False, 'icon': 'mdi:calendar-refresh', 'name': ui.get('pause_until_shift_all', 'err-pause_until_shift_all'), 'label': all_chores_arrow_date_label, 'tap_action': ({'action': 'call-service', 'service': 'choreops.pause_user_chores', 'data': {'config_entry_id': integration_entry_id, 'user_name': selected_user_name, 'paused': 'true', 'paused_until': all_chores_date_val, 'unpause_action': 'unpause_shift_all'}}) if all_chores_has_date else {'action': 'none'}, 'styles': pause_style_mod}} -%}
+                    {%- set all_chores_grid_template = '"i n l controls" "div_pause div_pause div_pause div_pause" "pause_btn pause_btn until_btn until_btn" "until_shift_independent until_shift_independent until_shift_independent until_shift_independent" "until_shift_primary until_shift_primary until_shift_primary until_shift_primary" "until_shift_all until_shift_all until_shift_all until_shift_all" "div_sched div_sched div_sched div_sched" "push_btn push_btn push_primary_btn push_primary_btn" "push_all_btn push_all_btn push_all_btn push_all_btn"' -%}
+                    {%- set all_chores_grid_rows = 'min-content auto auto auto auto auto auto auto auto' -%}
                   {%- elif all_chores_expanded and all_chores_is_paused -%}
                     {%- set all_chores_resume_card = {'card': {'type': 'custom:button-card', 'show_name': True, 'show_icon': True, 'show_label': True, 'show_state': False, 'icon': 'mdi:play-circle-outline', 'name': ui.get('resume', 'err-resume'), 'label': all_chores_paused_display, 'tap_action': {'action': 'call-service', 'service': 'choreops.pause_user_chores', 'data': {'config_entry_id': integration_entry_id, 'user_name': selected_user_name, 'paused': 'false'}}, 'styles': {'card': [{'height': '48px'}, {'padding': '6px 14px'}, {'border-radius': '10px'}, {'box-shadow': 'none'}, {'border': '1px solid color-mix(in srgb, var(--success-color) 18%, var(--divider-color))'}, {'background-color': 'color-mix(in srgb, var(--success-color) 8%, var(--card-background-color))'}], 'grid': [{'grid-template-areas': '"i n l"'}, {'grid-template-columns': '24px 1fr auto'}, {'column-gap': '8px'}, {'align-items': 'center'}], 'icon': [{'width': '20px'}, {'height': '20px'}, {'color': 'var(--success-color)'}], 'name': [{'justify-self': 'start'}, {'font-size': '13px'}, {'font-weight': '700'}], 'label': [{'justify-self': 'end'}, {'font-size': '11px'}, {'color': 'var(--secondary-text-color)'}]}}} -%}
                     {%- set all_chores_until_card = "" -%}
@@ -2556,6 +2559,9 @@ views:
                   {%- else -%}
                     {%- set all_chores_pause_card = "" -%}
                     {%- set all_chores_until_card = "" -%}
+                    {%- set all_chores_until_shift_independent_card = "" -%}
+                    {%- set all_chores_until_shift_primary_card = "" -%}
+                    {%- set all_chores_until_shift_all_card = "" -%}
                     {%- set all_chores_grid_template = '"i n l controls"' -%}
                     {%- set all_chores_grid_rows = 'min-content' -%}
                   {%- endif -%}
@@ -2607,6 +2613,9 @@ views:
                         'div_sched': "<div style='display:flex;align-items:center;gap:8px;margin-top:4px;'><span style='font-size:10px;text-transform:uppercase;font-weight:700;letter-spacing:0.5px;color:var(--secondary-text-color);white-space:nowrap;'>" ~ ui.get('reschedule_actions_section', 'err-reschedule_actions_section') ~ "</span><div style='width:100%;height:1px;background-color:var(--divider-color);'></div></div>" if all_chores_expanded else "",
                         'pause_btn': all_chores_pause_card if (all_chores_expanded and all_chores_pause_card is mapping) else "",
                         'until_btn': all_chores_until_card if (all_chores_expanded and all_chores_until_card is mapping) else "",
+                        'until_shift_independent': all_chores_until_shift_independent_card if (all_chores_expanded and all_chores_until_shift_independent_card is mapping) else "",
+                        'until_shift_primary': all_chores_until_shift_primary_card if (all_chores_expanded and all_chores_until_shift_primary_card is mapping) else "",
+                        'until_shift_all': all_chores_until_shift_all_card if (all_chores_expanded and all_chores_until_shift_all_card is mapping) else "",
                         'push_btn': all_chores_push_card if (all_chores_expanded and all_chores_push_card is mapping) else "",
                         'push_primary_btn': all_chores_push_primary_card if (all_chores_expanded and all_chores_push_primary_card is mapping) else "",
                         'push_all_btn': all_chores_push_all_card if (all_chores_expanded and all_chores_push_all_card is mapping) else "",
@@ -2679,6 +2688,21 @@ views:
                             {'justify-self': 'stretch'},
                             {'align-self': 'stretch'},
                             {'padding-left': '10px'}
+                          ],
+                          'until_shift_independent': [
+                            {'grid-column': 'span 4'},
+                            {'justify-self': 'stretch'},
+                            {'align-self': 'stretch'}
+                          ],
+                          'until_shift_primary': [
+                            {'grid-column': 'span 4'},
+                            {'justify-self': 'stretch'},
+                            {'align-self': 'stretch'}
+                          ],
+                          'until_shift_all': [
+                            {'grid-column': 'span 4'},
+                            {'justify-self': 'stretch'},
+                            {'align-self': 'stretch'}
                           ],
                           'pause_btn': [
                             {'grid-column': 'span 4'},
