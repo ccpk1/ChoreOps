@@ -127,7 +127,7 @@
               "associated_user_ids": "Usuaris que aquest aprovador/administrador supervisa per a les accions d'aprovació.",
               "notif_approve_click_url": "URL opcional per a les notificacions d'aprovació. Substitueix l'URL general de notificació quan s'aproven tasques o recompenses.",
               "chores_paused": "Posa en pausa el processament de les tasques. No s'acumulen estadístiques endarrerides ni perdudes.",
-              "chores_paused_until": "Data de retorn opcional. Si s'estableix, les tasques es reprenen automàticament a mitjanit després d'aquesta data."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -642,7 +642,7 @@
               "associated_user_ids": "Usuaris que aquest aprovador/administrador supervisa per a les accions d'aprovació.",
               "notif_approve_click_url": "URL opcional per a les notificacions d'aprovació. Substitueix l'URL general de notificació quan s'aproven tasques o recompenses.",
               "chores_paused": "Posa en pausa el processament de les tasques. No s'acumulen estadístiques endarrerides ni perdudes.",
-              "chores_paused_until": "Data de retorn opcional. Si s'estableix, les tasques es reprenen automàticament a mitjanit després d'aquesta data."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -1106,7 +1106,7 @@
               "associated_user_ids": "Usuaris que aquest aprovador/administrador supervisa per a les accions d'aprovació.",
               "notif_approve_click_url": "URL opcional per a les notificacions d'aprovació. Substitueix l'URL general de notificació quan s'aproven tasques o recompenses.",
               "chores_paused": "Posa en pausa el processament de les tasques. No s'acumulen estadístiques endarrerides ni perdudes.",
-              "chores_paused_until": "Data de retorn opcional. Si s'estableix, les tasques es reprenen automàticament a mitjanit després d'aquesta data."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -2358,7 +2358,7 @@
     },
     "pause_user_chores": {
       "name": "Pausa les tasques de l'usuari",
-      "description": "Pausa o reactiva el processament de tasques per a un usuari. Quan es reactiva, unpause_action controla si les tasques vençudes es reprograma per evitar transicions vençudes immediates.",
+      "description": "Pause or resume chore processing for a user. While paused, no overdue or missed stats accumulate and rotation advances past this user. When resuming, Unpause Action decides whether dates missed while paused are shifted forward.",
       "fields": {
         "config_entry_id": {
           "name": "ID d'entrada de configuració (opcional)",
@@ -2377,17 +2377,17 @@
         },
         "paused": {
           "name": "En pausa",
-          "description": "Cert per pausar les tasques, Fals per reprendre-les.",
+          "description": "True to pause chores, False to resume. See Unpause Action for what happens to dates missed while paused.",
           "example": "cert"
         },
         "paused_until": {
           "name": "En pausa fins a",
-          "description": "Data de retorn opcional. Si s'estableix, les tasques es reprenen automàticament a mitjanit després d'aquesta data.",
+          "description": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net). Only valid while pausing (paused: true) - omit it when resuming.",
           "example": "2026-06-10T00:00:00+00:00"
         },
         "unpause_action": {
           "name": "Reprendre l'acció",
-          "description": "Només s'aplica quan pausat=fals. Controla si les tasques vençudes es reprogramaran durant la reactivació. Per defecte: reactivació (sense reprogramació).",
+          "description": "On resume: decides what happens to due dates that passed while the user was paused - keep them as they are (they may show as overdue), or shift them forward so chores continue from the next occurrence. When pausing: remembers this choice and applies it at the next manual or automatic resume. Pass 'unpause' on a resume call to ignore a remembered choice; omit this field when re-pausing to clear it.",
           "example": "reactivar_canvi_independent"
         }
       }
@@ -5706,6 +5706,9 @@
     },
     "invalid_date_format": {
       "message": "Format de data no vàlid. Si us plau, proporcioneu una cadena de data vàlida (per exemple, AAAA-MM-DD o data i hora ISO 8601)."
+    },
+    "until_on_resume": {
+      "message": "Paused Until can only be set while pausing (paused: true). Omit it when resuming."
     },
     "date_in_past": {
       "message": "La data de venciment no pot ser anterior. Si us plau, indiqueu una data futura."

@@ -127,7 +127,7 @@
               "associated_user_ids": "Brukere som denne godkjenneren/administratoren fører tilsyn med for godkjenningshandlinger.",
               "notif_approve_click_url": "Valgfri URL for godkjenningsvarsler. Overstyrer den generelle URL-en for trykk på varsler ved godkjenning av gjøremål eller belønninger.",
               "chores_paused": "Setter oppgavebehandlingen på pause. Ingen forfalte eller tapte statistikker akkumuleres.",
-              "chores_paused_until": "Valgfri returdato. Hvis angitt, gjenopptas gjøremål automatisk ved midnatt etter denne datoen."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -642,7 +642,7 @@
               "associated_user_ids": "Brukere som denne godkjenneren/administratoren fører tilsyn med for godkjenningshandlinger.",
               "notif_approve_click_url": "Valgfri URL for godkjenningsvarsler. Overstyrer den generelle URL-en for trykk på varsler ved godkjenning av gjøremål eller belønninger.",
               "chores_paused": "Setter oppgavebehandlingen på pause. Ingen forfalte eller tapte statistikker akkumuleres.",
-              "chores_paused_until": "Valgfri returdato. Hvis angitt, gjenopptas gjøremål automatisk ved midnatt etter denne datoen."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -1106,7 +1106,7 @@
               "associated_user_ids": "Brukere som denne godkjenneren/administratoren fører tilsyn med for godkjenningshandlinger.",
               "notif_approve_click_url": "Valgfri URL for godkjenningsvarsler. Overstyrer den generelle URL-en for trykk på varsler ved godkjenning av gjøremål eller belønninger.",
               "chores_paused": "Setter oppgavebehandlingen på pause. Ingen forfalte eller tapte statistikker akkumuleres.",
-              "chores_paused_until": "Valgfri returdato. Hvis angitt, gjenopptas gjøremål automatisk ved midnatt etter denne datoen."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -2358,7 +2358,7 @@
     },
     "pause_user_chores": {
       "name": "Sett brukerens gjøremål på pause",
-      "description": "Sett på pause eller gjenoppta pause i gjøremålsbehandling for en bruker. Når pausen gjenopptas, styrer unpause_action om forfalte gjøremål skal omplanlegges for å forhindre umiddelbare forsinkede overganger.",
+      "description": "Pause or resume chore processing for a user. While paused, no overdue or missed stats accumulate and rotation advances past this user. When resuming, Unpause Action decides whether dates missed while paused are shifted forward.",
       "fields": {
         "config_entry_id": {
           "name": "Konfigurasjonsoppførings-ID (valgfritt)",
@@ -2377,17 +2377,17 @@
         },
         "paused": {
           "name": "Pauset",
-          "description": "Sant for å sette gjøremål på pause, Usant for å gjenoppta.",
+          "description": "True to pause chores, False to resume. See Unpause Action for what happens to dates missed while paused.",
           "example": "ekte"
         },
         "paused_until": {
           "name": "Pause til",
-          "description": "Valgfri returdato. Hvis angitt, gjenopptas gjøremål automatisk ved midnatt etter denne datoen.",
+          "description": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net). Only valid while pausing (paused: true) - omit it when resuming.",
           "example": "2026-06-10T00:00:00+00:00"
         },
         "unpause_action": {
           "name": "Avbryt handlingen",
-          "description": "Gjelder bare når paused=false. Kontrollerer om forfalte gjøremål skal planlegges på nytt under oppheving av pause. Standard: opphev pause (ingen omplanlegging).",
+          "description": "On resume: decides what happens to due dates that passed while the user was paused - keep them as they are (they may show as overdue), or shift them forward so chores continue from the next occurrence. When pausing: remembers this choice and applies it at the next manual or automatic resume. Pass 'unpause' on a resume call to ignore a remembered choice; omit this field when re-pausing to clear it.",
           "example": "unpause_shift_independent"
         }
       }
@@ -5706,6 +5706,9 @@
     },
     "invalid_date_format": {
       "message": "Ugyldig datoformat. Vennligst oppgi en gyldig datostring (f.eks. ÅÅÅÅ-MM-DD eller ISO 8601 dato/klokkeslett)."
+    },
+    "until_on_resume": {
+      "message": "Paused Until can only be set while pausing (paused: true). Omit it when resuming."
     },
     "date_in_past": {
       "message": "Frist kan ikke være i fortiden. Vennligst oppgi en fremtidig dato."

@@ -127,7 +127,7 @@
               "associated_user_ids": "此审批人/管理员负责监督用户进行审批操作。",
               "notif_approve_click_url": "用于审批通知的可选 URL。审批家务或奖励时，此 URL 将覆盖常规通知点击链接的 URL。",
               "chores_paused": "暂停家务处理。不会累积逾期或遗漏的统计数据。",
-              "chores_paused_until": "可选的返回日期。如果设置，家务将在该日期后的午夜自动恢复。"
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -642,7 +642,7 @@
               "associated_user_ids": "此审批人/管理员负责监督用户进行审批操作。",
               "notif_approve_click_url": "用于审批通知的可选 URL。审批家务或奖励时，此 URL 将覆盖常规通知点击链接的 URL。",
               "chores_paused": "暂停家务处理。不会累积逾期或遗漏的统计数据。",
-              "chores_paused_until": "可选的返回日期。如果设置，家务将在该日期后的午夜自动恢复。"
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -1106,7 +1106,7 @@
               "associated_user_ids": "此审批人/管理员负责监督用户进行审批操作。",
               "notif_approve_click_url": "用于审批通知的可选 URL。审批家务或奖励时，此 URL 将覆盖常规通知点击链接的 URL。",
               "chores_paused": "暂停家务处理。不会累积逾期或遗漏的统计数据。",
-              "chores_paused_until": "可选的返回日期。如果设置，家务将在该日期后的午夜自动恢复。"
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -2358,7 +2358,7 @@
     },
     "pause_user_chores": {
       "name": "暂停用户家务",
-      "description": "暂停或恢复用户的家务处理。恢复时，unpause_action 控制是否重新安排逾期家务，以防止立即发生逾期转换。",
+      "description": "Pause or resume chore processing for a user. While paused, no overdue or missed stats accumulate and rotation advances past this user. When resuming, Unpause Action decides whether dates missed while paused are shifted forward.",
       "fields": {
         "config_entry_id": {
           "name": "配置条目 ID（可选）",
@@ -2377,17 +2377,17 @@
         },
         "paused": {
           "name": "暂停",
-          "description": "true 表示暂停家务，false 表示恢复家务。",
+          "description": "True to pause chores, False to resume. See Unpause Action for what happens to dates missed while paused.",
           "example": "true"
         },
         "paused_until": {
           "name": "暂停直到",
-          "description": "可选的返回日期。如果设置，家务将在该日期后的午夜自动恢复。",
+          "description": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net). Only valid while pausing (paused: true) - omit it when resuming.",
           "example": "2026-06-10T00:00:00+00:00"
         },
         "unpause_action": {
           "name": "取消暂停操作",
-          "description": "仅当 paused=false 时生效。控制在取消暂停期间是否重新安排逾期家务。默认值：取消暂停（不重新安排）。",
+          "description": "On resume: decides what happens to due dates that passed while the user was paused - keep them as they are (they may show as overdue), or shift them forward so chores continue from the next occurrence. When pausing: remembers this choice and applies it at the next manual or automatic resume. Pass 'unpause' on a resume call to ignore a remembered choice; omit this field when re-pausing to clear it.",
           "example": "unpause_shift_independent"
         }
       }
@@ -5706,6 +5706,9 @@
     },
     "invalid_date_format": {
       "message": "日期格式无效。请提供有效的日期字符串（例如，YYYY-MM-DD 或 ISO 8601 日期时间格式）。"
+    },
+    "until_on_resume": {
+      "message": "Paused Until can only be set while pausing (paused: true). Omit it when resuming."
     },
     "date_in_past": {
       "message": "截止日期不能是过去的日期，请提供一个未来的日期。"

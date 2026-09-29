@@ -127,7 +127,7 @@
               "associated_user_ids": "Uporabniki, ki jih ta odobritelj/skrbnik nadzira glede dejanj odobritve.",
               "notif_approve_click_url": "Neobvezen URL za obvestila o odobritvi. Preglasi splošni URL za obvestila ob odobritvi opravil ali nagrad.",
               "chores_paused": "Začasno ustavi obdelavo opravil. Zamujene ali zamujene statistike se ne kopičijo.",
-              "chores_paused_until": "Neobvezen datum vrnitve. Če je nastavljen, se opravila samodejno nadaljujejo ob polnoči po tem datumu."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -642,7 +642,7 @@
               "associated_user_ids": "Uporabniki, ki jih ta odobritelj/skrbnik nadzira glede dejanj odobritve.",
               "notif_approve_click_url": "Neobvezen URL za obvestila o odobritvi. Preglasi splošni URL za obvestila ob odobritvi opravil ali nagrad.",
               "chores_paused": "Začasno ustavi obdelavo opravil. Zamujene ali zamujene statistike se ne kopičijo.",
-              "chores_paused_until": "Neobvezen datum vrnitve. Če je nastavljen, se opravila samodejno nadaljujejo ob polnoči po tem datumu."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -1106,7 +1106,7 @@
               "associated_user_ids": "Uporabniki, ki jih ta odobritelj/skrbnik nadzira glede dejanj odobritve.",
               "notif_approve_click_url": "Neobvezen URL za obvestila o odobritvi. Preglasi splošni URL za obvestila ob odobritvi opravil ali nagrad.",
               "chores_paused": "Začasno ustavi obdelavo opravil. Zamujene ali zamujene statistike se ne kopičijo.",
-              "chores_paused_until": "Neobvezen datum vrnitve. Če je nastavljen, se opravila samodejno nadaljujejo ob polnoči po tem datumu."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -2358,7 +2358,7 @@
     },
     "pause_user_chores": {
       "name": "Začasno ustavi uporabnikova opravila",
-      "description": "Začasno ustavi ali ponovno začasno ustavi obdelavo opravil za uporabnika. Pri preklicu začasne ustavitve unpause_action nadzoruje, ali se zamujena opravila prerazporedijo, da se preprečijo takojšnji prehodi zaradi zamujenega roka.",
+      "description": "Pause or resume chore processing for a user. While paused, no overdue or missed stats accumulate and rotation advances past this user. When resuming, Unpause Action decides whether dates missed while paused are shifted forward.",
       "fields": {
         "config_entry_id": {
           "name": "ID vnosa konfiguracije (neobvezno)",
@@ -2377,17 +2377,17 @@
         },
         "paused": {
           "name": "Zaustavljeno",
-          "description": "True za začasno ustavitev opravil, False za nadaljevanje.",
+          "description": "True to pause chores, False to resume. See Unpause Action for what happens to dates missed while paused.",
           "example": "res"
         },
         "paused_until": {
           "name": "Zaustavljeno do",
-          "description": "Neobvezen datum vrnitve. Če je nastavljen, se opravila samodejno nadaljujejo ob polnoči po tem datumu.",
+          "description": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net). Only valid while pausing (paused: true) - omit it when resuming.",
           "example": "2026-06-10T00:00:00+00:00"
         },
         "unpause_action": {
           "name": "Prekliči dejanje",
-          "description": "Velja samo, če je paused=false. Določa, ali se zamujena opravila med prekinitvijo prerazporedijo. Privzeto: prekini (brez prerazporeditve).",
+          "description": "On resume: decides what happens to due dates that passed while the user was paused - keep them as they are (they may show as overdue), or shift them forward so chores continue from the next occurrence. When pausing: remembers this choice and applies it at the next manual or automatic resume. Pass 'unpause' on a resume call to ignore a remembered choice; omit this field when re-pausing to clear it.",
           "example": "neodvisno_od_premika_unpause"
         }
       }
@@ -5706,6 +5706,9 @@
     },
     "invalid_date_format": {
       "message": "Neveljavna oblika datuma. Navedite veljaven datumski niz (npr. LLLL-MM-DD ali datum in ura ISO 8601)."
+    },
+    "until_on_resume": {
+      "message": "Paused Until can only be set while pausing (paused: true). Omit it when resuming."
     },
     "date_in_past": {
       "message": "Rok ne sme biti v preteklosti. Navedite datum v prihodnosti."

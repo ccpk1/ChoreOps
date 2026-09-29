@@ -83,8 +83,8 @@
               "dashboard_language": "Язык",
               "mobile_notify_service": "Уведомления",
               "notif_click_url": "Ссылка при нажатии на уведомление",
-              "notification_priority": "Delivery priority",
-              "notification_ttl": "Notification lifetime (seconds)"
+              "notification_priority": "Приоритет доставки",
+              "notification_ttl": "Время жизни уведомления (секунды)"
             },
             "data_description": {
               "name": "Уникальное имя этого профиля.",
@@ -92,8 +92,8 @@
               "dashboard_language": "Язык панели и уведомлений.",
               "mobile_notify_service": "Выберите службу уведомлений или оставьте пустым, чтобы отключить их.",
               "notif_click_url": "Необязательная ссылка, которая откроется при нажатии на уведомление. Оставьте пустым для поведения по умолчанию.",
-              "notification_priority": "Android only. High asks the mobile app to deliver immediately even while the device is asleep; Normal may be delayed until it wakes. iOS ignores this.",
-              "notification_ttl": "Optional. Android only. How long delivery keeps being retried before the notification is dropped as stale. Leave empty for the platform default of 28 days; 0 discards anything that cannot be delivered right away. A good value is shorter than how often the chore recurs, so a retry can never arrive looking like the next occurrence - for a daily chore, around 20 hours. iOS ignores this."
+              "notification_priority": "Только Android. «Высокий» просит мобильное приложение доставить уведомление сразу, даже если устройство спит; «Обычный» может подождать, пока оно не проснётся. iOS это игнорирует.",
+              "notification_ttl": "Необязательно. Только Android. Сколько времени доставку продолжают повторять, прежде чем уведомление отбросят как устаревшее. Оставьте пустым, чтобы взять значение платформы по умолчанию — 28 дней; 0 отбрасывает всё, что не удалось доставить сразу. Хорошее значение короче, чем период повтора задачи, — тогда повторная доставка не придёт уже под видом следующего срока: для ежедневной задачи это примерно 20 часов. iOS это игнорирует."
             }
           },
           "section_system_usage": {
@@ -127,7 +127,7 @@
               "associated_user_ids": "Пользователи, чьи заявки подтверждает этот подтверждающий или администратор.",
               "notif_approve_click_url": "Необязательная ссылка для уведомлений о подтверждении. Заменяет общую ссылку, когда подтверждаются задачи или награды.",
               "chores_paused": "Приостанавливает обработку задач. Просрочки и пропуски не накапливаются.",
-              "chores_paused_until": "Необязательная дата возвращения. Если указана, задачи возобновятся автоматически в полночь после этой даты."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -198,8 +198,8 @@
               "auto_approve": "✅ Подтверждать заявки автоматически?",
               "overdue_handling_type": "⏰ Просрочка: что делать",
               "chore_due_reminder_offset": "🔔 Напоминание: за сколько до срока",
-              "chore_notification_channel": "🔔 Notification Channel",
-              "chore_notification_importance": "🔔 Notification Importance",
+              "chore_notification_channel": "🔔 Канал уведомлений",
+              "chore_notification_importance": "🔔 Важность уведомлений",
               "chore_notifications": "🔔 События для уведомлений (необязательно)",
               "show_on_calendar": "📅 Показывать в календаре?",
               "chore_labels": "📋 Метки (необязательно)"
@@ -210,8 +210,8 @@
               "auto_approve": "Если включено, заявки подтверждаются сразу, без проверки.",
               "overdue_handling_type": "Что делать после наступления срока: скрыть признак просрочки, оставить задачу просроченной до выполнения или вернуть в «Ожидает» на следующем цикле подтверждения.",
               "chore_due_reminder_offset": "За сколько до срока присылать напоминание. Формат: «1d 6h 30m» или просто «30» для минут. По умолчанию 30m — за полчаса до срока. «0» — отключить.",
-              "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
-              "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Choose 'Not set' to let the app decide; it is not the same as 'default'. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
+              "chore_notification_channel": "Необязательно. Только Android. Собирает уведомления этой задачи в отдельный именованный канал Android, чтобы звук, важность и поведение в режиме «Не беспокоить» можно было настроить для них на устройстве отдельно. Оставьте пустым, чтобы использовать канал приложения по умолчанию. iOS это игнорирует.",
+              "chore_notification_importance": "Необязательно. Только Android. Насколько заметно уведомления этой задачи привлекают внимание: «Высокая» — всплывает на экране и со звуком, «По умолчанию» — только звук, «Низкая» и «Минимальная» — без звука. Вариант «Не задано» оставляет выбор приложению, и это не то же самое, что «По умолчанию». Нужен канал уведомлений. Важно: так задаётся НАЧАЛЬНОЕ состояние канала — в тот момент, когда устройство впервые видит канал с таким именем. Потом интеграция изменить его не может, а человек может в любой момент в настройках уведомлений Android. Если значение указано, каждое устройство сразу начинает с правильных настроек и подкручивать их вручную не придётся. iOS это игнорирует.",
               "chore_notifications": "Когда присылать уведомления: при взятии задачи, при подтверждении, при отклонении или в любом сочетании.",
               "show_on_calendar": "Показывать эту задачу в календаре.",
               "chore_labels": "Метки для группировки задач (например, «кухня», «улица»). Оставьте пустым, если не нужны."
@@ -238,8 +238,8 @@
           "due_date": "📅 Расписание: срок выполнения (необязательно)",
           "chore_due_window_offset": "⏱️ Окно выполнения: за сколько до срока открывается",
           "chore_due_reminder_offset": "🔔 Напоминание: за сколько до срока",
-          "chore_notification_channel": "🔔 Notification Channel",
-          "chore_notification_importance": "🔔 Notification Importance",
+          "chore_notification_channel": "🔔 Канал уведомлений",
+          "chore_notification_importance": "🔔 Важность уведомлений",
           "show_on_calendar": "📅 Показывать в календаре?",
           "chore_notifications": "🔔 События для уведомлений (необязательно)",
           "standby_claim_mode": "🔑 Когда запасные могут взять задачу"
@@ -264,8 +264,8 @@
           "due_date": "Необязательный срок. Сочетается с повторяющимися расписаниями.",
           "chore_due_window_offset": "Когда задача переходит из состояния «Ожидает» в «К выполнению». Формат: «1d 6h 30m» или просто «30» для минут. «0» — отключить. Пример: «1d» — задача помечается как «К выполнению» за сутки до срока.",
           "chore_due_reminder_offset": "За сколько до срока присылать напоминание. Формат: «1d 6h 30m» или просто «30» для минут. По умолчанию 30m — за полчаса до срока. «0» — отключить.",
-          "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
-          "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Choose 'Not set' to let the app decide; it is not the same as 'default'. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
+          "chore_notification_channel": "Необязательно. Только Android. Собирает уведомления этой задачи в отдельный именованный канал Android, чтобы звук, важность и поведение в режиме «Не беспокоить» можно было настроить для них на устройстве отдельно. Оставьте пустым, чтобы использовать канал приложения по умолчанию. iOS это игнорирует.",
+          "chore_notification_importance": "Необязательно. Только Android. Насколько заметно уведомления этой задачи привлекают внимание: «Высокая» — всплывает на экране и со звуком, «По умолчанию» — только звук, «Низкая» и «Минимальная» — без звука. Вариант «Не задано» оставляет выбор приложению, и это не то же самое, что «По умолчанию». Нужен канал уведомлений. Важно: так задаётся НАЧАЛЬНОЕ состояние канала — в тот момент, когда устройство впервые видит канал с таким именем. Потом интеграция изменить его не может, а человек может в любой момент в настройках уведомлений Android. Если значение указано, каждое устройство сразу начинает с правильных настроек и подкручивать их вручную не придётся. iOS это игнорирует.",
           "show_on_calendar": "Показывать эту задачу в календаре.",
           "chore_notifications": "Когда присылать уведомления: при взятии задачи, при подтверждении, при отклонении или в любом сочетании.",
           "standby_claim_mode": "Когда запасные могут взять эту задачу: в любое время, после просрочки или только по указанию администратора. Работает только со способом выполнения «Основной и запасные»."
@@ -449,8 +449,8 @@
       "error_award_points_minimum": "Начисляемые очки должны быть больше нуля.",
       "error_award_invalid_multiplier": "Множитель очков должен быть больше нуля.",
       "invalid_award_item_selected": "Один или несколько выбранных элементов награды указаны неверно.",
-      "error_award_points_requires_item": "Select 'Points' in Award items to grant points, or set points to zero",
-      "error_award_multiplier_requires_item": "Select 'Points multiplier' in Award items, or clear the multiplier",
+      "error_award_points_requires_item": "Чтобы начислять очки, выберите «Очки» в наградах — или укажите ноль очков.",
+      "error_award_multiplier_requires_item": "Выберите «Множитель очков» в наградах или очистите множитель.",
       "start_date_required": "Укажите дату начала.",
       "end_date_required": "Укажите дату окончания.",
       "end_date_before_start_date": "Дата окончания должна быть позже даты начала.",
@@ -598,8 +598,8 @@
               "dashboard_language": "Язык",
               "mobile_notify_service": "Уведомления",
               "notif_click_url": "Ссылка при нажатии на уведомление",
-              "notification_priority": "Delivery priority",
-              "notification_ttl": "Notification lifetime (seconds)"
+              "notification_priority": "Приоритет доставки",
+              "notification_ttl": "Время жизни уведомления (секунды)"
             },
             "data_description": {
               "name": "Уникальное имя этого профиля.",
@@ -607,8 +607,8 @@
               "dashboard_language": "Язык панели и уведомлений.",
               "mobile_notify_service": "Выберите службу уведомлений или оставьте пустым, чтобы отключить их.",
               "notif_click_url": "Необязательная ссылка, которая откроется при нажатии на уведомление. Оставьте пустым для поведения по умолчанию.",
-              "notification_priority": "Android only. High asks the mobile app to deliver immediately even while the device is asleep; Normal may be delayed until it wakes. iOS ignores this.",
-              "notification_ttl": "Optional. Android only. How long delivery keeps being retried before the notification is dropped as stale. Leave empty for the platform default of 28 days; 0 discards anything that cannot be delivered right away. A good value is shorter than how often the chore recurs, so a retry can never arrive looking like the next occurrence - for a daily chore, around 20 hours. iOS ignores this."
+              "notification_priority": "Только Android. «Высокий» просит мобильное приложение доставить уведомление сразу, даже если устройство спит; «Обычный» может подождать, пока оно не проснётся. iOS это игнорирует.",
+              "notification_ttl": "Необязательно. Только Android. Сколько времени доставку продолжают повторять, прежде чем уведомление отбросят как устаревшее. Оставьте пустым, чтобы взять значение платформы по умолчанию — 28 дней; 0 отбрасывает всё, что не удалось доставить сразу. Хорошее значение короче, чем период повтора задачи, — тогда повторная доставка не придёт уже под видом следующего срока: для ежедневной задачи это примерно 20 часов. iOS это игнорирует."
             }
           },
           "section_system_usage": {
@@ -642,7 +642,7 @@
               "associated_user_ids": "Пользователи, чьи заявки подтверждает этот подтверждающий или администратор.",
               "notif_approve_click_url": "Необязательная ссылка для уведомлений о подтверждении. Заменяет общую ссылку, когда подтверждаются задачи или награды.",
               "chores_paused": "Приостанавливает обработку задач. Просрочки и пропуски не накапливаются.",
-              "chores_paused_until": "Необязательная дата возвращения. Если указана, задачи возобновятся автоматически в полночь после этой даты."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -706,8 +706,8 @@
               "auto_approve": "✅ Подтверждать заявки автоматически?",
               "overdue_handling_type": "⏰ Просрочка: что делать",
               "chore_due_reminder_offset": "🔔 Напоминание: за сколько до срока",
-              "chore_notification_channel": "🔔 Notification Channel",
-              "chore_notification_importance": "🔔 Notification Importance",
+              "chore_notification_channel": "🔔 Канал уведомлений",
+              "chore_notification_importance": "🔔 Важность уведомлений",
               "chore_notifications": "🔔 События для уведомлений (необязательно)",
               "show_on_calendar": "📅 Показывать в календаре?",
               "chore_labels": "📋 Метки (необязательно)"
@@ -718,8 +718,8 @@
               "auto_approve": "Если включено, заявки подтверждаются сразу, без проверки.",
               "overdue_handling_type": "Что происходит, когда срок прошёл, и что делать с просроченными задачами при сбросе подтверждения.",
               "chore_due_reminder_offset": "За сколько до срока присылать напоминание. Формат: «1d 6h 30m» или просто «30» для минут. По умолчанию 30m — за полчаса до срока. «0» — отключить.",
-              "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
-              "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Choose 'Not set' to let the app decide; it is not the same as 'default'. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
+              "chore_notification_channel": "Необязательно. Только Android. Собирает уведомления этой задачи в отдельный именованный канал Android, чтобы звук, важность и поведение в режиме «Не беспокоить» можно было настроить для них на устройстве отдельно. Оставьте пустым, чтобы использовать канал приложения по умолчанию. iOS это игнорирует.",
+              "chore_notification_importance": "Необязательно. Только Android. Насколько заметно уведомления этой задачи привлекают внимание: «Высокая» — всплывает на экране и со звуком, «По умолчанию» — только звук, «Низкая» и «Минимальная» — без звука. Вариант «Не задано» оставляет выбор приложению, и это не то же самое, что «По умолчанию». Нужен канал уведомлений. Важно: так задаётся НАЧАЛЬНОЕ состояние канала — в тот момент, когда устройство впервые видит канал с таким именем. Потом интеграция изменить его не может, а человек может в любой момент в настройках уведомлений Android. Если значение указано, каждое устройство сразу начинает с правильных настроек и подкручивать их вручную не придётся. iOS это игнорирует.",
               "chore_notifications": "Когда присылать уведомления: при взятии задачи, при подтверждении, при отклонении или в любом сочетании.",
               "show_on_calendar": "Показывать эту задачу в календаре.",
               "chore_labels": "Метки для группировки задач (например, «кухня», «улица»). Оставьте пустым, если не нужны."
@@ -747,8 +747,8 @@
           "clear_due_date": "🗑️ Убрать срок выполнения",
           "chore_due_window_offset": "⏱️ Окно выполнения: за сколько до срока открывается",
           "chore_due_reminder_offset": "🔔 Напоминание: за сколько до срока",
-          "chore_notification_channel": "🔔 Notification Channel",
-          "chore_notification_importance": "🔔 Notification Importance",
+          "chore_notification_channel": "🔔 Канал уведомлений",
+          "chore_notification_importance": "🔔 Важность уведомлений",
           "show_on_calendar": "📅 Показывать в календаре?",
           "chore_notifications": "🔔 События для уведомлений (необязательно)",
           "standby_claim_mode": "🔑 Когда запасные могут взять задачу"
@@ -774,8 +774,8 @@
           "clear_due_date": "Отметьте, чтобы убрать у этой задачи срок выполнения.",
           "chore_due_window_offset": "Когда задача переходит из состояния «Ожидает» в «К выполнению». Формат: «1d 6h 30m» или просто «30» для минут. «0» — отключить. Пример: «1d» — задача помечается как «К выполнению» за сутки до срока.",
           "chore_due_reminder_offset": "За сколько до срока присылать напоминание. Формат: «1d 6h 30m» или просто «30» для минут. По умолчанию 30m — за полчаса до срока. «0» — отключить.",
-          "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
-          "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Choose 'Not set' to let the app decide; it is not the same as 'default'. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
+          "chore_notification_channel": "Необязательно. Только Android. Собирает уведомления этой задачи в отдельный именованный канал Android, чтобы звук, важность и поведение в режиме «Не беспокоить» можно было настроить для них на устройстве отдельно. Оставьте пустым, чтобы использовать канал приложения по умолчанию. iOS это игнорирует.",
+          "chore_notification_importance": "Необязательно. Только Android. Насколько заметно уведомления этой задачи привлекают внимание: «Высокая» — всплывает на экране и со звуком, «По умолчанию» — только звук, «Низкая» и «Минимальная» — без звука. Вариант «Не задано» оставляет выбор приложению, и это не то же самое, что «По умолчанию». Нужен канал уведомлений. Важно: так задаётся НАЧАЛЬНОЕ состояние канала — в тот момент, когда устройство впервые видит канал с таким именем. Потом интеграция изменить его не может, а человек может в любой момент в настройках уведомлений Android. Если значение указано, каждое устройство сразу начинает с правильных настроек и подкручивать их вручную не придётся. iOS это игнорирует.",
           "show_on_calendar": "Показывать эту задачу в календаре.",
           "chore_notifications": "Когда присылать уведомления: при взятии задачи, при подтверждении, при отклонении или в любом сочетании.",
           "standby_claim_mode": "Когда запасные могут взять эту задачу: в любое время, после просрочки или только по указанию администратора. Работает только со способом выполнения «Основной и запасные»."
@@ -1062,8 +1062,8 @@
               "dashboard_language": "Язык",
               "mobile_notify_service": "Уведомления",
               "notif_click_url": "Ссылка при нажатии на уведомление",
-              "notification_priority": "Delivery priority",
-              "notification_ttl": "Notification lifetime (seconds)"
+              "notification_priority": "Приоритет доставки",
+              "notification_ttl": "Время жизни уведомления (секунды)"
             },
             "data_description": {
               "name": "Уникальное имя этого профиля.",
@@ -1071,8 +1071,8 @@
               "dashboard_language": "Язык панели и уведомлений.",
               "mobile_notify_service": "Выберите службу уведомлений или оставьте пустым, чтобы отключить их.",
               "notif_click_url": "Необязательная ссылка, которая откроется при нажатии на уведомление. Оставьте пустым для поведения по умолчанию.",
-              "notification_priority": "Android only. High asks the mobile app to deliver immediately even while the device is asleep; Normal may be delayed until it wakes. iOS ignores this.",
-              "notification_ttl": "Optional. Android only. How long delivery keeps being retried before the notification is dropped as stale. Leave empty for the platform default of 28 days; 0 discards anything that cannot be delivered right away. A good value is shorter than how often the chore recurs, so a retry can never arrive looking like the next occurrence - for a daily chore, around 20 hours. iOS ignores this."
+              "notification_priority": "Только Android. «Высокий» просит мобильное приложение доставить уведомление сразу, даже если устройство спит; «Обычный» может подождать, пока оно не проснётся. iOS это игнорирует.",
+              "notification_ttl": "Необязательно. Только Android. Сколько времени доставку продолжают повторять, прежде чем уведомление отбросят как устаревшее. Оставьте пустым, чтобы взять значение платформы по умолчанию — 28 дней; 0 отбрасывает всё, что не удалось доставить сразу. Хорошее значение короче, чем период повтора задачи, — тогда повторная доставка не придёт уже под видом следующего срока: для ежедневной задачи это примерно 20 часов. iOS это игнорирует."
             }
           },
           "section_system_usage": {
@@ -1106,7 +1106,7 @@
               "associated_user_ids": "Пользователи, чьи заявки подтверждает этот подтверждающий или администратор.",
               "notif_approve_click_url": "Необязательная ссылка для уведомлений о подтверждении. Заменяет общую ссылку, когда подтверждаются задачи или награды.",
               "chores_paused": "Приостанавливает обработку задач. Просрочки и пропуски не накапливаются.",
-              "chores_paused_until": "Необязательная дата возвращения. Если указана, задачи возобновятся автоматически в полночь после этой даты."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -1170,8 +1170,8 @@
               "auto_approve": "✅ Подтверждать заявки автоматически?",
               "overdue_handling_type": "⏰ Просрочка: что делать",
               "chore_due_reminder_offset": "🔔 Напоминание: за сколько до срока",
-              "chore_notification_channel": "🔔 Notification Channel",
-              "chore_notification_importance": "🔔 Notification Importance",
+              "chore_notification_channel": "🔔 Канал уведомлений",
+              "chore_notification_importance": "🔔 Важность уведомлений",
               "chore_notifications": "🔔 События для уведомлений (необязательно)",
               "show_on_calendar": "📅 Показывать в календаре?",
               "chore_labels": "📋 Метки (необязательно)"
@@ -1182,8 +1182,8 @@
               "auto_approve": "Если включено, заявки подтверждаются сразу, без проверки.",
               "overdue_handling_type": "Что происходит, когда срок прошёл, и что делать с просроченными задачами при сбросе подтверждения.",
               "chore_due_reminder_offset": "За сколько до срока присылать напоминание. Формат: «1d 6h 30m» или просто «30» для минут. По умолчанию 30m — за полчаса до срока. «0» — отключить.",
-              "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
-              "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Choose 'Not set' to let the app decide; it is not the same as 'default'. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
+              "chore_notification_channel": "Необязательно. Только Android. Собирает уведомления этой задачи в отдельный именованный канал Android, чтобы звук, важность и поведение в режиме «Не беспокоить» можно было настроить для них на устройстве отдельно. Оставьте пустым, чтобы использовать канал приложения по умолчанию. iOS это игнорирует.",
+              "chore_notification_importance": "Необязательно. Только Android. Насколько заметно уведомления этой задачи привлекают внимание: «Высокая» — всплывает на экране и со звуком, «По умолчанию» — только звук, «Низкая» и «Минимальная» — без звука. Вариант «Не задано» оставляет выбор приложению, и это не то же самое, что «По умолчанию». Нужен канал уведомлений. Важно: так задаётся НАЧАЛЬНОЕ состояние канала — в тот момент, когда устройство впервые видит канал с таким именем. Потом интеграция изменить его не может, а человек может в любой момент в настройках уведомлений Android. Если значение указано, каждое устройство сразу начинает с правильных настроек и подкручивать их вручную не придётся. iOS это игнорирует.",
               "chore_notifications": "Когда присылать уведомления: при взятии задачи, при подтверждении, при отклонении или в любом сочетании.",
               "show_on_calendar": "Показывать эту задачу в календаре.",
               "chore_labels": "Метки для группировки задач (например, «кухня», «улица»). Оставьте пустым, если не нужны."
@@ -1212,8 +1212,8 @@
           "clear_due_date": "🗑️ Убрать срок выполнения",
           "chore_due_window_offset": "⏱️ Окно выполнения: за сколько до срока открывается",
           "chore_due_reminder_offset": "🔔 Напоминание: за сколько до срока",
-          "chore_notification_channel": "🔔 Notification Channel",
-          "chore_notification_importance": "🔔 Notification Importance",
+          "chore_notification_channel": "🔔 Канал уведомлений",
+          "chore_notification_importance": "🔔 Важность уведомлений",
           "show_on_calendar": "📅 Показывать в календаре?",
           "chore_notifications": "🔔 События для уведомлений (необязательно)",
           "standby_claim_mode": "🔑 Когда запасные могут взять задачу"
@@ -1239,8 +1239,8 @@
           "clear_due_date": "Отметьте, чтобы убрать у этой задачи срок выполнения.",
           "chore_due_window_offset": "Когда задача переходит из состояния «Ожидает» в «К выполнению». Формат: «1d 6h 30m» или просто «30» для минут. «0» — отключить. Пример: «1d» — задача помечается как «К выполнению» за сутки до срока.",
           "chore_due_reminder_offset": "За сколько до срока присылать напоминание. Формат: «1d 6h 30m» или просто «30» для минут. По умолчанию 30m — за полчаса до срока. «0» — отключить.",
-          "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
-          "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Choose 'Not set' to let the app decide; it is not the same as 'default'. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
+          "chore_notification_channel": "Необязательно. Только Android. Собирает уведомления этой задачи в отдельный именованный канал Android, чтобы звук, важность и поведение в режиме «Не беспокоить» можно было настроить для них на устройстве отдельно. Оставьте пустым, чтобы использовать канал приложения по умолчанию. iOS это игнорирует.",
+          "chore_notification_importance": "Необязательно. Только Android. Насколько заметно уведомления этой задачи привлекают внимание: «Высокая» — всплывает на экране и со звуком, «По умолчанию» — только звук, «Низкая» и «Минимальная» — без звука. Вариант «Не задано» оставляет выбор приложению, и это не то же самое, что «По умолчанию». Нужен канал уведомлений. Важно: так задаётся НАЧАЛЬНОЕ состояние канала — в тот момент, когда устройство впервые видит канал с таким именем. Потом интеграция изменить его не может, а человек может в любой момент в настройках уведомлений Android. Если значение указано, каждое устройство сразу начинает с правильных настроек и подкручивать их вручную не придётся. iOS это игнорирует.",
           "show_on_calendar": "Показывать эту задачу в календаре.",
           "chore_notifications": "Когда присылать уведомления: при взятии задачи, при подтверждении, при отклонении или в любом сочетании.",
           "standby_claim_mode": "Когда запасные могут взять эту задачу: в любое время, после просрочки или только по указанию администратора. Работает только со способом выполнения «Основной и запасные»."
@@ -1860,8 +1860,8 @@
       "error_award_points_minimum": "Начисляемые очки должны быть больше нуля.",
       "error_award_invalid_multiplier": "Множитель очков должен быть больше нуля.",
       "invalid_award_item_selected": "Один или несколько выбранных элементов награды указаны неверно.",
-      "error_award_points_requires_item": "Select 'Points' in Award items to grant points, or set points to zero",
-      "error_award_multiplier_requires_item": "Select 'Points multiplier' in Award items, or clear the multiplier",
+      "error_award_points_requires_item": "Чтобы начислять очки, выберите «Очки» в наградах — или укажите ноль очков.",
+      "error_award_multiplier_requires_item": "Выберите «Множитель очков» в наградах или очистите множитель.",
       "start_date_required": "Укажите дату начала.",
       "end_date_required": "Укажите дату окончания.",
       "end_date_before_start_date": "Дата окончания должна быть позже даты начала.",
@@ -2120,8 +2120,8 @@
     },
     "notification_priority": {
       "options": {
-        "normal": "Normal (may be delayed while the device is asleep)",
-        "high": "High (deliver immediately, even while the device is asleep)"
+        "normal": "Обычный (может задержаться, пока устройство спит)",
+        "high": "Высокий (доставить сразу, даже если устройство спит)"
       }
     },
     "completion_criteria": {
@@ -2253,12 +2253,12 @@
     },
     "notification_importance": {
       "options": {
-        "none": "Not set (app decides)",
-        "min": "Minimum (no sound, collapsed)",
-        "low": "Low (no sound)",
-        "default": "Default (makes a sound)",
-        "high": "High (pops on screen and makes a sound)",
-        "max": "Maximum (pops on screen, most urgent)"
+        "none": "Не задано (решает приложение)",
+        "min": "Минимальная (без звука, свёрнуто)",
+        "low": "Низкая (без звука)",
+        "default": "По умолчанию (со звуком)",
+        "high": "Высокая (всплывает на экране, со звуком)",
+        "max": "Максимальная (всплывает на экране, самая срочная)"
       }
     }
   },
@@ -2358,7 +2358,7 @@
     },
     "pause_user_chores": {
       "name": "Приостановить задачи пользователя",
-      "description": "Приостановить или возобновить обработку задач пользователя. При возобновлении параметр unpause_action решает, переносить ли просроченные задачи, чтобы они не ушли в просрочку сразу же.",
+      "description": "Pause or resume chore processing for a user. While paused, no overdue or missed stats accumulate and rotation advances past this user. When resuming, Unpause Action decides whether dates missed while paused are shifted forward.",
       "fields": {
         "config_entry_id": {
           "name": "ID записи конфигурации (необязательно)",
@@ -2377,17 +2377,17 @@
         },
         "paused": {
           "name": "Приостановлено",
-          "description": "true — приостановить, false — возобновить.",
+          "description": "True to pause chores, False to resume. See Unpause Action for what happens to dates missed while paused.",
           "example": "true"
         },
         "paused_until": {
           "name": "Приостановлено до",
-          "description": "Необязательная дата возвращения. Если указана, задачи возобновятся автоматически в полночь после неё.",
+          "description": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net). Only valid while pausing (paused: true) - omit it when resuming.",
           "example": "2026-06-10T00:00:00+00:00"
         },
         "unpause_action": {
           "name": "Действие при возобновлении",
-          "description": "Работает только при paused=false. Решает, переносить ли просроченные задачи при возобновлении. По умолчанию — unpause, без переноса.",
+          "description": "On resume: decides what happens to due dates that passed while the user was paused - keep them as they are (they may show as overdue), or shift them forward so chores continue from the next occurrence. When pausing: remembers this choice and applies it at the next manual or automatic resume. Pass 'unpause' on a resume call to ignore a remembered choice; omit this field when re-pausing to clear it.",
           "example": "unpause_shift_independent"
         }
       }
@@ -2815,12 +2815,12 @@
           "example": "30m"
         },
         "notification_channel": {
-          "name": "Notification Channel",
-          "description": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately from other chores. Leave empty to use the app default. iOS ignores this."
+          "name": "Канал уведомлений",
+          "description": "Необязательно. Только Android. Собирает уведомления этой задачи в отдельный именованный канал Android, чтобы звук, важность и поведение в режиме «Не беспокоить» можно было настроить для них отдельно от других задач. Оставьте пустым, чтобы использовать канал приложения по умолчанию. iOS это игнорирует."
         },
         "notification_importance": {
-          "name": "Notification Importance",
-          "description": "Optional. Android only. How prominently this chore's notifications alert (min, low, default, high, max). Requires notification_channel. Note: sets the channel's INITIAL state the first time a device sees that channel name. The integration cannot change it afterwards; the person still can, in Android settings. iOS ignores this."
+          "name": "Важность уведомлений",
+          "description": "Необязательно. Только Android. Насколько заметно уведомления этой задачи привлекают внимание: min, low, default, high, max. Нужно поле notification_channel. Важно: так задаётся НАЧАЛЬНОЕ состояние канала — в тот момент, когда устройство впервые видит канал с таким именем. Потом интеграция изменить его не может, а человек может, в настройках Android. iOS это игнорирует."
         },
         "standby_claim_mode": {
           "name": "Когда запасные могут взять задачу",
@@ -2834,7 +2834,7 @@
         "custom_interval_unit": {
           "name": "Единица своего интервала",
           "description": "Единица времени для custom_interval при частоте custom или custom_from_complete.",
-          "example": "месяцы"
+          "example": "months"
         },
         "notify_on_claim": {
           "name": "Когда задачу взяли",
@@ -2973,12 +2973,12 @@
           "example": "30m"
         },
         "notification_channel": {
-          "name": "Notification Channel",
-          "description": "New notification channel. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately from other chores. Leave empty to use the app default. iOS ignores this."
+          "name": "Канал уведомлений",
+          "description": "Новый канал уведомлений. Только Android. Собирает уведомления этой задачи в отдельный именованный канал Android, чтобы звук, важность и поведение в режиме «Не беспокоить» можно было настроить для них отдельно от других задач. Оставьте пустым, чтобы использовать канал приложения по умолчанию. iOS это игнорирует."
         },
         "notification_importance": {
-          "name": "Notification Importance",
-          "description": "Optional. Android only. How prominently this chore's notifications alert (min, low, default, high, max). Requires notification_channel. Note: sets the channel's INITIAL state the first time a device sees that channel name. The integration cannot change it afterwards; the person still can, in Android settings. iOS ignores this."
+          "name": "Важность уведомлений",
+          "description": "Необязательно. Только Android. Насколько заметно уведомления этой задачи привлекают внимание: min, low, default, high, max. Нужно поле notification_channel. Важно: так задаётся НАЧАЛЬНОЕ состояние канала — в тот момент, когда устройство впервые видит канал с таким именем. Потом интеграция изменить его не может, а человек может, в настройках Android. iOS это игнорирует."
         },
         "assignment_action": {
           "name": "Что делать со списком исполнителей",
@@ -2997,7 +2997,7 @@
         "custom_interval_unit": {
           "name": "Единица своего интервала",
           "description": "Новая единица времени для custom_interval при частоте custom или custom_from_complete.",
-          "example": "месяцы"
+          "example": "months"
         },
         "notify_on_claim": {
           "name": "Когда задачу взяли",
@@ -5706,6 +5706,9 @@
     },
     "invalid_date_format": {
       "message": "Неверный формат даты. Укажите дату строкой — например ГГГГ-ММ-ДД или дату и время по ISO 8601."
+    },
+    "until_on_resume": {
+      "message": "Paused Until can only be set while pausing (paused: true). Omit it when resuming."
     },
     "date_in_past": {
       "message": "Срок выполнения не может быть в прошлом. Укажите будущую дату."

@@ -83,8 +83,8 @@
               "dashboard_language": "Sprache",
               "mobile_notify_service": "Benachrichtigungen",
               "notif_click_url": "URL für Benachrichtigungs-Tipp",
-              "notification_priority": "Delivery priority",
-              "notification_ttl": "Notification lifetime (seconds)"
+              "notification_priority": "Zustellungspriorität",
+              "notification_ttl": "Gültigkeitsdauer der Benachrichtigung (Sekunden)"
             },
             "data_description": {
               "name": "Eindeutiger Name für dieses Benutzerprofil.",
@@ -92,8 +92,8 @@
               "dashboard_language": "Sprache, die für Dashboard-Inhalte und Benachrichtigungen verwendet wird.",
               "mobile_notify_service": "Wähle einen Benachrichtigungsdienst aus oder lass das Feld leer, um Benachrichtigungen zu deaktivieren.",
               "notif_click_url": "Optionale URL, die beim Antippen der Benachrichtigung geöffnet wird. Für das Standardverhalten leer lassen.",
-              "notification_priority": "Android only. High asks the mobile app to deliver immediately even while the device is asleep; Normal may be delayed until it wakes. iOS ignores this.",
-              "notification_ttl": "Optional. Android only. How long delivery keeps being retried before the notification is dropped as stale. Leave empty for the platform default of 28 days; 0 discards anything that cannot be delivered right away. A good value is shorter than how often the chore recurs, so a retry can never arrive looking like the next occurrence - for a daily chore, around 20 hours. iOS ignores this."
+              "notification_priority": "Nur Android. „Hoch“ weist die mobile App an, die Benachrichtigung auch im Ruhezustand des Geräts sofort zuzustellen. „Normal“ kann die Zustellung verzögern, bis das Gerät wieder aktiv ist. iOS ignoriert diese Einstellung.",
+              "notification_ttl": "Optional. Nur Android. Legt fest, wie lange die Zustellung erneut versucht wird, bevor die Benachrichtigung als veraltet verworfen wird. Leer lassen, um den Plattformstandard von 28 Tagen zu verwenden; bei 0 werden Benachrichtigungen verworfen, die nicht sofort zugestellt werden können. Ein sinnvoller Wert ist kürzer als das Wiederholungsintervall der Aufgabe, damit ein erneuter Zustellungsversuch nicht mit der nächsten Fälligkeit verwechselt werden kann – bei einer täglichen Aufgabe beispielsweise etwa 20 Stunden. iOS ignoriert diese Einstellung."
             }
           },
           "section_system_usage": {
@@ -127,7 +127,7 @@
               "associated_user_ids": "Benutzer, die von diesem Genehmiger/Administrator für Genehmigungsvorgänge überwacht werden.",
               "notif_approve_click_url": "Optionale URL für Genehmigungsbenachrichtigungen. Überschreibt die allgemeine Benachrichtigungs-URL beim Genehmigen von Aufgaben oder Belohnungen.",
               "chores_paused": "Die Verarbeitung von Aufgaben wird unterbrochen. Es sammeln sich keine überfälligen oder verpassten Statistiken an.",
-              "chores_paused_until": "Optionales Rückkehrdatum. Wenn ein Datum festgelegt ist, werden die Aufgaben nach Ablauf dieses Tages automatisch um 00:00 Uhr fortgesetzt."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -198,8 +198,8 @@
               "auto_approve": "✅ Übernahmen automatisch genehmigen?",
               "overdue_handling_type": "⏰ Verhalten bei Überfälligkeit",
               "chore_due_reminder_offset": "🔔 Fälligkeitserinnerung: Erinnerung vor Fälligkeit",
-              "chore_notification_channel": "🔔 Notification Channel",
-              "chore_notification_importance": "🔔 Notification Importance",
+              "chore_notification_channel": "Benachrichtigungskanal",
+              "chore_notification_importance": "Benachrichtigungspriorität",
               "chore_notifications": "🔔 Benachrichtigungen",
               "show_on_calendar": "📅 Im Kalender anzeigen?",
               "chore_labels": "📋 Schlagwörter"
@@ -210,8 +210,8 @@
               "auto_approve": "Wenn diese Funktion aktiviert ist, werden Anträge sofort und ohne Genehmigungsprüfung freigegeben.",
               "overdue_handling_type": "Verhalten nach Ablauf der Fälligkeit: Überfälligkeit ausblenden, bis zur Übernahme beibehalten oder beim nächsten Genehmigungszyklus auf „Ausstehend“ zurücksetzen.",
               "chore_due_reminder_offset": "Legt fest, wann die Erinnerung an die Fälligkeit gesendet wird. Format: „1d 6h 30m“ oder einfach „30“ für Minuten. Standard: „30m“ (30 Minuten vor der Fälligkeit). Geben Sie „0“ ein, um Erinnerungen zu deaktivieren.",
-              "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
-              "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Choose 'Not set' to let the app decide; it is not the same as 'default'. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
+              "chore_notification_channel": "Optional. Nur Android. Gruppiert die Benachrichtigungen dieser Aufgabe in einem benannten Android-Kanal, sodass Ton, Priorität und „Nicht stören“-Verhalten auf dem Gerät separat festgelegt werden können. Leer lassen, um die Standardeinstellung der App zu verwenden. iOS ignoriert diese Einstellung.",
+              "chore_notification_importance": "Optional. Nur Android. Legt fest, wie auffällig die Benachrichtigungen dieser Aufgabe erscheinen: „Hoch“ wird auf dem Bildschirm eingeblendet und gibt einen Ton aus, „Standard“ gibt nur einen Ton aus, „Niedrig“ und „Minimal“ bleiben stumm. Wählen Sie „Nicht festgelegt“, damit die App entscheidet; dies ist nicht dasselbe wie „Standard“. Erfordert einen Benachrichtigungskanal. Hinweis: Dies legt den ANFÄNGLICHEN Zustand des Kanals fest, wenn ein Gerät diesen Kanalnamen zum ersten Mal verwendet. Die Integration kann ihn danach nicht mehr ändern; der Benutzer kann ihn jedoch jederzeit in den Android-Benachrichtigungseinstellungen ändern. Durch das Festlegen dieser Option erhält jedes Gerät von Anfang an die richtige Einstellung, ohne dass sie manuell angepasst werden muss. iOS ignoriert diese Einstellung.",
               "chore_notifications": "Legt fest, wann Benachrichtigungen gesendet werden: bei Übernahme, Genehmigung, Ablehnung oder einer beliebigen Kombination.",
               "show_on_calendar": "Diese Aufgabe in der Kalenderansicht anzeigen.",
               "chore_labels": "Schlagwörter zur Organisation von Aufgaben (z. B. „Küche“, „Garten“). Felder leer lassen, falls nicht benötigt."
@@ -238,8 +238,8 @@
           "due_date": "📅 Zeitplan: Fälligkeitsdatum (optional)",
           "chore_due_window_offset": "⏱️ Fälligkeitszeitraum: Versatz vor dem Fälligkeitsdatum",
           "chore_due_reminder_offset": "🔔 Fälligkeitserinnerung: Verrechnung vor dem Fälligkeitsdatum",
-          "chore_notification_channel": "🔔 Notification Channel",
-          "chore_notification_importance": "🔔 Notification Importance",
+          "chore_notification_channel": "Benachrichtigungskanal",
+          "chore_notification_importance": "Benachrichtigungspriorität",
           "show_on_calendar": "📅 Im Kalender anzeigen?",
           "chore_notifications": "🔔 Benachrichtigungsereignisse (optional)",
           "standby_claim_mode": "🔑 Standby-Modus für Aufgabenübernahme"
@@ -264,8 +264,8 @@
           "due_date": "Optionale Frist. Kann mit wiederkehrenden Zeitplänen kombiniert werden.",
           "chore_due_window_offset": "Wann sich der Status der Aufgabe von „Ausstehend“ auf „Fällig“ ändert. Format: „1d 6h 30m“ oder einfach „30“ für Minuten. Geben Sie „0“ ein, um die Funktion zu deaktivieren. Beispiel: „1d“ bedeutet, dass die Aufgabe einen Tag vor dem Fälligkeitstermin als „Fällig“ angezeigt wird.",
           "chore_due_reminder_offset": "Wann die Erinnerungsbenachrichtigung versendet werden soll. Format: „1d 6h 30m“ oder einfach „30“ für Minuten. Standard: 30m (30 Minuten vor Fälligkeit). Gib „0“ ein, um die Benachrichtigung zu deaktivieren.",
-          "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
-          "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Choose 'Not set' to let the app decide; it is not the same as 'default'. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
+          "chore_notification_channel": "Optional. Nur Android. Gruppiert die Benachrichtigungen dieser Aufgabe in einem benannten Android-Kanal, sodass Ton, Priorität und „Nicht stören“-Verhalten auf dem Gerät separat festgelegt werden können. Leer lassen, um die Standardeinstellung der App zu verwenden. iOS ignoriert diese Einstellung.",
+          "chore_notification_importance": "Optional. Nur Android. Legt fest, wie auffällig die Benachrichtigungen dieser Aufgabe erscheinen: „Hoch“ wird auf dem Bildschirm eingeblendet und gibt einen Ton aus, „Standard“ gibt nur einen Ton aus, „Niedrig“ und „Minimal“ bleiben stumm. Wählen Sie „Nicht festgelegt“, damit die App entscheidet; dies ist nicht dasselbe wie „Standard“. Erfordert einen Benachrichtigungskanal. Hinweis: Dies legt den ANFÄNGLICHEN Zustand des Kanals fest, wenn ein Gerät diesen Kanalnamen zum ersten Mal verwendet. Die Integration kann ihn danach nicht mehr ändern; der Benutzer kann ihn jedoch jederzeit in den Android-Benachrichtigungseinstellungen ändern. Durch das Festlegen dieser Option erhält jedes Gerät von Anfang an die richtige Einstellung, ohne dass sie manuell angepasst werden muss. iOS ignoriert diese Einstellung.",
           "show_on_calendar": "Diese Aufgabe in der Kalenderansicht anzeigen.",
           "chore_notifications": "Wann Benachrichtigungen versendet werden sollen: Bei Anspruch, bei Genehmigung, bei Ablehnung oder in beliebiger Kombination.",
           "standby_claim_mode": "Legt fest, wann Bereitschaftspersonen diese Aufgabe übernehmen können (jederzeit, bei Überfälligkeit oder nur manuell). Gilt nur für das Abschlusskriterium „Primär & Bereitschaft“."
@@ -598,8 +598,8 @@
               "dashboard_language": "Sprache",
               "mobile_notify_service": "Benachrichtigungen",
               "notif_click_url": "URL beim Antippen der Benachrichtigung",
-              "notification_priority": "Delivery priority",
-              "notification_ttl": "Notification lifetime (seconds)"
+              "notification_priority": "Zustellungspriorität",
+              "notification_ttl": "Gültigkeitsdauer der Benachrichtigung (Sekunden)"
             },
             "data_description": {
               "name": "Eindeutiger Name für dieses Benutzerprofil.",
@@ -607,8 +607,8 @@
               "dashboard_language": "Sprache für Dashboard-Inhalte und Benachrichtigungen.",
               "mobile_notify_service": "Wählen Sie einen Benachrichtigungsdienst aus oder lassen Sie das Feld leer, um Benachrichtigungen zu deaktivieren.",
               "notif_click_url": "Optionale URL, die beim Antippen der Benachrichtigung geöffnet wird. Lassen Sie das Feld leer, um das Standardverhalten zu verwenden.",
-              "notification_priority": "Android only. High asks the mobile app to deliver immediately even while the device is asleep; Normal may be delayed until it wakes. iOS ignores this.",
-              "notification_ttl": "Optional. Android only. How long delivery keeps being retried before the notification is dropped as stale. Leave empty for the platform default of 28 days; 0 discards anything that cannot be delivered right away. A good value is shorter than how often the chore recurs, so a retry can never arrive looking like the next occurrence - for a daily chore, around 20 hours. iOS ignores this."
+              "notification_priority": "Nur Android. „Hoch“ weist die mobile App an, die Benachrichtigung auch im Ruhezustand des Geräts sofort zuzustellen. „Normal“ kann die Zustellung verzögern, bis das Gerät wieder aktiv ist. iOS ignoriert diese Einstellung.",
+              "notification_ttl": "Optional. Nur Android. Legt fest, wie lange die Zustellung erneut versucht wird, bevor die Benachrichtigung als veraltet verworfen wird. Leer lassen, um den Plattformstandard von 28 Tagen zu verwenden; bei 0 werden Benachrichtigungen verworfen, die nicht sofort zugestellt werden können. Ein sinnvoller Wert ist kürzer als das Wiederholungsintervall der Aufgabe, damit ein erneuter Zustellungsversuch nicht mit der nächsten Fälligkeit verwechselt werden kann – bei einer täglichen Aufgabe beispielsweise etwa 20 Stunden. iOS ignoriert diese Einstellung."
             }
           },
           "section_system_usage": {
@@ -642,7 +642,7 @@
               "associated_user_ids": "Benutzer, deren Genehmigungen von dieser Person verwaltet werden.",
               "notif_approve_click_url": "Optionale URL für Genehmigungsbenachrichtigungen. Überschreibt die allgemeine Benachrichtigungs-URL beim Genehmigen von Aufgaben oder Belohnungen.",
               "chores_paused": "Pausiert die Verarbeitung von Aufgaben. Währenddessen werden keine Überfälligkeits- oder Versäumnisstatistiken erfasst.",
-              "chores_paused_until": "Optionales Rückkehrdatum. Wenn festgelegt, werden Aufgaben nach diesem Datum automatisch um Mitternacht fortgesetzt."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -706,8 +706,8 @@
               "auto_approve": "✅ Übernahmen automatisch genehmigen?",
               "overdue_handling_type": "⏰ Überfällig: Vorgehensweise",
               "chore_due_reminder_offset": "🔔 Fälligkeitserinnerung: Versatz vor dem Fälligkeitstermin",
-              "chore_notification_channel": "🔔 Notification Channel",
-              "chore_notification_importance": "🔔 Notification Importance",
+              "chore_notification_channel": "Benachrichtigungskanal",
+              "chore_notification_importance": "Benachrichtigungspriorität",
               "chore_notifications": "🔔 Benachrichtigungsereignisse (optional)",
               "show_on_calendar": "📅 Im Kalender anzeigen?",
               "chore_labels": "📋 Schlagwörter (optional)"
@@ -718,8 +718,8 @@
               "auto_approve": "Wenn diese Option aktiviert ist, werden Übernahmen sofort genehmigt, ohne dass eine Genehmigung durch eine berechtigte Person erforderlich ist.",
               "overdue_handling_type": "Legt fest, was nach Ablauf des Fälligkeitstermins geschieht und wie überfällige Aufgaben bei der Genehmigungsrücksetzung behandelt werden.",
               "chore_due_reminder_offset": "Legt fest, wann die Fälligkeitserinnerung gesendet wird. Format: „1d 6h 30m“ oder nur „30“ für Minuten. Standard: „30m“ (30 Minuten vor dem Fälligkeitstermin). Geben Sie „0“ ein, um die Funktion zu deaktivieren.",
-              "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
-              "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Choose 'Not set' to let the app decide; it is not the same as 'default'. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
+              "chore_notification_channel": "Optional. Nur Android. Gruppiert die Benachrichtigungen dieser Aufgabe in einem benannten Android-Kanal, sodass Ton, Priorität und „Nicht stören“-Verhalten auf dem Gerät separat festgelegt werden können. Leer lassen, um die Standardeinstellung der App zu verwenden. iOS ignoriert diese Einstellung.",
+              "chore_notification_importance": "Optional. Nur Android. Legt fest, wie auffällig die Benachrichtigungen dieser Aufgabe erscheinen: „Hoch“ wird auf dem Bildschirm eingeblendet und gibt einen Ton aus, „Standard“ gibt nur einen Ton aus, „Niedrig“ und „Minimal“ bleiben stumm. Wählen Sie „Nicht festgelegt“, damit die App entscheidet; dies ist nicht dasselbe wie „Standard“. Erfordert einen Benachrichtigungskanal. Hinweis: Dies legt den ANFÄNGLICHEN Zustand des Kanals fest, wenn ein Gerät diesen Kanalnamen zum ersten Mal verwendet. Die Integration kann ihn danach nicht mehr ändern; der Benutzer kann ihn jedoch jederzeit in den Android-Benachrichtigungseinstellungen ändern. Durch das Festlegen dieser Option erhält jedes Gerät von Anfang an die richtige Einstellung, ohne dass sie manuell angepasst werden muss. iOS ignoriert diese Einstellung.",
               "chore_notifications": "Legt fest, wann Benachrichtigungen gesendet werden: bei Übernahme, Genehmigung, Ablehnung oder einer beliebigen Kombination.",
               "show_on_calendar": "Diese Aufgabe in der Kalenderansicht anzeigen.",
               "chore_labels": "Schlagwörter zum Organisieren von Aufgaben (z. B. „Küche“ oder „Garten“). Leer lassen, wenn nicht benötigt."
@@ -747,8 +747,8 @@
           "clear_due_date": "🗑️ Fälligkeitstermin entfernen",
           "chore_due_window_offset": "⏱️ Fälligkeitsfenster: Versatz vor dem Fälligkeitstermin",
           "chore_due_reminder_offset": "🔔 Fälligkeitserinnerung: Versatz vor dem Fälligkeitstermin",
-          "chore_notification_channel": "🔔 Notification Channel",
-          "chore_notification_importance": "🔔 Notification Importance",
+          "chore_notification_channel": "Benachrichtigungskanal",
+          "chore_notification_importance": "Benachrichtigungspriorität",
           "show_on_calendar": "📅 Im Kalender anzeigen?",
           "chore_notifications": "🔔 Benachrichtigungsereignisse (optional)",
           "standby_claim_mode": "🔑 Standby-Übernahmemodus"
@@ -774,8 +774,8 @@
           "clear_due_date": "Aktivieren Sie dieses Kontrollkästchen, um den Fälligkeitstermin dieser Aufgabe zu entfernen.",
           "chore_due_window_offset": "Wenn der Status der Aufgabe von „Ausstehend“ zu „Fällig“ wechselt. Format: „1d 6h 30m“ oder nur „30“ für Minuten. Geben Sie „0“ ein, um die Funktion zu deaktivieren. Beispiel: „1d“ bedeutet, dass die Aufgabe einen Tag vor dem Fälligkeitstermin als „Fällig“ angezeigt wird.",
           "chore_due_reminder_offset": "Legt fest, wann die Fälligkeitserinnerung gesendet wird. Format: „1d 6h 30m“ oder nur „30“ für Minuten. Standard: „30m“ (30 Minuten vor dem Fälligkeitstermin). Geben Sie „0“ ein, um die Funktion zu deaktivieren.",
-          "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
-          "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Choose 'Not set' to let the app decide; it is not the same as 'default'. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
+          "chore_notification_channel": "Optional. Nur Android. Gruppiert die Benachrichtigungen dieser Aufgabe in einem benannten Android-Kanal, sodass Ton, Priorität und „Nicht stören“-Verhalten auf dem Gerät separat festgelegt werden können. Leer lassen, um die Standardeinstellung der App zu verwenden. iOS ignoriert diese Einstellung.",
+          "chore_notification_importance": "Optional. Nur Android. Legt fest, wie auffällig die Benachrichtigungen dieser Aufgabe erscheinen: „Hoch“ wird auf dem Bildschirm eingeblendet und gibt einen Ton aus, „Standard“ gibt nur einen Ton aus, „Niedrig“ und „Minimal“ bleiben stumm. Wählen Sie „Nicht festgelegt“, damit die App entscheidet; dies ist nicht dasselbe wie „Standard“. Erfordert einen Benachrichtigungskanal. Hinweis: Dies legt den ANFÄNGLICHEN Zustand des Kanals fest, wenn ein Gerät diesen Kanalnamen zum ersten Mal verwendet. Die Integration kann ihn danach nicht mehr ändern; der Benutzer kann ihn jedoch jederzeit in den Android-Benachrichtigungseinstellungen ändern. Durch das Festlegen dieser Option erhält jedes Gerät von Anfang an die richtige Einstellung, ohne dass sie manuell angepasst werden muss. iOS ignoriert diese Einstellung.",
           "show_on_calendar": "Diese Aufgabe in der Kalenderansicht anzeigen.",
           "chore_notifications": "Legt fest, wann Benachrichtigungen gesendet werden: bei Übernahme, Genehmigung, Ablehnung oder einer beliebigen Kombination.",
           "standby_claim_mode": "Steuert, wann Bereitschaftsserver diese Aufgabe übernehmen können (jederzeit, bei Überschreitung der Fälligkeit, nur manuell). Gilt nur für die Abschlusskriterien von primären und Bereitschaftsservern."
@@ -1062,8 +1062,8 @@
               "dashboard_language": "Sprache",
               "mobile_notify_service": "Benachrichtigungen",
               "notif_click_url": "URL beim Antippen der Benachrichtigung",
-              "notification_priority": "Delivery priority",
-              "notification_ttl": "Notification lifetime (seconds)"
+              "notification_priority": "Zustellungspriorität",
+              "notification_ttl": "Gültigkeitsdauer der Benachrichtigung (Sekunden)"
             },
             "data_description": {
               "name": "Eindeutiger Name für dieses Benutzerprofil.",
@@ -1071,8 +1071,8 @@
               "dashboard_language": "Sprache für Dashboard-Inhalte und Benachrichtigungen.",
               "mobile_notify_service": "Wählen Sie einen Benachrichtigungsdienst aus oder lassen Sie das Feld leer, um Benachrichtigungen zu deaktivieren.",
               "notif_click_url": "Optionale URL, die beim Antippen der Benachrichtigung geöffnet wird. Lassen Sie das Feld leer, um das Standardverhalten zu verwenden.",
-              "notification_priority": "Android only. High asks the mobile app to deliver immediately even while the device is asleep; Normal may be delayed until it wakes. iOS ignores this.",
-              "notification_ttl": "Optional. Android only. How long delivery keeps being retried before the notification is dropped as stale. Leave empty for the platform default of 28 days; 0 discards anything that cannot be delivered right away. A good value is shorter than how often the chore recurs, so a retry can never arrive looking like the next occurrence - for a daily chore, around 20 hours. iOS ignores this."
+              "notification_priority": "Nur Android. „Hoch“ weist die mobile App an, die Benachrichtigung auch im Ruhezustand des Geräts sofort zuzustellen. „Normal“ kann die Zustellung verzögern, bis das Gerät wieder aktiv ist. iOS ignoriert diese Einstellung.",
+              "notification_ttl": "Optional. Nur Android. Legt fest, wie lange die Zustellung erneut versucht wird, bevor die Benachrichtigung als veraltet verworfen wird. Leer lassen, um den Plattformstandard von 28 Tagen zu verwenden; bei 0 werden Benachrichtigungen verworfen, die nicht sofort zugestellt werden können. Ein sinnvoller Wert ist kürzer als das Wiederholungsintervall der Aufgabe, damit ein erneuter Zustellungsversuch nicht mit der nächsten Fälligkeit verwechselt werden kann – bei einer täglichen Aufgabe beispielsweise etwa 20 Stunden. iOS ignoriert diese Einstellung."
             }
           },
           "section_system_usage": {
@@ -1106,7 +1106,7 @@
               "associated_user_ids": "Benutzer, deren Genehmigungen von dieser Person verwaltet werden.",
               "notif_approve_click_url": "Optionale URL für Genehmigungsbenachrichtigungen. Überschreibt die allgemeine Benachrichtigungs-URL beim Genehmigen von Aufgaben oder Belohnungen.",
               "chores_paused": "Pausiert die Verarbeitung von Aufgaben. Währenddessen werden keine Überfälligkeits- oder Versäumnisstatistiken erfasst.",
-              "chores_paused_until": "Optionales Rückkehrdatum. Wenn festgelegt, werden Aufgaben nach diesem Datum automatisch um Mitternacht fortgesetzt."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -1170,8 +1170,8 @@
               "auto_approve": "✅ Übernahmen automatisch genehmigen?",
               "overdue_handling_type": "⏰ Überfällig: Verarbeitung",
               "chore_due_reminder_offset": "🔔 Fälligkeitserinnerung: Versatz vor dem Fälligkeitstermin",
-              "chore_notification_channel": "🔔 Notification Channel",
-              "chore_notification_importance": "🔔 Notification Importance",
+              "chore_notification_channel": "Benachrichtigungskanal",
+              "chore_notification_importance": "Benachrichtigungspriorität",
               "chore_notifications": "🔔 Benachrichtigungsereignisse (optional)",
               "show_on_calendar": "📅 Im Kalender anzeigen?",
               "chore_labels": "📋 Schlagwörter (optional)"
@@ -1182,8 +1182,8 @@
               "auto_approve": "Wenn diese Option aktiviert ist, werden Übernahmen sofort genehmigt, ohne dass sie von einer genehmigungsberechtigten Person geprüft werden.",
               "overdue_handling_type": "Legt fest, was nach Ablauf des Fälligkeitstermins geschieht und wie überfällige Aufgaben bei der Genehmigungsrücksetzung behandelt werden.",
               "chore_due_reminder_offset": "Legt fest, wann die Fälligkeitserinnerung gesendet wird. Format: „1d 6h 30m“ oder nur „30“ für Minuten. Standard: „30m“ (30 Minuten vor dem Fälligkeitstermin). Geben Sie „0“ ein, um die Funktion zu deaktivieren.",
-              "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
-              "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Choose 'Not set' to let the app decide; it is not the same as 'default'. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
+              "chore_notification_channel": "Optional. Nur Android. Gruppiert die Benachrichtigungen dieser Aufgabe in einem benannten Android-Kanal, sodass Ton, Priorität und „Nicht stören“-Verhalten auf dem Gerät separat festgelegt werden können. Leer lassen, um die Standardeinstellung der App zu verwenden. iOS ignoriert diese Einstellung.",
+              "chore_notification_importance": "Optional. Nur Android. Legt fest, wie auffällig die Benachrichtigungen dieser Aufgabe erscheinen: „Hoch“ wird auf dem Bildschirm eingeblendet und gibt einen Ton aus, „Standard“ gibt nur einen Ton aus, „Niedrig“ und „Minimal“ bleiben stumm. Wählen Sie „Nicht festgelegt“, damit die App entscheidet; dies ist nicht dasselbe wie „Standard“. Erfordert einen Benachrichtigungskanal. Hinweis: Dies legt den ANFÄNGLICHEN Zustand des Kanals fest, wenn ein Gerät diesen Kanalnamen zum ersten Mal verwendet. Die Integration kann ihn danach nicht mehr ändern; der Benutzer kann ihn jedoch jederzeit in den Android-Benachrichtigungseinstellungen ändern. Durch das Festlegen dieser Option erhält jedes Gerät von Anfang an die richtige Einstellung, ohne dass sie manuell angepasst werden muss. iOS ignoriert diese Einstellung.",
               "chore_notifications": "Legt fest, wann Benachrichtigungen gesendet werden: bei Übernahme, Genehmigung, Ablehnung oder einer beliebigen Kombination.",
               "show_on_calendar": "Diese Aufgabe in der Kalenderansicht anzeigen.",
               "chore_labels": "Schlagwörter zum Organisieren von Aufgaben (z. B. „Küche“ oder „Garten“). Leer lassen, wenn nicht benötigt."
@@ -1212,8 +1212,8 @@
           "clear_due_date": "🗑️ Fälligkeitstermin entfernen",
           "chore_due_window_offset": "⏱️ Fälligkeitsfenster: Versatz vor dem Fälligkeitstermin",
           "chore_due_reminder_offset": "🔔 Fälligkeitserinnerung: Versatz vor dem Fälligkeitstermin",
-          "chore_notification_channel": "🔔 Notification Channel",
-          "chore_notification_importance": "🔔 Notification Importance",
+          "chore_notification_channel": "Benachrichtigungskanal",
+          "chore_notification_importance": "Benachrichtigungspriorität",
           "show_on_calendar": "📅 Im Kalender anzeigen?",
           "chore_notifications": "🔔 Benachrichtigungsereignisse (optional)",
           "standby_claim_mode": "🔑 Standby-Übernahmemodus"
@@ -1239,8 +1239,8 @@
           "clear_due_date": "Aktivieren Sie dieses Kontrollkästchen, um den Fälligkeitstermin dieser Aufgabe zu entfernen.",
           "chore_due_window_offset": "Wenn der Status der Aufgabe von „Ausstehend“ zu „Fällig“ wechselt. Format: „1d 6h 30m“ oder nur „30“ für Minuten. Geben Sie „0“ ein, um die Funktion zu deaktivieren. Beispiel: „1d“ bedeutet, dass die Aufgabe einen Tag vor dem Fälligkeitstermin als „Fällig“ angezeigt wird.",
           "chore_due_reminder_offset": "Legt fest, wann die Fälligkeitserinnerung gesendet wird. Format: „1d 6h 30m“ oder nur „30“ für Minuten. Standard: „30m“ (30 Minuten vor dem Fälligkeitstermin). Geben Sie „0“ ein, um die Funktion zu deaktivieren.",
-          "chore_notification_channel": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately on the device. Leave empty to use the app default. iOS ignores this.",
-          "chore_notification_importance": "Optional. Android only. How prominently this chore's notifications alert: 'high' pops on screen and makes a sound, 'default' makes a sound only, 'low'/'min' stay silent. Choose 'Not set' to let the app decide; it is not the same as 'default'. Requires a Notification Channel. Note: this sets the channel's INITIAL state, the first time a device sees that channel name. The integration cannot change it afterwards, though the person can at any time in Android's notification settings. Sending it means every device starts correct without anyone adjusting it by hand. iOS ignores this.",
+          "chore_notification_channel": "Optional. Nur Android. Gruppiert die Benachrichtigungen dieser Aufgabe in einem benannten Android-Kanal, sodass Ton, Priorität und „Nicht stören“-Verhalten auf dem Gerät separat festgelegt werden können. Leer lassen, um die Standardeinstellung der App zu verwenden. iOS ignoriert diese Einstellung.",
+          "chore_notification_importance": "Optional. Nur Android. Legt fest, wie auffällig die Benachrichtigungen dieser Aufgabe erscheinen: „Hoch“ wird auf dem Bildschirm eingeblendet und gibt einen Ton aus, „Standard“ gibt nur einen Ton aus, „Niedrig“ und „Minimal“ bleiben stumm. Wählen Sie „Nicht festgelegt“, damit die App entscheidet; dies ist nicht dasselbe wie „Standard“. Erfordert einen Benachrichtigungskanal. Hinweis: Dies legt den ANFÄNGLICHEN Zustand des Kanals fest, wenn ein Gerät diesen Kanalnamen zum ersten Mal verwendet. Die Integration kann ihn danach nicht mehr ändern; der Benutzer kann ihn jedoch jederzeit in den Android-Benachrichtigungseinstellungen ändern. Durch das Festlegen dieser Option erhält jedes Gerät von Anfang an die richtige Einstellung, ohne dass sie manuell angepasst werden muss. iOS ignoriert diese Einstellung.",
           "show_on_calendar": "Diese Aufgabe in der Kalenderansicht anzeigen.",
           "chore_notifications": "Legt fest, wann Benachrichtigungen gesendet werden: bei Übernahme, Genehmigung, Ablehnung oder einer beliebigen Kombination.",
           "standby_claim_mode": "Legt fest, wann Bereitschaftspersonen diese Aufgabe übernehmen können (jederzeit, bei Überfälligkeit oder nur manuell). Gilt nur für das Abschlusskriterium „Primär & Bereitschaft“."
@@ -2120,8 +2120,8 @@
     },
     "notification_priority": {
       "options": {
-        "normal": "Normal (may be delayed while the device is asleep)",
-        "high": "High (deliver immediately, even while the device is asleep)"
+        "normal": "Normal (kann im Ruhezustand des Geräts verzögert werden)",
+        "high": "Hoch (sofort zustellen, auch im Ruhezustand des Geräts)"
       }
     },
     "completion_criteria": {
@@ -2253,12 +2253,12 @@
     },
     "notification_importance": {
       "options": {
-        "none": "Not set (app decides)",
-        "min": "Minimum (no sound, collapsed)",
-        "low": "Low (no sound)",
-        "default": "Default (makes a sound)",
-        "high": "High (pops on screen and makes a sound)",
-        "max": "Maximum (pops on screen, most urgent)"
+        "none": "Nicht festgelegt (App entscheidet)",
+        "min": "Minimal (kein Ton, minimiert)",
+        "low": "Niedrig (kein Ton)",
+        "default": "Standard (mit Ton)",
+        "high": "Hoch (wird auf dem Bildschirm eingeblendet und gibt einen Ton aus)",
+        "max": "Maximal (wird auf dem Bildschirm eingeblendet, höchste Priorität)"
       }
     }
   },
@@ -2358,7 +2358,7 @@
     },
     "pause_user_chores": {
       "name": "Aufgaben des Benutzers pausieren",
-      "description": "Pausiert oder setzt die Aufgabenverarbeitung für einen Benutzer fort. Beim Fortsetzen legt unpause_action fest, ob überfällige Aufgaben neu geplant werden, um einen sofortigen Übergang in den Status „überfällig“ zu verhindern.",
+      "description": "Pause or resume chore processing for a user. While paused, no overdue or missed stats accumulate and rotation advances past this user. When resuming, Unpause Action decides whether dates missed while paused are shifted forward.",
       "fields": {
         "config_entry_id": {
           "name": "Konfigurationseintrags-ID (optional)",
@@ -2377,17 +2377,17 @@
         },
         "paused": {
           "name": "Pausiert",
-          "description": "Wahr, um Aufgaben zu pausieren, Falsch, um sie fortzusetzen.",
+          "description": "True to pause chores, False to resume. See Unpause Action for what happens to dates missed while paused.",
           "example": "wahr"
         },
         "paused_until": {
           "name": "Angehalten bis",
-          "description": "Optionales Rückkehrdatum. Falls angegeben, werden die Aufgaben nach diesem Datum um Mitternacht automatisch fortgesetzt.",
+          "description": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net). Only valid while pausing (paused: true) - omit it when resuming.",
           "example": "2026-06-10T00:00:00+00:00"
         },
         "unpause_action": {
           "name": "Aktion fortsetzen",
-          "description": "Gilt nur, wenn pausieren=unwahr. Legt fest, ob überfällige Aufgaben beim Fortsetzen neu geplant werden. Standard: fortsetzen (keine Neuplanung).",
+          "description": "On resume: decides what happens to due dates that passed while the user was paused - keep them as they are (they may show as overdue), or shift them forward so chores continue from the next occurrence. When pausing: remembers this choice and applies it at the next manual or automatic resume. Pass 'unpause' on a resume call to ignore a remembered choice; omit this field when re-pausing to clear it.",
           "example": "Fortsetzen beim unabhängigen Wechsel"
         }
       }
@@ -2815,12 +2815,12 @@
           "example": "30m"
         },
         "notification_channel": {
-          "name": "Notification Channel",
-          "description": "Optional. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately from other chores. Leave empty to use the app default. iOS ignores this."
+          "name": "Benachrichtigungskanal",
+          "description": "Optional. Nur Android. Gruppiert die Benachrichtigungen dieser Aufgabe in einem benannten Android-Kanal, sodass Ton, Priorität und „Nicht stören“-Verhalten auf dem Gerät separat festgelegt werden können. Leer lassen, um die Standardeinstellung der App zu verwenden. iOS ignoriert diese Einstellung."
         },
         "notification_importance": {
-          "name": "Notification Importance",
-          "description": "Optional. Android only. How prominently this chore's notifications alert (min, low, default, high, max). Requires notification_channel. Note: sets the channel's INITIAL state the first time a device sees that channel name. The integration cannot change it afterwards; the person still can, in Android settings. iOS ignores this."
+          "name": "Benachrichtigungspriorität",
+          "description": "Optional. Nur Android. Gruppiert die Benachrichtigungen dieser Aufgabe in einem benannten Android-Kanal, sodass Ton, Priorität und „Nicht stören“-Verhalten auf dem Gerät separat festgelegt werden können. Leer lassen, um die Standardeinstellung der App zu verwenden. iOS ignoriert diese Einstellung."
         },
         "standby_claim_mode": {
           "name": "Bereitschaftsmodus für Übernahmen",
@@ -2973,12 +2973,12 @@
           "example": "30m"
         },
         "notification_channel": {
-          "name": "Notification Channel",
-          "description": "New notification channel. Android only. Groups this chore's notifications under a named Android channel, so its sound, importance and Do Not Disturb behavior can be set separately from other chores. Leave empty to use the app default. iOS ignores this."
+          "name": "Benachrichtigungskanal",
+          "description": "Neuer Benachrichtigungskanal. Nur Android. Gruppiert die Benachrichtigungen dieser Aufgabe in einem benannten Android-Kanal, sodass Ton, Priorität und „Nicht stören“-Verhalten getrennt von anderen Aufgaben festgelegt werden können. Leer lassen, um die Standardeinstellung der App zu verwenden. iOS ignoriert diese Einstellung."
         },
         "notification_importance": {
-          "name": "Notification Importance",
-          "description": "Optional. Android only. How prominently this chore's notifications alert (min, low, default, high, max). Requires notification_channel. Note: sets the channel's INITIAL state the first time a device sees that channel name. The integration cannot change it afterwards; the person still can, in Android settings. iOS ignores this."
+          "name": "Benachrichtigungspriorität",
+          "description": "Optional. Nur Android. Legt fest, wie auffällig die Benachrichtigungen dieser Aufgabe erscheinen (minimal, niedrig, Standard, hoch, maximal). Erfordert einen Benachrichtigungskanal. Hinweis: Legt den ANFÄNGLICHEN Zustand des Kanals fest, wenn ein Gerät diesen Kanalnamen zum ersten Mal verwendet. Die Integration kann ihn danach nicht mehr ändern; der Benutzer kann ihn jedoch weiterhin in den Android-Einstellungen ändern. iOS ignoriert diese Einstellung."
         },
         "assignment_action": {
           "name": "Aktion für Zuweisung",
@@ -5706,6 +5706,9 @@
     },
     "invalid_date_format": {
       "message": "Ungültiges Datumsformat. Bitte geben Sie ein gültiges Datum an (z. B. YYYY-MM-DD oder ISO-8601-Datum/Uhrzeit)"
+    },
+    "until_on_resume": {
+      "message": "Paused Until can only be set while pausing (paused: true). Omit it when resuming."
     },
     "date_in_past": {
       "message": "Das Fälligkeitsdatum darf nicht in der Vergangenheit liegen. Bitte geben Sie ein zukünftiges Datum an"
