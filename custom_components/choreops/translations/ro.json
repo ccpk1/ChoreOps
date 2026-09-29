@@ -127,7 +127,7 @@
               "associated_user_ids": "Utilizatori pe care acest aprobator/administrator îi supervizează pentru acțiunile de aprobare.",
               "notif_approve_click_url": "URL opțional pentru notificările de aprobare. Suprascrie URL-ul general pentru notificări la atingere atunci când se aprobă sarcini casnice sau recompense.",
               "chores_paused": "Întrerupe procesarea sarcinilor. Nu se acumulează statistici restante sau ratate.",
-              "chores_paused_until": "Dată de revenire opțională. Dacă este setată, treburile casnice se reiau automat la miezul nopții după această dată."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -642,7 +642,7 @@
               "associated_user_ids": "Utilizatori pe care acest aprobator/administrator îi supervizează pentru acțiunile de aprobare.",
               "notif_approve_click_url": "URL opțional pentru notificările de aprobare. Suprascrie URL-ul general pentru notificări la atingere atunci când se aprobă sarcini casnice sau recompense.",
               "chores_paused": "Întrerupe procesarea sarcinilor. Nu se acumulează statistici restante sau ratate.",
-              "chores_paused_until": "Dată de revenire opțională. Dacă este setată, treburile casnice se reiau automat la miezul nopții după această dată."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -1106,7 +1106,7 @@
               "associated_user_ids": "Utilizatori pe care acest aprobator/administrator îi supervizează pentru acțiunile de aprobare.",
               "notif_approve_click_url": "URL opțional pentru notificările de aprobare. Suprascrie URL-ul general pentru notificări la atingere atunci când se aprobă sarcini casnice sau recompense.",
               "chores_paused": "Întrerupe procesarea sarcinilor. Nu se acumulează statistici restante sau ratate.",
-              "chores_paused_until": "Dată de revenire opțională. Dacă este setată, treburile casnice se reiau automat la miezul nopții după această dată."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -2358,7 +2358,7 @@
     },
     "pause_user_chores": {
       "name": "Întrerupeți sarcinile utilizatorului",
-      "description": "Întrerupe sau reia procesarea sarcinilor pentru un utilizator. La reluarea întreruperii, unpause_action controlează dacă sarcinile restante sunt reprogramate pentru a preveni tranzițiile imediate restante.",
+      "description": "Pause or resume chore processing for a user. While paused, no overdue or missed stats accumulate and rotation advances past this user. When resuming, Unpause Action decides whether dates missed while paused are shifted forward.",
       "fields": {
         "config_entry_id": {
           "name": "ID intrare configurație (opțional)",
@@ -2377,17 +2377,17 @@
         },
         "paused": {
           "name": "Întrerupt",
-          "description": "Adevărat pentru a întrerupe treburile, Fals pentru a le relua.",
+          "description": "True to pause chores, False to resume. See Unpause Action for what happens to dates missed while paused.",
           "example": "adevărat"
         },
         "paused_until": {
           "name": "Întrerupt până la",
-          "description": "Dată de revenire opțională. Dacă este setată, treburile casnice se reiau automat la miezul nopții după această dată.",
+          "description": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net). Only valid while pausing (paused: true) - omit it when resuming.",
           "example": "2026-06-10T00:00:00+00:00"
         },
         "unpause_action": {
           "name": "Reluare acțiune",
-          "description": "Se aplică numai când paused=false. Controlează dacă sarcinile restante sunt reprogramate în timpul reluării pauzei. Implicit: reluare pauză (fără reprogramare).",
+          "description": "On resume: decides what happens to due dates that passed while the user was paused - keep them as they are (they may show as overdue), or shift them forward so chores continue from the next occurrence. When pausing: remembers this choice and applies it at the next manual or automatic resume. Pass 'unpause' on a resume call to ignore a remembered choice; omit this field when re-pausing to clear it.",
           "example": "reluare_de_schimb_independent"
         }
       }
@@ -5706,6 +5706,9 @@
     },
     "invalid_date_format": {
       "message": "Format de dată nevalid. Vă rugăm să furnizați un șir de date valid (de exemplu, AAAA-LL-ZZ sau data și ora ISO 8601)."
+    },
+    "until_on_resume": {
+      "message": "Paused Until can only be set while pausing (paused: true). Omit it when resuming."
     },
     "date_in_past": {
       "message": "Data scadenței nu poate fi în trecut. Vă rugăm să furnizați o dată viitoare."

@@ -127,7 +127,7 @@
               "associated_user_ids": "Usuarios que este aprobador/administrador supervisa para acciones de aprobación.",
               "notif_approve_click_url": "URL opcional para notificaciones de aprobación. Anula la URL general de notificación al aprobar tareas o recompensas.",
               "chores_paused": "Pausa el procesamiento de tareas. No se acumulan estadísticas atrasadas ni perdidas.",
-              "chores_paused_until": "Fecha de regreso opcional. Si se establece, las tareas se reanudarán automáticamente a medianoche después de esta fecha."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -642,7 +642,7 @@
               "associated_user_ids": "Usuarios que este aprobador/administrador supervisa para acciones de aprobación.",
               "notif_approve_click_url": "URL opcional para notificaciones de aprobación. Anula la URL general de notificación al aprobar tareas o recompensas.",
               "chores_paused": "Pausa el procesamiento de tareas. No se acumulan estadísticas atrasadas ni perdidas.",
-              "chores_paused_until": "Fecha de regreso opcional. Si se establece, las tareas se reanudarán automáticamente a medianoche después de esta fecha."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -1106,7 +1106,7 @@
               "associated_user_ids": "Usuarios que este aprobador/administrador supervisa para acciones de aprobación.",
               "notif_approve_click_url": "URL opcional para notificaciones de aprobación. Anula la URL general de notificación al aprobar tareas o recompensas.",
               "chores_paused": "Pausa el procesamiento de tareas. No se acumulan estadísticas atrasadas ni perdidas.",
-              "chores_paused_until": "Fecha de regreso opcional. Si se establece, las tareas se reanudarán automáticamente a medianoche después de esta fecha."
+              "chores_paused_until": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net)."
             }
           }
         }
@@ -2358,7 +2358,7 @@
     },
     "pause_user_chores": {
       "name": "Pausar las tareas del usuario",
-      "description": "Pausa o reanuda el procesamiento de tareas para un usuario. Al reanudar, la acción `unpause_action` controla si las tareas vencidas se reprograman para evitar transiciones inmediatas a tareas vencidas.",
+      "description": "Pause or resume chore processing for a user. While paused, no overdue or missed stats accumulate and rotation advances past this user. When resuming, Unpause Action decides whether dates missed while paused are shifted forward.",
       "fields": {
         "config_entry_id": {
           "name": "ID de entrada de configuración (opcional)",
@@ -2377,17 +2377,17 @@
         },
         "paused": {
           "name": "Pausa",
-          "description": "Verdadero para pausar las tareas, falso para reanudarlas.",
+          "description": "True to pause chores, False to resume. See Unpause Action for what happens to dates missed while paused.",
           "example": "verdadero"
         },
         "paused_until": {
           "name": "Pausa hasta",
-          "description": "Fecha de regreso opcional. Si se establece, las tareas se reanudarán automáticamente a medianoche después de esta fecha.",
+          "description": "Optional return date and time. If set, chores auto-resume at that date and time (checked every few minutes; a nightly pass is a safety net). Only valid while pausing (paused: true) - omit it when resuming.",
           "example": "2026-06-10T00:00:00+00:00"
         },
         "unpause_action": {
           "name": "Reanudar la acción",
-          "description": "Solo se aplica cuando paused=false. Controla si las tareas vencidas se reprograman al reanudar la actividad. Predeterminado: reanudar la actividad (sin reprogramar).",
+          "description": "On resume: decides what happens to due dates that passed while the user was paused - keep them as they are (they may show as overdue), or shift them forward so chores continue from the next occurrence. When pausing: remembers this choice and applies it at the next manual or automatic resume. Pass 'unpause' on a resume call to ignore a remembered choice; omit this field when re-pausing to clear it.",
           "example": "reanudar_cambio_independiente"
         }
       }
@@ -5706,6 +5706,9 @@
     },
     "invalid_date_format": {
       "message": "Formato de fecha no válido. Proporcione una cadena de fecha válida (p. ej., AAAA-MM-DD o fecha y hora ISO 8601)."
+    },
+    "until_on_resume": {
+      "message": "Paused Until can only be set while pausing (paused: true). Omit it when resuming."
     },
     "date_in_past": {
       "message": "La fecha de vencimiento no puede ser pasada. Por favor, proporcione una fecha futura."
