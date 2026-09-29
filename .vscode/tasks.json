@@ -39,7 +39,7 @@
     {
       "label": "🧪 Run ChoreOps Tests",
       "type": "shell",
-      "command": "./utils/run_tests.sh tests/ -v --tb=line",
+      "command": "./utils/run_tests.sh tests/ -q --tb=line",
       "group": {
         "kind": "test",
         "isDefault": true
