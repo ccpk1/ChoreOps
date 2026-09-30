@@ -3831,6 +3831,15 @@ class AssigneeAchievementProgressSensor(ChoreOpsCoordinatorEntity, SensorEntity)
             else False
         )
 
+        last_awarded_dates = achievement.get(
+            const.DATA_USER_BADGES_EARNED_LAST_AWARDED, {}
+        )
+        last_awarded_date = (
+            last_awarded_dates.get(self._assignee_id, const.SENTINEL_NONE)
+            if isinstance(last_awarded_dates, dict)
+            else const.SENTINEL_NONE
+        )
+
         if achievement.get(const.DATA_ACHIEVEMENT_TYPE) == const.ACHIEVEMENT_TYPE_TOTAL:
             current_value = (
                 progress_data.get(
@@ -3920,6 +3929,7 @@ class AssigneeAchievementProgressSensor(ChoreOpsCoordinatorEntity, SensorEntity)
             ),
             const.ATTR_RAW_PROGRESS: raw_progress,
             const.ATTR_AWARDED: awarded,
+            const.DATA_USER_BADGES_EARNED_LAST_AWARDED: last_awarded_date,
             const.ATTR_LABELS: friendly_labels,
         }
 

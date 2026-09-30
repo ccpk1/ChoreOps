@@ -472,6 +472,18 @@ class GamificationManager(BaseManager):
             achievement_info.get(const.DATA_ACHIEVEMENT_TARGET_VALUE, 1)
         )
 
+        # Preserve the first award timestamp per assignee. This supports
+        # season-aware displays without changing repeat evaluation behavior.
+        last_awarded_dates = achievement_info.setdefault(
+            const.DATA_USER_BADGES_EARNED_LAST_AWARDED, {}
+        )
+        if not isinstance(last_awarded_dates, dict):
+            last_awarded_dates = {}
+            achievement_info[const.DATA_USER_BADGES_EARNED_LAST_AWARDED] = (
+                last_awarded_dates
+            )
+        last_awarded_dates.setdefault(assignee_id, dt_now_utc_iso())
+
         # Award the extra reward points defined in the achievement
         extra_points = achievement_info.get(
             const.DATA_ACHIEVEMENT_REWARD_POINTS, const.DEFAULT_ZERO
